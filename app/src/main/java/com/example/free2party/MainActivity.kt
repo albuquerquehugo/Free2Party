@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.free2party.ui.screens.Routes
+import com.example.free2party.ui.navigation.Routes
 import com.example.free2party.ui.screens.home.HomeScreen
 import com.example.free2party.ui.screens.login.LoginScreen
 import com.example.free2party.ui.theme.Free2PartyTheme
