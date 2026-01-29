@@ -1,4 +1,4 @@
-package com.example.free2party.ui.screens.login
+package com.example.free2party.ui.screens.register
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,10 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun LoginScreen(
-    viewModel: LoginViewModel = viewModel(),
-    onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+fun RegisterScreen(
+    viewModel: RegisterViewModel = viewModel(),
+    onRegisterSuccess: () -> Unit,
+    onBackToLogin: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -34,8 +34,17 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Free2Party", style = MaterialTheme.typography.headlineLarge)
+        Text(text = "Create Account", style = MaterialTheme.typography.headlineLarge)
         Spacer(modifier = Modifier.height(32.dp))
+
+        OutlinedTextField(
+            value = viewModel.displayName,
+            onValueChange = { viewModel.displayName = it },
+            label = { Text("Display Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = viewModel.email,
@@ -64,18 +73,18 @@ fun LoginScreen(
             CircularProgressIndicator()
         } else {
             Button(
-                onClick = { viewModel.onLoginClick(onLoginSuccess) },
+                onClick = { viewModel.onRegisterClick(onRegisterSuccess) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                Text("Login")
+                Text("Register")
             }
-
+            
             Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = onNavigateToRegister) {
-                Text("Don't have an account? Register")
+            
+            TextButton(onClick = onBackToLogin) {
+                Text("Already have an account? Login")
             }
         }
     }

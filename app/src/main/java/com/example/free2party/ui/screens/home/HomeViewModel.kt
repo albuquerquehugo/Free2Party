@@ -5,25 +5,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.free2party.BuildConfig
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 
 class HomeViewModel : ViewModel() {
-    private val db = Firebase.firestore
     private val auth = Firebase.auth
+    private val db = Firebase.firestore
 
     // State to track if the current user is free
     var isUserFree by mutableStateOf(false)
     var isLoading by mutableStateOf(false)
 
     init {
-        if (BuildConfig.DEBUG) {
-            db.useEmulator("10.0.2.2", 8080)
-            auth.useEmulator("10.0.2.2", 9099)
-        }
         fetchCurrentStatus()
     }
 
