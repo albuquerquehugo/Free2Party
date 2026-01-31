@@ -17,11 +17,22 @@ class FriendViewModel : ViewModel() {
     var statusMessage by mutableStateOf("")
 
     fun findAndAddFriend() {
-        if (searchQuery.isBlank()) return
+        val currentEmail = auth.currentUser?.email
+        val inputEmail = searchQuery.trim()
+
+        if (inputEmail.isBlank()) {
+            statusMessage = "Please enter a valid email."
+            return
+        }
+
+        if (inputEmail.equals(currentEmail, ignoreCase = true)) {
+            statusMessage = "You cannot add yourself as a friend."
+            return
+        }
 
         isSearching = true
         db.collection("users")
-            .whereEqualTo("email", searchQuery.trim())
+            .whereEqualTo("email", inputEmail)
             .get()
             .addOnSuccessListener { documents ->
                 if (documents.isEmpty) {
@@ -39,20 +50,30 @@ class FriendViewModel : ViewModel() {
 
     private fun addFriendToCollection(friendUid: String, friendName: String) {
         val myUid = auth.currentUser?.uid ?: return
+        val friendRef =
+            db.collection("users").document(myUid)
+                .collection("friends").document(friendUid)
 
-        val friendData = hashMapOf(
-            "uid" to friendUid,
-            "displayName" to friendName,
-            "addedAt" to FieldValue.serverTimestamp()
-        )
-
-        db.collection("users").document(myUid)
-            .collection("friends").document(friendUid)
-            .set(friendData)
-            .addOnSuccessListener {
-                statusMessage = "Friend \"$friendName\" added successfully."
+        friendRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                statusMessage = "Friend already added."
                 isSearching = false
-                searchQuery = ""
+            } else {
+                val friendData = hashMapOf(
+                    "uid" to friendUid,
+                    "displayName" to friendName,
+                    "addedAt" to FieldValue.serverTimestamp()
+                )
+
+                friendRef.set(friendData).addOnSuccessListener {
+                    statusMessage = "Friend \"$friendName\" added successfully."
+                    isSearching = false
+                    searchQuery = ""
+                }
             }
+        }.addOnFailureListener {
+            statusMessage = "Error checking friend status."
+            isSearching = false
+        }
     }
 }

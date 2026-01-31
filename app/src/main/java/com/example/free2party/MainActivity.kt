@@ -79,7 +79,11 @@ fun Free2PartyNavGraph() {
 
         // -- Add Friend Screen ---
         composable(Routes.ADD_FRIEND) {
-            AddFriendScreen()
+            AddFriendScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
