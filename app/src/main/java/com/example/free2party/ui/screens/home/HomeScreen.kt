@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +23,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,15 +37,29 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
+    onLogout: () -> Unit,
     onAddFriendClick: () -> Unit
 ) {
+    val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Free2Party") },
                 actions = {
                     IconButton(onClick = onAddFriendClick) {
-                        Icon(imageVector = Icons.Default.PersonAdd, contentDescription = "Add Friend")
+                        Icon(
+                            imageVector = Icons.Default.PersonAdd,
+                            contentDescription = "Add Friend"
+                        )
+                    }
+
+                    IconButton(onClick = { setShowLogoutDialog(true) }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             )
@@ -80,6 +99,27 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { setShowLogoutDialog(false) },
+                title = { Text("Logout") },
+                text = { Text("Are you sure you want to logout?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        setShowLogoutDialog(false)
+                        viewModel.logout(onLogout)
+                    }) {
+                        Text("Logout", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { setShowLogoutDialog(false) }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

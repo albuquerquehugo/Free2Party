@@ -22,6 +22,11 @@ class HomeViewModel : ViewModel() {
         fetchCurrentStatus()
     }
 
+    fun logout(onLogoutSuccess: () -> Unit) {
+        auth.signOut()
+        onLogoutSuccess()
+    }
+
     private fun fetchCurrentStatus() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid)

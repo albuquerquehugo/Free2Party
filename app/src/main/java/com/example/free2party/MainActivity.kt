@@ -14,6 +14,8 @@ import com.example.free2party.ui.screens.home.HomeScreen
 import com.example.free2party.ui.screens.login.LoginScreen
 import com.example.free2party.ui.screens.register.RegisterScreen
 import com.example.free2party.ui.theme.Free2PartyTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +32,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Free2PartyNavGraph() {
     val navController = rememberNavController()
+    val startDest = if (Firebase.auth.currentUser != null) Routes.HOME else Routes.LOGIN
 
-    NavHost(navController = navController, startDestination = Routes.LOGIN) {
+    NavHost(navController = navController, startDestination = startDest) {
         // --- Login Screen ---
         composable(Routes.LOGIN) {
             LoginScreen(
@@ -63,6 +66,11 @@ fun Free2PartyNavGraph() {
         // --- Home Screen ---
         composable(Routes.HOME) {
             HomeScreen(
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 onAddFriendClick = {
                     navController.navigate(Routes.ADD_FRIEND)
                 }
