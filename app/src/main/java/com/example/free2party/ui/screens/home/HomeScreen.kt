@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -83,19 +84,26 @@ fun HomeScreen(
         ) {
             Text(
                 text = if (viewModel.isUserFree) "You are Free2Party" else "You are currently busy",
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        if (viewModel.isUserFree) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.errorContainer
+                    )
+                    .padding(horizontal = 32.dp, vertical = 8.dp),
                 style = MaterialTheme.typography.headlineMedium,
-                color =
-                    if (viewModel.isUserFree) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.error
+                color = if (viewModel.isUserFree) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onErrorContainer
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Availability toggle button
             Box(
                 modifier = Modifier
-                    .size(200.dp)
-                    .clip(CircleShape)
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+                    .height(56.dp)
+                    .clip(MaterialTheme.shapes.medium)
                     .background(
                         if (viewModel.isUserFree) MaterialTheme.colorScheme.error
                         else MaterialTheme.colorScheme.primary
@@ -115,6 +123,8 @@ fun HomeScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(48.dp))
 
             FriendsListSection(friends = viewModel.friendsStatusList)
         }
@@ -146,50 +156,62 @@ fun HomeScreen(
 fun FriendsListSection(friends: List<FriendStatus>) {
     Text(
         text = "Friends' Availability",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(vertical = 16.dp)
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
     )
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(friends) { friend ->
-            Card(
-                modifier = Modifier.fillMaxSize(),
-                colors = CardDefaults.cardColors(
-                    containerColor =
-                        if (friend.isFree) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.error
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    if (friends.isEmpty()) {
+        Text(
+            text = "You don't have any friends yet!",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(friends) { friend ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor =
+                            if (friend.isFree) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (friend.isFree) MaterialTheme.colorScheme.available
-                                else MaterialTheme.colorScheme.busy
-                            )
-                    )
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (friend.isFree) MaterialTheme.colorScheme.available
+                                    else MaterialTheme.colorScheme.busy
+                                )
+                        )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                    Text(
-                        text = friend.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (friend.isFree) FontWeight.Bold else FontWeight.Normal
-                    )
+                        Text(
+                            text = friend.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (friend.isFree) FontWeight.Bold else FontWeight.Normal
+                        )
 
-                    Spacer(modifier = Modifier.weight(1.0f))
+                        Spacer(modifier = Modifier.weight(1.0f))
 
-                    Text(
-                        text = if (friend.isFree) "Free2Party" else "Busy",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                        Text(
+                            text = if (friend.isFree) "Free2Party" else "Busy",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
