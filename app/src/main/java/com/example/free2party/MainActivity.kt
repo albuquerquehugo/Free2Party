@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.free2party.ui.navigation.Routes
+import com.example.free2party.ui.screens.addfriend.AddFriendScreen
 import com.example.free2party.ui.screens.home.HomeScreen
 import com.example.free2party.ui.screens.login.LoginScreen
 import com.example.free2party.ui.screens.register.RegisterScreen
@@ -61,7 +62,16 @@ fun Free2PartyNavGraph() {
 
         // --- Home Screen ---
         composable(Routes.HOME) {
-            HomeScreen()
+            HomeScreen(
+                onAddFriendClick = {
+                    navController.navigate(Routes.ADD_FRIEND)
+                }
+            )
+        }
+
+        // -- Add Friend Screen ---
+        composable(Routes.ADD_FRIEND) {
+            AddFriendScreen()
         }
     }
 }
