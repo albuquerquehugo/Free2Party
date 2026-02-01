@@ -18,14 +18,14 @@ class FriendViewModel : ViewModel() {
 
     fun findAndAddFriend() {
         val currentEmail = auth.currentUser?.email
-        val inputEmail = searchQuery.trim()
+        val inputEmail = searchQuery.trim().lowercase()
 
         if (inputEmail.isBlank()) {
             statusMessage = "Please enter a valid email."
             return
         }
 
-        if (inputEmail.equals(currentEmail, ignoreCase = true)) {
+        if (inputEmail == currentEmail) {
             statusMessage = "You cannot add yourself as a friend."
             return
         }

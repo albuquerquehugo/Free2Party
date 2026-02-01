@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -18,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -53,10 +57,17 @@ fun AddFriendScreen(
             OutlinedTextField(
                 value = viewModel.searchQuery,
                 onValueChange = { viewModel.searchQuery = it },
-                label = { Text("Friend's Email") },
+                label = { Text("Email") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                    .padding(vertical = 16.dp),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { viewModel.findAndAddFriend() }
+                )
             )
 
             Button(

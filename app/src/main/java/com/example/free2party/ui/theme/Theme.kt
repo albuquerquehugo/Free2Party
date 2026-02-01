@@ -39,12 +39,22 @@ private val LightColorScheme = lightColorScheme(
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.available: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Green80 else Green40
+    get() = if (isSystemInDarkTheme()) Green40 else Green60
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.availableContainer: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Green80 else Green95
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busy: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Gray80 else Gray40
+    get() = if (isSystemInDarkTheme()) Gray40 else Gray60
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.busyContainer: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) Gray80 else Gray95
 
 @Composable
 fun Free2PartyTheme(

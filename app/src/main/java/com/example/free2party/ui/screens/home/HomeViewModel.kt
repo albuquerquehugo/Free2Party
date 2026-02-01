@@ -50,15 +50,31 @@ class HomeViewModel : ViewModel() {
         val uid = auth.currentUser?.uid ?: return
         isLoading = true
 
-        val data = mapOf("isFreeNow" to !isUserFree)
+        val availability = mapOf("isFreeNow" to !isUserFree)
 
         db.collection("users").document(uid)
-            .set(data, SetOptions.merge())
+            .set(availability, SetOptions.merge())
             .addOnCompleteListener {
+                Log.d("HomeViewModel", "Availability updated successfully")
                 isLoading = false
             }
             .addOnFailureListener { e ->
                 Log.e("HomeViewModel", "Error updating availability", e)
+            }
+    }
+
+    fun removeFriend(friendUid: String) {
+        val myUid = auth.currentUser?.uid ?: return
+
+        db.collection("users").document(myUid)
+            .collection("friends").document(friendUid)
+            .delete()
+            .addOnSuccessListener {
+                friendsStatusList = friendsStatusList.filter { it.uid != friendUid }
+                Log.d("HomeViewModel", "Friend removed successfully")
+            }
+            .addOnFailureListener { e ->
+                Log.e("HomeViewModel", "Error removing friend", e)
             }
     }
 
