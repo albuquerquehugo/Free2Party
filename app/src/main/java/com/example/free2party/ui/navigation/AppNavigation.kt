@@ -1,7 +1,5 @@
 package com.example.free2party.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
@@ -16,7 +14,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -27,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.free2party.ui.screens.addfriend.AddFriendScreen
+import com.example.free2party.ui.screens.calendar.CalendarScreen
 import com.example.free2party.ui.screens.home.HomeScreen
 import com.example.free2party.ui.screens.login.LoginScreen
 import com.example.free2party.ui.screens.register.RegisterScreen
@@ -143,9 +141,7 @@ fun Free2PartyNavGraph(navController: NavHostController, modifier: Modifier = Mo
         }
 
         composable(Screen.Calendar.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Calendar Screen (Coming Soon)")
-            }
+            CalendarScreen()
         }
 
         composable(Screen.AddFriend.route) {
