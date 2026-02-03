@@ -69,8 +69,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +108,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
@@ -115,7 +117,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
 
         Text(
             "Schedule your future availability",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
@@ -128,7 +130,12 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             onClick = { showDatePicker = true }
         ) {
             ListItem(
-                headlineContent = { Text("Date: $selectedDateText") },
+                headlineContent = {
+                    Text(
+                        text = "Date: $selectedDateText",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 leadingContent = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 trailingContent = {
                     if (viewModel.selectedDateMillis != null) {
@@ -159,7 +166,12 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             ) {
                 ListItem(
                     headlineContent = {
-                        Text("From: ${formatTime(startTimeState.hour, startTimeState.minute)}")
+                        Text(
+                            text = "From: ${
+                                formatTime(startTimeState.hour, startTimeState.minute)
+                            }",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     },
                     leadingContent = { Icon(Icons.Default.WatchLater, contentDescription = null) }
                 )
@@ -174,7 +186,12 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             ) {
                 ListItem(
                     headlineContent = {
-                        Text("To: ${formatTime(endTimeState.hour, endTimeState.minute)}")
+                        Text(
+                            text = "To: ${
+                                formatTime(endTimeState.hour, endTimeState.minute)
+                            }",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     },
                     leadingContent = { Icon(Icons.Default.WatchLater, contentDescription = null) }
                 )
@@ -185,8 +202,18 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         OutlinedTextField(
             value = note,
             onValueChange = { note = it },
-            label = { Text("What are you planning?") },
-            placeholder = { Text("Enter a brief note...") },
+            label = {
+                Text(
+                    text = "What are you planning?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            placeholder = {
+                Text(
+                    text = "Enter a brief note...",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -219,24 +246,46 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            enabled = note.isNotBlank() && viewModel.selectedDateMillis != null
+                .padding(top = 16.dp, bottom = 8.dp),
+            enabled = viewModel.selectedDateMillis != null
         ) {
             Text("Add to calendar")
         }
 
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
         Text(
-            text = "Your upcoming plans",
+            text = "Your free periods for the day",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
         )
 
         LazyColumn(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            items(viewModel.plansList) { plan ->
-                PlanItem(plan = plan, onDelete = { viewModel.deletePlan(plan.id) })
+            if (viewModel.filteredPlans.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = if (viewModel.selectedDateMillis == null) {
+                                "Select a day on the calendar"
+                            } else "No plans for this day",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            } else {
+                items(viewModel.filteredPlans) { plan ->
+                    PlanItem(plan = plan, onDelete = { viewModel.deletePlan(plan.id) })
+                }
             }
         }
 
@@ -299,11 +348,6 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
 @Composable
 fun PlanItem(plan: FuturePlan, onDelete: () -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
-    val formattedDate = remember(plan.date) {
-        val format = DateFormat.getDateInstance()
-        format.timeZone = TimeZone.getTimeZone("UTC")
-        format.format(Date(plan.date))
-    }
 
     Box {
         Card(
@@ -318,30 +362,32 @@ fun PlanItem(plan: FuturePlan, onDelete: () -> Unit) {
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = formattedDate, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = "${plan.startTime} - ${plan.endTime}",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
+                Text(
+                    text = "${plan.startTime} - ${plan.endTime}",
+                    style = MaterialTheme.typography.titleSmall
+                )
 
                 if (plan.note.isNotBlank()) {
                     Spacer(modifier = Modifier.padding(4.dp))
-                    Text(text = plan.note, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = plan.note, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
 
         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             DropdownMenuItem(
-                text = { Text("Delete plan") },
+                text = { Text("Delete plan", color = MaterialTheme.colorScheme.error) },
                 onClick = {
                     onDelete()
                     showMenu = false
                 },
-                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             )
         }
     }
@@ -358,56 +404,64 @@ fun MonthCalendar(
         set(Calendar.DAY_OF_MONTH, 1)
     }
 
-    val monthName =
-        java.text.SimpleDateFormat(
-            "MMMM yyyy",
-            java.util.Locale.getDefault()
-        ).format(calendar.time)
+    val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        .format(calendar.time)
     val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
     val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Month navigation header
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             IconButton(onClick = { viewModel.moveToPreviousMonth() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Previous"
+                )
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = monthName, style = MaterialTheme.typography.titleLarge)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy((-8).dp)
+            ) {
+                Text(text = monthName, style = MaterialTheme.typography.titleMedium)
                 TextButton(
                     onClick = { viewModel.goToToday() },
                     contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text(text = "Today", style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = "Today",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
             IconButton(onClick = { viewModel.moveToNextMonth() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = "Next"
+                )
             }
         }
 
-        // Day of the week headers (S, M, T...)
+        // Day of the week headers (S, M, T, W, T, F, S)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(bottom = 4.dp)
         ) {
             listOf("S", "M", "T", "W", "T", "F", "S").forEach { day ->
                 Text(
                     text = day,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray
                 )
             }
@@ -417,8 +471,7 @@ fun MonthCalendar(
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.wrapContentHeight(),
-            userScrollEnabled = false,
-            contentPadding = PaddingValues(horizontal = 8.dp)
+            userScrollEnabled = false
         ) {
             // Add empty boxes for days before the 1st day of the month
             items(firstDayOfWeek) { Spacer(modifier = Modifier.fillMaxSize()) }
@@ -443,8 +496,8 @@ fun MonthCalendar(
 
                 Box(
                     modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(2.dp)
+                        .aspectRatio(1.8f)
+                        .padding(1.dp)
                         .clip(CircleShape)
                         .clickable { viewModel.selectDate(day) },
                     contentAlignment = Alignment.Center
@@ -453,16 +506,13 @@ fun MonthCalendar(
                     if (isSelected) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(28.dp)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                         )
-                    }
-
-                    // Circle background for planned days
-                    if (isPlanned && !isSelected) {
+                    } else if (isPlanned) {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(24.dp)
                                 .background(
                                     MaterialTheme.colorScheme.primaryContainer,
                                     shape = CircleShape
@@ -473,14 +523,14 @@ fun MonthCalendar(
                     if (isToday) {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(24.dp)
                                 .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                         )
                     }
 
                     Text(
                         text = day.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
                         color = when {
                             isSelected -> MaterialTheme.colorScheme.onPrimary

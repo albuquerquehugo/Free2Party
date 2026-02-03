@@ -26,6 +26,11 @@ class CalendarViewModel : ViewModel() {
     private val db = Firebase.firestore
 
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
+    val filteredPlans: List<FuturePlan>
+        get() {
+            val selectedDate = selectedDateMillis ?: return emptyList()
+            return plansList.filter { isSameDate(it.date, selectedDate) }
+        }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
     var displayedYear by mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR))
@@ -34,6 +39,14 @@ class CalendarViewModel : ViewModel() {
 
     init {
         fetchPlans()
+    }
+
+    private fun isSameDate(date1: Long, date2: Long): Boolean {
+        val cal1 = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = date1 }
+        val cal2 = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = date2 }
+
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 
     private fun fetchPlans() {
