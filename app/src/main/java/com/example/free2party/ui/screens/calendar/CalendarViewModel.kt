@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.free2party.util.timeToMinutes
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
@@ -29,7 +30,7 @@ class CalendarViewModel : ViewModel() {
     val filteredPlans: List<FuturePlan>
         get() {
             val selectedDate = selectedDateMillis ?: return emptyList()
-            return plansList.filter { isSameDate(it.date, selectedDate) }
+            return plansList.filter { isSameDay(it.date, selectedDate) }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
@@ -41,7 +42,7 @@ class CalendarViewModel : ViewModel() {
         fetchPlans()
     }
 
-    private fun isSameDate(date1: Long, date2: Long): Boolean {
+    private fun isSameDay(date1: Long, date2: Long): Boolean {
         val cal1 = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = date1 }
         val cal2 = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = date2 }
 
@@ -67,26 +68,105 @@ class CalendarViewModel : ViewModel() {
             }
     }
 
-    fun savePlan(date: Long, startTime: String, endTime: String, note: String) {
-        val uid = auth.currentUser?.uid ?: return
+    private fun isOverlapping(
+        newStartMins: Int,
+        newEndMins: Int,
+        existingPlans: List<FuturePlan>
+    ): Boolean {
+        return existingPlans.any { plan ->
+            val existingStartMins = timeToMinutes(plan.startTime)
+            val existingEndMins = timeToMinutes(plan.endTime)
 
-        val plan = hashMapOf(
-            "date" to date,
-            "startTime" to startTime,
-            "endTime" to endTime,
-            "note" to note,
-            "createdAt" to FieldValue.serverTimestamp()
-        )
-
-        db.collection("users").document(uid)
-            .collection("plans")
-            .add(plan)
+            newStartMins < existingEndMins && newEndMins > existingStartMins
+        }
     }
 
-    fun deletePlan(planId: String) {
+    fun validatePlan(
+        planId: String?,
+        date: Long,
+        startTime: String,
+        endTime: String,
+        onValidationError: (String) -> Unit
+    ): Boolean {
+        val startMins = timeToMinutes(startTime)
+        val endMins = timeToMinutes(endTime)
+        val plansOnDay = plansList.filter { isSameDay(it.date, date) && it.id != planId }
+        if (isOverlapping(startMins, endMins, plansOnDay)) {
+            onValidationError("This time slot overlaps with an existing plan")
+            return false
+        }
+        return true
+    }
+
+    fun savePlan(
+        date: Long,
+        startTime: String,
+        endTime: String,
+        note: String,
+        onValidationError: (String) -> Unit,
+        onSuccess: () -> Unit
+    ) {
+        if (validatePlan(null, date, startTime, endTime, onValidationError)) {
+            val uid = auth.currentUser?.uid ?: return
+            val plan = hashMapOf(
+                "date" to date,
+                "startTime" to startTime,
+                "endTime" to endTime,
+                "note" to note,
+                "createdAt" to FieldValue.serverTimestamp()
+            )
+            db.collection("users").document(uid)
+                .collection("plans")
+                .add(plan)
+                .addOnSuccessListener {
+                    onSuccess()
+                }
+                .addOnFailureListener { e ->
+                    onValidationError("Failed to add the plan in the database.")
+                    e.printStackTrace()
+                }
+        }
+    }
+
+    fun updatePlan(
+        planId: String,
+        date: Long,
+        startTime: String,
+        endTime: String,
+        note: String,
+        onError: (String) -> Unit,
+        onSuccess: () -> Unit
+    ) {
+        if (validatePlan(planId, date, startTime, endTime, onError)) {
+            val updatedData = mapOf(
+                "date" to date,
+                "startTime" to startTime,
+                "endTime" to endTime,
+                "note" to note
+            )
+            val uid = auth.currentUser?.uid ?: return
+            val planRef = db.collection("users").document(uid)
+                .collection("plans").document(planId)
+
+            planRef.update(updatedData)
+                .addOnSuccessListener {
+                    onSuccess()
+                }
+                .addOnFailureListener { e ->
+                    onError("Failed to update the plan in the database.")
+                    e.printStackTrace()
+                }
+        }
+    }
+
+    fun deletePlan(planId: String, onError: (String) -> Unit) {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid)
             .collection("plans").document(planId).delete()
+            .addOnFailureListener { e ->
+                onError("Failed to delete the plan in the database.")
+                e.printStackTrace()
+            }
     }
 
     fun getPlannedDaysForMonth(year: Int, month: Int): Set<Int> {

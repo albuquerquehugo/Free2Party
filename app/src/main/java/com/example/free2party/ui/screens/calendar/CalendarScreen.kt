@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -23,15 +25,18 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.WatchLater
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -45,11 +50,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -68,6 +76,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.util.formatTime
+import com.example.free2party.util.timeToMinutes
+import com.example.free2party.util.unformatTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -81,7 +92,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    var note by remember { mutableStateOf("") }
+    val plannedDays =
+        viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
 
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
@@ -91,18 +103,32 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         format.format(Date(it))
     } ?: "Select date"
 
-    val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
-    val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
-
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
+    val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
+    val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
+    val isTimeValid = remember(
+        startTimeState.hour,
+        startTimeState.minute,
+        endTimeState.hour,
+        endTimeState.minute
+    ) {
+        val start = timeToMinutes(formatTime(startTimeState.hour, startTimeState.minute))
+        val end = timeToMinutes(formatTime(endTimeState.hour, endTimeState.minute))
+        start < end
+    }
 
-    val plannedDays =
-        viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
+    var note by remember { mutableStateOf("") }
 
-    fun formatTime(hour: Int, minute: Int): String {
-        val mm = minute.toString().padStart(2, '0')
-        return "$hour:$mm"
+    var editingPlanId by remember { mutableStateOf<String?>(null) }
+
+    fun clearFieldsAndSelection() {
+        startTimeState.hour = 12
+        startTimeState.minute = 0
+        endTimeState.hour = 13
+        endTimeState.minute = 0
+        note = ""
+        focusManager.clearFocus()
     }
 
     Column(
@@ -130,6 +156,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             onClick = { showDatePicker = true }
         ) {
             ListItem(
+                modifier = Modifier.fillMaxHeight(),
                 headlineContent = {
                     Text(
                         text = "Date: $selectedDateText",
@@ -138,11 +165,15 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 },
                 leadingContent = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 trailingContent = {
-                    if (viewModel.selectedDateMillis != null) {
-                        IconButton(onClick = { viewModel.clearSelectedDate() }) {
+                    if (viewModel.selectedDateMillis != null && editingPlanId == null) {
+                        IconButton(
+                            modifier = Modifier
+                                .offset(x = 16.dp)
+                                .minimumInteractiveComponentSize(),
+                            onClick = { viewModel.clearSelectedDate() }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear selection",
+                                contentDescription = "Clear date",
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -161,19 +192,33 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             OutlinedCard(
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp),
+                    .height(48.dp)
+                    .border(
+                        width = if (!isTimeValid) 1.dp else 0.dp,
+                        color = if (!isTimeValid) MaterialTheme.colorScheme.error else Color.Transparent,
+                        shape = MaterialTheme.shapes.medium
+                    ),
                 onClick = { showStartTimePicker = true }
             ) {
                 ListItem(
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.WatchLater,
+                            contentDescription = null,
+                            tint =
+                                if (!isTimeValid) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     headlineContent = {
                         Text(
                             text = "From: ${
                                 formatTime(startTimeState.hour, startTimeState.minute)
                             }",
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (!isTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
                         )
-                    },
-                    leadingContent = { Icon(Icons.Default.WatchLater, contentDescription = null) }
+                    }
                 )
             }
 
@@ -181,19 +226,31 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             OutlinedCard(
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp),
+                    .height(48.dp)
+                    .border(
+                        width = if (!isTimeValid) 1.dp else 0.dp,
+                        color = if (!isTimeValid) MaterialTheme.colorScheme.error else Color.Transparent,
+                        shape = MaterialTheme.shapes.medium
+                    ),
                 onClick = { showEndTimePicker = true }
             ) {
                 ListItem(
-                    headlineContent = {
-                        Text(
-                            text = "To: ${
-                                formatTime(endTimeState.hour, endTimeState.minute)
-                            }",
-                            style = MaterialTheme.typography.bodyMedium
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.WatchLater,
+                            contentDescription = null,
+                            tint =
+                                if (!isTimeValid) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
-                    leadingContent = { Icon(Icons.Default.WatchLater, contentDescription = null) }
+                    headlineContent = {
+                        Text(
+                            text = "To: ${formatTime(endTimeState.hour, endTimeState.minute)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (!isTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                        )
+                    }
                 )
             }
         }
@@ -217,39 +274,86 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Save button
-        Button(
-            onClick = {
-                viewModel.selectedDateMillis?.let { timestamp ->
-                    viewModel.savePlan(
-                        date = timestamp,
-                        startTime = formatTime(startTimeState.hour, startTimeState.minute),
-                        endTime = formatTime(endTimeState.hour, endTimeState.minute),
-                        note = note
-                    )
-
-                    Toast.makeText(
-                        context,
-                        "Plan saved to you calendar!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    // Clear fields and selection after saving
-                    viewModel.selectedDateMillis = null
-                    startTimeState.hour = 12
-                    startTimeState.minute = 0
-                    endTimeState.hour = 13
-                    endTimeState.minute = 0
-                    note = ""
-                    focusManager.clearFocus()
-                }
-            },
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp, bottom = 8.dp),
-            enabled = viewModel.selectedDateMillis != null
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Add to calendar")
+            // Cancel update button
+            if (editingPlanId != null) {
+                OutlinedButton(
+                    onClick = {
+                        editingPlanId = null
+                        clearFieldsAndSelection()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Cancel")
+                }
+            }
+
+            // Add/update button
+            Button(
+                onClick = {
+                    val onError = { errorMessage: String ->
+                        Toast.makeText(
+                            context,
+                            errorMessage,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    val onAdded = {
+                        clearFieldsAndSelection()
+                        Toast.makeText(
+                            context,
+                            "Plan successfully added to you calendar!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    val onUpdated = {
+                        editingPlanId = null
+                        clearFieldsAndSelection()
+                        Toast.makeText(
+                            context,
+                            "Plan successfully updated!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    viewModel.selectedDateMillis?.let { date ->
+                        if (editingPlanId == null) {
+                            viewModel.savePlan(
+                                date = date,
+                                startTime = formatTime(startTimeState.hour, startTimeState.minute),
+                                endTime = formatTime(endTimeState.hour, endTimeState.minute),
+                                note = note,
+                                onValidationError = onError,
+                                onSuccess = onAdded
+                            )
+                        } else {
+                            viewModel.updatePlan(
+                                planId = editingPlanId!!,
+                                date = date,
+                                startTime = formatTime(startTimeState.hour, startTimeState.minute),
+                                endTime = formatTime(endTimeState.hour, endTimeState.minute),
+                                note = note,
+                                onError = onError,
+                                onSuccess = onUpdated
+                            )
+                        }
+
+                    }
+                },
+                enabled = viewModel.selectedDateMillis != null && isTimeValid,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (editingPlanId == null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                    contentColor = if (editingPlanId == null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onTertiary
+                )
+            ) {
+                Text(if (editingPlanId == null) "Add plan to calendar" else "Update plan")
+            }
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -284,7 +388,30 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 }
             } else {
                 items(viewModel.filteredPlans) { plan ->
-                    PlanItem(plan = plan, onDelete = { viewModel.deletePlan(plan.id) })
+                    val isBeingEdited = plan.id == editingPlanId
+
+                    PlanItem(
+                        plan = plan,
+                        modifier = Modifier.border(
+                            width = if (isBeingEdited) 2.dp else 0.dp,
+                            color = if (isBeingEdited) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                        onEdit = {
+                            note = plan.note
+                            startTimeState.hour = unformatTime(plan.startTime).first
+                            startTimeState.minute = unformatTime(plan.startTime).second
+                            endTimeState.hour = unformatTime(plan.endTime).first
+                            endTimeState.minute = unformatTime(plan.endTime).second
+                            editingPlanId = plan.id
+                        },
+                        onDelete = { viewModel.deletePlan(plan.id, onError = { errorMessage: String ->
+                            Toast.makeText(
+                                context,
+                                errorMessage,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }) })
                 }
             }
         }
@@ -314,6 +441,15 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                     TextButton(onClick = {
                         showStartTimePicker = false
                         showEndTimePicker = false
+
+                        // Validation Toast: Triggers when the user selects an end time earlier than start time
+                        if (!isTimeValid) {
+                            Toast.makeText(
+                                context,
+                                "End time must be after start time!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }) {
                         Text("OK")
                     }
@@ -346,12 +482,29 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
 }
 
 @Composable
-fun PlanItem(plan: FuturePlan, onDelete: () -> Unit) {
+fun PlanItem(
+    plan: FuturePlan,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     var showMenu by remember { mutableStateOf(false) }
+
+    val duration = remember(plan.startTime, plan.endTime) {
+        val durationMins = timeToMinutes(plan.endTime) - timeToMinutes(plan.startTime)
+        val hours = durationMins / 60
+        val minutes = durationMins % 60
+
+        when {
+            hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+            hours > 0 -> "${hours}h"
+            else -> "${minutes}m"
+        }
+    }
 
     Box {
         Card(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = { },
@@ -362,10 +515,24 @@ fun PlanItem(plan: FuturePlan, onDelete: () -> Unit) {
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "${plan.startTime} - ${plan.endTime}",
-                    style = MaterialTheme.typography.titleSmall
-                )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "${plan.startTime} - ${plan.endTime}",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = duration,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
 
                 if (plan.note.isNotBlank()) {
                     Spacer(modifier = Modifier.padding(4.dp))
@@ -376,15 +543,29 @@ fun PlanItem(plan: FuturePlan, onDelete: () -> Unit) {
 
         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             DropdownMenuItem(
-                text = { Text("Delete plan", color = MaterialTheme.colorScheme.error) },
+                text = { Text("Edit") },
                 onClick = {
-                    onDelete()
                     showMenu = false
+                    onEdit()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "edit"
+                    )
+                }
+            )
+
+            DropdownMenuItem(
+                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                onClick = {
+                    showMenu = false
+                    onDelete()
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = null,
+                        contentDescription = "delete",
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
