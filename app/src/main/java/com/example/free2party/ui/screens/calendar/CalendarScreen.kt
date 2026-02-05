@@ -122,6 +122,14 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
 
     var editingPlanId by remember { mutableStateOf<String?>(null) }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var planToDelete by remember { mutableStateOf<FuturePlan?>(null) }
+    val closeDeleteDialog = {
+        showDeleteDialog = false
+        planToDelete = null
+    }
+
+
     fun clearFieldsAndSelection() {
         startTimeState.hour = 12
         startTimeState.minute = 0
@@ -405,13 +413,11 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                             endTimeState.minute = unformatTime(plan.endTime).second
                             editingPlanId = plan.id
                         },
-                        onDelete = { viewModel.deletePlan(plan.id, onError = { errorMessage: String ->
-                            Toast.makeText(
-                                context,
-                                errorMessage,
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }) })
+                        onDelete = {
+                            planToDelete = plan
+                            showDeleteDialog = true
+                        }
+                    )
                 }
             }
         }
@@ -466,6 +472,45 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 }
             )
         }
+    }
+
+    if (showDeleteDialog && planToDelete != null) {
+        AlertDialog(
+            title = { Text("Delete Plan") },
+            text = { Text("Are you sure you want to delete this plan?") },
+            onDismissRequest = closeDeleteDialog,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deletePlan(
+                            planId = planToDelete!!.id,
+                            onError = { errorMessage: String ->
+                                Toast.makeText(
+                                    context,
+                                    errorMessage,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            },
+                            onSuccess = {
+                                closeDeleteDialog()
+                                Toast.makeText(
+                                    context,
+                                    "Plan successfully deleted!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        )
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = closeDeleteDialog) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     // Sync Grid/ViewModel and DatePicker to ensure consistency

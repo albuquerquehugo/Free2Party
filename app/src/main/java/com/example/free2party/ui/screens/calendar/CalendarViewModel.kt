@@ -11,12 +11,15 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 data class FuturePlan(
     val id: String = "",
-    val date: Long = 0L,
+    val date: String = "",
     val startTime: String = "",
     val endTime: String = "",
     val note: String = ""
@@ -26,11 +29,16 @@ class CalendarViewModel : ViewModel() {
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
+    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
     val filteredPlans: List<FuturePlan>
         get() {
-            val selectedDate = selectedDateMillis ?: return emptyList()
-            return plansList.filter { isSameDay(it.date, selectedDate) }
+            val selectedDate =
+                selectedDateMillis?.let { formatMillisToDateString(it) } ?: return emptyList()
+            return plansList.filter { it.date == selectedDate }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
@@ -40,14 +48,6 @@ class CalendarViewModel : ViewModel() {
 
     init {
         fetchPlans()
-    }
-
-    private fun isSameDay(date1: Long, date2: Long): Boolean {
-        val cal1 = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = date1 }
-        val cal2 = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = date2 }
-
-        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-                cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 
     private fun fetchPlans() {
@@ -81,6 +81,10 @@ class CalendarViewModel : ViewModel() {
         }
     }
 
+    fun formatMillisToDateString(millis: Long): String {
+        return dateFormatter.format(Date(millis))
+    }
+
     fun validatePlan(
         planId: String?,
         date: Long,
@@ -88,10 +92,9 @@ class CalendarViewModel : ViewModel() {
         endTime: String,
         onValidationError: (String) -> Unit
     ): Boolean {
-        val startMins = timeToMinutes(startTime)
-        val endMins = timeToMinutes(endTime)
-        val plansOnDay = plansList.filter { isSameDay(it.date, date) && it.id != planId }
-        if (isOverlapping(startMins, endMins, plansOnDay)) {
+        val plansOnDay =
+            plansList.filter { it.date == formatMillisToDateString(date) && it.id != planId }
+        if (isOverlapping(timeToMinutes(startTime), timeToMinutes(endTime), plansOnDay)) {
             onValidationError("This time slot overlaps with an existing plan")
             return false
         }
@@ -107,14 +110,14 @@ class CalendarViewModel : ViewModel() {
         onSuccess: () -> Unit
     ) {
         if (validatePlan(null, date, startTime, endTime, onValidationError)) {
-            val uid = auth.currentUser?.uid ?: return
             val plan = hashMapOf(
-                "date" to date,
+                "date" to formatMillisToDateString(date),
                 "startTime" to startTime,
                 "endTime" to endTime,
                 "note" to note,
                 "createdAt" to FieldValue.serverTimestamp()
             )
+            val uid = auth.currentUser?.uid ?: return
             db.collection("users").document(uid)
                 .collection("plans")
                 .add(plan)
@@ -139,7 +142,7 @@ class CalendarViewModel : ViewModel() {
     ) {
         if (validatePlan(planId, date, startTime, endTime, onError)) {
             val updatedData = mapOf(
-                "date" to date,
+                "date" to formatMillisToDateString(date),
                 "startTime" to startTime,
                 "endTime" to endTime,
                 "note" to note
@@ -159,10 +162,13 @@ class CalendarViewModel : ViewModel() {
         }
     }
 
-    fun deletePlan(planId: String, onError: (String) -> Unit) {
+    fun deletePlan(planId: String, onError: (String) -> Unit, onSuccess: () -> Unit) {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid)
             .collection("plans").document(planId).delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
             .addOnFailureListener { e ->
                 onError("Failed to delete the plan in the database.")
                 e.printStackTrace()
@@ -170,14 +176,13 @@ class CalendarViewModel : ViewModel() {
     }
 
     fun getPlannedDaysForMonth(year: Int, month: Int): Set<Int> {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-        return plansList.filter { plan ->
-            calendar.timeInMillis = plan.date
-            calendar.get(Calendar.YEAR) == year && calendar.get(Calendar.MONTH) == month
-        }.map {
-            calendar.timeInMillis = it.date
-            calendar.get(Calendar.DAY_OF_MONTH)
-        }.toSet()
+        val monthString = (month + 1).toString().padStart(2, '0')
+        val yearString = year.toString()
+        val prefix = "$yearString-$monthString-"
+
+        return plansList.filter { it.date.startsWith(prefix) }
+            .map { it.date.split("-").last().toInt() }
+            .toSet()
     }
 
     fun moveToPreviousMonth() {
