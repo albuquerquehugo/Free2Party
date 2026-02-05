@@ -21,6 +21,16 @@ class RegisterViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
 
+    private fun createUserDocumentTask(user: FirebaseUser): Task<Void> {
+        val initialData = hashMapOf(
+            "uid" to user.uid,
+            "email" to user.email,
+            "isFreeNow" to false,
+            "displayName" to displayName
+        )
+        return db.collection("users").document(user.uid).set(initialData, SetOptions.merge())
+    }
+
     fun onRegisterClick(onSuccess: () -> Unit) {
         if (email.isBlank() || password.isBlank() || displayName.isBlank()) {
             errorMessage = "All fields are required"
@@ -47,15 +57,5 @@ class RegisterViewModel : ViewModel() {
                     errorMessage = task.exception?.localizedMessage
                 }
             }
-    }
-
-    private fun createUserDocumentTask(user: FirebaseUser): Task<Void> {
-        val initialData = hashMapOf(
-            "uid" to user.uid,
-            "email" to user.email,
-            "isFreeNow" to false,
-            "displayName" to displayName
-        )
-        return db.collection("users").document(user.uid).set(initialData, SetOptions.merge())
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,13 +65,6 @@ fun HomeScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Free2Party") },
                 actions = {
-                    IconButton(onClick = onAddFriendClick) {
-                        Icon(
-                            imageVector = Icons.Default.PersonAdd,
-                            contentDescription = "Add Friend"
-                        )
-                    }
-
                     IconButton(onClick = { setShowLogoutDialog(true) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
@@ -85,31 +79,33 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+                .padding(top = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             Text(
                 text = if (viewModel.isUserFree) "You are Free2Party" else "You are currently busy",
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(
-                        if (viewModel.isUserFree) MaterialTheme.colorScheme.availableContainer //MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.busyContainer //MaterialTheme.colorScheme.errorContainer
+                        if (viewModel.isUserFree) MaterialTheme.colorScheme.availableContainer
+                        else MaterialTheme.colorScheme.busyContainer
                     )
-                    .padding(horizontal = 32.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.headlineMedium,
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
+                style = MaterialTheme.typography.headlineSmall,
                 color =
                     if (viewModel.isUserFree) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.error
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp)
+                    .padding(horizontal = 16.dp)
                     .height(56.dp)
                     .clip(MaterialTheme.shapes.medium)
                     .background(
@@ -132,11 +128,13 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            HorizontalDivider(modifier = Modifier.padding(top = 32.dp, bottom = 16.dp))
 
             FriendsListSection(
                 friends = viewModel.friendsStatusList,
-                onDeleteFriend = { uid -> viewModel.removeFriend(uid) })
+                onDeleteFriend = { uid -> viewModel.removeFriend(uid) },
+                onAddFriendClick = onAddFriendClick
+            )
         }
 
         if (showLogoutDialog) {
@@ -165,13 +163,26 @@ fun HomeScreen(
 @Composable
 fun FriendsListSection(
     friends: List<FriendStatus>,
-    onDeleteFriend: (String) -> Unit
+    onDeleteFriend: (String) -> Unit,
+    onAddFriendClick: () -> Unit
 ) {
-    Text(
-        text = "Friends' Availability",
-        style = MaterialTheme.typography.headlineMedium,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-    )
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "Your Friends",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        IconButton(
+            onClick = onAddFriendClick,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Default.PersonAdd,
+                contentDescription = "Add Friend"
+            )
+        }
+    }
 
     Spacer(modifier = Modifier.height(16.dp))
 

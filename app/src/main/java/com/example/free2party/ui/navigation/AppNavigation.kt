@@ -109,7 +109,9 @@ fun Free2PartyNavGraph(navController: NavHostController, modifier: Modifier = Mo
                     }
                 },
                 onNavigateToRegister = {
-                    navController.navigate(Screen.Register.route)
+                    navController.navigate(Screen.Register.route) {
+                        popUpTo(Screen.Login.route) { inclusive = false }
+                    }
                 }
             )
         }

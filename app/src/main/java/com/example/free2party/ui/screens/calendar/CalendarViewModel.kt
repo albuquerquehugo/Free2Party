@@ -39,6 +39,7 @@ class CalendarViewModel : ViewModel() {
             val selectedDate =
                 selectedDateMillis?.let { formatMillisToDateString(it) } ?: return emptyList()
             return plansList.filter { it.date == selectedDate }
+                .sortedBy { plan -> timeToMinutes(plan.startTime) }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))

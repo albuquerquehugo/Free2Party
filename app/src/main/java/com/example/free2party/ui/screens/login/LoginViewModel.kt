@@ -32,4 +32,9 @@ class LoginViewModel : ViewModel() {
                 }
             }
     }
+
+    fun resetFields() {
+        email = ""
+        password = ""
+    }
 }

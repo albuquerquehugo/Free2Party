@@ -12,6 +12,12 @@ fun formatTime(hour: Int, minute: Int): String {
     return "$hour:$mm"
 }
 
+/**
+ * Parses a time string in the format "H:mm" or "HH:mm" back into hour and minute integers.
+ *
+ * @param time The formatted time string to parse.
+ * @return A [Pair] where the first element is the hour and the second is the minute.
+ */
 fun unformatTime(time: String): Pair<Int, Int> {
     val parts = time.split(":")
     return parts[0].toInt() to parts[1].toInt()
@@ -26,5 +32,10 @@ fun unformatTime(time: String): Pair<Int, Int> {
  */
 fun timeToMinutes(time: String): Int {
     val parts = time.split(":")
-    return parts[0].toInt() * 60 + parts[1].toInt()
+    return try {
+        parts[0].toInt() * 60 + parts[1].toInt()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        0
+    }
 }

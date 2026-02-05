@@ -626,7 +626,7 @@ fun MonthCalendar(
 ) {
     val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
         set(Calendar.YEAR, viewModel.displayedYear)
-        set(Calendar.MONTH, viewModel.displayedMonth)
+        set(Calendar.MONTH, viewModel.displayedMonth + 1)
         set(Calendar.DAY_OF_MONTH, 1)
     }
 
@@ -640,11 +640,14 @@ fun MonthCalendar(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Month navigation header
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(32.dp)
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            IconButton(onClick = { viewModel.moveToPreviousMonth() }) {
+            IconButton(onClick = { viewModel.moveToPreviousMonth() },
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 16.dp)) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Previous"
@@ -668,7 +671,10 @@ fun MonthCalendar(
                 }
             }
 
-            IconButton(onClick = { viewModel.moveToNextMonth() }) {
+            IconButton(onClick = { viewModel.moveToNextMonth() },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp)) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Next"

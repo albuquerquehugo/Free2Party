@@ -89,7 +89,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = onNavigateToRegister) {
+            TextButton(onClick = {
+                viewModel.resetFields()
+                onNavigateToRegister()
+            }) {
                 Text("Don't have an account? Register")
             }
         }
