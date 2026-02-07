@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.home
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -17,11 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -33,10 +38,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,21 +51,40 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
 import com.example.free2party.ui.theme.busyContainer
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
-    onLogout: () -> Unit,
-    onAddFriendClick: () -> Unit
+    onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
+
     val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
+    val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is HomeUiEvent.ShowToast -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -76,65 +102,29 @@ fun HomeScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-                .padding(top = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Text(
-                text = if (viewModel.isUserFree) "You are Free2Party" else "You are currently busy",
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(
-                        if (viewModel.isUserFree) MaterialTheme.colorScheme.availableContainer
-                        else MaterialTheme.colorScheme.busyContainer
-                    )
-                    .padding(horizontal = 32.dp, vertical = 16.dp),
-                style = MaterialTheme.typography.headlineSmall,
-                color =
-                    if (viewModel.isUserFree) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.error
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(
-                        if (viewModel.isUserFree) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary
-                    )
-                    .clickable { viewModel.toggleAvailability() },
-                contentAlignment = Alignment.Center
-            ) {
-                if (viewModel.isLoading) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(
-                        text = if (viewModel.isUserFree) "Make Me Busy" else "Make Me Free",
-                        style = MaterialTheme.typography.titleLarge,
-                        color =
-                            if (viewModel.isUserFree) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onError
-                    )
+        when (viewModel.uiState) {
+            is HomeUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-
-            HorizontalDivider(modifier = Modifier.padding(top = 32.dp, bottom = 16.dp))
-
-            FriendsListSection(
-                friends = viewModel.friendsStatusList,
-                onDeleteFriend = { uid -> viewModel.removeFriend(uid) },
-                onAddFriendClick = onAddFriendClick
-            )
+            is HomeUiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = (viewModel.uiState as HomeUiState.Error).message, color = MaterialTheme.colorScheme.error)
+                }
+            }
+            is HomeUiState.Success -> {
+                HomeContent(
+                    paddingValues = paddingValues,
+                    isUserFree = (viewModel.uiState as HomeUiState.Success).isUserFree,
+                    friendsList = (viewModel.uiState as HomeUiState.Success).friendsList,
+                    isActionLoading = (viewModel.uiState as HomeUiState.Success).isActionLoading,
+                    onToggleAvailability = { viewModel.toggleAvailability() },
+                    onDeleteFriend = { uid -> viewModel.removeFriend(uid) },
+                    onCancelInvite = { uid -> viewModel.cancelFriendInvite(uid) },
+                    onInviteFriendClick = { setShowInviteFriendDialog(true) }
+                )
+            }
         }
 
         if (showLogoutDialog) {
@@ -157,14 +147,177 @@ fun HomeScreen(
                 }
             )
         }
+
+        if (showInviteFriendDialog) {
+            InviteFriendDialog(onDismiss = { setShowInviteFriendDialog(false) })
+        }
     }
 }
 
 @Composable
-fun FriendsListSection(
-    friends: List<FriendStatus>,
+fun HomeContent(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    isUserFree: Boolean,
+    friendsList: List<FriendInfo>,
+    isActionLoading: Boolean,
+    onToggleAvailability: () -> Unit,
     onDeleteFriend: (String) -> Unit,
-    onAddFriendClick: () -> Unit
+    onCancelInvite: (String) -> Unit,
+    onInviteFriendClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(horizontal = 16.dp)
+            .padding(top = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(
+            text = if (isUserFree) "You are Free2Party" else "You are currently busy",
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(
+                    if (isUserFree) MaterialTheme.colorScheme.availableContainer
+                    else MaterialTheme.colorScheme.busyContainer
+                )
+                .padding(horizontal = 32.dp, vertical = 16.dp),
+            style = MaterialTheme.typography.headlineSmall,
+            color =
+            if (isUserFree) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.error
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(56.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(
+                    if (isUserFree) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.primary
+                )
+                .clickable(enabled = !isActionLoading) { onToggleAvailability() },
+            contentAlignment = Alignment.Center
+        ) {
+            if (isActionLoading) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text(
+                    text = if (isUserFree) "Make Me Busy" else "Make Me Free",
+                    style = MaterialTheme.typography.titleLarge,
+                    color =
+                    if (isUserFree) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onError
+                )
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(top = 32.dp, bottom = 16.dp))
+
+        FriendsListSection(
+            friends = friendsList,
+            onDeleteFriend = onDeleteFriend,
+            onCancelInvite = onCancelInvite,
+            onInviteFriendClick = onInviteFriendClick
+        )
+    }
+}
+
+@Composable
+fun InviteFriendDialog(
+    viewModel: FriendViewModel = viewModel(),
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                FriendUiEvent.InviteSentSuccessfully -> {
+                    Toast.makeText(context, "Invite sent successfully!", Toast.LENGTH_SHORT).show()
+                    onDismiss()
+                }
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = {
+            viewModel.resetState()
+            onDismiss()
+        },
+        title = { Text("Invite Friend") },
+        text = {
+            Column {
+                Text(
+                    "Enter your friend's email to send an invite.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                OutlinedTextField(
+                    value = viewModel.searchQuery,
+                    onValueChange = { viewModel.searchQuery = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = viewModel.uiState !is InviteFriendUiState.Searching,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { viewModel.inviteFriend() }
+                    )
+                )
+
+                if (viewModel.uiState is InviteFriendUiState.Error) {
+                    Text(
+                        text = (viewModel.uiState as InviteFriendUiState.Error).message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { viewModel.inviteFriend() },
+                enabled = viewModel.uiState !is InviteFriendUiState.Searching
+            ) {
+                if (viewModel.uiState is InviteFriendUiState.Searching) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Send invite")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                viewModel.resetState()
+                onDismiss()
+            }) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun FriendsListSection(
+    friends: List<FriendInfo>,
+    onDeleteFriend: (String) -> Unit,
+    onCancelInvite: (String) -> Unit,
+    onInviteFriendClick: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
@@ -173,13 +326,13 @@ fun FriendsListSection(
         )
 
         IconButton(
-            onClick = onAddFriendClick,
+            onClick = onInviteFriendClick,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = "Add Friend"
+                contentDescription = "Invite Friend"
             )
         }
     }
@@ -202,7 +355,11 @@ fun FriendsListSection(
                 items = friends,
                 key = { it.uid }
             ) { friend ->
-                FriendItem(friend = friend, onRemove = { uid -> onDeleteFriend(uid) })
+                FriendItem(
+                    friend = friend, 
+                    onRemove = onDeleteFriend, 
+                    onCancelInvite = onCancelInvite
+                )
             }
         }
     }
@@ -210,8 +367,13 @@ fun FriendsListSection(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendItem(friend: FriendStatus, onRemove: (String) -> Unit) {
+fun FriendItem(
+    friend: FriendInfo,
+    onRemove: (String) -> Unit,
+    onCancelInvite: (String) -> Unit
+) {
     var showMenu by remember { mutableStateOf(false) }
+    val isInvited = friend.inviteStatus == InviteStatus.INVITED
 
     Box {
         Card(
@@ -222,25 +384,31 @@ fun FriendItem(friend: FriendStatus, onRemove: (String) -> Unit) {
                     onLongClick = { showMenu = true }
                 ),
             colors = CardDefaults.cardColors(
-                containerColor =
-                    if (friend.isFree) MaterialTheme.colorScheme.availableContainer
-                    else MaterialTheme.colorScheme.busyContainer
+                containerColor = when {
+                    isInvited -> Color.LightGray.copy(alpha = 0.3f)
+                    friend.isFreeNow -> MaterialTheme.colorScheme.availableContainer
+                    else -> MaterialTheme.colorScheme.busyContainer
+                }
             )
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if (isInvited) {
+                    Icon(
+                        imageVector = Icons.Default.HourglassEmpty,
+                        contentDescription = "Pending",
+                        modifier = Modifier.size(12.dp),
+                        tint = Color.Gray
+                    )
+                } else {
                     Box(
                         modifier = Modifier
                             .size(12.dp)
                             .clip(CircleShape)
                             .background(
-                                if (friend.isFree) MaterialTheme.colorScheme.available
+                                if (friend.isFreeNow) MaterialTheme.colorScheme.available
                                 else MaterialTheme.colorScheme.busy
                             )
                     )
@@ -250,18 +418,24 @@ fun FriendItem(friend: FriendStatus, onRemove: (String) -> Unit) {
 
                 Text(
                     text = friend.name,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (isInvited) Color.Gray else Color.Unspecified
                 )
 
                 Spacer(modifier = Modifier.weight(1.0f))
 
                 Text(
-                    text = if (friend.isFree) "Free2Party" else "Busy",
+                    text = when {
+                        isInvited -> "Invited"
+                        friend.isFreeNow -> "Free2Party"
+                        else -> "Busy"
+                    },
                     style = MaterialTheme.typography.bodyLarge,
-                    color =
-                        if (friend.isFree) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.error
-
+                    color = when {
+                        isInvited -> Color.Gray
+                        friend.isFreeNow -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.error
+                    }
                 )
             }
         }
@@ -271,7 +445,7 @@ fun FriendItem(friend: FriendStatus, onRemove: (String) -> Unit) {
             onDismissRequest = { showMenu = false }
         ) {
             DropdownMenuItem(
-                text = { Text("Remove Friend", color = MaterialTheme.colorScheme.error) },
+                text = { Text(if (isInvited) "Cancel Invite" else "Remove Friend", color = MaterialTheme.colorScheme.error) },
                 leadingIcon = {
                     Icon(
                         Icons.Default.Delete,
@@ -281,7 +455,11 @@ fun FriendItem(friend: FriendStatus, onRemove: (String) -> Unit) {
                 },
                 onClick = {
                     showMenu = false
-                    onRemove(friend.uid)
+                    if (isInvited) {
+                        onCancelInvite(friend.uid)
+                    } else {
+                        onRemove(friend.uid)
+                    }
                 }
             )
         }

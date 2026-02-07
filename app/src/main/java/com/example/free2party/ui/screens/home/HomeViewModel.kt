@@ -5,112 +5,135 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.data.model.FriendInfo
+import com.example.free2party.data.repository.AuthRepository
+import com.example.free2party.data.repository.AuthRepositoryImpl
+import com.example.free2party.data.repository.SocialRepository
+import com.example.free2party.data.repository.SocialRepositoryImpl
+import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-data class FriendStatus(
-    val uid: String,
-    val name: String,
-    val isFree: Boolean
-)
+sealed interface HomeUiState {
+    object Loading : HomeUiState
+    data class Success(
+        val isUserFree: Boolean = false,
+        val friendsList: List<FriendInfo> = emptyList(),
+        val isActionLoading: Boolean = false
+    ) : HomeUiState
+
+    data class Error(val message: String) : HomeUiState
+}
+
+sealed class HomeUiEvent {
+    data class ShowToast(val message: String) : HomeUiEvent()
+}
 
 class HomeViewModel : ViewModel() {
-    private val auth = Firebase.auth
-    private val db = Firebase.firestore
+    private val userRepository = UserRepositoryImpl(
+        currentUserId = Firebase.auth.currentUser?.uid ?: "",
+        db = Firebase.firestore
+    )
+    private val socialRepository: SocialRepository = SocialRepositoryImpl(
+        db = Firebase.firestore,
+        userRepository = userRepository
+    )
+    private val authRepository: AuthRepository = AuthRepositoryImpl(
+        auth = Firebase.auth,
+        userRepository = userRepository
+    )
 
-    var isUserFree by mutableStateOf(false)
-    var isLoading by mutableStateOf(false)
-    var friendsStatusList by mutableStateOf<List<FriendStatus>>(emptyList())
+    var uiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
+        private set
+
+    private val _uiEvent = MutableSharedFlow<HomeUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
 
     init {
-        fetchCurrentStatus()
-        fetchFriendsAndListen()
+        observeData()
+    }
+
+    private fun observeData() {
+        combine(
+            userRepository.getCurrentUserStatus(),
+            socialRepository.getFriendsList()
+        ) { isFree, friends ->
+            // Sort: Invited at the bottom, then by availability, then alphabetically
+            val sortedFriends = friends.sortedWith(
+                compareBy<FriendInfo> { it.inviteStatus == InviteStatus.INVITED }
+                    .thenByDescending { it.isFreeNow }
+                    .thenBy { it.name }
+            )
+            HomeUiState.Success(
+                isUserFree = isFree,
+                friendsList = sortedFriends
+            )
+        }.onEach { newState ->
+            uiState = newState
+        }.launchIn(viewModelScope)
     }
 
     fun logout(onLogoutSuccess: () -> Unit) {
-        auth.signOut()
+        authRepository.logout()
         onLogoutSuccess()
     }
 
-    private fun fetchCurrentStatus() {
-        val uid = auth.currentUser?.uid ?: return
-        db.collection("users").document(uid)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("HomeViewModel", "Error fetching status", error)
-                    return@addSnapshotListener
-                }
-                isUserFree = snapshot?.getBoolean("isFreeNow") ?: false
-            }
-    }
-
     fun toggleAvailability() {
-        val uid = auth.currentUser?.uid ?: return
-        isLoading = true
+        val currentState = uiState as? HomeUiState.Success ?: return
 
-        val availability = mapOf("isFreeNow" to !isUserFree)
+        uiState = currentState.copy(isActionLoading = true)
+        viewModelScope.launch {
+            userRepository.toggleAvailability(!currentState.isUserFree)
+                .onSuccess {
+                    Log.d("HomeViewModel", "Availability updated successfully")
+                }
+                .onFailure { e ->
+                    Log.e("HomeViewModel", "Error updating availability", e)
+                    _uiEvent.emit(HomeUiEvent.ShowToast("Error: ${e.localizedMessage}"))
+                }
 
-        db.collection("users").document(uid)
-            .set(availability, SetOptions.merge())
-            .addOnCompleteListener {
-                Log.d("HomeViewModel", "Availability updated successfully")
-                isLoading = false
-            }
-            .addOnFailureListener { e ->
-                Log.e("HomeViewModel", "Error updating availability", e)
-            }
+            // Logic to revert loading is handled by the Flow emission in observeData()
+            // but we can manually reset it here if needed for immediate UI response.
+//            (uiState as? HomeUiState.Success)?.let {
+//                uiState = it.copy(isActionLoading = false)
+//            }
+        }
     }
 
     fun removeFriend(friendUid: String) {
-        val myUid = auth.currentUser?.uid ?: return
-
-        db.collection("users").document(myUid)
-            .collection("friends").document(friendUid)
-            .delete()
-            .addOnSuccessListener {
-                friendsStatusList = friendsStatusList.filter { it.uid != friendUid }
-                Log.d("HomeViewModel", "Friend removed successfully")
-            }
-            .addOnFailureListener { e ->
-                Log.e("HomeViewModel", "Error removing friend", e)
-            }
-    }
-
-    private fun fetchFriendsAndListen() {
-        val myUid = auth.currentUser?.uid ?: return
-
-        db.collection("users").document(myUid)
-            .collection("friends")
-            .addSnapshotListener { snapshot, _ ->
-                val friendIds =
-                    snapshot?.documents?.map { it.id }?.filter { it != myUid } ?: emptyList()
-
-                friendIds.forEach { friendUid ->
-                    db.collection("users").document(friendUid)
-                        .addSnapshotListener { friendSnapshot, _ ->
-                            if (friendSnapshot != null) {
-                                val updatedFriend = FriendStatus(
-                                    uid = friendUid,
-                                    name = friendSnapshot.getString("displayName") ?: "Unknown",
-                                    isFree = friendSnapshot.getBoolean("isFreeNow") ?: false
-                                )
-                                updateFriendInList(updatedFriend)
-                            }
-                        }
+        viewModelScope.launch {
+            socialRepository.removeFriend(friendUid)
+                .onSuccess {
+                    Log.d("HomeViewModel", "Friend removed successfully")
+                    _uiEvent.emit(HomeUiEvent.ShowToast("Friend removed successfully"))
                 }
-            }
+                .onFailure { e ->
+                    Log.e("HomeViewModel", "Error removing friend", e)
+                    _uiEvent.emit(HomeUiEvent.ShowToast("Error removing friend: ${e.localizedMessage}"))
+                }
+        }
     }
 
-    private fun updateFriendInList(updatedFriend: FriendStatus) {
-        val newList = friendsStatusList.toMutableList()
-        val index = newList.indexOfFirst { it.uid == updatedFriend.uid }
-        if (index != -1) {
-            newList[index] = updatedFriend
-        } else {
-            newList.add(updatedFriend)
+    fun cancelFriendInvite(friendUid: String) {
+        viewModelScope.launch {
+            socialRepository.cancelFriendRequest(friendUid)
+                .onSuccess {
+                    Log.d("HomeViewModel", "Invite cancelled successfully")
+                    _uiEvent.emit(HomeUiEvent.ShowToast("Invite cancelled successfully"))
+                }
+                .onFailure { e ->
+                    Log.e("HomeViewModel", "Error cancelling invite", e)
+                    _uiEvent.emit(HomeUiEvent.ShowToast("Error cancelling invite: ${e.localizedMessage}"))
+                }
         }
-        friendsStatusList = newList.sortedByDescending { it.isFree }
     }
 }

@@ -31,6 +31,8 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
+    val uiState = viewModel.uiState
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,6 +48,7 @@ fun LoginScreen(
             onValueChange = { viewModel.email = it },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
+            enabled = uiState !is LoginUiState.Loading,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -60,6 +63,7 @@ fun LoginScreen(
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
+            enabled = uiState !is LoginUiState.Loading,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
@@ -69,13 +73,18 @@ fun LoginScreen(
             )
         )
 
-        viewModel.errorMessage?.let {
-            Text(text = it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+        if (uiState is LoginUiState.Error) {
+            Text(
+                text = uiState.message,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (viewModel.isLoading) {
+        if (uiState is LoginUiState.Loading) {
             CircularProgressIndicator()
         } else {
             Button(

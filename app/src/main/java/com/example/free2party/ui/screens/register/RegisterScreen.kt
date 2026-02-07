@@ -31,6 +31,8 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
+    val uiState = viewModel.uiState
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,10 +44,11 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = viewModel.displayName,
-            onValueChange = { viewModel.displayName = it },
-            label = { Text("Display Name") },
+            value = viewModel.name,
+            onValueChange = { viewModel.name = it },
+            label = { Text("Name") },
             modifier = Modifier.fillMaxWidth(),
+            enabled = uiState !is RegisterUiState.Loading,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next
             )
@@ -58,6 +61,7 @@ fun RegisterScreen(
             onValueChange = { viewModel.email = it },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
+            enabled = uiState !is RegisterUiState.Loading,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -72,6 +76,7 @@ fun RegisterScreen(
             label = { Text("Password") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
+            enabled = uiState !is RegisterUiState.Loading,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
@@ -81,13 +86,18 @@ fun RegisterScreen(
             )
         )
 
-        viewModel.errorMessage?.let {
-            Text(text = it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+        if (uiState is RegisterUiState.Error) {
+            Text(
+                text = uiState.message,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (viewModel.isLoading) {
+        if (uiState is RegisterUiState.Loading) {
             CircularProgressIndicator()
         } else {
             Button(
@@ -101,7 +111,10 @@ fun RegisterScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            TextButton(onClick = onBackToLogin) {
+            TextButton(onClick = {
+                viewModel.resetFields()
+                onBackToLogin()
+            }) {
                 Text("Already have an account? Login")
             }
         }

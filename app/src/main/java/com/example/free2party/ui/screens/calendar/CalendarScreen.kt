@@ -76,6 +76,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.util.formatTime
 import com.example.free2party.util.timeToMinutes
 import com.example.free2party.util.unformatTime
@@ -139,6 +140,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         focusManager.clearFocus()
     }
 
+    // TODO: convert new plan fields to a Dialog
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -626,7 +628,7 @@ fun MonthCalendar(
 ) {
     val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
         set(Calendar.YEAR, viewModel.displayedYear)
-        set(Calendar.MONTH, viewModel.displayedMonth + 1)
+        set(Calendar.MONTH, viewModel.displayedMonth)
         set(Calendar.DAY_OF_MONTH, 1)
     }
 
