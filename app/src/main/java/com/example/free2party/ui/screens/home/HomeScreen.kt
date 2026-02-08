@@ -251,7 +251,7 @@ fun InviteFriendDialog(
             viewModel.resetState()
             onDismiss()
         },
-        title = { Text("Invite Friend") },
+        title = { Text(text = "Invite Friend", style = MaterialTheme.typography.titleLarge) },
         text = {
             Column {
                 Text(

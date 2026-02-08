@@ -47,6 +47,7 @@ class CalendarViewModel : ViewModel() {
     var selectedDateMillis by mutableStateOf<Long?>(null)
 
     init {
+        goToToday()
         observePlans()
     }
 
@@ -144,6 +145,17 @@ class CalendarViewModel : ViewModel() {
         val today = Calendar.getInstance()
         displayedMonth = today.get(Calendar.MONTH)
         displayedYear = today.get(Calendar.YEAR)
+        
+        val utcToday = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(Calendar.YEAR, today.get(Calendar.YEAR))
+            set(Calendar.MONTH, today.get(Calendar.MONTH))
+            set(Calendar.DAY_OF_MONTH, today.get(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        selectedDateMillis = utcToday.timeInMillis
     }
 
     fun selectDate(day: Int) {
@@ -157,9 +169,5 @@ class CalendarViewModel : ViewModel() {
             set(Calendar.MILLISECOND, 0)
         }
         selectedDateMillis = calendar.timeInMillis
-    }
-
-    fun clearSelectedDate() {
-        selectedDateMillis = null
     }
 }
