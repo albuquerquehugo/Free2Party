@@ -64,8 +64,10 @@ import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
 import com.example.free2party.ui.theme.busyContainer
 import com.example.free2party.ui.theme.inactive
+import com.example.free2party.ui.theme.inactiveContainer
 import com.example.free2party.ui.theme.onAvailableContainer
 import com.example.free2party.ui.theme.onBusyContainer
+import com.example.free2party.ui.theme.onInactiveContainer
 import com.example.free2party.ui.theme.userText
 import kotlinx.coroutines.flow.collectLatest
 
@@ -93,7 +95,12 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = "Free2Party", style = MaterialTheme.typography.headlineLarge) },
+                title = {
+                    Text(
+                        text = "Free2Party",
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                },
                 actions = {
                     // TODO: add an icon for user account
                     IconButton(onClick = { setShowLogoutDialog(true) }) {
@@ -395,7 +402,7 @@ fun FriendItem(
                 ),
             colors = CardDefaults.cardColors(
                 containerColor = when {
-                    isInvited -> Color.LightGray.copy(alpha = 0.3f)
+                    isInvited -> MaterialTheme.colorScheme.inactiveContainer
                     friend.isFreeNow -> MaterialTheme.colorScheme.availableContainer
                     else -> MaterialTheme.colorScheme.busyContainer
                 }
@@ -410,7 +417,7 @@ fun FriendItem(
                         imageVector = Icons.Default.HourglassEmpty,
                         contentDescription = "Pending",
                         modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.inactive
+                        tint = MaterialTheme.colorScheme.onInactiveContainer
                     )
                 } else {
                     Box(
@@ -429,9 +436,11 @@ fun FriendItem(
                 Text(
                     text = friend.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    color =
-                        if (isInvited) MaterialTheme.colorScheme.inactive
-                        else MaterialTheme.colorScheme.userText
+                    color = when {
+                        isInvited -> MaterialTheme.colorScheme.onInactiveContainer
+                        friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
+                        else -> MaterialTheme.colorScheme.onBusyContainer
+                    }
                 )
 
                 Spacer(modifier = Modifier.weight(1.0f))
@@ -444,7 +453,7 @@ fun FriendItem(
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = when {
-                        isInvited -> Color.Gray
+                        isInvited -> MaterialTheme.colorScheme.onInactiveContainer
                         friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
                         else -> MaterialTheme.colorScheme.onBusyContainer
                     }

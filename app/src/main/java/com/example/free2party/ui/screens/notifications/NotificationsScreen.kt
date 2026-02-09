@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.data.model.FriendRequest
+import com.example.free2party.ui.theme.inactive
 
 @Composable
 fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
@@ -45,7 +47,7 @@ fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Friend Requests",
+            text = "Notifications",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -57,14 +59,12 @@ fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    Icons.Default.Notifications,
+                    Icons.Default.NotificationsNone,
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
-                    //TODO: check color
-                    tint = Color.LightGray
+                    tint = MaterialTheme.colorScheme.inactive
                 )
-                //TODO: check color
-                Text("All caught up!", color = Color.Gray)
+                Text("All caught up!", color = MaterialTheme.colorScheme.inactive)
             }
         } else {
             LazyColumn {

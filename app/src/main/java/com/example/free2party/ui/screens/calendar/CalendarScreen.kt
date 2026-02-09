@@ -72,6 +72,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.ui.theme.inactive
+import com.example.free2party.ui.theme.onInactiveContainer
 import com.example.free2party.util.formatTime
 import com.example.free2party.util.isDateTimeInPast
 import com.example.free2party.util.parseDateToMillis
@@ -645,6 +647,7 @@ fun PlanItem(
         }
     }
 
+    // TODO: Change container color depending on passed dates
     Box {
         Card(
             modifier = modifier
@@ -797,7 +800,7 @@ fun MonthCalendar(
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onInactiveContainer
                 )
             }
         }
@@ -880,7 +883,8 @@ fun MonthCalendar(
                         color = when {
                             isSelected -> MaterialTheme.colorScheme.onPrimary
                             isPlanned -> MaterialTheme.colorScheme.onPrimaryContainer
-                            isDateTimeInPast(dateMillis) && !isToday -> Color.Gray.copy(alpha = 0.5f)
+                            isDateTimeInPast(dateMillis) && !isToday ->
+                                MaterialTheme.colorScheme.inactive
                             else -> Color.Unspecified
                         }
                     )

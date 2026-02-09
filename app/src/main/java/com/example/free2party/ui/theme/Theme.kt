@@ -69,7 +69,17 @@ val ColorScheme.onBusyContainer: Color
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.inactive: Color
     @Composable
-    get() = Gray50 //if (isSystemInDarkTheme()) Red20 else Red40
+    get() = Gray70 //if (isSystemInDarkTheme()) Red20 else Red40
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.inactiveContainer: Color
+    @Composable
+    get() = Gray90
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.onInactiveContainer: Color
+    @Composable
+    get() = Gray50
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.userText: Color

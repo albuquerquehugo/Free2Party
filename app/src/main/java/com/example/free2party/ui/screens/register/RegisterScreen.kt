@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.ui.theme.inactive
 
 @Composable
 fun RegisterScreen(
@@ -111,7 +112,7 @@ fun RegisterScreen(
         if (uiState is RegisterUiState.Error) {
             Text(
                 text = uiState.message,
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp)
             )

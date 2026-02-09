@@ -98,7 +98,7 @@ fun LoginScreen(
         if (uiState is LoginUiState.Error) {
             Text(
                 text = uiState.message,
-                color = Color.Red,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp)
             )
