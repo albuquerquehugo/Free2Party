@@ -5,9 +5,12 @@ import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.InvalidPlanDataException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.OverlappingPlanException
+import com.example.free2party.exception.PastDateTimeException
 import com.example.free2party.exception.PlanNotFoundException
 import com.example.free2party.exception.UnauthorizedException
-import com.example.free2party.util.timeToMinutes
+import com.example.free2party.util.isDateTimeInPast
+import com.example.free2party.util.parseDateToMillis
+import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -46,6 +49,7 @@ class PlanRepositoryImpl(
 
     override suspend fun savePlan(plan: FuturePlan): Result<Unit> = try {
         validateSession()
+        validatePlanDateTime(plan)
 
         // Validation: Check for overlaps
         val existingPlans = fetchPlansSync()
@@ -68,6 +72,7 @@ class PlanRepositoryImpl(
 
     override suspend fun updatePlan(plan: FuturePlan): Result<Unit> = try {
         validateSession()
+        validatePlanDateTime(plan)
 
         // Validation: Check for overlaps (excluding the current plan being updated)
         val existingPlans = fetchPlansSync().filter { it.id != plan.id }
@@ -113,13 +118,20 @@ class PlanRepositoryImpl(
         if (currentUserId.isBlank()) throw UnauthorizedException()
     }
 
+    private fun validatePlanDateTime(plan: FuturePlan) {
+        val dateMillis = parseDateToMillis(plan.date) ?: throw InvalidPlanDataException()
+        if (isDateTimeInPast(dateMillis, plan.startTime)) {
+            throw PastDateTimeException()
+        }
+    }
+
     private fun isOverlapping(newPlan: FuturePlan, existingPlans: List<FuturePlan>): Boolean {
-        val newStartMins = timeToMinutes(newPlan.startTime)
-        val newEndMins = timeToMinutes(newPlan.endTime)
+        val newStartMins = parseTimeToMinutes(newPlan.startTime)
+        val newEndMins = parseTimeToMinutes(newPlan.endTime)
 
         return existingPlans.filter { it.date == newPlan.date }.any { plan ->
-            val existingStartMins = timeToMinutes(plan.startTime)
-            val existingEndMins = timeToMinutes(plan.endTime)
+            val existingStartMins = parseTimeToMinutes(plan.startTime)
+            val existingEndMins = parseTimeToMinutes(plan.endTime)
 
             newStartMins < existingEndMins && newEndMins > existingStartMins
         }
@@ -140,6 +152,7 @@ class PlanRepositoryImpl(
             is PlanNotFoundException,
             is UnauthorizedException,
             is OverlappingPlanException,
+            is PastDateTimeException,
             is InvalidPlanDataException -> e
 
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown error")

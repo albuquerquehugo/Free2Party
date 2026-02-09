@@ -44,17 +44,37 @@ val ColorScheme.available: Color
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.availableContainer: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Green80 else Green95
+    get() = Blue90 //if (isSystemInDarkTheme()) Blue80 else Blue95
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.onAvailableContainer: Color
+    @Composable
+    get() = Blue30 //if (isSystemInDarkTheme()) Blue20 else Blue40
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busy: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Gray40 else Gray60
+    get() = if (isSystemInDarkTheme()) Red40 else Red60
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busyContainer: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Gray80 else Gray95
+    get() = Red90 //if (isSystemInDarkTheme()) Red80 else Red95
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.onBusyContainer: Color
+    @Composable
+    get() = Red40 //if (isSystemInDarkTheme()) Red20 else Red40
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.inactive: Color
+    @Composable
+    get() = Gray50 //if (isSystemInDarkTheme()) Red20 else Red40
+
+@get:Suppress("UnusedReceiverParameter")
+val ColorScheme.userText: Color
+    @Composable
+    get() = Gray10 //if (isSystemInDarkTheme()) Red20 else Red40
 
 @Composable
 fun Free2PartyTheme(

@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
-import com.example.free2party.util.timeToMinutes
+import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -38,7 +38,7 @@ class CalendarViewModel : ViewModel() {
             val selectedDate =
                 selectedDateMillis?.let { formatMillisToDateString(it) } ?: return emptyList()
             return plansList.filter { it.date == selectedDate }
-                .sortedBy { plan -> timeToMinutes(plan.startTime) }
+                .sortedBy { plan -> parseTimeToMinutes(plan.startTime) }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))

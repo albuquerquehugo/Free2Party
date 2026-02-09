@@ -63,6 +63,10 @@ import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
 import com.example.free2party.ui.theme.busyContainer
+import com.example.free2party.ui.theme.inactive
+import com.example.free2party.ui.theme.onAvailableContainer
+import com.example.free2party.ui.theme.onBusyContainer
+import com.example.free2party.ui.theme.userText
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,8 +93,9 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Free2Party") },
+                title = { Text(text = "Free2Party", style = MaterialTheme.typography.headlineLarge) },
                 actions = {
+                    // TODO: add an icon for user account
                     IconButton(onClick = { setShowLogoutDialog(true) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
@@ -108,11 +113,16 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             }
+
             is HomeUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = (viewModel.uiState as HomeUiState.Error).message, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = (viewModel.uiState as HomeUiState.Error).message,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
+
             is HomeUiState.Success -> {
                 HomeContent(
                     paddingValues = paddingValues,
@@ -185,8 +195,8 @@ fun HomeContent(
                 .padding(horizontal = 32.dp, vertical = 16.dp),
             style = MaterialTheme.typography.headlineSmall,
             color =
-            if (isUserFree) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.error
+                if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
+                else MaterialTheme.colorScheme.onBusyContainer
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -211,8 +221,8 @@ fun HomeContent(
                     text = if (isUserFree) "Make Me Busy" else "Make Me Free",
                     style = MaterialTheme.typography.titleLarge,
                     color =
-                    if (isUserFree) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.onError
+                        if (isUserFree) MaterialTheme.colorScheme.onError
+                        else MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -356,8 +366,8 @@ fun FriendsListSection(
                 key = { it.uid }
             ) { friend ->
                 FriendItem(
-                    friend = friend, 
-                    onRemove = onDeleteFriend, 
+                    friend = friend,
+                    onRemove = onDeleteFriend,
                     onCancelInvite = onCancelInvite
                 )
             }
@@ -400,7 +410,7 @@ fun FriendItem(
                         imageVector = Icons.Default.HourglassEmpty,
                         contentDescription = "Pending",
                         modifier = Modifier.size(12.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.inactive
                     )
                 } else {
                     Box(
@@ -419,7 +429,9 @@ fun FriendItem(
                 Text(
                     text = friend.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (isInvited) Color.Gray else Color.Unspecified
+                    color =
+                        if (isInvited) MaterialTheme.colorScheme.inactive
+                        else MaterialTheme.colorScheme.userText
                 )
 
                 Spacer(modifier = Modifier.weight(1.0f))
@@ -433,8 +445,8 @@ fun FriendItem(
                     style = MaterialTheme.typography.bodyLarge,
                     color = when {
                         isInvited -> Color.Gray
-                        friend.isFreeNow -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.error
+                        friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
+                        else -> MaterialTheme.colorScheme.onBusyContainer
                     }
                 )
             }
@@ -445,7 +457,12 @@ fun FriendItem(
             onDismissRequest = { showMenu = false }
         ) {
             DropdownMenuItem(
-                text = { Text(if (isInvited) "Cancel Invite" else "Remove Friend", color = MaterialTheme.colorScheme.error) },
+                text = {
+                    Text(
+                        if (isInvited) "Cancel Invite" else "Remove Friend",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                },
                 leadingIcon = {
                     Icon(
                         Icons.Default.Delete,

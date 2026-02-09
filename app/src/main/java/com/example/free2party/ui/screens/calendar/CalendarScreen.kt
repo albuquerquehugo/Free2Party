@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.calendar
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,7 +43,6 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,7 +73,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.util.formatTime
-import com.example.free2party.util.timeToMinutes
+import com.example.free2party.util.isDateTimeInPast
+import com.example.free2party.util.parseDateToMillis
+import com.example.free2party.util.parseTimeToMinutes
 import com.example.free2party.util.unformatTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -91,10 +93,10 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
 
     val (showPlanDialog, setShowPlanDialog) = remember { mutableStateOf(false) }
-    var editingPlan by remember { mutableStateOf<FuturePlan?>(null) }
+    val (editingPlan, setEditingPlan) = remember { mutableStateOf<FuturePlan?>(null) }
 
     val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
-    var planToDelete by remember { mutableStateOf<FuturePlan?>(null) }
+    val (planToDelete, setPlanToDelete) = remember { mutableStateOf<FuturePlan?>(null) }
 
     val datePickerState = rememberDatePickerState()
     val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
@@ -106,6 +108,9 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         format.format(Date(it))
     } ?: ""
 
+    val isSelectedDateInPast =
+        viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -116,69 +121,38 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         ) {
             MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
             IconButton(
                 onClick = {
-                    editingPlan = null
+                    setEditingPlan(null)
                     setShowPlanDialog(true)
                 },
+                enabled = !isSelectedDateInPast,
                 modifier = Modifier
-                    .padding(top = 16.dp, bottom = 32.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), CircleShape),
+                    .padding(top = 16.dp, bottom = 24.dp)
+                    .background(
+                        if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
+                        else MaterialTheme.colorScheme.primary,
+                        CircleShape
+                    )
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Plan",
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.38f
+                    )
+                    else MaterialTheme.colorScheme.onPrimary
                 )
             }
 
-            Text(
-                text = "Your free periods for: $selectedDateText",
-                style = MaterialTheme.typography.titleMedium
+            PlanResults(
+                viewModel = viewModel,
+                selectedDateText = selectedDateText,
+                setShowPlanDialog = setShowPlanDialog,
+                setEditingPlan = setEditingPlan,
+                setShowDeleteDialog = setShowDeleteDialog,
+                setPlanToDelete = setPlanToDelete
             )
-
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(top = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                if (viewModel.filteredPlans.isEmpty()) {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = if (viewModel.selectedDateMillis == null) {
-                                    "Select a day on the calendar to see your future plans"
-                                } else "No plans for this day",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                } else {
-                    items(viewModel.filteredPlans) { plan ->
-                        PlanItem(
-                            plan = plan,
-                            onEdit = {
-                                editingPlan = plan
-                                setShowPlanDialog(true)
-                            },
-                            onDelete = {
-                                planToDelete = plan
-                                setShowDeleteDialog(true)
-                            }
-                        )
-                    }
-                }
-            }
         }
     }
 
@@ -206,7 +180,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                     )
                 } else {
                     viewModel.updatePlan(
-                        planId = editingPlan!!.id,
+                        planId = editingPlan.id,
                         date = date,
                         startTime = start,
                         endTime = end,
@@ -231,7 +205,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 TextButton(
                     onClick = {
                         viewModel.deletePlan(
-                            planId = planToDelete!!.id,
+                            planId = planToDelete.id,
                             onError = { errorMessage: String ->
                                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                             },
@@ -295,10 +269,20 @@ fun PlanDialog(
         endTimeState.hour,
         endTimeState.minute
     ) {
-        val start = timeToMinutes(formatTime(startTimeState.hour, startTimeState.minute))
-        val end = timeToMinutes(formatTime(endTimeState.hour, endTimeState.minute))
+        val start = parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute))
+        val end = parseTimeToMinutes(formatTime(endTimeState.hour, endTimeState.minute))
         start < end
     }
+
+    val isSelectedDateInPast = datePickerState.selectedDateMillis?.let {
+        isDateTimeInPast(it, null)
+    } ?: false
+    val isStartTimeInPast = datePickerState.selectedDateMillis?.let {
+        isDateTimeInPast(it, formatTime(startTimeState.hour, startTimeState.minute))
+    } ?: false
+    val isEndTimeInPast = datePickerState.selectedDateMillis?.let {
+        isDateTimeInPast(it, formatTime(endTimeState.hour, endTimeState.minute))
+    } ?: false
 
     LaunchedEffect(editingPlan) {
         editingPlan?.let {
@@ -340,7 +324,7 @@ fun PlanDialog(
                         Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = null,
-                            tint = if (!isTimeValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(text = "Date:", style = MaterialTheme.typography.labelLarge)
                     }
@@ -351,19 +335,38 @@ fun PlanDialog(
                             .height(48.dp),
                         onClick = { setShowDatePicker(true) }
                     ) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
                                 text = selectedDateText,
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color =
+                                    if (isSelectedDateInPast) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
+                    }
+
+                    if (isSelectedDateInPast) {
+                        Text(
+                            text = "Cannot schedule plans for past dates",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Column(
-                        modifier = Modifier.weight(1f).padding(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -374,7 +377,7 @@ fun PlanDialog(
                             Icon(
                                 imageVector = Icons.Default.WatchLater,
                                 contentDescription = null,
-                                tint = if (!isTimeValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(text = "From:", style = MaterialTheme.typography.labelLarge)
                         }
@@ -383,26 +386,33 @@ fun PlanDialog(
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .border(
-                                    width = if (!isTimeValid) 1.dp else 0.dp,
+                                    width = if (!isTimeValid || isStartTimeInPast) 1.dp else 0.dp,
                                     color =
-                                        if (!isTimeValid) MaterialTheme.colorScheme.error
+                                        if (!isTimeValid || isStartTimeInPast) MaterialTheme.colorScheme.error
                                         else Color.Transparent,
                                     shape = MaterialTheme.shapes.medium
                                 ),
                             onClick = { setShowStartTimePicker(true) }
                         ) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
                                     text = formatTime(startTimeState.hour, startTimeState.minute),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = if (!isTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                    color =
+                                        if (!isTimeValid || isStartTimeInPast) MaterialTheme.colorScheme.error
+                                        else Color.Unspecified
                                 )
                             }
                         }
                     }
 
                     Column(
-                        modifier = Modifier.weight(1f).padding(8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -413,7 +423,7 @@ fun PlanDialog(
                             Icon(
                                 imageVector = Icons.Default.WatchLater,
                                 contentDescription = null,
-                                tint = if (!isTimeValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(text = "To:", style = MaterialTheme.typography.labelLarge)
                         }
@@ -422,23 +432,48 @@ fun PlanDialog(
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .border(
-                                    width = if (!isTimeValid) 1.dp else 0.dp,
+                                    width = if (!isTimeValid || isEndTimeInPast) 1.dp else 0.dp,
                                     color =
-                                        if (!isTimeValid) MaterialTheme.colorScheme.error
+                                        if (!isTimeValid || isEndTimeInPast) MaterialTheme.colorScheme.error
                                         else Color.Transparent,
                                     shape = MaterialTheme.shapes.medium
                                 ),
                             onClick = { setShowEndTimePicker(true) }
                         ) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
                                     text = formatTime(endTimeState.hour, endTimeState.minute),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = if (!isTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                    color =
+                                        if (!isTimeValid || isEndTimeInPast) MaterialTheme.colorScheme.error
+                                        else Color.Unspecified
                                 )
                             }
                         }
                     }
+                }
+
+                if (!isSelectedDateInPast && (isStartTimeInPast || isEndTimeInPast)) {
+                    Text(
+                        text = "Cannot schedule plans for past times",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                if (!isTimeValid) {
+                    Text(
+                        text = "End time must be after start time",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 OutlinedTextField(
@@ -472,7 +507,8 @@ fun PlanDialog(
                         )
                     }
                 },
-                enabled = datePickerState.selectedDateMillis != null && isTimeValid
+                enabled = datePickerState.selectedDateMillis != null && isTimeValid &&
+                        !isStartTimeInPast && !isEndTimeInPast
             ) {
                 Text(if (editingPlan == null) "Add" else "Update")
             }
@@ -520,6 +556,65 @@ fun PlanDialog(
 }
 
 @Composable
+fun PlanResults(
+    viewModel: CalendarViewModel,
+    selectedDateText: String,
+    setShowPlanDialog: (Boolean) -> Unit,
+    setEditingPlan: (FuturePlan?) -> Unit,
+    setShowDeleteDialog: (Boolean) -> Unit,
+    setPlanToDelete: (FuturePlan?) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Results for: $selectedDateText",
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        LazyColumn(
+            modifier = Modifier.padding(top = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            if (viewModel.filteredPlans.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = if (viewModel.selectedDateMillis == null) {
+                                "Select a day on the calendar to see your future plans"
+                            } else "No plans for this day",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            } else {
+                items(viewModel.filteredPlans) { plan ->
+                    PlanItem(
+                        plan = plan,
+                        onEdit = {
+                            setEditingPlan(plan)
+                            setShowPlanDialog(true)
+                        },
+                        onDelete = {
+                            setPlanToDelete(plan)
+                            setShowDeleteDialog(true)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun PlanItem(
     plan: FuturePlan,
     onEdit: () -> Unit,
@@ -528,8 +623,18 @@ fun PlanItem(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
+    val isPastDateTime = remember(plan.date, plan.startTime) {
+        val millis = parseDateToMillis(plan.date)
+        if (millis != null) {
+            isDateTimeInPast(millis, plan.startTime)
+        } else {
+            Log.e("PlanItem", "Invalid date: ${plan.date}")
+            false
+        }
+    }
+
     val duration = remember(plan.startTime, plan.endTime) {
-        val durationMins = timeToMinutes(plan.endTime) - timeToMinutes(plan.startTime)
+        val durationMins = parseTimeToMinutes(plan.endTime) - parseTimeToMinutes(plan.startTime)
         val hours = durationMins / 60
         val minutes = durationMins % 60
 
@@ -582,6 +687,7 @@ fun PlanItem(
         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             DropdownMenuItem(
                 text = { Text("Edit") },
+                enabled = !isPastDateTime,
                 onClick = {
                     showMenu = false
                     onEdit()
@@ -666,10 +772,12 @@ fun MonthCalendar(
                 }
             }
 
-            IconButton(onClick = { viewModel.moveToNextMonth() },
+            IconButton(
+                onClick = { viewModel.moveToNextMonth() },
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp)) {
+                    .padding(end = 16.dp)
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Next"
@@ -706,6 +814,16 @@ fun MonthCalendar(
             items(daysInMonth) { index ->
                 val day = index + 1
                 val isPlanned = plannedDays.contains(day)
+
+                val dateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                    set(Calendar.YEAR, viewModel.displayedYear)
+                    set(Calendar.MONTH, viewModel.displayedMonth)
+                    set(Calendar.DAY_OF_MONTH, day)
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
 
                 // Check if this specific cell is actually "Today"
                 val today = Calendar.getInstance()
@@ -762,6 +880,7 @@ fun MonthCalendar(
                         color = when {
                             isSelected -> MaterialTheme.colorScheme.onPrimary
                             isPlanned -> MaterialTheme.colorScheme.onPrimaryContainer
+                            isDateTimeInPast(dateMillis) && !isToday -> Color.Gray.copy(alpha = 0.5f)
                             else -> Color.Unspecified
                         }
                     )

@@ -10,3 +10,6 @@ class OverlappingPlanException(message: String = "This time slot overlaps with a
 
 class InvalidPlanDataException(message: String = "The plan details are invalid") :
     PlanException(message)
+
+class PastDateTimeException(message: String = "Cannot schedule plans for a past date or time") :
+    PlanException(message)
