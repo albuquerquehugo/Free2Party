@@ -1,6 +1,7 @@
 package com.example.free2party.ui.screens.home
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -51,24 +52,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.R
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
 import com.example.free2party.ui.theme.busyContainer
-import com.example.free2party.ui.theme.inactive
 import com.example.free2party.ui.theme.inactiveContainer
 import com.example.free2party.ui.theme.onAvailableContainer
 import com.example.free2party.ui.theme.onBusyContainer
 import com.example.free2party.ui.theme.onInactiveContainer
-import com.example.free2party.ui.theme.userText
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,9 +97,13 @@ fun HomeScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        text = "Free2Party",
-                        style = MaterialTheme.typography.headlineLarge
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_light_full),
+                        contentDescription = "Free2Party Logo",
+                        modifier = Modifier
+                            .height(120.dp)
+                            .fillMaxWidth(0.8f),
+                        contentScale = ContentScale.Fit
                     )
                 },
                 actions = {
