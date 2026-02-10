@@ -23,7 +23,7 @@ sealed interface InviteFriendUiState {
 }
 
 sealed class FriendUiEvent {
-    object InviteSentSuccessfully : FriendUiEvent()
+    data class InviteSentSuccessfully(val email: String) : FriendUiEvent()
 }
 
 class FriendViewModel : ViewModel() {
@@ -57,7 +57,7 @@ class FriendViewModel : ViewModel() {
                 .onSuccess {
                     searchQuery = ""
                     uiState = InviteFriendUiState.Success
-                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully)
+                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully(inputEmail))
                 }
                 .onFailure { e ->
                     uiState =

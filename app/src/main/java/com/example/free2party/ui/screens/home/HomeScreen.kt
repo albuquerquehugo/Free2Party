@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +31,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -93,32 +93,23 @@ fun HomeScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_light_full),
-                        contentDescription = "Free2Party Logo",
-                        modifier = Modifier
-                            .height(120.dp)
-                            .fillMaxWidth(0.8f),
-                        contentScale = ContentScale.Fit
-                    )
-                },
-                actions = {
-                    // TODO: add an icon for user account
-                    IconButton(onClick = { setShowLogoutDialog(true) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "Logout",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
+    Scaffold { paddingValues ->
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            // TODO: add an icon for user account
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = { setShowLogoutDialog(true) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = "Logout",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
-    ) { paddingValues ->
+
         when (viewModel.uiState) {
             is HomeUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -142,7 +133,7 @@ fun HomeScreen(
                     friendsList = (viewModel.uiState as HomeUiState.Success).friendsList,
                     isActionLoading = (viewModel.uiState as HomeUiState.Success).isActionLoading,
                     onToggleAvailability = { viewModel.toggleAvailability() },
-                    onDeleteFriend = { uid -> viewModel.removeFriend(uid) },
+                    onRemoveFriend = { uid -> viewModel.removeFriend(uid) },
                     onCancelInvite = { uid -> viewModel.cancelFriendInvite(uid) },
                     onInviteFriendClick = { setShowInviteFriendDialog(true) }
                 )
@@ -178,12 +169,12 @@ fun HomeScreen(
 
 @Composable
 fun HomeContent(
-    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    paddingValues: PaddingValues,
     isUserFree: Boolean,
     friendsList: List<FriendInfo>,
     isActionLoading: Boolean,
     onToggleAvailability: () -> Unit,
-    onDeleteFriend: (String) -> Unit,
+    onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit
 ) {
@@ -192,10 +183,22 @@ fun HomeContent(
             .fillMaxSize()
             .padding(paddingValues)
             .padding(horizontal = 16.dp)
-            .padding(top = 32.dp),
+            .padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_light_full),
+                contentDescription = "Free2Party Logo",
+                modifier = Modifier.height(120.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
         Text(
             text = if (isUserFree) "You are Free2Party" else "You are currently busy",
             modifier = Modifier
@@ -243,7 +246,7 @@ fun HomeContent(
 
         FriendsListSection(
             friends = friendsList,
-            onDeleteFriend = onDeleteFriend,
+            onRemoveFriend = onRemoveFriend,
             onCancelInvite = onCancelInvite,
             onInviteFriendClick = onInviteFriendClick
         )
@@ -260,8 +263,12 @@ fun InviteFriendDialog(
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
-                FriendUiEvent.InviteSentSuccessfully -> {
-                    Toast.makeText(context, "Invite sent successfully!", Toast.LENGTH_SHORT).show()
+                is FriendUiEvent.InviteSentSuccessfully -> {
+                    Toast.makeText(
+                        context,
+                        "Invite successfully sent to ${event.email}!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     onDismiss()
                 }
             }
@@ -288,6 +295,7 @@ fun InviteFriendDialog(
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = viewModel.uiState !is InviteFriendUiState.Searching,
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Done
@@ -337,7 +345,7 @@ fun InviteFriendDialog(
 @Composable
 fun FriendsListSection(
     friends: List<FriendInfo>,
-    onDeleteFriend: (String) -> Unit,
+    onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit
 ) {
@@ -373,25 +381,21 @@ fun FriendsListSection(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(
-                items = friends,
-                key = { it.uid }
-            ) { friend ->
+            items(friends) { friend ->
                 FriendItem(
                     friend = friend,
-                    onRemove = onDeleteFriend,
-                    onCancelInvite = onCancelInvite
+                    onRemoveFriend = { onRemoveFriend(friend.uid) },
+                    onCancelInvite = { onCancelInvite(friend.uid) }
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendItem(
     friend: FriendInfo,
-    onRemove: (String) -> Unit,
+    onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -489,7 +493,7 @@ fun FriendItem(
                     if (isInvited) {
                         onCancelInvite(friend.uid)
                     } else {
-                        onRemove(friend.uid)
+                        onRemoveFriend(friend.uid)
                     }
                 }
             )

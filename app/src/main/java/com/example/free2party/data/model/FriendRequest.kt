@@ -1,6 +1,7 @@
 package com.example.free2party.data.model
 
-import com.google.firebase.Timestamp
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 
 data class FriendRequest(
     val id: String = "",
@@ -8,7 +9,8 @@ data class FriendRequest(
     val senderName: String = "",
     val senderEmail: String = "",
     val receiverId: String = "",
-    val timestamp: Timestamp = Timestamp.now(),
+    @ServerTimestamp
+    val timestamp: Date? = null,
     val friendRequestStatus: FriendRequestStatus = FriendRequestStatus.PENDING
 )
 
