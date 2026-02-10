@@ -37,7 +37,7 @@ class RegisterViewModel : ViewModel() {
     var uiState by mutableStateOf<RegisterUiState>(RegisterUiState.Idle)
         private set
 
-    fun onRegisterClick(onSuccess: () -> Unit) {
+    fun onRegisterClick() {
         if (name.isBlank() || email.isBlank() || password.isBlank()) {
             uiState = RegisterUiState.Error("All fields are required")
             return
@@ -46,12 +46,11 @@ class RegisterViewModel : ViewModel() {
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
             authRepository.register(name, email, password)
-                .onSuccess {
-                    uiState = RegisterUiState.Success
-                    onSuccess()
-                }
+                .onSuccess { uiState = RegisterUiState.Success }
                 .onFailure { e ->
-                    uiState = RegisterUiState.Error(e.localizedMessage ?: "Registration failed")
+                    uiState = RegisterUiState.Error(
+                        e.localizedMessage ?: "Registration failed"
+                    )
                 }
         }
     }

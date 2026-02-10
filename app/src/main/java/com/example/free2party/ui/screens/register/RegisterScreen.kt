@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.register
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,12 +22,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -40,8 +43,20 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
+    val context = LocalContext.current
     val uiState = viewModel.uiState
     var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState) {
+        if (uiState is RegisterUiState.Success) {
+            Toast.makeText(
+                context,
+                "Account created successfully for user ${viewModel.email}!",
+                Toast.LENGTH_SHORT
+            ).show()
+            onRegisterSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -92,7 +107,7 @@ fun RegisterScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { viewModel.onRegisterClick(onRegisterSuccess) }
+                onDone = { viewModel.onRegisterClick() }
             ),
             trailingIcon = {
                 val image = if (passwordVisible)
@@ -122,16 +137,16 @@ fun RegisterScreen(
             CircularProgressIndicator()
         } else {
             Button(
-                onClick = { viewModel.onRegisterClick(onRegisterSuccess) },
+                onClick = { viewModel.onRegisterClick() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
                 Text("Register")
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             TextButton(onClick = {
                 viewModel.resetFields()
                 onBackToLogin()
