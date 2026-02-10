@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -71,10 +72,12 @@ fun RegisterScreen(
         OutlinedTextField(
             value = viewModel.name,
             onValueChange = { viewModel.name = it },
-            label = { Text("Name") },
+            label = { Text("Name *") },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is RegisterUiState.Loading,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Next
             )
         )
@@ -84,9 +87,10 @@ fun RegisterScreen(
         OutlinedTextField(
             value = viewModel.email,
             onValueChange = { viewModel.email = it },
-            label = { Text("Email") },
+            label = { Text("Email *") },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is RegisterUiState.Loading,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -98,10 +102,11 @@ fun RegisterScreen(
         OutlinedTextField(
             value = viewModel.password,
             onValueChange = { viewModel.password = it },
-            label = { Text("Password") },
+            label = { Text("Password *") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is RegisterUiState.Loading,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done

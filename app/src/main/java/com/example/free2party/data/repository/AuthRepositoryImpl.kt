@@ -27,6 +27,7 @@ class AuthRepositoryImpl(
             name = name,
             email = email,
             isFreeNow = false
+            // createdAt is handled by @ServerTimestamp in User model
         )
         
         // Use UserRepository to handle profile creation

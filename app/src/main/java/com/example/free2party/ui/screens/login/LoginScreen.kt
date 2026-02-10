@@ -71,6 +71,7 @@ fun LoginScreen(
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is LoginUiState.Loading,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -86,6 +87,7 @@ fun LoginScreen(
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is LoginUiState.Loading,
+            singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
