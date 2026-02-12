@@ -1,4 +1,4 @@
-# 📅 Free2Party - Let's get together sometime - Social Availability Planner
+# 📅 Free2Party: Let's get together sometime - Social Availability Planner
 
 **Free2Party** is a social Android application designed to help friends coordinate their availability in real-time, simplifying the logistics of group gatherings. Whether you're looking for someone to grab a coffee with or planning a night out, Free2Party lets you see who is "Free" at a glance. This project serves as a showcase of how to build a scalable, user-centric product from ideation to a production-ready state.
 

@@ -17,3 +17,4 @@ local.properties
 google-services.json
 *-debug.log
 .firebase/
+emulator_data
