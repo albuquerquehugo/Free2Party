@@ -24,9 +24,12 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -82,6 +85,7 @@ fun HomeScreen(
 
     val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
+    var showUserMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -97,18 +101,60 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
-            // TODO: add an icon for user account
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = { setShowLogoutDialog(true) }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = "Logout",
-                    tint = MaterialTheme.colorScheme.error
-                )
+            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                IconButton(onClick = { showUserMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "User Menu",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                DropdownMenu(
+                    expanded = showUserMenu,
+                    onDismissRequest = { showUserMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Profile") },
+                        enabled = false,
+                        onClick = { showUserMenu = false },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Settings") },
+                        enabled = false,
+                        onClick = { showUserMenu = false },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text("Logout") },
+                        onClick = {
+                            showUserMenu = false
+                            setShowLogoutDialog(true)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    )
+                }
             }
         }
 
@@ -366,7 +412,8 @@ fun FriendsListSection(
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = "Invite Friend"
+                contentDescription = "Invite Friend",
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }
