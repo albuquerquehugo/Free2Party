@@ -95,7 +95,9 @@ fun HomeScreen(
 
     Scaffold { paddingValues ->
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             // TODO: add an icon for user account
@@ -188,7 +190,9 @@ fun HomeContent(
         verticalArrangement = Arrangement.Top
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
             contentAlignment = Alignment.Center
         ) {
             Image(

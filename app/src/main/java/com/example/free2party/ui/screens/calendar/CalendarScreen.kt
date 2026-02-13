@@ -1,6 +1,5 @@
 package com.example.free2party.ui.screens.calendar
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,6 +59,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -75,10 +75,12 @@ import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.ui.theme.inactive
 import com.example.free2party.ui.theme.onInactiveContainer
 import com.example.free2party.util.formatTime
+import com.example.free2party.util.isDateTimeCurrent
 import com.example.free2party.util.isDateTimeInPast
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.example.free2party.util.unformatTime
+import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -90,6 +92,13 @@ import java.util.TimeZone
 @Composable
 fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
     val context = LocalContext.current
+
+    val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
+        while (true) {
+            delay(5_000) // Update every 5 seconds for high precision with low cost
+            value = System.currentTimeMillis()
+        }
+    }
 
     val plannedDays =
         viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
@@ -150,6 +159,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             PlanResults(
                 viewModel = viewModel,
                 selectedDateText = selectedDateText,
+                currentTimeMillis = currentTimeMillis,
                 setShowPlanDialog = setShowPlanDialog,
                 setEditingPlan = setEditingPlan,
                 setShowDeleteDialog = setShowDeleteDialog,
@@ -561,6 +571,7 @@ fun PlanDialog(
 fun PlanResults(
     viewModel: CalendarViewModel,
     selectedDateText: String,
+    currentTimeMillis: Long,
     setShowPlanDialog: (Boolean) -> Unit,
     setEditingPlan: (FuturePlan?) -> Unit,
     setShowDeleteDialog: (Boolean) -> Unit,
@@ -601,6 +612,7 @@ fun PlanResults(
                 items(viewModel.filteredPlans) { plan ->
                     PlanItem(
                         plan = plan,
+                        currentTimeMillis = currentTimeMillis,
                         onEdit = {
                             setEditingPlan(plan)
                             setShowPlanDialog(true)
@@ -619,20 +631,29 @@ fun PlanResults(
 @Composable
 fun PlanItem(
     plan: FuturePlan,
+    currentTimeMillis: Long,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    val isPastDateTime = remember(plan.date, plan.startTime) {
-        val millis = parseDateToMillis(plan.date)
-        if (millis != null) {
-            isDateTimeInPast(millis, plan.startTime)
-        } else {
-            Log.e("PlanItem", "Invalid date: ${plan.date}")
-            false
-        }
+    val millis = remember(plan.date) { parseDateToMillis(plan.date) ?: 0L }
+
+    val referenceCalendar = remember(currentTimeMillis) {
+        Calendar.getInstance().apply { timeInMillis = currentTimeMillis }
+    }
+
+    val isCurrent = remember(millis, plan.startTime, plan.endTime, currentTimeMillis) {
+        isDateTimeCurrent(millis, plan.startTime, plan.endTime, referenceCalendar)
+    }
+
+    val isPast = remember(millis, plan.endTime, currentTimeMillis) {
+        isDateTimeInPast(millis, plan.endTime, referenceCalendar)
+    }
+
+    val isEditDisabled = remember(millis, plan.startTime, currentTimeMillis) {
+        isDateTimeInPast(millis, plan.startTime, referenceCalendar)
     }
 
     val duration = remember(plan.startTime, plan.endTime) {
@@ -647,7 +668,6 @@ fun PlanItem(
         }
     }
 
-    // TODO: Change container color depending on passed dates
     Box {
         Card(
             modifier = modifier
@@ -657,7 +677,16 @@ fun PlanItem(
                     onLongClick = { showMenu = true }
                 ),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor = when {
+                    isCurrent -> MaterialTheme.colorScheme.tertiaryContainer
+                    isPast -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.primaryContainer
+                },
+                contentColor = when {
+                    isCurrent -> MaterialTheme.colorScheme.onTertiaryContainer
+                    isPast -> MaterialTheme.colorScheme.onSurfaceVariant
+                    else -> MaterialTheme.colorScheme.onPrimaryContainer
+                }
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -668,14 +697,16 @@ fun PlanItem(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Surface(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        color = (if (isCurrent) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary).copy(
+                            alpha = 0.1f
+                        ),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
                             text = duration,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = if (isCurrent) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -690,7 +721,7 @@ fun PlanItem(
         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             DropdownMenuItem(
                 text = { Text("Edit") },
-                enabled = !isPastDateTime,
+                enabled = !isEditDisabled,
                 onClick = {
                     showMenu = false
                     onEdit()
@@ -885,6 +916,7 @@ fun MonthCalendar(
                             isPlanned -> MaterialTheme.colorScheme.onPrimaryContainer
                             isDateTimeInPast(dateMillis) && !isToday ->
                                 MaterialTheme.colorScheme.inactive
+
                             else -> Color.Unspecified
                         }
                     )

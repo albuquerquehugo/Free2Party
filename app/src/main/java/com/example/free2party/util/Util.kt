@@ -44,17 +44,21 @@ fun parseTimeToMinutes(time: String): Int {
 }
 
 /**
- * Logic for determining if a date/time has already passed based on user's local time.
+ * Logic for determining if a date/time has already passed.
  * @param dateUtcMillis The date in UTC milliseconds (start of day).
  * @param timeString Optional time string (HH:mm). If provided, checks time if date is today.
+ * @param now The reference time to check against.
  */
-fun isDateTimeInPast(dateUtcMillis: Long, timeString: String? = null): Boolean {
-    val localNow = Calendar.getInstance()
+fun isDateTimeInPast(
+    dateUtcMillis: Long,
+    timeString: String? = null,
+    now: Calendar = Calendar.getInstance()
+): Boolean {
     val todayUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
         set(
-            localNow.get(Calendar.YEAR),
-            localNow.get(Calendar.MONTH),
-            localNow.get(Calendar.DAY_OF_MONTH),
+            now.get(Calendar.YEAR),
+            now.get(Calendar.MONTH),
+            now.get(Calendar.DAY_OF_MONTH),
             0,
             0,
             0
@@ -65,12 +69,48 @@ fun isDateTimeInPast(dateUtcMillis: Long, timeString: String? = null): Boolean {
     if (dateUtcMillis < todayUtc.timeInMillis) return true
 
     if (dateUtcMillis == todayUtc.timeInMillis && timeString != null) {
-        val currentMins = localNow.get(Calendar.HOUR_OF_DAY) * 60 + localNow.get(Calendar.MINUTE)
-        val startMins = parseTimeToMinutes(timeString)
-        return startMins < currentMins
+        val currentMins = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+        val targetMins = parseTimeToMinutes(timeString)
+        // If the current minute is the same as or greater than the target minute, it is in the past/started
+        return targetMins <= currentMins
     }
 
     return false
+}
+
+/**
+ * Logic for determining if a plan is currently happening.
+ * @param dateUtcMillis The date in UTC milliseconds (start of day).
+ * @param startTime String (HH:mm).
+ * @param endTime String (HH:mm).
+ * @param now The reference time to check against.
+ */
+fun isDateTimeCurrent(
+    dateUtcMillis: Long,
+    startTime: String,
+    endTime: String,
+    now: Calendar = Calendar.getInstance()
+): Boolean {
+    val todayUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+        set(
+            now.get(Calendar.YEAR),
+            now.get(Calendar.MONTH),
+            now.get(Calendar.DAY_OF_MONTH),
+            0,
+            0,
+            0
+        )
+        set(Calendar.MILLISECOND, 0)
+    }
+
+    if (dateUtcMillis != todayUtc.timeInMillis) return false
+
+    val currentMins = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+    val startMins = parseTimeToMinutes(startTime)
+    val endMins = parseTimeToMinutes(endTime)
+
+    // Current if started (inclusive) and not yet finished (exclusive)
+    return currentMins in startMins..<endMins
 }
 
 /**
