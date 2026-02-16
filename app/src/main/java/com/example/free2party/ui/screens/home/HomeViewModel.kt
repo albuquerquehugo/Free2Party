@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 sealed interface HomeUiState {
     object Loading : HomeUiState
     data class Success(
+        val userName: String = "",
         val isUserFree: Boolean = false,
         val friendsList: List<FriendInfo> = emptyList(),
         val isActionLoading: Boolean = false
@@ -64,9 +65,9 @@ class HomeViewModel : ViewModel() {
 
     private fun observeData() {
         combine(
-            userRepository.getCurrentUserStatus(),
+            userRepository.observeUser(userRepository.currentUserId),
             socialRepository.getFriendsList()
-        ) { isFree, friends ->
+        ) { user, friends ->
             // Sort: Invited at the bottom, then by availability, then alphabetically
             val sortedFriends = friends.sortedWith(
                 compareBy<FriendInfo> { it.inviteStatus == InviteStatus.INVITED }
@@ -74,7 +75,8 @@ class HomeViewModel : ViewModel() {
                     .thenBy { it.name }
             )
             HomeUiState.Success(
-                isUserFree = isFree,
+                userName = user.name,
+                isUserFree = user.isFreeNow,
                 friendsList = sortedFriends
             )
         }.onEach { newState ->
@@ -100,12 +102,6 @@ class HomeViewModel : ViewModel() {
                     Log.e("HomeViewModel", "Error updating availability", e)
                     _uiEvent.emit(HomeUiEvent.ShowToast("Error: ${e.localizedMessage}"))
                 }
-
-            // Logic to revert loading is handled by the Flow emission in observeData()
-            // but we can manually reset it here if needed for immediate UI response.
-//            (uiState as? HomeUiState.Success)?.let {
-//                uiState = it.copy(isActionLoading = false)
-//            }
         }
     }
 

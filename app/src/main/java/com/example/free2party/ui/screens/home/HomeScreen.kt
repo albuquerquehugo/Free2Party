@@ -58,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -79,7 +80,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -98,93 +100,116 @@ fun HomeScreen(
     }
 
     Scaffold { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(modifier = Modifier.align(Alignment.CenterEnd)) {
-                IconButton(onClick = { showUserMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "User Menu",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                DropdownMenu(
-                    expanded = showUserMenu,
-                    onDismissRequest = { showUserMenu = false }
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(CircleShape)
+                        .clickable { showUserMenu = true }
+                        .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DropdownMenuItem(
-                        text = { Text("Profile") },
-                        enabled = false,
-                        onClick = { showUserMenu = false },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null
+                    val successState = viewModel.uiState as? HomeUiState.Success
+                    if (successState != null) {
+                        Text(
+                            text = successState.userName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Box {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "User Menu",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        DropdownMenu(
+                            expanded = showUserMenu,
+                            onDismissRequest = { showUserMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Profile") },
+                                onClick = {
+                                    showUserMenu = false
+                                    onNavigateToProfile()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                enabled = false,
+                                onClick = { showUserMenu = false },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text("Logout") },
+                                onClick = {
+                                    showUserMenu = false
+                                    setShowLogoutDialog(true)
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             )
                         }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Settings") },
-                        enabled = false,
-                        onClick = { showUserMenu = false },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    HorizontalDivider()
-                    DropdownMenuItem(
-                        text = { Text("Logout") },
-                        onClick = {
-                            showUserMenu = false
-                            setShowLogoutDialog(true)
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Logout,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    )
-                }
-            }
-        }
-
-        when (viewModel.uiState) {
-            is HomeUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    }
                 }
             }
 
-            is HomeUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = (viewModel.uiState as HomeUiState.Error).message,
-                        color = MaterialTheme.colorScheme.error
+            when (viewModel.uiState) {
+                is HomeUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is HomeUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = (viewModel.uiState as HomeUiState.Error).message,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                is HomeUiState.Success -> {
+                    HomeContent(
+                        paddingValues = paddingValues,
+                        isUserFree = (viewModel.uiState as HomeUiState.Success).isUserFree,
+                        friendsList = (viewModel.uiState as HomeUiState.Success).friendsList,
+                        isActionLoading = (viewModel.uiState as HomeUiState.Success).isActionLoading,
+                        onToggleAvailability = { viewModel.toggleAvailability() },
+                        onRemoveFriend = { uid -> viewModel.removeFriend(uid) },
+                        onCancelInvite = { uid -> viewModel.cancelFriendInvite(uid) },
+                        onInviteFriendClick = { setShowInviteFriendDialog(true) }
                     )
                 }
-            }
-
-            is HomeUiState.Success -> {
-                HomeContent(
-                    paddingValues = paddingValues,
-                    isUserFree = (viewModel.uiState as HomeUiState.Success).isUserFree,
-                    friendsList = (viewModel.uiState as HomeUiState.Success).friendsList,
-                    isActionLoading = (viewModel.uiState as HomeUiState.Success).isActionLoading,
-                    onToggleAvailability = { viewModel.toggleAvailability() },
-                    onRemoveFriend = { uid -> viewModel.removeFriend(uid) },
-                    onCancelInvite = { uid -> viewModel.cancelFriendInvite(uid) },
-                    onInviteFriendClick = { setShowInviteFriendDialog(true) }
-                )
             }
         }
 
@@ -230,8 +255,7 @@ fun HomeContent(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -457,6 +481,7 @@ fun FriendItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(
+                    // TODO: Click on item opens a dialog showing their free agenda in a calendar
                     onClick = {},
                     onLongClick = { showMenu = true }
                 ),

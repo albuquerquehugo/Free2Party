@@ -36,6 +36,28 @@ class UserRepositoryImpl(
         awaitClose { listener.remove() }
     }
 
+    override fun observeUser(uid: String): Flow<User> = callbackFlow {
+        if (uid.isBlank()) {
+            close(UnauthorizedException())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("users").document(uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToUserException(error))
+                    return@addSnapshotListener
+                }
+                val user = snapshot?.toObject(User::class.java)
+                if (user != null) {
+                    trySend(user.copy(uid = snapshot.id))
+                } else {
+                    close(UserNotFoundException())
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
     override suspend fun createUserProfile(user: User): Result<Unit> = try {
         db.collection("users").document(user.uid).set(user, SetOptions.merge()).await()
         Result.success(Unit)
@@ -59,6 +81,16 @@ class UserRepositoryImpl(
         val doc = query.documents.firstOrNull() ?: throw UserNotFoundException()
         val user = doc.toObject(User::class.java) ?: throw UserNotFoundException()
         Result.success(user.copy(uid = doc.id))
+    } catch (e: Exception) {
+        Result.failure(mapToUserException(e))
+    }
+
+    override suspend fun updateUserName(name: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .update("name", name)
+            .await()
+        Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToUserException(e))
     }

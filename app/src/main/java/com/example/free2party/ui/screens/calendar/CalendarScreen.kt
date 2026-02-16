@@ -317,7 +317,7 @@ fun PlanDialog(
         title = {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = if (editingPlan == null) "Schedule your future Free2Party plan" else "Edit plan",
+                    text = if (editingPlan == null) "Schedule your future plan" else "Edit plan",
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
@@ -763,8 +763,10 @@ fun MonthCalendar(
         set(Calendar.DAY_OF_MONTH, 1)
     }
 
-    val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-        .format(calendar.time)
+    val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }.format(calendar.time)
+
     val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
     val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
