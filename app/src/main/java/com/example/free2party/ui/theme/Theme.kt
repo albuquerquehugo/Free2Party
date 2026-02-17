@@ -26,16 +26,6 @@ private val LightColorScheme = lightColorScheme(
     error = Red40
 )
 
-/* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.available: Color
     @Composable
@@ -44,12 +34,12 @@ val ColorScheme.available: Color
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.availableContainer: Color
     @Composable
-    get() = Blue90 //if (isSystemInDarkTheme()) Blue80 else Blue95
+    get() = Blue90
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.onAvailableContainer: Color
     @Composable
-    get() = Blue30 //if (isSystemInDarkTheme()) Blue20 else Blue40
+    get() = Blue30
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busy: Color
@@ -59,17 +49,17 @@ val ColorScheme.busy: Color
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busyContainer: Color
     @Composable
-    get() = Red90 //if (isSystemInDarkTheme()) Red80 else Red95
+    get() = Red90
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.onBusyContainer: Color
     @Composable
-    get() = Red40 //if (isSystemInDarkTheme()) Red20 else Red40
+    get() = Red40
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.inactive: Color
     @Composable
-    get() = Gray70 //if (isSystemInDarkTheme()) Red20 else Red40
+    get() = Gray70
 
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.inactiveContainer: Color
@@ -84,7 +74,7 @@ val ColorScheme.onInactiveContainer: Color
 @get:Suppress("UnusedReceiverParameter")
 val ColorScheme.userText: Color
     @Composable
-    get() = Gray10 //if (isSystemInDarkTheme()) Red20 else Red40
+    get() = Gray10
 
 @Composable
 fun Free2PartyTheme(

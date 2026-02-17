@@ -10,8 +10,8 @@ import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.FriendRequestAlreadyAcceptedException
 import com.example.free2party.exception.FriendRequestAlreadySentException
 import com.example.free2party.exception.NetworkUnavailableException
+import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
-import com.example.free2party.exception.UserNotFoundException
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -294,13 +294,7 @@ class SocialRepositoryImpl(
                     )
                 }
             }
-
-            is CannotAddSelfException,
-            is FriendRequestAlreadyAcceptedException,
-            is FriendRequestAlreadySentException,
-            is UserNotFoundException,
-            is UnauthorizedException -> e
-
+            is SocialException -> e
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown social error")
         }
     }

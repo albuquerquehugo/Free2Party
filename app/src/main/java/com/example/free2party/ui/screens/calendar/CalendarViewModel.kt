@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
+import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.YearMonth
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -37,10 +40,19 @@ class CalendarViewModel(
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
     val filteredPlans: List<FuturePlan>
         get() {
-            val selectedDate =
-                selectedDateMillis?.let { formatMillisToDateString(it) } ?: return emptyList()
-            return plansList.filter { it.date == selectedDate }
-                .sortedBy { plan -> parseTimeToMinutes(plan.startTime) }
+            val selectedDate = selectedDateMillis ?: return emptyList()
+            val selectedDateStr = formatMillisToDateString(selectedDate)
+
+            return plansList.filter { plan ->
+                val planStartMillis = parseDateToMillis(plan.startDate)
+                val planEndMillis = parseDateToMillis(plan.endDate)
+
+                if (planStartMillis != null && planEndMillis != null) {
+                    selectedDate in planStartMillis..planEndMillis
+                } else {
+                    plan.startDate == selectedDateStr
+                }
+            }.sortedBy { plan -> parseTimeToMinutes(plan.startTime) }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
@@ -57,7 +69,7 @@ class CalendarViewModel(
 
     private fun observePlans() {
         if (userIdToObserve.isBlank()) return
-        
+
         planRepository.getPlans(userIdToObserve)
             .onEach { plansList = it }
             .launchIn(viewModelScope)
@@ -68,7 +80,8 @@ class CalendarViewModel(
     }
 
     fun savePlan(
-        date: Long,
+        startDate: String,
+        endDate: String,
         startTime: String,
         endTime: String,
         note: String,
@@ -76,7 +89,8 @@ class CalendarViewModel(
         onSuccess: () -> Unit
     ) {
         val plan = FuturePlan(
-            date = formatMillisToDateString(date),
+            startDate = startDate,
+            endDate = endDate,
             startTime = startTime,
             endTime = endTime,
             note = note
@@ -84,13 +98,18 @@ class CalendarViewModel(
         viewModelScope.launch {
             planRepository.savePlan(plan)
                 .onSuccess { onSuccess() }
-                .onFailure { e -> onValidationError(e.localizedMessage ?: "Failed to save the plan.") }
+                .onFailure { e ->
+                    onValidationError(
+                        e.localizedMessage ?: "Failed to save the plan."
+                    )
+                }
         }
     }
 
     fun updatePlan(
         planId: String,
-        date: Long,
+        startDate: String,
+        endDate: String,
         startTime: String,
         endTime: String,
         note: String,
@@ -99,7 +118,8 @@ class CalendarViewModel(
     ) {
         val updatedPlan = FuturePlan(
             id = planId,
-            date = formatMillisToDateString(date),
+            startDate = startDate,
+            endDate = endDate,
             startTime = startTime,
             endTime = endTime,
             note = note
@@ -120,13 +140,23 @@ class CalendarViewModel(
     }
 
     fun getPlannedDaysForMonth(year: Int, month: Int): Set<Int> {
-        val monthString = (month + 1).toString().padStart(2, '0')
-        val yearString = year.toString()
-        val prefix = "$yearString-$monthString-"
+        val targetMonth = YearMonth.of(year, month + 1)
+        val monthStart = targetMonth.atDay(1)
+        val monthEnd = targetMonth.atEndOfMonth()
 
-        return plansList.filter { it.date.startsWith(prefix) }
-            .map { it.date.split("-").last().toInt() }
-            .toSet()
+        return plansList.flatMap { plan ->
+            val planStart = runCatching { LocalDate.parse(plan.startDate) }.getOrNull() ?: return@flatMap emptyList<Int>()
+            val planEnd = runCatching { LocalDate.parse(plan.endDate) }.getOrNull() ?: return@flatMap emptyList<Int>()
+
+            // Check if plan range overlaps with the target month
+            if (!planStart.isAfter(monthEnd) && !planEnd.isBefore(monthStart)) {
+                val startDay = if (planStart.isBefore(monthStart)) 1 else planStart.dayOfMonth
+                val endDay = if (planEnd.isAfter(monthEnd)) targetMonth.lengthOfMonth() else planEnd.dayOfMonth
+                startDay..endDay
+            } else {
+                emptyList()
+            }
+        }.toSet()
     }
 
     fun moveToPreviousMonth() {
@@ -148,14 +178,14 @@ class CalendarViewModel(
     }
 
     fun goToToday() {
-        val today = Calendar.getInstance()
-        displayedMonth = today.get(Calendar.MONTH)
-        displayedYear = today.get(Calendar.YEAR)
-        
+        val localNow = Calendar.getInstance()
+        displayedMonth = localNow.get(Calendar.MONTH)
+        displayedYear = localNow.get(Calendar.YEAR)
+
         val utcToday = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-            set(Calendar.YEAR, today.get(Calendar.YEAR))
-            set(Calendar.MONTH, today.get(Calendar.MONTH))
-            set(Calendar.DAY_OF_MONTH, today.get(Calendar.DAY_OF_MONTH))
+            set(Calendar.YEAR, localNow.get(Calendar.YEAR))
+            set(Calendar.MONTH, localNow.get(Calendar.MONTH))
+            set(Calendar.DAY_OF_MONTH, localNow.get(Calendar.DAY_OF_MONTH))
             set(Calendar.HOUR_OF_DAY, 0)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)

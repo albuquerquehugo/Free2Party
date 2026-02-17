@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowRightAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -32,14 +33,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.free2party.data.model.FuturePlan
-import com.example.free2party.util.isDateTimeCurrent
-import com.example.free2party.util.isDateTimeInPast
+import com.example.free2party.util.formatPlanDate
 import com.example.free2party.util.parseDateToMillis
+import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import java.util.Calendar
+import java.util.TimeZone
 
 @Composable
 fun PlanItem(
@@ -52,24 +56,43 @@ fun PlanItem(
     var showMenu by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(false) }
     var hasOverflow by remember { mutableStateOf(false) }
-    
+
     val isReadOnly = onEdit == null && onDelete == null
 
     val planStatus by remember(plan, currentTimeMillis) {
         derivedStateOf {
-            val millis = parseDateToMillis(plan.date) ?: 0L
-            val calendar = Calendar.getInstance().apply { timeInMillis = currentTimeMillis }
+            val startDateMillis = parseDateToMillis(plan.startDate) ?: 0L
+            val endDateMillis = parseDateToMillis(plan.endDate) ?: 0L
+            val startDateTimeMillis = startDateMillis + parseTimeToMillis(plan.startTime)
+            val endDateTimeMillis = endDateMillis + parseTimeToMillis(plan.endTime)
+
+            val localNow = Calendar.getInstance().apply { timeInMillis = currentTimeMillis }
+            val nowUtcMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                set(
+                    localNow.get(Calendar.YEAR),
+                    localNow.get(Calendar.MONTH),
+                    localNow.get(Calendar.DAY_OF_MONTH),
+                    localNow.get(Calendar.HOUR_OF_DAY),
+                    localNow.get(Calendar.MINUTE),
+                    0
+                )
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
 
             object {
-                val isCurrent = isDateTimeCurrent(millis, plan.startTime, plan.endTime, calendar)
-                val isPast = isDateTimeInPast(millis, plan.endTime, calendar)
-                val isEditDisabled = isDateTimeInPast(millis, plan.startTime, calendar)
+                val isCurrent = nowUtcMillis in startDateTimeMillis..<endDateTimeMillis
+                val isPast = nowUtcMillis >= endDateTimeMillis
+                val isEditDisabled = nowUtcMillis >= startDateTimeMillis
             }
         }
     }
 
-    val duration = remember(plan.startTime, plan.endTime) {
-        val durationMins = parseTimeToMinutes(plan.endTime) - parseTimeToMinutes(plan.startTime)
+    val duration = remember(plan.startDate, plan.endDate, plan.startTime, plan.endTime) {
+        val startDateMillis = parseDateToMillis(plan.startDate) ?: 0L
+        val endDateMillis = parseDateToMillis(plan.endDate) ?: 0L
+
+        val durationMins = ((endDateMillis - startDateMillis) / 60000L) +
+                parseTimeToMinutes(plan.endTime) - parseTimeToMinutes(plan.startTime)
         val hours = durationMins / 60
         val minutes = durationMins % 60
         when {
@@ -85,9 +108,9 @@ fun PlanItem(
                 .fillMaxWidth()
                 .animateContentSize()
                 .combinedClickable(
-                    onClick = { 
+                    onClick = {
                         if (hasOverflow || isExpanded) {
-                            isExpanded = !isExpanded 
+                            isExpanded = !isExpanded
                         }
                     },
                     onLongClick = { if (!isReadOnly) showMenu = true }
@@ -111,16 +134,31 @@ fun PlanItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "${plan.startTime} - ${plan.endTime}",
-                        style = MaterialTheme.typography.titleSmall
-                    )
+                    if (plan.startDate == plan.endDate) {
+                        Text(
+                            text = "${plan.startTime} - ${plan.endTime}",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            DateTimeLabel(time = plan.startTime, date = plan.startDate)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowRightAlt,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                            DateTimeLabel(time = plan.endTime, date = plan.endDate)
+                        }
+                    }
 
                     DurationBadge(text = duration, isCurrent = planStatus.isCurrent)
                 }
 
                 if (plan.note.isNotBlank()) {
-                    Spacer(modifier = Modifier.padding(top = 4.dp))
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Top
@@ -131,17 +169,22 @@ fun PlanItem(
                             maxLines = if (isExpanded) Int.MAX_VALUE else 1,
                             overflow = TextOverflow.Ellipsis,
                             onTextLayout = { textLayoutResult ->
-                                hasOverflow = textLayoutResult.hasVisualOverflow || textLayoutResult.lineCount > 1
+                                hasOverflow =
+                                    textLayoutResult.hasVisualOverflow || textLayoutResult.lineCount > 1
                             },
                             modifier = Modifier.weight(1f)
                         )
-                        
+
                         if (hasOverflow || isExpanded) {
                             Icon(
-                                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                imageVector =
+                                    if (isExpanded) Icons.Default.KeyboardArrowUp
+                                    else Icons.Default.KeyboardArrowDown,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                                modifier = Modifier.size(24.dp).padding(start = 4.dp)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .padding(start = 4.dp)
                             )
                         }
                     }
@@ -162,18 +205,38 @@ fun PlanItem(
 }
 
 @Composable
+private fun DateTimeLabel(time: String, date: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = time,
+            style = MaterialTheme.typography.titleSmall
+        )
+        Text(
+            text = " (${formatPlanDate(date)})",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            modifier = Modifier.padding(start = 2.dp),
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
 fun DurationBadge(text: String, isCurrent: Boolean) {
     val color =
         (if (isCurrent) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary)
     Surface(
-        color = color.copy(alpha = 0.1f),
-        shape = RoundedCornerShape(4.dp)
+        color = color.copy(alpha = 0.15f),
+        shape = RoundedCornerShape(6.dp)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.bodySmall,
-            color = if (isCurrent) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color =
+                if (isCurrent) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.primary
         )
     }
 }

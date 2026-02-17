@@ -1,23 +1,26 @@
 [versions]
-agp = "9.0.0"
+agp = "9.0.1"
 coreKtx = "1.17.0"
+desugar_jdk_libs = "2.1.5"
 firebaseBom = "34.9.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.3"
+activityCompose = "1.12.4"
 kotlin = "2.3.10"
-composeBom = "2026.01.01"
+composeBom = "2026.02.00"
 navigationCompose = "2.9.7"
-uiTextGoogleFonts = "1.10.2"
+uiTextGoogleFonts = "1.10.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-common = { module = "com.google.firebase:firebase-common" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

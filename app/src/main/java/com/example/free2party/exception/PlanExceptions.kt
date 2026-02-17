@@ -5,7 +5,10 @@ sealed class PlanException(message: String) : Exception(message)
 class PlanNotFoundException(message: String = "The plan you are looking for does not exist") :
     PlanException(message)
 
-class OverlappingPlanException(message: String = "This time slot overlaps with an existing plan") :
+class OverlappingPlanException(
+    message: String =
+        "This time slot overlaps with an existing plan. Please select a different time slot."
+) :
     PlanException(message)
 
 class InvalidPlanDataException(message: String = "The plan details are invalid") :

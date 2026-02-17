@@ -6,10 +6,12 @@ import com.example.free2party.exception.InvalidPlanDataException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.OverlappingPlanException
 import com.example.free2party.exception.PastDateTimeException
+import com.example.free2party.exception.PlanException
 import com.example.free2party.exception.PlanNotFoundException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.util.isDateTimeInPast
 import com.example.free2party.util.parseDateToMillis
+import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,7 +35,7 @@ class PlanRepositoryImpl(
 
         val listener = db.collection("users").document(targetUserId)
             .collection("plans")
-            .orderBy("date", Query.Direction.ASCENDING)
+            .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(mapToPlanException(error))
@@ -81,7 +83,8 @@ class PlanRepositoryImpl(
         }
 
         val updatedData = mapOf(
-            "date" to plan.date,
+            "startDate" to plan.startDate,
+            "endDate" to plan.endDate,
             "startTime" to plan.startTime,
             "endTime" to plan.endTime,
             "note" to plan.note
@@ -119,42 +122,60 @@ class PlanRepositoryImpl(
     }
 
     private fun validatePlanDateTime(plan: FuturePlan) {
-        val dateMillis = parseDateToMillis(plan.date) ?: throw InvalidPlanDataException()
-        if (isDateTimeInPast(dateMillis, plan.startTime)) {
+        val startDateMillis = parseDateToMillis(plan.startDate)
+            ?: throw InvalidPlanDataException()
+        val endDateMillis = parseDateToMillis(plan.endDate)
+            ?: throw InvalidPlanDataException()
+
+        if (isDateTimeInPast(startDateMillis, plan.startTime)) {
             throw PastDateTimeException()
+        }
+
+        if (startDateMillis > endDateMillis) {
+            throw InvalidPlanDataException()
+        }
+
+        if (startDateMillis == endDateMillis &&
+            parseTimeToMinutes(plan.startTime) >= parseTimeToMinutes(plan.endTime)
+        ) {
+            throw InvalidPlanDataException()
         }
     }
 
     private fun isOverlapping(newPlan: FuturePlan, existingPlans: List<FuturePlan>): Boolean {
-        val newStartMins = parseTimeToMinutes(newPlan.startTime)
-        val newEndMins = parseTimeToMinutes(newPlan.endTime)
+        val startDateMillis = parseDateToMillis(newPlan.startDate) ?: return false
+        val endDateMillis = parseDateToMillis(newPlan.endDate) ?: return false
+        val startDateTimeMillis = startDateMillis + parseTimeToMillis(newPlan.startTime)
+        val endDateTimeMillis = endDateMillis + parseTimeToMillis(newPlan.endTime)
 
-        return existingPlans.filter { it.date == newPlan.date }.any { plan ->
-            val existingStartMins = parseTimeToMinutes(plan.startTime)
-            val existingEndMins = parseTimeToMinutes(plan.endTime)
+        return existingPlans.any { plan ->
+            val existingStartDateMillis = parseDateToMillis(plan.startDate)
+                ?: return@any false
+            val existingEndDateMillis = parseDateToMillis(plan.endDate)
+                ?: return@any false
+            val existingStartDateTimeMillis =
+                existingStartDateMillis + parseTimeToMillis(plan.startTime)
+            val existingEndDateTimeMillis = existingEndDateMillis + parseTimeToMillis(plan.endTime)
 
-            newStartMins < existingEndMins && newEndMins > existingStartMins
+            startDateTimeMillis < existingEndDateTimeMillis &&
+                    endDateTimeMillis > existingStartDateTimeMillis
         }
     }
 
-    private fun mapToPlanException(e: Exception): Exception {
+    private fun mapToPlanException(e: Throwable): Exception {
         return when (e) {
-            is FirebaseNetworkException -> NetworkUnavailableException()
             is FirebaseFirestoreException -> {
                 when (e.code) {
                     FirebaseFirestoreException.Code.NOT_FOUND -> PlanNotFoundException()
-                    FirebaseFirestoreException.Code.PERMISSION_DENIED -> UnauthorizedException("You don't have permission to modify this plan")
+                    FirebaseFirestoreException.Code.PERMISSION_DENIED ->
+                        UnauthorizedException("You don't have permission to modify this plan")
                     FirebaseFirestoreException.Code.UNAVAILABLE -> NetworkUnavailableException()
                     else -> DatabaseOperationException(e.localizedMessage ?: "Database error")
                 }
             }
 
-            is PlanNotFoundException,
-            is UnauthorizedException,
-            is OverlappingPlanException,
-            is PastDateTimeException,
-            is InvalidPlanDataException -> e
-
+            is FirebaseNetworkException -> NetworkUnavailableException()
+            is PlanException -> e
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown error")
         }
     }

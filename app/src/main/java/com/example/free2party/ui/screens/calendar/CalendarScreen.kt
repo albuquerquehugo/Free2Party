@@ -60,11 +60,12 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
     val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
     val (planToDelete, setPlanToDelete) = remember { mutableStateOf<FuturePlan?>(null) }
 
-    val datePickerState = rememberDatePickerState()
+    val startDatePickerState = rememberDatePickerState()
+    val endDatePickerState = rememberDatePickerState()
     val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
     val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
 
-    val selectedDateText = datePickerState.selectedDateMillis?.let {
+    val selectedDateText = startDatePickerState.selectedDateMillis?.let {
         val format = DateFormat.getDateInstance()
         format.timeZone = TimeZone.getTimeZone("UTC")
         format.format(Date(it))
@@ -128,7 +129,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         PlanDialog(
             editingPlan = editingPlan,
             onDismiss = { setShowPlanDialog(false) },
-            onConfirm = { date, start, end, note ->
+            onConfirm = { startDate, endDate, startTime, endTime, note ->
                 val onError = { errorMessage: String ->
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
@@ -139,9 +140,10 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
 
                 if (editingPlan == null) {
                     viewModel.savePlan(
-                        date = date,
-                        startTime = start,
-                        endTime = end,
+                        startDate = startDate,
+                        endDate = endDate,
+                        startTime = startTime,
+                        endTime = endTime,
                         note = note,
                         onValidationError = onError,
                         onSuccess = { onSuccess("Plan successfully added!") }
@@ -149,16 +151,18 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 } else {
                     viewModel.updatePlan(
                         planId = editingPlan.id,
-                        date = date,
-                        startTime = start,
-                        endTime = end,
+                        startDate = startDate,
+                        endDate = endDate,
+                        startTime = startTime,
+                        endTime = endTime,
                         note = note,
                         onError = onError,
                         onSuccess = { onSuccess("Plan successfully updated!") }
                     )
                 }
             },
-            datePickerState = datePickerState,
+            startDatePickerState = startDatePickerState,
+            endDatePickerState = endDatePickerState,
             startTimeState = startTimeState,
             endTimeState = endTimeState
         )
@@ -196,13 +200,13 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
     }
 
     LaunchedEffect(viewModel.selectedDateMillis) {
-        if (viewModel.selectedDateMillis != datePickerState.selectedDateMillis) {
-            datePickerState.selectedDateMillis = viewModel.selectedDateMillis
+        if (viewModel.selectedDateMillis != startDatePickerState.selectedDateMillis) {
+            startDatePickerState.selectedDateMillis = viewModel.selectedDateMillis
         }
     }
-    LaunchedEffect(datePickerState.selectedDateMillis) {
-        if (datePickerState.selectedDateMillis != viewModel.selectedDateMillis) {
-            viewModel.selectedDateMillis = datePickerState.selectedDateMillis
+    LaunchedEffect(startDatePickerState.selectedDateMillis) {
+        if (startDatePickerState.selectedDateMillis != viewModel.selectedDateMillis) {
+            viewModel.selectedDateMillis = startDatePickerState.selectedDateMillis
         }
     }
 }

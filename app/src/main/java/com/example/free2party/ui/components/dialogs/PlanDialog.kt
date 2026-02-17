@@ -1,7 +1,5 @@
 package com.example.free2party.ui.components.dialogs
 
-import android.widget.Toast
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,16 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.WatchLater
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -36,16 +30,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.util.formatTime
 import com.example.free2party.util.isDateTimeInPast
+import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.example.free2party.util.unformatTime
 import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,45 +50,52 @@ import java.util.TimeZone
 fun PlanDialog(
     editingPlan: FuturePlan?,
     onDismiss: () -> Unit,
-    onConfirm: (Long, String, String, String) -> Unit,
-    datePickerState: DatePickerState,
+    onConfirm: (String, String, String, String, String) -> Unit,
+    startDatePickerState: DatePickerState,
+    endDatePickerState: DatePickerState,
     startTimeState: TimePickerState,
     endTimeState: TimePickerState
 ) {
     var note by remember { mutableStateOf(editingPlan?.note ?: "") }
-    val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
+    val (showStartDatePicker, setShowStartDatePicker) = remember { mutableStateOf(false) }
+    val (showEndDatePicker, setShowEndDatePicker) = remember { mutableStateOf(false) }
     val (showStartTimePicker, setShowStartTimePicker) = remember { mutableStateOf(false) }
     val (showEndTimePicker, setShowEndTimePicker) = remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
+    val format = DateFormat.getDateInstance().apply { timeZone = TimeZone.getTimeZone("UTC") }
+    val startDateText =
+        startDatePickerState.selectedDateMillis?.let { format.format(Date(it)) }
+            ?: "Select start date"
+    val endDateText =
+        endDatePickerState.selectedDateMillis?.let { format.format(Date(it)) } ?: "Select end date"
 
-    val selectedDateText = datePickerState.selectedDateMillis?.let {
-        val format = DateFormat.getDateInstance()
-        format.timeZone = TimeZone.getTimeZone("UTC")
-        format.format(Date(it))
-    } ?: "Select date"
-
-    val isTimeValid = remember(
+    val isDateTimeValid = remember(
+        startDatePickerState.selectedDateMillis,
+        endDatePickerState.selectedDateMillis,
         startTimeState.hour,
         startTimeState.minute,
         endTimeState.hour,
         endTimeState.minute
     ) {
-        val start = parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute))
-        val end = parseTimeToMinutes(formatTime(endTimeState.hour, endTimeState.minute))
-        start < end
+        val startMillis = startDatePickerState.selectedDateMillis ?: 0L
+        val endMillis = endDatePickerState.selectedDateMillis ?: 0L
+
+        if (startMillis < endMillis) return@remember true
+        if (startMillis > endMillis) return@remember false
+
+        val startMins = parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute))
+        val endMins = parseTimeToMinutes(formatTime(endTimeState.hour, endTimeState.minute))
+        startMins < endMins
     }
 
-    val isSelectedDateInPast = datePickerState.selectedDateMillis?.let {
+    val isStartDateInPast = startDatePickerState.selectedDateMillis?.let {
         isDateTimeInPast(it, null)
     } ?: false
-    val isStartTimeInPast = datePickerState.selectedDateMillis?.let {
+    val isStartTimeInPast = startDatePickerState.selectedDateMillis?.let {
         isDateTimeInPast(it, formatTime(startTimeState.hour, startTimeState.minute))
     } ?: false
-    val isEndTimeInPast = datePickerState.selectedDateMillis?.let {
-        isDateTimeInPast(it, formatTime(endTimeState.hour, endTimeState.minute))
-    } ?: false
 
+    // Initialize times when the dialog opens or when the editing plan changes
     LaunchedEffect(editingPlan) {
         editingPlan?.let {
             val start = unformatTime(it.startTime)
@@ -100,11 +104,77 @@ fun PlanDialog(
             startTimeState.minute = start.second
             endTimeState.hour = end.first
             endTimeState.minute = end.second
-        } ?: run {
-            startTimeState.hour = 12
-            startTimeState.minute = 0
-            endTimeState.hour = 13
-            endTimeState.minute = 0
+
+            startDatePickerState.selectedDateMillis = parseDateToMillis(it.startDate)
+            endDatePickerState.selectedDateMillis = parseDateToMillis(it.endDate)
+        }
+    }
+
+    // Update default times when the date changes, but ONLY for new plans
+    LaunchedEffect(startDatePickerState.selectedDateMillis) {
+        if (editingPlan == null) {
+            val now = Calendar.getInstance()
+            val selectedMillis = startDatePickerState.selectedDateMillis
+
+            val todayUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                set(
+                    now.get(Calendar.YEAR),
+                    now.get(Calendar.MONTH),
+                    now.get(Calendar.DAY_OF_MONTH),
+                    0,
+                    0,
+                    0
+                )
+                set(Calendar.MILLISECOND, 0)
+            }
+            val isToday = selectedMillis == todayUtc.timeInMillis
+
+            if (isToday) {
+                val hour = now.get(Calendar.HOUR_OF_DAY)
+                val minute = now.get(Calendar.MINUTE)
+
+                when {
+                    hour < 12 -> {
+                        startTimeState.hour = 12
+                        startTimeState.minute = 0
+                        endTimeState.hour = 13
+                        endTimeState.minute = 0
+                        endDatePickerState.selectedDateMillis = selectedMillis
+                    }
+
+                    hour >= 23 -> {
+                        startTimeState.hour = hour
+                        startTimeState.minute = if (minute < 59) minute + 1 else 59
+                        endTimeState.hour = 23
+                        endTimeState.minute = 59
+                        endDatePickerState.selectedDateMillis = selectedMillis
+                    }
+
+                    else -> {
+                        startTimeState.hour = hour + 1
+                        startTimeState.minute = 0
+
+                        // Suggest 1 hour duration
+                        if (startTimeState.hour < 23) {
+                            endTimeState.hour = startTimeState.hour + 1
+                            endTimeState.minute = 0
+                            endDatePickerState.selectedDateMillis = selectedMillis
+                        } else {
+                            // Crosses midnight
+                            endTimeState.hour = 0
+                            endTimeState.minute = 0
+                            endDatePickerState.selectedDateMillis =
+                                selectedMillis.plus(86400000L) // +1 day
+                        }
+                    }
+                }
+            } else if (selectedMillis != null) {
+                startTimeState.hour = 12
+                startTimeState.minute = 0
+                endTimeState.hour = 13
+                endTimeState.minute = 0
+                endDatePickerState.selectedDateMillis = selectedMillis
+            }
         }
     }
 
@@ -120,86 +190,39 @@ fun PlanDialog(
             }
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(text = "Date:", style = MaterialTheme.typography.labelLarge)
-                    }
-
-                    OutlinedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        onClick = { setShowDatePicker(true) }
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Start section
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Start:",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            onClick = { setShowStartDatePicker(true) }
                         ) {
-                            Text(
-                                text = selectedDateText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color =
-                                    if (isSelectedDateInPast) MaterialTheme.colorScheme.error
-                                    else Color.Unspecified
-                            )
-                        }
-                    }
-
-                    if (isSelectedDateInPast) {
-                        Text(
-                            text = "Cannot schedule plans for past dates",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.WatchLater,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(text = "From:", style = MaterialTheme.typography.labelLarge)
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = startDateText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color =
+                                        if (isStartDateInPast || !isDateTimeValid) {
+                                            MaterialTheme.colorScheme.error
+                                        } else Color.Unspecified
+                                )
+                            }
                         }
                         OutlinedCard(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .border(
-                                    width = if (!isTimeValid || isStartTimeInPast) 1.dp else 0.dp,
-                                    color =
-                                        if (!isTimeValid || isStartTimeInPast) MaterialTheme.colorScheme.error
-                                        else Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                ),
+                                .weight(0.6f)
+                                .height(48.dp),
                             onClick = { setShowStartTimePicker(true) }
                         ) {
                             Box(
@@ -208,44 +231,48 @@ fun PlanDialog(
                             ) {
                                 Text(
                                     text = formatTime(startTimeState.hour, startTimeState.minute),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color =
-                                        if (!isTimeValid || isStartTimeInPast) MaterialTheme.colorScheme.error
-                                        else Color.Unspecified
+                                        if (isStartTimeInPast || !isDateTimeValid) {
+                                            MaterialTheme.colorScheme.error
+                                        } else Color.Unspecified
                                 )
                             }
                         }
                     }
+                }
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // End section
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "End:",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedCard(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            onClick = { setShowEndDatePicker(true) }
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.WatchLater,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(text = "To:", style = MaterialTheme.typography.labelLarge)
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = endDateText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color =
+                                        if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                        else Color.Unspecified
+                                )
+                            }
                         }
                         OutlinedCard(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .border(
-                                    width = if (!isTimeValid || isEndTimeInPast) 1.dp else 0.dp,
-                                    color =
-                                        if (!isTimeValid || isEndTimeInPast) MaterialTheme.colorScheme.error
-                                        else Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                ),
+                                .weight(0.6f)
+                                .height(48.dp),
                             onClick = { setShowEndTimePicker(true) }
                         ) {
                             Box(
@@ -254,9 +281,9 @@ fun PlanDialog(
                             ) {
                                 Text(
                                     text = formatTime(endTimeState.hour, endTimeState.minute),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color =
-                                        if (!isTimeValid || isEndTimeInPast) MaterialTheme.colorScheme.error
+                                        if (!isDateTimeValid) MaterialTheme.colorScheme.error
                                         else Color.Unspecified
                                 )
                             }
@@ -264,9 +291,9 @@ fun PlanDialog(
                     }
                 }
 
-                if (!isSelectedDateInPast && (isStartTimeInPast || isEndTimeInPast)) {
+                if (isStartDateInPast || isStartTimeInPast) {
                     Text(
-                        text = "Cannot schedule plans for past times",
+                        text = "Cannot schedule plans in the past",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.fillMaxWidth(),
@@ -274,9 +301,9 @@ fun PlanDialog(
                     )
                 }
 
-                if (!isTimeValid) {
+                if (!isDateTimeValid) {
                     Text(
-                        text = "End time must be after start time",
+                        text = "End must be after start",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.fillMaxWidth(),
@@ -306,47 +333,70 @@ fun PlanDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    datePickerState.selectedDateMillis?.let { date ->
+                    val startDateMillis = startDatePickerState.selectedDateMillis
+                    val endDateMillis = endDatePickerState.selectedDateMillis
+
+                    if (startDateMillis != null && endDateMillis != null) {
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
                         onConfirm(
-                            date,
+                            sdf.format(Date(startDateMillis)),
+                            sdf.format(Date(endDateMillis)),
                             formatTime(startTimeState.hour, startTimeState.minute),
                             formatTime(endTimeState.hour, endTimeState.minute),
                             note
                         )
                     }
                 },
-                enabled = datePickerState.selectedDateMillis != null && isTimeValid &&
-                        !isStartTimeInPast && !isEndTimeInPast
+                enabled = isDateTimeValid && !isStartDateInPast && !isStartTimeInPast
             ) {
                 Text(if (editingPlan == null) "Add" else "Update")
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 
-    if (showDatePicker) {
+    if (showStartDatePicker) {
         DatePickerDialog(
-            onDismissRequest = { setShowDatePicker(false) },
-            confirmButton = { TextButton(onClick = { setShowDatePicker(false) }) { Text("OK") } }
-        ) { DatePicker(state = datePickerState) }
+            onDismissRequest = { setShowStartDatePicker(false) },
+            confirmButton = { TextButton(onClick = { setShowStartDatePicker(false) }) { Text("OK") } }) {
+            DatePicker(
+                state = startDatePickerState,
+                title = {
+                    Text(
+                        text = "Select start date",
+                        modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            )
+        }
     }
-
+    if (showEndDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { setShowEndDatePicker(false) },
+            confirmButton = { TextButton(onClick = { setShowEndDatePicker(false) }) { Text("OK") } }) {
+            DatePicker(
+                state = endDatePickerState,
+                title = {
+                    Text(
+                        text = "Select end date",
+                        modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            )
+        }
+    }
     if (showStartTimePicker || showEndTimePicker) {
         AlertDialog(
             onDismissRequest = { setShowStartTimePicker(false); setShowEndTimePicker(false) },
             confirmButton = {
                 TextButton(onClick = {
-                    setShowStartTimePicker(false)
-                    setShowEndTimePicker(false)
-                    if (!isTimeValid) {
-                        Toast.makeText(
-                            context,
-                            "End time must be after start time!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    setShowStartTimePicker(false); setShowEndTimePicker(
+                    false
+                )
                 }) { Text("OK") }
             },
             text = {
