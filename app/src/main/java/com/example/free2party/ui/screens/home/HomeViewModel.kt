@@ -13,11 +13,13 @@ import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.UserNotFoundException
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -37,6 +39,7 @@ sealed interface HomeUiState {
 
 sealed class HomeUiEvent {
     data class ShowToast(val message: String) : HomeUiEvent()
+    object Logout : HomeUiEvent()
 }
 
 class HomeViewModel : ViewModel() {
@@ -81,6 +84,14 @@ class HomeViewModel : ViewModel() {
             )
         }.onEach { newState ->
             uiState = newState
+        }.catch { e ->
+            Log.e("HomeViewModel", "Error observing data", e)
+            if (e is UserNotFoundException) {
+                authRepository.logout()
+                _uiEvent.emit(HomeUiEvent.Logout)
+            } else {
+                uiState = HomeUiState.Error(e.localizedMessage ?: "An error occurred")
+            }
         }.launchIn(viewModelScope)
     }
 

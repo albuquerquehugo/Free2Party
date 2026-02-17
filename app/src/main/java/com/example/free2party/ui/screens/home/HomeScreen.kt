@@ -92,6 +92,9 @@ fun HomeScreen(
                 is HomeUiEvent.ShowToast -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
+                HomeUiEvent.Logout -> {
+                    onLogout()
+                }
             }
         }
     }
