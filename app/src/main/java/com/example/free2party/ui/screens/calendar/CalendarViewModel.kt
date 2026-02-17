@@ -22,7 +22,9 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-class CalendarViewModel : ViewModel() {
+class CalendarViewModel(
+    targetUserId: String? = null
+) : ViewModel() {
     private val planRepository: PlanRepository = PlanRepositoryImpl(
         db = Firebase.firestore,
         currentUserId = Firebase.auth.currentUser?.uid ?: ""
@@ -46,13 +48,17 @@ class CalendarViewModel : ViewModel() {
 
     var selectedDateMillis by mutableStateOf<Long?>(null)
 
+    private val userIdToObserve = targetUserId ?: Firebase.auth.currentUser?.uid ?: ""
+
     init {
         goToToday()
         observePlans()
     }
 
     private fun observePlans() {
-        planRepository.getPlans()
+        if (userIdToObserve.isBlank()) return
+        
+        planRepository.getPlans(userIdToObserve)
             .onEach { plansList = it }
             .launchIn(viewModelScope)
     }

@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
@@ -31,7 +29,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,7 +39,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -59,13 +55,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.R
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
+import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
+import com.example.free2party.ui.components.dialogs.InviteFriendDialog
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
@@ -85,9 +81,10 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
 
+    var showUserMenu by remember { mutableStateOf(false) }
     val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
-    var showUserMenu by remember { mutableStateOf(false) }
+    val (selectedFriend, setSelectedFriend) = remember { mutableStateOf<FriendInfo?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -207,7 +204,8 @@ fun HomeScreen(
                         onToggleAvailability = { viewModel.toggleAvailability() },
                         onRemoveFriend = { uid -> viewModel.removeFriend(uid) },
                         onCancelInvite = { uid -> viewModel.cancelFriendInvite(uid) },
-                        onInviteFriendClick = { setShowInviteFriendDialog(true) }
+                        onInviteFriendClick = { setShowInviteFriendDialog(true) },
+                        onFriendItemClick = { friend -> setSelectedFriend(friend) }
                     )
                 }
             }
@@ -237,6 +235,13 @@ fun HomeScreen(
         if (showInviteFriendDialog) {
             InviteFriendDialog(onDismiss = { setShowInviteFriendDialog(false) })
         }
+
+        selectedFriend?.let { friend ->
+            FriendCalendarDialog(
+                friend = friend,
+                onDismiss = { setSelectedFriend(null) }
+            )
+        }
     }
 }
 
@@ -249,7 +254,8 @@ fun HomeContent(
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit
+    onInviteFriendClick: () -> Unit,
+    onFriendItemClick: (FriendInfo) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -322,98 +328,10 @@ fun HomeContent(
             friends = friendsList,
             onRemoveFriend = onRemoveFriend,
             onCancelInvite = onCancelInvite,
-            onInviteFriendClick = onInviteFriendClick
+            onInviteFriendClick = onInviteFriendClick,
+            onFriendItemClick = onFriendItemClick
         )
     }
-}
-
-@Composable
-fun InviteFriendDialog(
-    viewModel: FriendViewModel = viewModel(),
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is FriendUiEvent.InviteSentSuccessfully -> {
-                    Toast.makeText(
-                        context,
-                        "Invite successfully sent to ${event.email}!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    onDismiss()
-                }
-            }
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = {
-            viewModel.resetState()
-            onDismiss()
-        },
-        title = { Text(text = "Invite Friend", style = MaterialTheme.typography.titleLarge) },
-        text = {
-            Column {
-                Text(
-                    "Enter your friend's email to send an invite.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                OutlinedTextField(
-                    value = viewModel.searchQuery,
-                    onValueChange = { viewModel.searchQuery = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = viewModel.uiState !is InviteFriendUiState.Searching,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { viewModel.inviteFriend() }
-                    )
-                )
-
-                if (viewModel.uiState is InviteFriendUiState.Error) {
-                    Text(
-                        text = (viewModel.uiState as InviteFriendUiState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { viewModel.inviteFriend() },
-                enabled = viewModel.uiState !is InviteFriendUiState.Searching
-            ) {
-                if (viewModel.uiState is InviteFriendUiState.Searching) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Send invite")
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = {
-                viewModel.resetState()
-                onDismiss()
-            }) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 
 @Composable
@@ -421,7 +339,8 @@ fun FriendsListSection(
     friends: List<FriendInfo>,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit
+    onInviteFriendClick: () -> Unit,
+    onFriendItemClick: (FriendInfo) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
@@ -460,7 +379,8 @@ fun FriendsListSection(
                 FriendItem(
                     friend = friend,
                     onRemoveFriend = { onRemoveFriend(friend.uid) },
-                    onCancelInvite = { onCancelInvite(friend.uid) }
+                    onCancelInvite = { onCancelInvite(friend.uid) },
+                    onClick = { onFriendItemClick(friend) }
                 )
             }
         }
@@ -471,7 +391,8 @@ fun FriendsListSection(
 fun FriendItem(
     friend: FriendInfo,
     onRemoveFriend: (String) -> Unit,
-    onCancelInvite: (String) -> Unit
+    onCancelInvite: (String) -> Unit,
+    onClick: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     val isInvited = friend.inviteStatus == InviteStatus.INVITED
@@ -480,9 +401,9 @@ fun FriendItem(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(vertical = 4.dp)
                 .combinedClickable(
-                    // TODO: Click on item opens a dialog showing their free agenda in a calendar
-                    onClick = {},
+                    onClick = { if (!isInvited) onClick() },
                     onLongClick = { showMenu = true }
                 ),
             colors = CardDefaults.cardColors(
@@ -494,7 +415,7 @@ fun FriendItem(
             )
         ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (isInvited) {

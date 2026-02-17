@@ -1,6 +1,9 @@
 package com.example.free2party.util
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -127,5 +130,24 @@ fun parseDateToMillis(dateString: String): Long? {
     } catch (e: Exception) {
         Log.e("dateToMillis", "Error converting date to millis: ${e.message}")
         null
+    }
+}
+
+/**
+ * Creates a [ViewModelProvider.Factory] to instantiate [CalendarViewModel] with a specific user ID.
+ * @param targetUserId The UID of the user whose calendar data should be loaded, or null to load the
+ * current authenticated user's calendar.
+ * @return A factory capable of creating instances of [CalendarViewModel].
+ * @throws IllegalArgumentException if the requested ViewModel class is not [CalendarViewModel].
+ */
+fun provideCalendarViewModelFactory(targetUserId: String?): ViewModelProvider.Factory {
+    return object : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
+                return CalendarViewModel(targetUserId) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }

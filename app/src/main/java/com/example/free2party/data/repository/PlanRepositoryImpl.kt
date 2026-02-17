@@ -24,14 +24,14 @@ class PlanRepositoryImpl(
     private val db: FirebaseFirestore,
     private val currentUserId: String
 ) : PlanRepository {
-
-    override fun getPlans(): Flow<List<FuturePlan>> = callbackFlow {
-        if (currentUserId.isBlank()) {
+    override fun getPlans(userId: String): Flow<List<FuturePlan>> = callbackFlow {
+        val targetUserId = userId.ifBlank { currentUserId }
+        if (targetUserId.isBlank()) {
             close(UnauthorizedException())
             return@callbackFlow
         }
 
-        val listener = db.collection("users").document(currentUserId)
+        val listener = db.collection("users").document(targetUserId)
             .collection("plans")
             .orderBy("date", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
@@ -60,7 +60,7 @@ class PlanRepositoryImpl(
         // Get a new document reference to generate an ID
         val docRef = db.collection("users").document(currentUserId)
             .collection("plans").document()
-        
+
         // Assign the generated ID to the plan and save it
         val planWithId = plan.copy(id = docRef.id)
         docRef.set(planWithId).await()
