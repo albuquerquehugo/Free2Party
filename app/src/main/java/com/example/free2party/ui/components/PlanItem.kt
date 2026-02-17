@@ -1,5 +1,6 @@
 package com.example.free2party.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,10 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -46,6 +50,9 @@ fun PlanItem(
     onDelete: (() -> Unit)? = null
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
+    var hasOverflow by remember { mutableStateOf(false) }
+    
     val isReadOnly = onEdit == null && onDelete == null
 
     val planStatus by remember(plan, currentTimeMillis) {
@@ -76,8 +83,13 @@ fun PlanItem(
         Card(
             modifier = modifier
                 .fillMaxWidth()
+                .animateContentSize()
                 .combinedClickable(
-                    onClick = { },
+                    onClick = { 
+                        if (hasOverflow || isExpanded) {
+                            isExpanded = !isExpanded 
+                        }
+                    },
                     onLongClick = { if (!isReadOnly) showMenu = true }
                 ),
             colors = CardDefaults.cardColors(
@@ -109,12 +121,30 @@ fun PlanItem(
 
                 if (plan.note.isNotBlank()) {
                     Spacer(modifier = Modifier.padding(top = 4.dp))
-                    Text(
-                        text = plan.note,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = plan.note,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis,
+                            onTextLayout = { textLayoutResult ->
+                                hasOverflow = textLayoutResult.hasVisualOverflow || textLayoutResult.lineCount > 1
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        if (hasOverflow || isExpanded) {
+                            Icon(
+                                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                modifier = Modifier.size(24.dp).padding(start = 4.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
