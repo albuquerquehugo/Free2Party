@@ -1,5 +1,6 @@
 package com.example.free2party.data.repository
 
+import android.net.Uri
 import com.example.free2party.data.model.User
 import com.example.free2party.exception.*
 import com.google.firebase.FirebaseNetworkException
@@ -22,16 +23,23 @@ class AuthRepositoryImpl(
         firstName: String,
         lastName: String,
         email: String,
-        password: String
+        password: String,
+        profilePicUri: Uri?
     ): Result<FirebaseUser> = try {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val firebaseUser = result.user ?: throw UserNullException()
+
+        var profilePicUrl = ""
+        if (profilePicUri != null) {
+            profilePicUrl = userRepository.uploadProfilePicture(profilePicUri).getOrDefault("")
+        }
 
         val newUser = User(
             uid = firebaseUser.uid,
             firstName = firstName,
             lastName = lastName,
             email = email,
+            profilePicUrl = profilePicUrl,
             isFreeNow = false
             // createdAt is handled by @ServerTimestamp in User model
         )

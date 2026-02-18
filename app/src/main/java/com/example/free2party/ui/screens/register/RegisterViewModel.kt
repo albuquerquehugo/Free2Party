@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.register
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -36,6 +37,7 @@ class RegisterViewModel : ViewModel() {
     var lastName by mutableStateOf("")
     var email by mutableStateOf("")
     var password by mutableStateOf("")
+    var profilePicUri by mutableStateOf<Uri?>(null)
 
     var uiState by mutableStateOf<RegisterUiState>(RegisterUiState.Idle)
         private set
@@ -48,7 +50,7 @@ class RegisterViewModel : ViewModel() {
 
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
-            authRepository.register(firstName, lastName, email, password)
+            authRepository.register(firstName, lastName, email, password, profilePicUri)
                 .onSuccess { uiState = RegisterUiState.Success }
                 .onFailure { e ->
                     uiState = RegisterUiState.Error(
@@ -63,6 +65,7 @@ class RegisterViewModel : ViewModel() {
         lastName = ""
         email = ""
         password = ""
+        profilePicUri = null
         uiState = RegisterUiState.Idle
     }
 }
