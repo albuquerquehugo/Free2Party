@@ -78,7 +78,8 @@ fun HomeRoute(
     homeViewModel: HomeViewModel = viewModel(),
     friendViewModel: FriendViewModel = viewModel(),
     onLogout: () -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
@@ -89,6 +90,7 @@ fun HomeRoute(
                 is HomeUiEvent.ShowToast -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
+
                 HomeUiEvent.Logout -> {
                     onLogout()
                 }
@@ -117,6 +119,7 @@ fun HomeRoute(
         showInviteFriendDialog = showInviteFriendDialog,
         onLogoutClick = { homeViewModel.logout(onLogout) },
         onNavigateToProfile = onNavigateToProfile,
+        onNavigateToSettings = onNavigateToSettings,
         onToggleAvailability = { homeViewModel.toggleAvailability() },
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
@@ -138,6 +141,7 @@ fun HomeScreen(
     showInviteFriendDialog: Boolean,
     onLogoutClick: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
@@ -216,8 +220,10 @@ fun HomeScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text("Settings") },
-                                enabled = false,
-                                onClick = { setShowUserMenu(false) },
+                                onClick = {
+                                    setShowUserMenu(false)
+                                    onNavigateToSettings()
+                                },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Settings,

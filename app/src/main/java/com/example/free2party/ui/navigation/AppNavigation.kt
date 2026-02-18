@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -35,6 +36,7 @@ import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
+import com.example.free2party.ui.screens.settings.SettingsRoute
 import com.example.free2party.util.provideCalendarViewModelFactory
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -46,6 +48,7 @@ sealed class Screen(val route: String, val label: String? = null, val icon: Imag
     object Calendar : Screen("calendar", "Calendar", Icons.Default.CalendarMonth)
     object Notifications : Screen("notifications", "Notifications", Icons.Default.Notifications)
     object Profile : Screen("profile", "Profile", Icons.Default.Person)
+    object Settings : Screen("settings", "Settings", Icons.Default.Settings)
 }
 
 val BottomNavItems = listOf(
@@ -169,6 +172,9 @@ fun Free2PartyNavGraph(
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
                 }
             )
         }
@@ -189,6 +195,10 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Profile.route) {
             ProfileRoute(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsRoute(onBack = { navController.popBackStack() })
         }
     }
 }
