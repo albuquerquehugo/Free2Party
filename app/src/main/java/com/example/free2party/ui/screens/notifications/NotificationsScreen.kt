@@ -35,9 +35,22 @@ import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.ui.theme.inactive
 
 @Composable
-fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
+fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel()) {
     val requests by viewModel.friendRequests.collectAsState()
 
+    NotificationsScreen(
+        requests = requests,
+        onAccept = { viewModel.acceptFriendRequest(it) },
+        onDecline = { viewModel.declineFriendRequest(it.id) }
+    )
+}
+
+@Composable
+fun NotificationsScreen(
+    requests: List<FriendRequest>,
+    onAccept: (FriendRequest) -> Unit,
+    onDecline: (FriendRequest) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,8 +82,9 @@ fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
                 items(requests) { request ->
                     FriendRequestItem(
                         request = request,
-                        onAccept = { viewModel.acceptFriendRequest(request) },
-                        onDecline = { viewModel.declineFriendRequest(request.id) })
+                        onAccept = { onAccept(request) },
+                        onDecline = { onDecline(request) }
+                    )
                 }
             }
         }

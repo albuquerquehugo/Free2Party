@@ -1,8 +1,9 @@
 package com.example.free2party.ui.components.dialogs
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,11 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.free2party.ui.screens.home.InviteFriendUiState
+import com.example.free2party.ui.screens.login.LoginUiState
 
 @Composable
-fun InviteFriendDialog(
-    uiState: InviteFriendUiState,
+fun ForgotPasswordDialog(
+    uiState: LoginUiState,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
     onResetState: () -> Unit
@@ -38,28 +39,32 @@ fun InviteFriendDialog(
             onResetState()
             onDismiss()
         },
-        title = { Text(text = "Invite Friend", style = MaterialTheme.typography.titleLarge) },
+        title = {
+            Text(
+                text = "Reset Password",
+                style = MaterialTheme.typography.headlineSmall
+            )
+        },
         text = {
             Column {
                 Text(
-                    "Enter your friend's email to send an invite.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    text = "Enter your email address and we'll send you a link to reset your password.",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-
+                Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = email,
                     onValueChange = {
                         email = it
-                        if (uiState is InviteFriendUiState.Error) onResetState()
+                        if (uiState is LoginUiState.Error) onResetState()
                     },
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = uiState !is InviteFriendUiState.Searching,
+                    enabled = uiState !is LoginUiState.Loading,
                     singleLine = true,
-                    isError = uiState is InviteFriendUiState.Error,
+                    isError = uiState is LoginUiState.Error,
                     supportingText = {
-                        if (uiState is InviteFriendUiState.Error) {
+                        if (uiState is LoginUiState.Error) {
                             Text(text = uiState.message)
                         }
                     },
@@ -69,7 +74,7 @@ fun InviteFriendDialog(
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = {
-                            if (email.isNotBlank() && uiState !is InviteFriendUiState.Searching) {
+                            if (email.isNotBlank() && uiState !is LoginUiState.Loading) {
                                 onConfirm(email)
                             }
                         }
@@ -80,24 +85,27 @@ fun InviteFriendDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(email) },
-                enabled = email.isNotBlank() && uiState !is InviteFriendUiState.Searching
+                enabled = email.isNotBlank() && uiState !is LoginUiState.Loading
             ) {
-                if (uiState is InviteFriendUiState.Searching) {
+                if (uiState is LoginUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Send invite")
+                    Text("Send link")
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = {
-                onResetState()
-                onDismiss()
-            }) {
+            TextButton(
+                onClick = {
+                    onResetState()
+                    onDismiss()
+                },
+                enabled = uiState !is LoginUiState.Loading
+            ) {
                 Text("Cancel")
             }
         }

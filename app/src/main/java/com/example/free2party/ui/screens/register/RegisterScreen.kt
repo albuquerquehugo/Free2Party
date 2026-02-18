@@ -39,14 +39,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun RegisterScreen(
+fun RegisterRoute(
     viewModel: RegisterViewModel = viewModel(),
     onRegisterSuccess: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
-    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
         if (uiState is RegisterUiState.Success) {
@@ -59,6 +58,36 @@ fun RegisterScreen(
         }
     }
 
+    RegisterScreen(
+        uiState = uiState,
+        name = viewModel.name,
+        email = viewModel.email,
+        password = viewModel.password,
+        onNameChange = { viewModel.name = it },
+        onEmailChange = { viewModel.email = it },
+        onPasswordChange = { viewModel.password = it },
+        onRegisterClick = { viewModel.onRegisterClick() },
+        onBackToLogin = {
+            viewModel.resetFields()
+            onBackToLogin()
+        }
+    )
+}
+
+@Composable
+fun RegisterScreen(
+    uiState: RegisterUiState,
+    name: String,
+    email: String,
+    password: String,
+    onNameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onRegisterClick: () -> Unit,
+    onBackToLogin: () -> Unit
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,8 +99,8 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = viewModel.name,
-            onValueChange = { viewModel.name = it },
+            value = name,
+            onValueChange = onNameChange,
             label = { Text("Name *") },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is RegisterUiState.Loading,
@@ -85,8 +114,8 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = viewModel.email,
-            onValueChange = { viewModel.email = it },
+            value = email,
+            onValueChange = onEmailChange,
             label = { Text("Email *") },
             modifier = Modifier.fillMaxWidth(),
             enabled = uiState !is RegisterUiState.Loading,
@@ -100,8 +129,8 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = viewModel.password,
-            onValueChange = { viewModel.password = it },
+            value = password,
+            onValueChange = onPasswordChange,
             label = { Text("Password *") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
@@ -112,7 +141,7 @@ fun RegisterScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { viewModel.onRegisterClick() }
+                onDone = { onRegisterClick() }
             ),
             trailingIcon = {
                 val image = if (passwordVisible)
@@ -142,7 +171,7 @@ fun RegisterScreen(
             CircularProgressIndicator()
         } else {
             Button(
-                onClick = { viewModel.onRegisterClick() },
+                onClick = onRegisterClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
@@ -152,10 +181,7 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = {
-                viewModel.resetFields()
-                onBackToLogin()
-            }) {
+            TextButton(onClick = onBackToLogin) {
                 Text("Already have an account? Login")
             }
         }

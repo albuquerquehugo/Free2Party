@@ -36,28 +36,26 @@ class FriendViewModel : ViewModel() {
         userRepository = userRepository
     )
 
-    var searchQuery by mutableStateOf("")
     var uiState by mutableStateOf<InviteFriendUiState>(InviteFriendUiState.Idle)
         private set
 
     private val _uiEvent = MutableSharedFlow<FriendUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    fun inviteFriend() {
-        val inputEmail = searchQuery.trim().lowercase()
+    fun inviteFriend(email: String) {
+        val normalizedEmail = email.trim().lowercase()
 
-        if (inputEmail.isBlank()) {
-            uiState = InviteFriendUiState.Error("Please enter a valid email.")
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
+            uiState = InviteFriendUiState.Error("Please enter a valid email address.")
             return
         }
 
         uiState = InviteFriendUiState.Searching
         viewModelScope.launch {
-            socialRepository.sendFriendRequest(inputEmail)
+            socialRepository.sendFriendRequest(normalizedEmail)
                 .onSuccess {
-                    searchQuery = ""
                     uiState = InviteFriendUiState.Success
-                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully(inputEmail))
+                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully(normalizedEmail))
                 }
                 .onFailure { e ->
                     uiState =
@@ -67,7 +65,6 @@ class FriendViewModel : ViewModel() {
     }
 
     fun resetState() {
-        searchQuery = ""
         uiState = InviteFriendUiState.Idle
     }
 }

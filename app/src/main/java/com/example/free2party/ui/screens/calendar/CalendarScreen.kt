@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,9 +44,90 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
+fun CalendarRoute(viewModel: CalendarViewModel = viewModel()) {
     val context = LocalContext.current
+    val startDatePickerState = rememberDatePickerState()
+    val endDatePickerState = rememberDatePickerState()
+    val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
+    val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
 
+    val plannedDays = viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
+
+    LaunchedEffect(viewModel.selectedDateMillis) {
+        if (viewModel.selectedDateMillis != startDatePickerState.selectedDateMillis) {
+            startDatePickerState.selectedDateMillis = viewModel.selectedDateMillis
+        }
+    }
+    LaunchedEffect(startDatePickerState.selectedDateMillis) {
+        if (startDatePickerState.selectedDateMillis != viewModel.selectedDateMillis) {
+            viewModel.selectedDateMillis = startDatePickerState.selectedDateMillis
+        }
+    }
+
+    CalendarScreen(
+        viewModel = viewModel,
+        plannedDays = plannedDays,
+        startDatePickerState = startDatePickerState,
+        endDatePickerState = endDatePickerState,
+        startTimeState = startTimeState,
+        endTimeState = endTimeState,
+        onSavePlan = { startDate, endDate, startTime, endTime, note, editingPlanId ->
+            val onError = { errorMessage: String ->
+                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            }
+            val onSuccess = { message: String ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+
+            if (editingPlanId == null) {
+                viewModel.savePlan(
+                    startDate = startDate,
+                    endDate = endDate,
+                    startTime = startTime,
+                    endTime = endTime,
+                    note = note,
+                    onValidationError = onError,
+                    onSuccess = { onSuccess("Plan successfully added!") }
+                )
+            } else {
+                viewModel.updatePlan(
+                    planId = editingPlanId,
+                    startDate = startDate,
+                    endDate = endDate,
+                    startTime = startTime,
+                    endTime = endTime,
+                    note = note,
+                    onError = onError,
+                    onSuccess = { onSuccess("Plan successfully updated!") }
+                )
+            }
+        },
+        onDeletePlan = { planId ->
+            viewModel.deletePlan(
+                planId = planId,
+                onError = { errorMessage: String ->
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                },
+                onSuccess = {
+                    Toast.makeText(context, "Plan deleted!", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CalendarScreen(
+    viewModel: CalendarViewModel,
+    plannedDays: Set<Int>,
+    startDatePickerState: DatePickerState,
+    endDatePickerState: DatePickerState,
+    startTimeState: TimePickerState,
+    endTimeState: TimePickerState,
+    onSavePlan: (String, String, String, String, String, String?) -> Unit,
+    onDeletePlan: (String) -> Unit
+) {
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
             delay(5_000)
@@ -51,19 +135,10 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         }
     }
 
-    val plannedDays =
-        viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
-
     val (showPlanDialog, setShowPlanDialog) = remember { mutableStateOf(false) }
-    val (editingPlan, setEditingPlan) = remember { mutableStateOf<FuturePlan?>(null) }
-
+    var editingPlan by remember { mutableStateOf<FuturePlan?>(null) }
     val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
-    val (planToDelete, setPlanToDelete) = remember { mutableStateOf<FuturePlan?>(null) }
-
-    val startDatePickerState = rememberDatePickerState()
-    val endDatePickerState = rememberDatePickerState()
-    val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
-    val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
+    var planToDelete by remember { mutableStateOf<FuturePlan?>(null) }
 
     val selectedDateText = startDatePickerState.selectedDateMillis?.let {
         val format = DateFormat.getDateInstance()
@@ -71,8 +146,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
         format.format(Date(it))
     } ?: ""
 
-    val isSelectedDateInPast =
-        viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
+    val isSelectedDateInPast = viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
 
     Scaffold { paddingValues ->
         Column(
@@ -86,7 +160,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
 
             IconButton(
                 onClick = {
-                    setEditingPlan(null)
+                    editingPlan = null
                     setShowPlanDialog(true)
                 },
                 enabled = !isSelectedDateInPast,
@@ -114,11 +188,11 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 selectedDateText = selectedDateText,
                 currentTimeMillis = currentTimeMillis,
                 onEdit = { plan ->
-                    setEditingPlan(plan)
+                    editingPlan = plan
                     setShowPlanDialog(true)
                 },
                 onDelete = { plan ->
-                    setPlanToDelete(plan)
+                    planToDelete = plan
                     setShowDeleteDialog(true)
                 }
             )
@@ -130,36 +204,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             editingPlan = editingPlan,
             onDismiss = { setShowPlanDialog(false) },
             onConfirm = { startDate, endDate, startTime, endTime, note ->
-                val onError = { errorMessage: String ->
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                }
-                val onSuccess = { message: String ->
-                    setShowPlanDialog(false)
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                }
-
-                if (editingPlan == null) {
-                    viewModel.savePlan(
-                        startDate = startDate,
-                        endDate = endDate,
-                        startTime = startTime,
-                        endTime = endTime,
-                        note = note,
-                        onValidationError = onError,
-                        onSuccess = { onSuccess("Plan successfully added!") }
-                    )
-                } else {
-                    viewModel.updatePlan(
-                        planId = editingPlan.id,
-                        startDate = startDate,
-                        endDate = endDate,
-                        startTime = startTime,
-                        endTime = endTime,
-                        note = note,
-                        onError = onError,
-                        onSuccess = { onSuccess("Plan successfully updated!") }
-                    )
-                }
+                onSavePlan(startDate, endDate, startTime, endTime, note, editingPlan?.id)
+                setShowPlanDialog(false)
             },
             startDatePickerState = startDatePickerState,
             endDatePickerState = endDatePickerState,
@@ -176,16 +222,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deletePlan(
-                            planId = planToDelete.id,
-                            onError = { errorMessage: String ->
-                                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                            },
-                            onSuccess = {
-                                setShowDeleteDialog(false)
-                                Toast.makeText(context, "Plan deleted!", Toast.LENGTH_SHORT).show()
-                            }
-                        )
+                        onDeletePlan(planToDelete!!.id)
+                        setShowDeleteDialog(false)
                     }
                 ) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
@@ -197,16 +235,5 @@ fun CalendarScreen(viewModel: CalendarViewModel = viewModel()) {
                 }
             }
         )
-    }
-
-    LaunchedEffect(viewModel.selectedDateMillis) {
-        if (viewModel.selectedDateMillis != startDatePickerState.selectedDateMillis) {
-            startDatePickerState.selectedDateMillis = viewModel.selectedDateMillis
-        }
-    }
-    LaunchedEffect(startDatePickerState.selectedDateMillis) {
-        if (startDatePickerState.selectedDateMillis != viewModel.selectedDateMillis) {
-            viewModel.selectedDateMillis = startDatePickerState.selectedDateMillis
-        }
     }
 }

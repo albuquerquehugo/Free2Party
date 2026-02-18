@@ -10,6 +10,7 @@ import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.util.parseDateToMillis
+import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -17,12 +18,9 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import java.util.TimeZone
 
 class CalendarViewModel(
@@ -33,25 +31,22 @@ class CalendarViewModel(
         currentUserId = Firebase.auth.currentUser?.uid ?: ""
     )
 
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
     val filteredPlans: List<FuturePlan>
         get() {
             val selectedDate = selectedDateMillis ?: return emptyList()
-            val selectedDateStr = formatMillisToDateString(selectedDate)
 
             return plansList.filter { plan ->
-                val planStartMillis = parseDateToMillis(plan.startDate)
-                val planEndMillis = parseDateToMillis(plan.endDate)
+                val planStartMillis = parseDateToMillis(plan.startDate) ?: return@filter false
+                val planEndMillis = parseDateToMillis(plan.endDate) ?: return@filter false
 
-                if (planStartMillis != null && planEndMillis != null) {
-                    selectedDate in planStartMillis..planEndMillis
-                } else {
-                    plan.startDate == selectedDateStr
-                }
+                val planDateTimeStart = planStartMillis + parseTimeToMillis(plan.startTime)
+                val planDateTimeEnd = planEndMillis + parseTimeToMillis(plan.endTime)
+
+                val nextDay = selectedDate + 86400000L // 24 hours later
+
+                // Overlap: max(start1, start2) < min(end1, end2)
+                planDateTimeStart.coerceAtLeast(selectedDate) < planDateTimeEnd.coerceAtMost(nextDay)
             }.sortedBy { plan -> parseTimeToMinutes(plan.startTime) }
         }
 
@@ -73,10 +68,6 @@ class CalendarViewModel(
         planRepository.getPlans(userIdToObserve)
             .onEach { plansList = it }
             .launchIn(viewModelScope)
-    }
-
-    fun formatMillisToDateString(millis: Long): String {
-        return dateFormatter.format(Date(millis))
     }
 
     fun savePlan(
@@ -145,13 +136,21 @@ class CalendarViewModel(
         val monthEnd = targetMonth.atEndOfMonth()
 
         return plansList.flatMap { plan ->
-            val planStart = runCatching { LocalDate.parse(plan.startDate) }.getOrNull() ?: return@flatMap emptyList<Int>()
-            val planEnd = runCatching { LocalDate.parse(plan.endDate) }.getOrNull() ?: return@flatMap emptyList<Int>()
+            val planStart = runCatching { LocalDate.parse(plan.startDate) }.getOrNull()
+                ?: return@flatMap emptyList<Int>()
+            var planEnd = runCatching { LocalDate.parse(plan.endDate) }.getOrNull()
+                ?: return@flatMap emptyList<Int>()
+
+            // If it ends at exactly midnight (0:00), the end date is exclusive.
+            if (parseTimeToMinutes(plan.endTime) == 0 && planEnd.isAfter(planStart)) {
+                planEnd = planEnd.minusDays(1)
+            }
 
             // Check if plan range overlaps with the target month
             if (!planStart.isAfter(monthEnd) && !planEnd.isBefore(monthStart)) {
                 val startDay = if (planStart.isBefore(monthStart)) 1 else planStart.dayOfMonth
-                val endDay = if (planEnd.isAfter(monthEnd)) targetMonth.lengthOfMonth() else planEnd.dayOfMonth
+                val endDay =
+                    if (planEnd.isAfter(monthEnd)) targetMonth.lengthOfMonth() else planEnd.dayOfMonth
                 startDay..endDay
             } else {
                 emptyList()

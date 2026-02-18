@@ -11,6 +11,8 @@ import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 sealed interface LoginUiState {
@@ -18,6 +20,10 @@ sealed interface LoginUiState {
     object Loading : LoginUiState
     data class Error(val message: String) : LoginUiState
     object Success : LoginUiState
+}
+
+sealed class LoginUiEvent {
+    data class ShowToast(val message: String) : LoginUiEvent()
 }
 
 class LoginViewModel : ViewModel() {
@@ -36,15 +42,19 @@ class LoginViewModel : ViewModel() {
     var uiState by mutableStateOf<LoginUiState>(LoginUiState.Idle)
         private set
 
+    private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
     fun onLoginClick(onSuccess: () -> Unit) {
-        if (email.isBlank() || password.isBlank()) {
+        val normalizedEmail = email.trim().lowercase()
+        if (normalizedEmail.isBlank() || password.isBlank()) {
             uiState = LoginUiState.Error("Email and password cannot be empty")
             return
         }
 
         uiState = LoginUiState.Loading
         viewModelScope.launch {
-            authRepository.login(email, password)
+            authRepository.login(normalizedEmail, password)
                 .onSuccess {
                     uiState = LoginUiState.Success
                     onSuccess()
@@ -53,6 +63,31 @@ class LoginViewModel : ViewModel() {
                     uiState = LoginUiState.Error(e.localizedMessage ?: "Login failed")
                 }
         }
+    }
+
+    fun onForgotPasswordConfirm(email: String) {
+        val normalizedEmail = email.trim().lowercase()
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
+            uiState = LoginUiState.Error("Please enter a valid email address.")
+            return
+        }
+
+        uiState = LoginUiState.Loading
+        viewModelScope.launch {
+            authRepository.sendPasswordResetEmail(normalizedEmail)
+                .onSuccess {
+                    uiState = LoginUiState.Idle
+                    _uiEvent.emit(LoginUiEvent.ShowToast("Password reset email sent! Please check your inbox."))
+                }
+                .onFailure { e ->
+                    uiState = LoginUiState.Error(e.localizedMessage ?: "Failed to send reset email")
+                }
+        }
+    }
+
+    fun resetState() {
+        uiState = LoginUiState.Idle
     }
 
     fun resetFields() {

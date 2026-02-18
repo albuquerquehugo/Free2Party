@@ -72,22 +72,18 @@ import com.example.free2party.ui.theme.onBusyContainer
 import com.example.free2party.ui.theme.onInactiveContainer
 import kotlinx.coroutines.flow.collectLatest
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = viewModel(),
+fun HomeRoute(
+    homeViewModel: HomeViewModel = viewModel(),
+    friendViewModel: FriendViewModel = viewModel(),
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
     val context = LocalContext.current
-
-    var showUserMenu by remember { mutableStateOf(false) }
-    val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
-    val (selectedFriend, setSelectedFriend) = remember { mutableStateOf<FriendInfo?>(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.uiEvent.collectLatest { event ->
+        homeViewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.ShowToast -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
@@ -98,6 +94,60 @@ fun HomeScreen(
             }
         }
     }
+
+    LaunchedEffect(Unit) {
+        friendViewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is FriendUiEvent.InviteSentSuccessfully -> {
+                    Toast.makeText(
+                        context,
+                        "Invite successfully sent to ${event.email}!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    setShowInviteFriendDialog(false)
+                }
+            }
+        }
+    }
+
+    HomeScreen(
+        uiState = homeViewModel.uiState,
+        inviteFriendUiState = friendViewModel.uiState,
+        showInviteFriendDialog = showInviteFriendDialog,
+        onLogoutClick = { homeViewModel.logout(onLogout) },
+        onNavigateToProfile = onNavigateToProfile,
+        onToggleAvailability = { homeViewModel.toggleAvailability() },
+        onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
+        onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
+        onInviteFriendClick = { setShowInviteFriendDialog(true) },
+        onInviteFriendConfirm = { email -> friendViewModel.inviteFriend(email) },
+        onInviteFriendDismiss = {
+            friendViewModel.resetState()
+            setShowInviteFriendDialog(false)
+        },
+        onInviteFriendResetState = { friendViewModel.resetState() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    uiState: HomeUiState,
+    inviteFriendUiState: InviteFriendUiState,
+    showInviteFriendDialog: Boolean,
+    onLogoutClick: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onToggleAvailability: () -> Unit,
+    onRemoveFriend: (String) -> Unit,
+    onCancelInvite: (String) -> Unit,
+    onInviteFriendClick: () -> Unit,
+    onInviteFriendConfirm: (String) -> Unit,
+    onInviteFriendDismiss: () -> Unit,
+    onInviteFriendResetState: () -> Unit
+) {
+    val (showUserMenu, setShowUserMenu) = remember { mutableStateOf(false) }
+    val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
+    var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
 
     Scaffold { paddingValues ->
         Column {
@@ -111,11 +161,11 @@ fun HomeScreen(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .clip(CircleShape)
-                        .clickable { showUserMenu = true }
+                        .clickable { setShowUserMenu(true) }
                         .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val successState = viewModel.uiState as? HomeUiState.Success
+                    val successState = uiState as? HomeUiState.Success
                     if (successState != null) {
                         Text(
                             text = successState.userName,
@@ -136,12 +186,12 @@ fun HomeScreen(
                         )
                         DropdownMenu(
                             expanded = showUserMenu,
-                            onDismissRequest = { showUserMenu = false }
+                            onDismissRequest = { setShowUserMenu(false) }
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Profile") },
                                 onClick = {
-                                    showUserMenu = false
+                                    setShowUserMenu(false)
                                     onNavigateToProfile()
                                 },
                                 leadingIcon = {
@@ -154,7 +204,7 @@ fun HomeScreen(
                             DropdownMenuItem(
                                 text = { Text("Settings") },
                                 enabled = false,
-                                onClick = { showUserMenu = false },
+                                onClick = { setShowUserMenu(false) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Settings,
@@ -166,7 +216,7 @@ fun HomeScreen(
                             DropdownMenuItem(
                                 text = { Text("Logout") },
                                 onClick = {
-                                    showUserMenu = false
+                                    setShowUserMenu(false)
                                     setShowLogoutDialog(true)
                                 },
                                 leadingIcon = {
@@ -182,7 +232,7 @@ fun HomeScreen(
                 }
             }
 
-            when (viewModel.uiState) {
+            when (uiState) {
                 is HomeUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
@@ -192,7 +242,7 @@ fun HomeScreen(
                 is HomeUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = (viewModel.uiState as HomeUiState.Error).message,
+                            text = uiState.message,
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -201,14 +251,14 @@ fun HomeScreen(
                 is HomeUiState.Success -> {
                     HomeContent(
                         paddingValues = paddingValues,
-                        isUserFree = (viewModel.uiState as HomeUiState.Success).isUserFree,
-                        friendsList = (viewModel.uiState as HomeUiState.Success).friendsList,
-                        isActionLoading = (viewModel.uiState as HomeUiState.Success).isActionLoading,
-                        onToggleAvailability = { viewModel.toggleAvailability() },
-                        onRemoveFriend = { uid -> viewModel.removeFriend(uid) },
-                        onCancelInvite = { uid -> viewModel.cancelFriendInvite(uid) },
-                        onInviteFriendClick = { setShowInviteFriendDialog(true) },
-                        onFriendItemClick = { friend -> setSelectedFriend(friend) }
+                        isUserFree = uiState.isUserFree,
+                        friendsList = uiState.friendsList,
+                        isActionLoading = uiState.isActionLoading,
+                        onToggleAvailability = onToggleAvailability,
+                        onRemoveFriend = onRemoveFriend,
+                        onCancelInvite = onCancelInvite,
+                        onInviteFriendClick = onInviteFriendClick,
+                        onFriendItemClick = { friend -> selectedFriend = friend }
                     )
                 }
             }
@@ -222,7 +272,7 @@ fun HomeScreen(
                 confirmButton = {
                     TextButton(onClick = {
                         setShowLogoutDialog(false)
-                        viewModel.logout(onLogout)
+                        onLogoutClick()
                     }) {
                         Text("Logout", color = MaterialTheme.colorScheme.error)
                     }
@@ -236,13 +286,18 @@ fun HomeScreen(
         }
 
         if (showInviteFriendDialog) {
-            InviteFriendDialog(onDismiss = { setShowInviteFriendDialog(false) })
+            InviteFriendDialog(
+                uiState = inviteFriendUiState,
+                onDismiss = onInviteFriendDismiss,
+                onConfirm = onInviteFriendConfirm,
+                onResetState = onInviteFriendResetState
+            )
         }
 
         selectedFriend?.let { friend ->
             FriendCalendarDialog(
                 friend = friend,
-                onDismiss = { setSelectedFriend(null) }
+                onDismiss = { selectedFriend = null }
             )
         }
     }

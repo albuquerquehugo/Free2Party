@@ -46,6 +46,13 @@ class AuthRepositoryImpl(
         Result.failure(mapToAuthException(e))
     }
 
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = try {
+        auth.sendPasswordResetEmail(email).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToAuthException(e))
+    }
+
     override fun logout() {
         auth.signOut()
     }

@@ -28,13 +28,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.free2party.ui.screens.calendar.CalendarScreen
-import com.example.free2party.ui.screens.home.HomeScreen
-import com.example.free2party.ui.screens.login.LoginScreen
-import com.example.free2party.ui.screens.notifications.NotificationsScreen
+import com.example.free2party.ui.screens.calendar.CalendarRoute
+import com.example.free2party.ui.screens.home.HomeRoute
+import com.example.free2party.ui.screens.login.LoginRoute
+import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
-import com.example.free2party.ui.screens.profile.ProfileScreen
-import com.example.free2party.ui.screens.register.RegisterScreen
+import com.example.free2party.ui.screens.profile.ProfileRoute
+import com.example.free2party.ui.screens.register.RegisterRoute
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -132,7 +132,7 @@ fun Free2PartyNavGraph(
         modifier = modifier
     ) {
         composable(Screen.Login.route) {
-            LoginScreen(
+            LoginRoute(
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -147,7 +147,7 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Register.route) {
-            RegisterScreen(
+            RegisterRoute(
                 onRegisterSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
@@ -160,7 +160,7 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Home.route) {
-            HomeScreen(
+            HomeRoute(
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -173,15 +173,15 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Calendar.route) {
-            CalendarScreen()
+            CalendarRoute()
         }
 
         composable(Screen.Notifications.route) {
-            NotificationsScreen(viewModel = notificationsViewModel)
+            NotificationsRoute(viewModel = notificationsViewModel)
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(onBack = { navController.popBackStack() })
+            ProfileRoute(onBack = { navController.popBackStack() })
         }
     }
 }

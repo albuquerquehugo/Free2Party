@@ -46,7 +46,10 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             userRepository.observeUser(userRepository.currentUserId)
                 .catch { e ->
-                    uiState = ProfileUiState.Error(e.localizedMessage ?: "Unknown error")
+                    uiState = ProfileUiState.Error(
+                        e.localizedMessage
+                            ?: "User profile not found. Please try logging out and in again."
+                    )
                 }
                 .collect { user ->
                     uiState = ProfileUiState.Success(user)
@@ -56,7 +59,7 @@ class ProfileViewModel : ViewModel() {
 
     fun updateName(newName: String) {
         if (uiState !is ProfileUiState.Success) return
-        
+
         viewModelScope.launch {
             userRepository.updateUserName(newName)
                 .onSuccess {

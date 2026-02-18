@@ -42,7 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun ProfileScreen(
+fun ProfileRoute(
     viewModel: ProfileViewModel = viewModel(),
     onBack: () -> Unit
 ) {
@@ -59,6 +59,20 @@ fun ProfileScreen(
         }
     }
 
+    ProfileScreen(
+        uiState = uiState,
+        onBack = onBack,
+        onSaveName = { viewModel.updateName(it) }
+    )
+}
+
+@Composable
+fun ProfileScreen(
+    uiState: ProfileUiState,
+    onBack: () -> Unit,
+    onSaveName: (String) -> Unit
+) {
+    // TODO: Add profile picture
     Scaffold(
         topBar = {
             Box(
@@ -101,10 +115,10 @@ fun ProfileScreen(
                 }
 
                 is ProfileUiState.Success -> {
-                    ProfileContent(
+                    ProfileScreenContent(
                         name = uiState.user.name,
                         email = uiState.user.email,
-                        onSaveName = { viewModel.updateName(it) }
+                        onSaveName = onSaveName
                     )
                 }
             }
@@ -113,7 +127,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileContent(
+fun ProfileScreenContent(
     name: String,
     email: String,
     onSaveName: (String) -> Unit
