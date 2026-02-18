@@ -53,18 +53,20 @@ class PlanRepositoryImpl(
         validateSession()
         validatePlanDateTime(plan)
 
+        val targetUserId = plan.userId.ifBlank { currentUserId }
+
         // Validation: Check for overlaps
-        val existingPlans = fetchPlansSync()
+        val existingPlans = fetchPlansSync(targetUserId)
         if (isOverlapping(plan, existingPlans)) {
             throw OverlappingPlanException()
         }
 
         // Get a new document reference to generate an ID
-        val docRef = db.collection("users").document(currentUserId)
+        val docRef = db.collection("users").document(targetUserId)
             .collection("plans").document()
 
         // Assign the generated ID to the plan and save it
-        val planWithId = plan.copy(id = docRef.id)
+        val planWithId = plan.copy(id = docRef.id, userId = targetUserId)
         docRef.set(planWithId).await()
 
         Result.success(Unit)
@@ -76,20 +78,23 @@ class PlanRepositoryImpl(
         validateSession()
         validatePlanDateTime(plan)
 
+        val targetUserId = plan.userId.ifBlank { currentUserId }
+
         // Validation: Check for overlaps (excluding the current plan being updated)
-        val existingPlans = fetchPlansSync().filter { it.id != plan.id }
+        val existingPlans = fetchPlansSync(targetUserId).filter { it.id != plan.id }
         if (isOverlapping(plan, existingPlans)) {
             throw OverlappingPlanException()
         }
 
         val updatedData = mapOf(
+            "userId" to targetUserId,
             "startDate" to plan.startDate,
             "endDate" to plan.endDate,
             "startTime" to plan.startTime,
             "endTime" to plan.endTime,
             "note" to plan.note
         )
-        db.collection("users").document(currentUserId)
+        db.collection("users").document(targetUserId)
             .collection("plans").document(plan.id)
             .update(updatedData)
             .await()
@@ -109,8 +114,8 @@ class PlanRepositoryImpl(
         Result.failure(mapToPlanException(e))
     }
 
-    private suspend fun fetchPlansSync(): List<FuturePlan> {
-        val snapshot = db.collection("users").document(currentUserId)
+    private suspend fun fetchPlansSync(userId: String): List<FuturePlan> {
+        val snapshot = db.collection("users").document(userId)
             .collection("plans").get().await()
         return snapshot.documents.mapNotNull { doc ->
             doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)

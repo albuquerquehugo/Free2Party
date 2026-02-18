@@ -55,12 +55,15 @@ class CalendarViewModel(
 
     var selectedDateMillis by mutableStateOf<Long?>(null)
 
-    private val userIdToObserve = targetUserId ?: Firebase.auth.currentUser?.uid ?: ""
+    val userIdToObserve = targetUserId ?: Firebase.auth.currentUser?.uid ?: ""
 
     init {
         goToToday()
         observePlans()
     }
+
+    // TODO: Implement visibility restrictions to plans (all friends, except chosen ones,
+    //  exclusively to chosen ones)
 
     private fun observePlans() {
         if (userIdToObserve.isBlank()) return
@@ -80,6 +83,7 @@ class CalendarViewModel(
         onSuccess: () -> Unit
     ) {
         val plan = FuturePlan(
+            userId = userIdToObserve,
             startDate = startDate,
             endDate = endDate,
             startTime = startTime,
@@ -109,6 +113,7 @@ class CalendarViewModel(
     ) {
         val updatedPlan = FuturePlan(
             id = planId,
+            userId = userIdToObserve,
             startDate = startDate,
             endDate = endDate,
             startTime = startTime,

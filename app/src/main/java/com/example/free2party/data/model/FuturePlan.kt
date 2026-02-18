@@ -2,6 +2,7 @@ package com.example.free2party.data.model
 
 data class FuturePlan(
     val id: String = "",
+    val userId: String = "",
     val startDate: String = "",
     val endDate: String = "",
     val startTime: String = "",

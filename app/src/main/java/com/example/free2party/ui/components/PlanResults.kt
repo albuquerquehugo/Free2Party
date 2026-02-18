@@ -31,7 +31,7 @@ fun PlanResults(
     ) {
         Text(
             text = "Results for: $selectedDateText",
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleLarge
         )
 
         LazyColumn(
