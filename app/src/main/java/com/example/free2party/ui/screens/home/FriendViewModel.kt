@@ -11,6 +11,7 @@ import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -29,7 +30,8 @@ sealed class FriendUiEvent {
 class FriendViewModel : ViewModel() {
     private val userRepository = UserRepositoryImpl(
         currentUserId = Firebase.auth.currentUser?.uid ?: "",
-        db = Firebase.firestore
+        db = Firebase.firestore,
+        storage = Firebase.storage
     )
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
         db = Firebase.firestore,

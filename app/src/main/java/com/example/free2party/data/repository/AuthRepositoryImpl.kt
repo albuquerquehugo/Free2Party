@@ -18,21 +18,27 @@ class AuthRepositoryImpl(
     override val currentUser: FirebaseUser?
         get() = auth.currentUser
 
-    override suspend fun register(name: String, email: String, password: String): Result<FirebaseUser> = try {
+    override suspend fun register(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String
+    ): Result<FirebaseUser> = try {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val firebaseUser = result.user ?: throw UserNullException()
-        
+
         val newUser = User(
             uid = firebaseUser.uid,
-            name = name,
+            firstName = firstName,
+            lastName = lastName,
             email = email,
             isFreeNow = false
             // createdAt is handled by @ServerTimestamp in User model
         )
-        
+
         // Use UserRepository to handle profile creation
         userRepository.createUserProfile(newUser).getOrThrow()
-            
+
         Result.success(firebaseUser)
     } catch (e: Exception) {
         Result.failure(mapToAuthException(e))
@@ -69,6 +75,7 @@ class AuthRepositoryImpl(
                     else -> UnknownAuthException(e.localizedMessage ?: "User error")
                 }
             }
+
             is FirebaseNetworkException -> AuthNetworkException()
             is AuthException -> e
             else -> UnknownAuthException(e.localizedMessage ?: "Unknown error")

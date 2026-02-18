@@ -13,6 +13,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,7 +53,11 @@ class NotificationsViewModel : ViewModel() {
 
     private fun setupRepositories(uid: String) {
         val db = Firebase.firestore
-        val userRepo = UserRepositoryImpl(db = db, currentUserId = uid)
+        val userRepo = UserRepositoryImpl(
+            db = db,
+            currentUserId = uid,
+            storage = Firebase.storage
+        )
         userRepository = userRepo
         socialRepository = SocialRepositoryImpl(db = db, userRepository = userRepo)
     }

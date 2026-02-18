@@ -11,6 +11,7 @@ import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.launch
 
 sealed interface RegisterUiState {
@@ -23,14 +24,16 @@ sealed interface RegisterUiState {
 class RegisterViewModel : ViewModel() {
     private val userRepository = UserRepositoryImpl(
         currentUserId = Firebase.auth.currentUser?.uid ?: "",
-        db = Firebase.firestore
+        db = Firebase.firestore,
+        storage = Firebase.storage
     )
     private val authRepository: AuthRepository = AuthRepositoryImpl(
         auth = Firebase.auth,
         userRepository = userRepository
     )
 
-    var name by mutableStateOf("")
+    var firstName by mutableStateOf("")
+    var lastName by mutableStateOf("")
     var email by mutableStateOf("")
     var password by mutableStateOf("")
 
@@ -38,14 +41,14 @@ class RegisterViewModel : ViewModel() {
         private set
 
     fun onRegisterClick() {
-        if (name.isBlank() || email.isBlank() || password.isBlank()) {
+        if (firstName.isBlank() || lastName.isBlank() || email.isBlank() || password.isBlank()) {
             uiState = RegisterUiState.Error("All fields are required")
             return
         }
 
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
-            authRepository.register(name, email, password)
+            authRepository.register(firstName, lastName, email, password)
                 .onSuccess { uiState = RegisterUiState.Success }
                 .onFailure { e ->
                     uiState = RegisterUiState.Error(
@@ -56,7 +59,8 @@ class RegisterViewModel : ViewModel() {
     }
 
     fun resetFields() {
-        name = ""
+        firstName = ""
+        lastName = ""
         email = ""
         password = ""
         uiState = RegisterUiState.Idle

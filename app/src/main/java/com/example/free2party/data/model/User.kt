@@ -6,11 +6,15 @@ import java.util.Date
 
 data class User(
     val uid: String = "",
-    val name: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
     val email: String = "",
+    val bio: String = "",
     val profilePicUrl: String = "",
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,
     @ServerTimestamp
     val createdAt: Date? = null
-)
+) {
+    val fullName: String get() = "$firstName $lastName".trim()
+}

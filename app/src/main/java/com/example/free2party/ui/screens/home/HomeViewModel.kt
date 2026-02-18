@@ -17,6 +17,7 @@ import com.example.free2party.exception.UserNotFoundException
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
@@ -45,7 +46,8 @@ sealed class HomeUiEvent {
 class HomeViewModel : ViewModel() {
     private val userRepository = UserRepositoryImpl(
         currentUserId = Firebase.auth.currentUser?.uid ?: "",
-        db = Firebase.firestore
+        db = Firebase.firestore,
+        storage = Firebase.storage
     )
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
         db = Firebase.firestore,
@@ -78,7 +80,7 @@ class HomeViewModel : ViewModel() {
                     .thenBy { it.name }
             )
             HomeUiState.Success(
-                userName = user.name,
+                userName = user.fullName,
                 isUserFree = user.isFreeNow,
                 friendsList = sortedFriends
             )

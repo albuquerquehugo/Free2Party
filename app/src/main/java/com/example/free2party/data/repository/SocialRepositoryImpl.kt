@@ -100,9 +100,13 @@ class SocialRepositoryImpl(
                         val listener = db.collection("users").document(friendId)
                             .addSnapshotListener { friendSnapshot, _ ->
                                 if (friendSnapshot != null && friendSnapshot.exists()) {
+                                    val firstName = friendSnapshot.getString("firstName") ?: ""
+                                    val lastName = friendSnapshot.getString("lastName") ?: ""
+                                    val fullName = "$firstName $lastName".trim()
+
                                     val info = FriendInfo(
                                         uid = friendId,
-                                        name = friendSnapshot.getString("name") ?: "Unknown",
+                                        name = fullName.ifBlank { "Unknown" },
                                         isFreeNow = friendSnapshot.getBoolean("isFreeNow") ?: false,
                                         inviteStatus = inviteStatuses[friendId]
                                             ?: InviteStatus.ACCEPTED
@@ -160,7 +164,7 @@ class SocialRepositoryImpl(
                 requestRef, FriendRequest(
                     id = requestId,
                     senderId = currentUserId,
-                    senderName = sender.name,
+                    senderName = sender.fullName,
                     senderEmail = sender.email,
                     receiverId = receiver.uid,
                     friendRequestStatus = FriendRequestStatus.PENDING
@@ -173,7 +177,7 @@ class SocialRepositoryImpl(
             transaction.set(
                 senderFriendRef, mapOf(
                     "uid" to receiver.uid,
-                    "name" to receiver.name,
+                    "name" to receiver.fullName,
                     "inviteStatus" to InviteStatus.INVITED.name,
                     "addedAt" to FieldValue.serverTimestamp()
                 )
@@ -294,6 +298,7 @@ class SocialRepositoryImpl(
                     )
                 }
             }
+
             is SocialException -> e
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown social error")
         }

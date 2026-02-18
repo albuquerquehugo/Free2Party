@@ -1,5 +1,6 @@
 package com.example.free2party.data.repository
 
+import android.net.Uri
 import com.example.free2party.data.model.User
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.NetworkUnavailableException
@@ -9,6 +10,7 @@ import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -16,7 +18,8 @@ import kotlinx.coroutines.tasks.await
 
 class UserRepositoryImpl(
     override val currentUserId: String,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val storage: FirebaseStorage
 ) : UserRepository {
     override fun getCurrentUserStatus(): Flow<Boolean> = callbackFlow {
         if (currentUserId.isBlank()) {
@@ -85,10 +88,10 @@ class UserRepositoryImpl(
         Result.failure(mapToUserException(e))
     }
 
-    override suspend fun updateUserName(name: String): Result<Unit> = try {
+    override suspend fun updateUser(user: User): Result<Unit> = try {
         validateSession()
         db.collection("users").document(currentUserId)
-            .update("name", name)
+            .set(user, SetOptions.merge())
             .await()
         Result.success(Unit)
     } catch (e: Exception) {
@@ -101,6 +104,16 @@ class UserRepositoryImpl(
             .set(mapOf("isFreeNow" to isFree), SetOptions.merge())
             .await()
         Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToUserException(e))
+    }
+
+    override suspend fun uploadProfilePicture(uri: Uri): Result<String> = try {
+        validateSession()
+        val ref = storage.reference.child("profile_pictures/$currentUserId.jpg")
+        ref.putFile(uri).await()
+        val downloadUrl = ref.downloadUrl.await().toString()
+        Result.success(downloadUrl)
     } catch (e: Exception) {
         Result.failure(mapToUserException(e))
     }

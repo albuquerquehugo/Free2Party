@@ -3,11 +3,13 @@ package com.example.free2party.ui.screens.register
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -60,10 +62,12 @@ fun RegisterRoute(
 
     RegisterScreen(
         uiState = uiState,
-        name = viewModel.name,
+        firstName = viewModel.firstName,
+        lastName = viewModel.lastName,
         email = viewModel.email,
         password = viewModel.password,
-        onNameChange = { viewModel.name = it },
+        onFirstNameChange = { viewModel.firstName = it },
+        onLastNameChange = { viewModel.lastName = it },
         onEmailChange = { viewModel.email = it },
         onPasswordChange = { viewModel.password = it },
         onRegisterClick = { viewModel.onRegisterClick() },
@@ -77,10 +81,12 @@ fun RegisterRoute(
 @Composable
 fun RegisterScreen(
     uiState: RegisterUiState,
-    name: String,
+    firstName: String,
+    lastName: String,
     email: String,
     password: String,
-    onNameChange: (String) -> Unit,
+    onFirstNameChange: (String) -> Unit,
+    onLastNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRegisterClick: () -> Unit,
@@ -98,18 +104,35 @@ fun RegisterScreen(
         Text(text = "Create Account", style = MaterialTheme.typography.headlineLarge)
         Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
-            value = name,
-            onValueChange = onNameChange,
-            label = { Text("Name *") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = uiState !is RegisterUiState.Loading,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Next
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = firstName,
+                onValueChange = onFirstNameChange,
+                label = { Text("First Name *") },
+                modifier = Modifier.weight(1f),
+                enabled = uiState !is RegisterUiState.Loading,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next
+                )
             )
-        )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = lastName,
+                onValueChange = onLastNameChange,
+                label = { Text("Last Name *") },
+                modifier = Modifier.weight(1f),
+                enabled = uiState !is RegisterUiState.Loading,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    imeAction = ImeAction.Next
+                )
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 

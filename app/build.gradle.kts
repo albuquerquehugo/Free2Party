@@ -68,6 +68,10 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.common)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+
+    // --- Image Loading ---
+    implementation(libs.coil.compose)
 
     // --- Desugaring ---
     coreLibraryDesugaring(libs.desugar.jdk.libs)

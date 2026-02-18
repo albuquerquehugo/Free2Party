@@ -54,14 +54,14 @@ To ensure the app remains maintainable and scalable for a future App Store launc
 ---
 
 ## 📝 MVP Roadmap (Sprint 1)
-- [ ] **Phase 1: Foundation**
+- [x] **Phase 1: Foundation**
     - [x] Project setup & Firebase connection.
     - [x] Google/Email Authentication.
-    - [ ] Basic Profile creation (Name, Bio).
-- [ ] **Phase 2: The Core Logic**
+    - [x] Basic Profile creation (Name, Bio).
+- [x] **Phase 2: The Core Logic**
     - [x] "I'm Free" toggle button.
     - [x] Firestore logic to sync status in real-time.
-    - [ ] Availability duration (e.g., "Free for 2 hours").
+    - [x] Availability schedule (e.g., "Free from 12 pm to 1 pm").
 - [x] **Phase 3: Social Layer**
     - [x] Search users by email.
     - [x] Friend request system.
