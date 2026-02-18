@@ -30,6 +30,7 @@ sealed interface HomeUiState {
     object Loading : HomeUiState
     data class Success(
         val userName: String = "",
+        val profilePicUrl: String = "",
         val isUserFree: Boolean = false,
         val friendsList: List<FriendInfo> = emptyList(),
         val isActionLoading: Boolean = false
@@ -81,6 +82,7 @@ class HomeViewModel : ViewModel() {
             )
             HomeUiState.Success(
                 userName = user.fullName,
+                profilePicUrl = user.profilePicUrl,
                 isUserFree = user.isFreeNow,
                 friendsList = sortedFriends
             )

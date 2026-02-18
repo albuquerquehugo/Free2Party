@@ -57,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
@@ -178,12 +179,24 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Box {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "User Menu",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        val profilePicUrl = (uiState as? HomeUiState.Success)?.profilePicUrl
+                        if (!profilePicUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = profilePicUrl,
+                                contentDescription = "User Menu",
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "User Menu",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(64.dp)
+                            )
+                        }
                         DropdownMenu(
                             expanded = showUserMenu,
                             onDismissRequest = { setShowUserMenu(false) }
