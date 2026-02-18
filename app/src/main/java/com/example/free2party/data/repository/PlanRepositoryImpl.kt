@@ -14,6 +14,7 @@ import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
@@ -23,9 +24,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class PlanRepositoryImpl(
-    private val db: FirebaseFirestore,
-    private val currentUserId: String
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore
 ) : PlanRepository {
+    private val currentUserId: String get() = auth.currentUser?.uid ?: ""
+
     override fun getPlans(userId: String): Flow<List<FuturePlan>> = callbackFlow {
         val targetUserId = userId.ifBlank { currentUserId }
         if (targetUserId.isBlank()) {

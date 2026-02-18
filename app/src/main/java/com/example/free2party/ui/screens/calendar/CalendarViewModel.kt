@@ -28,7 +28,7 @@ class CalendarViewModel(
 ) : ViewModel() {
     private val planRepository: PlanRepository = PlanRepositoryImpl(
         db = Firebase.firestore,
-        currentUserId = Firebase.auth.currentUser?.uid ?: ""
+        auth = Firebase.auth
     )
 
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())

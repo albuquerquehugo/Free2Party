@@ -41,6 +41,11 @@ fun FriendCalendarDialog(
         factory = provideCalendarViewModelFactory(friend.uid)
     )
 
+    val handleDismiss = {
+        viewModel.goToToday()
+        onDismiss()
+    }
+
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
             delay(5_000)
@@ -49,7 +54,7 @@ fun FriendCalendarDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = handleDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
@@ -106,7 +111,7 @@ fun FriendCalendarDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = onDismiss,
+                    onClick = handleDismiss,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Close")

@@ -35,6 +35,7 @@ import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
+import com.example.free2party.util.provideCalendarViewModelFactory
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -173,7 +174,13 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Calendar.route) {
-            CalendarRoute()
+            val uid = Firebase.auth.currentUser?.uid ?: ""
+            CalendarRoute(
+                viewModel = viewModel(
+                    key = "calendar_$uid",
+                    factory = provideCalendarViewModelFactory(null) // null uses the current user correctly
+                )
+            )
         }
 
         composable(Screen.Notifications.route) {
