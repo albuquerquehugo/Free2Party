@@ -35,7 +35,7 @@ sealed class ProfileUiEvent {
 
 class ProfileViewModel : ViewModel() {
     private val userRepository: UserRepository = UserRepositoryImpl(
-        currentUserId = Firebase.auth.currentUser?.uid ?: "",
+        auth = Firebase.auth,
         db = Firebase.firestore,
         storage = Firebase.storage
     )

@@ -7,27 +7,34 @@ import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class UserRepositoryImpl(
-    override val currentUserId: String,
+    private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val storage: FirebaseStorage
 ) : UserRepository {
+
+    override val currentUserId: String
+        get() = auth.currentUser?.uid ?: ""
+
     override fun getCurrentUserStatus(): Flow<Boolean> = callbackFlow {
-        if (currentUserId.isBlank()) {
+        val uid = currentUserId
+        if (uid.isBlank()) {
             close(UnauthorizedException())
             return@callbackFlow
         }
 
-        val listener = db.collection("users").document(currentUserId)
+        val listener = db.collection("users").document(uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(mapToUserException(error))
@@ -89,8 +96,8 @@ class UserRepositoryImpl(
     }
 
     override suspend fun updateUser(user: User): Result<Unit> = try {
-        validateSession()
-        db.collection("users").document(currentUserId)
+        val uid = validateSession()
+        db.collection("users").document(uid)
             .set(user, SetOptions.merge())
             .await()
         Result.success(Unit)
@@ -99,8 +106,8 @@ class UserRepositoryImpl(
     }
 
     override suspend fun toggleAvailability(isFree: Boolean): Result<Unit> = try {
-        validateSession()
-        db.collection("users").document(currentUserId)
+        val uid = validateSession()
+        db.collection("users").document(uid)
             .set(mapOf("isFreeNow" to isFree), SetOptions.merge())
             .await()
         Result.success(Unit)
@@ -109,8 +116,8 @@ class UserRepositoryImpl(
     }
 
     override suspend fun uploadProfilePicture(uri: Uri): Result<String> = try {
-        validateSession()
-        val ref = storage.reference.child("profile_pictures/$currentUserId.jpg")
+        val uid = validateSession()
+        val ref = storage.reference.child("profile_pictures/$uid.jpg")
         ref.putFile(uri).await()
         val downloadUrl = ref.downloadUrl.await().toString()
         Result.success(downloadUrl)
@@ -118,8 +125,10 @@ class UserRepositoryImpl(
         Result.failure(mapToUserException(e))
     }
 
-    private fun validateSession() {
-        if (currentUserId.isBlank()) throw UnauthorizedException()
+    private fun validateSession(): String {
+        val uid = currentUserId
+        if (uid.isBlank()) throw UnauthorizedException()
+        return uid
     }
 
     private fun mapToUserException(e: Exception): Exception {
@@ -133,7 +142,14 @@ class UserRepositoryImpl(
                     else -> DatabaseOperationException(e.localizedMessage ?: "Database error")
                 }
             }
-
+            is StorageException -> {
+                when (e.errorCode) {
+                    StorageException.ERROR_NOT_AUTHENTICATED -> UnauthorizedException("Not authenticated")
+                    StorageException.ERROR_NOT_AUTHORIZED -> UnauthorizedException("Permission denied on storage")
+                    StorageException.ERROR_RETRY_LIMIT_EXCEEDED -> NetworkUnavailableException("Upload timed out")
+                    else -> DatabaseOperationException("Storage error: ${e.message}")
+                }
+            }
             is UserNotFoundException, is UnauthorizedException -> e
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown error")
         }

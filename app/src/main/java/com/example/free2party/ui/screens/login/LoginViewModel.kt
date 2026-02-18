@@ -29,7 +29,7 @@ sealed class LoginUiEvent {
 
 class LoginViewModel : ViewModel() {
     private val userRepository = UserRepositoryImpl(
-        currentUserId = Firebase.auth.currentUser?.uid ?: "",
+        auth = Firebase.auth,
         db = Firebase.firestore,
         storage = Firebase.storage
     )

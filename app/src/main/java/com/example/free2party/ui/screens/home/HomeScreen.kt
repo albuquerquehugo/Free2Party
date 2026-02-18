@@ -330,7 +330,7 @@ fun HomeContent(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.logo_light_full),
+                painter = painterResource(id = R.drawable.logo_light_full_transparent),
                 contentDescription = "Free2Party Logo",
                 modifier = Modifier.height(120.dp),
                 contentScale = ContentScale.Fit

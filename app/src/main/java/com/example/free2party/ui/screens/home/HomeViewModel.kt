@@ -45,7 +45,7 @@ sealed class HomeUiEvent {
 
 class HomeViewModel : ViewModel() {
     private val userRepository = UserRepositoryImpl(
-        currentUserId = Firebase.auth.currentUser?.uid ?: "",
+        auth = Firebase.auth,
         db = Firebase.firestore,
         storage = Firebase.storage
     )
