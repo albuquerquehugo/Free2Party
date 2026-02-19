@@ -25,7 +25,6 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.components.MonthCalendar
 import com.example.free2party.ui.components.PlanResults
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
-import com.example.free2party.util.provideCalendarViewModelFactory
 import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.util.Date
@@ -38,7 +37,7 @@ fun FriendCalendarDialog(
 ) {
     val viewModel: CalendarViewModel = viewModel(
         key = "calendar_${friend.uid}",
-        factory = provideCalendarViewModelFactory(friend.uid)
+        factory = CalendarViewModel.provideFactory(friend.uid)
     )
 
     val handleDismiss = {

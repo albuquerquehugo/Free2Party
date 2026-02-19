@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.repository.PlanRepository
@@ -24,12 +25,10 @@ import java.util.Calendar
 import java.util.TimeZone
 
 class CalendarViewModel(
-    targetUserId: String? = null
+    private val planRepository: PlanRepository,
+    targetUserId: String? = null,
+    currentUserId: String = ""
 ) : ViewModel() {
-    private val planRepository: PlanRepository = PlanRepositoryImpl(
-        db = Firebase.firestore,
-        auth = Firebase.auth
-    )
 
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
     val filteredPlans: List<FuturePlan>
@@ -55,7 +54,7 @@ class CalendarViewModel(
 
     var selectedDateMillis by mutableStateOf<Long?>(null)
 
-    val userIdToObserve = targetUserId ?: Firebase.auth.currentUser?.uid ?: ""
+    val userIdToObserve = targetUserId ?: currentUserId
 
     init {
         goToToday()
@@ -209,5 +208,27 @@ class CalendarViewModel(
             set(Calendar.MILLISECOND, 0)
         }
         selectedDateMillis = calendar.timeInMillis
+    }
+
+    companion object {
+        fun provideFactory(
+            targetUserId: String?,
+            planRepository: PlanRepository = PlanRepositoryImpl(
+                auth = Firebase.auth,
+                db = Firebase.firestore
+            )
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
+                    return CalendarViewModel(
+                        planRepository = planRepository,
+                        targetUserId = targetUserId,
+                        currentUserId = Firebase.auth.currentUser?.uid ?: ""
+                    ) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
     }
 }

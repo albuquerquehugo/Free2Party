@@ -30,6 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.free2party.ui.screens.calendar.CalendarRoute
+import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import com.example.free2party.ui.screens.home.HomeRoute
 import com.example.free2party.ui.screens.login.LoginRoute
 import com.example.free2party.ui.screens.notifications.NotificationsRoute
@@ -37,7 +38,6 @@ import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
 import com.example.free2party.ui.screens.settings.SettingsRoute
-import com.example.free2party.util.provideCalendarViewModelFactory
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -81,7 +81,10 @@ fun AppNavigation(notificationsViewModel: NotificationsViewModel = viewModel()) 
 }
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController, notificationsViewModel: NotificationsViewModel) {
+fun BottomNavigationBar(
+    navController: NavHostController,
+    notificationsViewModel: NotificationsViewModel
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val friendRequests by notificationsViewModel.friendRequests.collectAsState()
@@ -184,7 +187,7 @@ fun Free2PartyNavGraph(
             CalendarRoute(
                 viewModel = viewModel(
                     key = "calendar_$uid",
-                    factory = provideCalendarViewModelFactory(null) // null uses the current user correctly
+                    factory = CalendarViewModel.provideFactory(null)
                 )
             )
         }

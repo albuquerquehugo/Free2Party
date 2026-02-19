@@ -440,6 +440,8 @@ fun FriendsListSection(
 
     Spacer(modifier = Modifier.height(16.dp))
 
+    // TODO: Implement sections for friends list (FREE2PARTY, BUSY, INVITED)
+
     if (friends.isEmpty()) {
         Text(
             text = "You don't have any friends yet!",

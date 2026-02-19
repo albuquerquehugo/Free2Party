@@ -52,26 +52,26 @@ class UtilTest {
 
     @Test
     fun `formatPlanDate correctly formats yyyy-MM-dd`() {
-        assertEquals("Jan 1, 2024", formatPlanDate("2024-01-01"))
-        assertEquals("Dec 31, 2023", formatPlanDate("2023-12-31"))
+        assertEquals("Jan 1, 2026", formatPlanDate("2026-01-01"))
+        assertEquals("Dec 31, 2025", formatPlanDate("2025-12-31"))
         assertEquals("invalid-date", formatPlanDate("invalid-date"))
     }
 
     @Test
     fun `formatPlanDate returns original string for invalid parts`() {
         // Non-numeric day
-        assertEquals("2024-01-aa", formatPlanDate("2024-01-aa"))
+        assertEquals("2026-01-aa", formatPlanDate("2026-01-aa"))
         // Invalid month
-        assertEquals("2024-13-01", formatPlanDate("2024-13-01"))
+        assertEquals("2026-13-01", formatPlanDate("2026-13-01"))
     }
 
     @Test
     fun `parseDateToMillis returns UTC midnight in millis`() {
-        val millis = parseDateToMillis("2024-01-01")
+        val millis = parseDateToMillis("2026-01-01")
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             timeInMillis = millis!!
         }
-        assertEquals(2024, calendar.get(Calendar.YEAR))
+        assertEquals(2026, calendar.get(Calendar.YEAR))
         assertEquals(Calendar.JANUARY, calendar.get(Calendar.MONTH))
         assertEquals(1, calendar.get(Calendar.DAY_OF_MONTH))
         assertEquals(0, calendar.get(Calendar.HOUR_OF_DAY))
@@ -81,16 +81,16 @@ class UtilTest {
     @Test
     fun `parseDateToMillis returns null for invalid date`() {
         assertNull(parseDateToMillis("invalid"))
-        assertNull(parseDateToMillis("2024-13-45"))
+        assertNull(parseDateToMillis("2026-13-45"))
     }
 
     @Test
     fun `isDateTimeInPast returns true for past dates`() {
         val now = Calendar.getInstance().apply {
-            set(2024, Calendar.MAY, 20, 12, 0)
+            set(2026, Calendar.MAY, 20, 12, 0)
         }
         val pastDateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-            set(2024, Calendar.MAY, 19, 0, 0, 0)
+            set(2026, Calendar.MAY, 19, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
@@ -100,10 +100,10 @@ class UtilTest {
     @Test
     fun `isDateTimeInPast returns false for future dates`() {
         val now = Calendar.getInstance().apply {
-            set(2024, Calendar.MAY, 20, 12, 0)
+            set(2026, Calendar.MAY, 20, 12, 0)
         }
         val futureDateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-            set(2024, Calendar.MAY, 21, 0, 0, 0)
+            set(2026, Calendar.MAY, 21, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
@@ -113,10 +113,10 @@ class UtilTest {
     @Test
     fun `isDateTimeInPast handles time for today correctly`() {
         val now = Calendar.getInstance().apply {
-            set(2024, Calendar.MAY, 20, 12, 30)
+            set(2026, Calendar.MAY, 20, 12, 30)
         }
         val todayMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-            set(2024, Calendar.MAY, 20, 0, 0, 0)
+            set(2026, Calendar.MAY, 20, 0, 0, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
