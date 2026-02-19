@@ -40,14 +40,14 @@ class CalendarViewModel(
                 val planStartMillis = parseDateToMillis(plan.startDate) ?: return@filter false
                 val planEndMillis = parseDateToMillis(plan.endDate) ?: return@filter false
 
-                val planDateTimeStart = planStartMillis + parseTimeToMillis(plan.startTime)
-                val planDateTimeEnd = planEndMillis + parseTimeToMillis(plan.endTime)
+                val planDateTimeStart = planStartMillis + (parseTimeToMillis(plan.startTime) ?: 0L)
+                val planDateTimeEnd = planEndMillis + (parseTimeToMillis(plan.endTime) ?: 0L)
 
                 val nextDay = selectedDate + 86400000L // 24 hours later
 
                 // Overlap: max(start1, start2) < min(end1, end2)
                 planDateTimeStart.coerceAtLeast(selectedDate) < planDateTimeEnd.coerceAtMost(nextDay)
-            }.sortedBy { plan -> parseTimeToMinutes(plan.startTime) }
+            }.sortedBy { plan -> parseTimeToMinutes(plan.startTime) ?: 0 }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))

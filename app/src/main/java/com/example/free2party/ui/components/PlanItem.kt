@@ -63,8 +63,11 @@ fun PlanItem(
         derivedStateOf {
             val startDateMillis = parseDateToMillis(plan.startDate) ?: 0L
             val endDateMillis = parseDateToMillis(plan.endDate) ?: 0L
-            val startDateTimeMillis = startDateMillis + parseTimeToMillis(plan.startTime)
-            val endDateTimeMillis = endDateMillis + parseTimeToMillis(plan.endTime)
+            val startTimeMillis = parseTimeToMillis(plan.startTime) ?: 0L
+            val endTimeMillis = parseTimeToMillis(plan.endTime) ?: 0L
+
+            val startDateTimeMillis = startDateMillis + startTimeMillis
+            val endDateTimeMillis = endDateMillis + endTimeMillis
 
             val localNow = Calendar.getInstance().apply { timeInMillis = currentTimeMillis }
             val nowUtcMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -90,9 +93,11 @@ fun PlanItem(
     val duration = remember(plan.startDate, plan.endDate, plan.startTime, plan.endTime) {
         val startDateMillis = parseDateToMillis(plan.startDate) ?: 0L
         val endDateMillis = parseDateToMillis(plan.endDate) ?: 0L
+        val startTimeMinutes = parseTimeToMinutes(plan.startTime) ?: 0
+        val endTimeMinutes = parseTimeToMinutes(plan.endTime) ?: 0
 
         val durationMins = ((endDateMillis - startDateMillis) / 60000L) +
-                parseTimeToMinutes(plan.endTime) - parseTimeToMinutes(plan.startTime)
+                endTimeMinutes - startTimeMinutes
         val hours = durationMins / 60
         val minutes = durationMins % 60
         when {

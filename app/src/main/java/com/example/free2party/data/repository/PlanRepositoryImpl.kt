@@ -143,9 +143,12 @@ class PlanRepositoryImpl(
             throw InvalidPlanDataException()
         }
 
-        if (startDateMillis == endDateMillis &&
-            parseTimeToMinutes(plan.startTime) >= parseTimeToMinutes(plan.endTime)
-        ) {
+        val startTimeMinutes = parseTimeToMinutes(plan.startTime)
+            ?: throw InvalidPlanDataException()
+        val endTimeMinutes = parseTimeToMinutes(plan.endTime)
+            ?: throw InvalidPlanDataException()
+
+        if (startDateMillis == endDateMillis && startTimeMinutes >= endTimeMinutes) {
             throw InvalidPlanDataException()
         }
     }
@@ -153,17 +156,24 @@ class PlanRepositoryImpl(
     private fun isOverlapping(newPlan: FuturePlan, existingPlans: List<FuturePlan>): Boolean {
         val startDateMillis = parseDateToMillis(newPlan.startDate) ?: return false
         val endDateMillis = parseDateToMillis(newPlan.endDate) ?: return false
-        val startDateTimeMillis = startDateMillis + parseTimeToMillis(newPlan.startTime)
-        val endDateTimeMillis = endDateMillis + parseTimeToMillis(newPlan.endTime)
+        val startTimeMillis = parseTimeToMillis(newPlan.startTime) ?: return false
+        val endTimeMillis = parseTimeToMillis(newPlan.endTime) ?: return false
+
+        val startDateTimeMillis = startDateMillis + startTimeMillis
+        val endDateTimeMillis = endDateMillis + endTimeMillis
 
         return existingPlans.any { plan ->
             val existingStartDateMillis = parseDateToMillis(plan.startDate)
                 ?: return@any false
             val existingEndDateMillis = parseDateToMillis(plan.endDate)
                 ?: return@any false
-            val existingStartDateTimeMillis =
-                existingStartDateMillis + parseTimeToMillis(plan.startTime)
-            val existingEndDateTimeMillis = existingEndDateMillis + parseTimeToMillis(plan.endTime)
+            val existingStartTimeMillis = parseTimeToMillis(plan.startTime)
+                ?: return@any false
+            val existingEndTimeMillis = parseTimeToMillis(plan.endTime)
+                ?: return@any false
+
+            val existingStartDateTimeMillis = existingStartDateMillis + existingStartTimeMillis
+            val existingEndDateTimeMillis = existingEndDateMillis + existingEndTimeMillis
 
             startDateTimeMillis < existingEndDateTimeMillis &&
                     endDateTimeMillis > existingStartDateTimeMillis

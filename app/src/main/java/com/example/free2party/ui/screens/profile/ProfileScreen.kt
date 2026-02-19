@@ -328,6 +328,8 @@ fun ProfileScreenContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // TODO: Add discard changes button
+
         Button(
             onClick = {
                 onUpdateProfile(

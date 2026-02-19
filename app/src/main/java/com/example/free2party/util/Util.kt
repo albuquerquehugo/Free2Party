@@ -1,6 +1,5 @@
 package com.example.free2party.util
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
@@ -23,60 +22,59 @@ fun formatTime(hour: Int, minute: Int): String {
 /**
  * Parses a time string in the format "H:mm" or "HH:mm" back into hour and minute integers.
  * @param time The formatted time string to parse.
- * @return A [Pair] where the first element is the hour and the second is the minute.
+ * @return A [Pair] where the first element is the hour and the second is the minute or 0:0 if the format is invalid.
  */
 fun unformatTime(time: String): Pair<Int, Int> {
     val parts = time.split(":")
-    return parts[0].toInt() to parts[1].toInt()
+    if (parts.size != 2) return 0 to 0
+    val hour = parts[0].toIntOrNull() ?: return 0 to 0
+    val minute = parts[1].toIntOrNull() ?: return 0 to 0
+    return hour to minute
 }
 
 /**
  * Parses a time string in the format "H:mm" or "HH:mm" into the total number of minutes from the
  * start of the day.
  * @param time The time string to parse.
- * @return The total number of minutes, or 0 if the string format is invalid.
+ * @return The total number of minutes, or null if the string format is invalid.
  */
-fun parseTimeToMinutes(time: String): Int {
+fun parseTimeToMinutes(time: String): Int? {
     val parts = time.split(":")
-    return try {
-        parts[0].toInt() * 60 + parts[1].toInt()
-    } catch (e: Exception) {
-        Log.e("timeToMinutes", "Error converting time to minutes: ${e.message}")
-        0
-    }
+    if (parts.size != 2) return null
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+    return hour * 60 + minute
 }
 
 /**
  * Parses a time string in the format "H:mm" or "HH:mm" into the total number of milliseconds
  * from the start of the day.
  * @param time The time string to parse.
- * @return The total number of milliseconds, or 0 if the string format is invalid.
+ * @return The total number of milliseconds, or null if the string format is invalid.
  */
-fun parseTimeToMillis(time: String): Long {
-    return parseTimeToMinutes(time) * 60000L
+fun parseTimeToMillis(time: String): Long? {
+    return parseTimeToMinutes(time)?.let { it * 60000L }
 }
 
 
 /**
- * Formats a date represented in milliseconds into a human-readable string (e.g., "MMM dd, yyyy").
- * @param dateStr The date in UTC milliseconds to be formatted.
- * @return A formatted date string according to the default locale.
+ * Formats a date "yyyy-MM-dd" to "MMM dd, yyyy".
+ * @param dateStr The date string to be formatted.
+ * @return A formatted date string in the format "MMM dd, yyyy". If the format is invalid, it
+ * returns the original string
  */
 fun formatPlanDate(dateStr: String): String {
-    return try {
-        val parts = dateStr.split("-")
-        if (parts.size < 3) return dateStr
-        val month = when (parts[1]) {
-            "01" -> "Jan"; "02" -> "Feb"; "03" -> "Mar"; "04" -> "Apr"
-            "05" -> "May"; "06" -> "Jun"; "07" -> "Jul"; "08" -> "Aug"
-            "09" -> "Sep"; "10" -> "Oct"; "11" -> "Nov"; "12" -> "Dec"
-            else -> parts[1]
-        }
-        "$month ${parts[2].toInt()}, ${parts[0]}"
-    } catch (e: Exception) {
-        Log.e("formatPlanDate", "Error formatting date: ${e.message}")
-        dateStr
+    val parts = dateStr.split("-")
+    if (parts.size < 3) return dateStr
+
+    val month = when (parts[1]) {
+        "01" -> "Jan"; "02" -> "Feb"; "03" -> "Mar"; "04" -> "Apr"
+        "05" -> "May"; "06" -> "Jun"; "07" -> "Jul"; "08" -> "Aug"
+        "09" -> "Sep"; "10" -> "Oct"; "11" -> "Nov"; "12" -> "Dec"
+        else -> return dateStr // Return original string if month is invalid
     }
+    val day = parts[2].toIntOrNull() ?: return dateStr
+    return "$month $day, ${parts[0]}"
 }
 
 /**
@@ -87,13 +85,9 @@ fun formatPlanDate(dateStr: String): String {
 fun parseDateToMillis(dateString: String): Long? {
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("UTC")
+        isLenient = false
     }
-    return try {
-        sdf.parse(dateString)?.time
-    } catch (e: Exception) {
-        Log.e("dateToMillis", "Error converting date to millis: ${e.message}")
-        null
-    }
+    return runCatching { sdf.parse(dateString)?.time }.getOrNull()
 }
 
 /**
@@ -123,7 +117,7 @@ fun isDateTimeInPast(
 
     if (dateUtcMillis == todayUtc.timeInMillis && timeString != null) {
         val currentMins = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
-        val targetMins = parseTimeToMinutes(timeString)
+        val targetMins = parseTimeToMinutes(timeString) ?: 0
         // If the current minute is the same as or greater than the target minute, it is in the past/started
         return targetMins <= currentMins
     }

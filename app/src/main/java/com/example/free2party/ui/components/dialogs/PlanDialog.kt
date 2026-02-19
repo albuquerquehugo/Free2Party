@@ -83,8 +83,8 @@ fun PlanDialog(
         if (startMillis < endMillis) return@remember true
         if (startMillis > endMillis) return@remember false
 
-        val startMins = parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute))
-        val endMins = parseTimeToMinutes(formatTime(endTimeState.hour, endTimeState.minute))
+        val startMins = parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute)) ?: 0
+        val endMins = parseTimeToMinutes(formatTime(endTimeState.hour, endTimeState.minute)) ?: 0
         startMins < endMins
     }
 
@@ -198,6 +198,8 @@ fun PlanDialog(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
+
+                    // TODO: Add day of week
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedCard(
                             modifier = Modifier
