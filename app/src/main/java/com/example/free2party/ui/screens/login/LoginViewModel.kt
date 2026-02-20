@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.login
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,19 +28,23 @@ sealed class LoginUiEvent {
     data class ShowToast(val message: String) : LoginUiEvent()
 }
 
-class LoginViewModel : ViewModel() {
-    private val userRepository = UserRepositoryImpl(
-        auth = Firebase.auth,
-        db = Firebase.firestore,
-        storage = Firebase.storage
-    )
+class LoginViewModel(
     private val authRepository: AuthRepository = AuthRepositoryImpl(
         auth = Firebase.auth,
-        userRepository = userRepository
+        userRepository = UserRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore,
+            storage = Firebase.storage
+        )
     )
+) : ViewModel() {
 
     var email by mutableStateOf("")
     var password by mutableStateOf("")
+
+    val isFormValid by derivedStateOf {
+        email.isNotBlank() && password.isNotBlank()
+    }
 
     var uiState by mutableStateOf<LoginUiState>(LoginUiState.Idle)
         private set
@@ -48,6 +53,8 @@ class LoginViewModel : ViewModel() {
     val uiEvent = _uiEvent.asSharedFlow()
 
     fun onLoginClick(onSuccess: () -> Unit) {
+        if (uiState is LoginUiState.Loading) return
+
         val normalizedEmail = email.trim().lowercase()
         if (normalizedEmail.isBlank() || password.isBlank()) {
             uiState = LoginUiState.Error("Email and password cannot be empty")
@@ -68,9 +75,11 @@ class LoginViewModel : ViewModel() {
     }
 
     fun onForgotPasswordConfirm(email: String) {
-        val normalizedEmail = email.trim().lowercase()
+        if (uiState is LoginUiState.Loading) return
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
+        val normalizedEmail = email.trim().lowercase()
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+        if (!emailPattern.matches(normalizedEmail)) {
             uiState = LoginUiState.Error("Please enter a valid email address.")
             return
         }

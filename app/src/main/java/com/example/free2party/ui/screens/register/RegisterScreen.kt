@@ -82,6 +82,7 @@ fun RegisterRoute(
         email = viewModel.email,
         password = viewModel.password,
         profilePicUri = viewModel.profilePicUri,
+        isFormValid = viewModel.isFormValid,
         onFirstNameChange = { viewModel.firstName = it },
         onLastNameChange = { viewModel.lastName = it },
         onEmailChange = { viewModel.email = it },
@@ -103,6 +104,7 @@ fun RegisterScreen(
     email: String,
     password: String,
     profilePicUri: Uri?,
+    isFormValid: Boolean,
     onFirstNameChange: (String) -> Unit,
     onLastNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
@@ -237,7 +239,7 @@ fun RegisterScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { onRegisterClick() }
+                onDone = { if (isFormValid) onRegisterClick() }
             ),
             trailingIcon = {
                 val image = if (passwordVisible)
@@ -270,7 +272,8 @@ fun RegisterScreen(
                 onClick = onRegisterClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                enabled = isFormValid
             ) {
                 Text("Register")
             }

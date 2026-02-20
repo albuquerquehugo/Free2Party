@@ -67,6 +67,7 @@ fun LoginRoute(
         uiState = viewModel.uiState,
         email = viewModel.email,
         password = viewModel.password,
+        isFormValid = viewModel.isFormValid,
         showForgotPasswordDialog = showForgotPasswordDialog,
         onEmailChange = {
             viewModel.email = it
@@ -96,6 +97,7 @@ fun LoginScreen(
     uiState: LoginUiState,
     email: String,
     password: String,
+    isFormValid: Boolean,
     showForgotPasswordDialog: Boolean,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
@@ -154,7 +156,7 @@ fun LoginScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { onLoginClick() }
+                onDone = { if (isFormValid) onLoginClick() }
             ),
             trailingIcon = {
                 val image = if (passwordVisible)
@@ -200,7 +202,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = uiState !is LoginUiState.Loading
+                enabled = isFormValid && uiState !is LoginUiState.Loading
             ) {
                 Text("Login")
             }
