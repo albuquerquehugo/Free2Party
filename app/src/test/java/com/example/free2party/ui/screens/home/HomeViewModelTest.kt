@@ -43,13 +43,13 @@ class HomeViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        
+
         // Mock Android Log
         mockkStatic(Log::class)
         every { Log.d(any(), any()) } returns 0
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
-        
+
         every { userRepository.currentUserId } returns "me"
         every { userRepository.observeUser("me") } returns userFlow
         every { socialRepository.getFriendsList() } returns friendsFlow
@@ -67,7 +67,7 @@ class HomeViewModelTest {
             FriendInfo(uid = "2", name = "Bob", isFreeNow = false)
         )
         friendsFlow.value = friends
-        
+
         viewModel = HomeViewModel(userRepository, socialRepository, authRepository)
         runCurrent()
 
@@ -79,31 +79,37 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `friends are sorted correctly (invited last, then by availability, then alphabetical)`() = runTest {
-        val friends = listOf(
-            FriendInfo(uid = "1", name = "Zoe", isFreeNow = false),
-            FriendInfo(uid = "2", name = "Alice", isFreeNow = false),
-            FriendInfo(uid = "3", name = "Charlie", isFreeNow = true, inviteStatus = InviteStatus.INVITED),
-            FriendInfo(uid = "4", name = "Bob", isFreeNow = true)
-        )
-        friendsFlow.value = friends
-        
-        viewModel = HomeViewModel(userRepository, socialRepository, authRepository)
-        runCurrent()
+    fun `friends are sorted correctly (invited last, then by availability, then alphabetical)`() =
+        runTest {
+            val friends = listOf(
+                FriendInfo(uid = "1", name = "Zoe", isFreeNow = false),
+                FriendInfo(uid = "2", name = "Alice", isFreeNow = false),
+                FriendInfo(
+                    uid = "3",
+                    name = "Charlie",
+                    isFreeNow = true,
+                    inviteStatus = InviteStatus.INVITED
+                ),
+                FriendInfo(uid = "4", name = "Bob", isFreeNow = true)
+            )
+            friendsFlow.value = friends
 
-        val state = viewModel.uiState as HomeUiState.Success
-        // Bob (Free, Accepted) -> Alice (Not Free, Accepted) -> Zoe (Not Free, Accepted) -> Charlie (Invited)
-        assertEquals("Bob", state.friendsList[0].name)
-        assertEquals("Alice", state.friendsList[1].name)
-        assertEquals("Zoe", state.friendsList[2].name)
-        assertEquals("Charlie", state.friendsList[3].name)
-    }
+            viewModel = HomeViewModel(userRepository, socialRepository, authRepository)
+            runCurrent()
+
+            val state = viewModel.uiState as HomeUiState.Success
+            // Bob (Free, Accepted) -> Alice (Not Free, Accepted) -> Zoe (Not Free, Accepted) -> Charlie (Invited)
+            assertEquals("Bob", state.friendsList[0].name)
+            assertEquals("Alice", state.friendsList[1].name)
+            assertEquals("Zoe", state.friendsList[2].name)
+            assertEquals("Charlie", state.friendsList[3].name)
+        }
 
     @Test
     fun `logout calls authRepository and triggers callback`() {
         viewModel = HomeViewModel(userRepository, socialRepository, authRepository)
         var callbackCalled = false
-        
+
         viewModel.logout { callbackCalled = true }
 
         verify { authRepository.logout() }
@@ -118,7 +124,7 @@ class HomeViewModelTest {
 
         viewModel.toggleAvailability()
         runCurrent()
-        
+
         coVerify { userRepository.toggleAvailability(true) }
     }
 
@@ -127,7 +133,7 @@ class HomeViewModelTest {
         coEvery { socialRepository.removeFriend(any()) } returns Result.success(Unit)
         viewModel = HomeViewModel(userRepository, socialRepository, authRepository)
         runCurrent()
-        
+
         val events = mutableListOf<HomeUiEvent>()
         backgroundScope.launch {
             viewModel.uiEvent.collect { events.add(it) }
@@ -147,7 +153,7 @@ class HomeViewModelTest {
         coEvery { socialRepository.cancelFriendRequest(any()) } returns Result.success(Unit)
         viewModel = HomeViewModel(userRepository, socialRepository, authRepository)
         runCurrent()
-        
+
         val events = mutableListOf<HomeUiEvent>()
         backgroundScope.launch {
             viewModel.uiEvent.collect { events.add(it) }

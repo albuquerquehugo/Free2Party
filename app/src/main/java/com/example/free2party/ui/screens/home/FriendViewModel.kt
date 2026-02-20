@@ -27,16 +27,16 @@ sealed class FriendUiEvent {
     data class InviteSentSuccessfully(val email: String) : FriendUiEvent()
 }
 
-class FriendViewModel : ViewModel() {
-    private val userRepository = UserRepositoryImpl(
-        auth = Firebase.auth,
-        db = Firebase.firestore,
-        storage = Firebase.storage
-    )
+class FriendViewModel(
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
         db = Firebase.firestore,
-        userRepository = userRepository
+        userRepository = UserRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore,
+            storage = Firebase.storage
+        )
     )
+) : ViewModel() {
 
     var uiState by mutableStateOf<InviteFriendUiState>(InviteFriendUiState.Idle)
         private set
@@ -47,7 +47,8 @@ class FriendViewModel : ViewModel() {
     fun inviteFriend(email: String) {
         val normalizedEmail = email.trim().lowercase()
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(normalizedEmail).matches()) {
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+        if (!emailPattern.matches(normalizedEmail)) {
             uiState = InviteFriendUiState.Error("Please enter a valid email address.")
             return
         }
