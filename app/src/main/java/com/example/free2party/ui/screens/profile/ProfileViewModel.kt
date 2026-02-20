@@ -33,12 +33,13 @@ sealed class ProfileUiEvent {
     data class ShowToast(val message: String) : ProfileUiEvent()
 }
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(
     private val userRepository: UserRepository = UserRepositoryImpl(
         auth = Firebase.auth,
         db = Firebase.firestore,
         storage = Firebase.storage
     )
+) : ViewModel() {
 
     var uiState by mutableStateOf<ProfileUiState>(ProfileUiState.Loading)
         private set
