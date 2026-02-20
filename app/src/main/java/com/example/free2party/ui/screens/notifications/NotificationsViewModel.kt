@@ -7,7 +7,6 @@ import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
-import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -22,16 +21,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class NotificationsViewModel : ViewModel() {
-    private val userRepository: UserRepository = UserRepositoryImpl(
-        auth = Firebase.auth,
-        db = Firebase.firestore,
-        storage = Firebase.storage
-    )
+class NotificationsViewModel(
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
         db = Firebase.firestore,
-        userRepository = userRepository
+        userRepository = UserRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore,
+            storage = Firebase.storage
+        )
     )
+) : ViewModel() {
     private var observationJob: Job? = null
 
     private val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
