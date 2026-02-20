@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -255,7 +257,7 @@ fun ProfileScreenContent(
                         OutlinedTextField(
                             value = editedFirstName,
                             onValueChange = { editedFirstName = it },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("first_name_field"),
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyLarge,
                             enabled = !isSaving
@@ -275,7 +277,7 @@ fun ProfileScreenContent(
                         OutlinedTextField(
                             value = editedLastName,
                             onValueChange = { editedLastName = it },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("last_name_field"),
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyLarge,
                             enabled = !isSaving
@@ -297,7 +299,7 @@ fun ProfileScreenContent(
                     OutlinedTextField(
                         value = editedBio,
                         onValueChange = { editedBio = it },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("bio_field"),
                         minLines = 3,
                         maxLines = 5,
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -328,8 +330,6 @@ fun ProfileScreenContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // TODO: Add discard changes button
-
         Button(
             onClick = {
                 onUpdateProfile(
@@ -342,7 +342,8 @@ fun ProfileScreenContent(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .testTag("save_button"),
             enabled = hasChanges && !isSaving && editedFirstName.isNotBlank() && editedLastName.isNotBlank()
         ) {
             if (isSaving) {
@@ -354,6 +355,21 @@ fun ProfileScreenContent(
             } else {
                 Text("Save Changes", style = MaterialTheme.typography.titleMedium)
             }
+        }
+
+        if (hasChanges) {
+            TextButton(
+                onClick = {
+                    editedFirstName = user.firstName
+                    editedLastName = user.lastName
+                    editedBio = user.bio
+                },
+                modifier = Modifier.fillMaxWidth().testTag("discard_button"),
+                enabled = !isSaving
+            ) {
+                Text(text = "Discard Changes", color = MaterialTheme.colorScheme.outline)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
