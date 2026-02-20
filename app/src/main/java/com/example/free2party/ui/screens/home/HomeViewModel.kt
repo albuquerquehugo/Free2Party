@@ -12,6 +12,7 @@ import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
+import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.UserNotFoundException
 import com.google.firebase.Firebase
@@ -44,20 +45,21 @@ sealed class HomeUiEvent {
     object Logout : HomeUiEvent()
 }
 
-class HomeViewModel : ViewModel() {
-    private val userRepository = UserRepositoryImpl(
+class HomeViewModel(
+    private val userRepository: UserRepository = UserRepositoryImpl(
         auth = Firebase.auth,
         db = Firebase.firestore,
         storage = Firebase.storage
-    )
+    ),
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
         db = Firebase.firestore,
         userRepository = userRepository
-    )
+    ),
     private val authRepository: AuthRepository = AuthRepositoryImpl(
         auth = Firebase.auth,
         userRepository = userRepository
     )
+) : ViewModel() {
 
     var uiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
         private set
