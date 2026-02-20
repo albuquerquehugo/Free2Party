@@ -38,7 +38,6 @@ import com.example.free2party.util.isDateTimeInPast
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.example.free2party.util.unformatTime
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -62,7 +61,11 @@ fun PlanDialog(
     val (showStartTimePicker, setShowStartTimePicker) = remember { mutableStateOf(false) }
     val (showEndTimePicker, setShowEndTimePicker) = remember { mutableStateOf(false) }
 
-    val format = DateFormat.getDateInstance().apply { timeZone = TimeZone.getTimeZone("UTC") }
+    val format = remember {
+        SimpleDateFormat("EEE, MMM dd, yyyy", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
     val startDateText =
         startDatePickerState.selectedDateMillis?.let { format.format(Date(it)) }
             ?: "Select start date"
@@ -199,7 +202,6 @@ fun PlanDialog(
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    // TODO: Add day of week
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedCard(
                             modifier = Modifier
