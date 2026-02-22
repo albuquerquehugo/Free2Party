@@ -120,7 +120,7 @@ fun LoginScreen(
         Image(
             painter = painterResource(id = R.drawable.logo_light_full_transparent),
             contentDescription = "Free2Party Logo",
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(50.dp),
             contentScale = ContentScale.Fit
         )
 

@@ -1,6 +1,8 @@
 package com.example.free2party.ui.screens.home
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,12 +20,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
@@ -51,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -351,7 +354,7 @@ fun HomeContent(
             Image(
                 painter = painterResource(id = R.drawable.logo_light_full_transparent),
                 contentDescription = "Free2Party Logo",
-                modifier = Modifier.height(120.dp),
+                modifier = Modifier.height(40.dp),
                 contentScale = ContentScale.Fit
             )
         }
@@ -366,6 +369,7 @@ fun HomeContent(
                 )
                 .padding(horizontal = 32.dp, vertical = 16.dp),
             style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
             color =
                 if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
                 else MaterialTheme.colorScheme.onBusyContainer
@@ -440,8 +444,6 @@ fun FriendsListSection(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // TODO: Implement sections for friends list (FREE2PARTY, BUSY, INVITED)
-
     if (friends.isEmpty()) {
         Text(
             text = "You don't have any friends yet!",
@@ -450,17 +452,102 @@ fun FriendsListSection(
             modifier = Modifier.padding(bottom = 16.dp)
         )
     } else {
+        val freeFriends =
+            friends.filter { it.inviteStatus == InviteStatus.ACCEPTED && it.isFreeNow }
+        val busyFriends =
+            friends.filter { it.inviteStatus == InviteStatus.ACCEPTED && !it.isFreeNow }
+        val invitedFriends = friends.filter { it.inviteStatus == InviteStatus.INVITED }
+
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            items(friends) { friend ->
-                FriendItem(
-                    friend = friend,
-                    onRemoveFriend = { onRemoveFriend(friend.uid) },
-                    onCancelInvite = { onCancelInvite(friend.uid) },
-                    onClick = { onFriendItemClick(friend) }
+            item {
+                ExpandableFriendSection(
+                    title = "Free2Party",
+                    friends = freeFriends,
+                    onRemoveFriend = onRemoveFriend,
+                    onCancelInvite = onCancelInvite,
+                    onClick = onFriendItemClick
                 )
+            }
+            item {
+                ExpandableFriendSection(
+                    title = "Busy",
+                    friends = busyFriends,
+                    onRemoveFriend = onRemoveFriend,
+                    onCancelInvite = onCancelInvite,
+                    onClick = onFriendItemClick
+                )
+            }
+            item {
+                ExpandableFriendSection(
+                    title = "Invited",
+                    friends = invitedFriends,
+                    onRemoveFriend = onRemoveFriend,
+                    onCancelInvite = onCancelInvite,
+                    onClick = onFriendItemClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpandableFriendSection(
+    title: String,
+    friends: List<FriendInfo>,
+    onRemoveFriend: (String) -> Unit,
+    onCancelInvite: (String) -> Unit,
+    onClick: (FriendInfo) -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(true) }
+    val rotation by animateFloatAsState(
+        targetValue = if (isExpanded) 0f else -90f,
+        label = "rotation"
+    )
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { isExpanded = !isExpanded }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "$title (${friends.size})",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                modifier = Modifier.rotate(rotation)
+            )
+        }
+
+        AnimatedVisibility(visible = isExpanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (friends.isEmpty()) {
+                    Text(
+                        text = "No friends in this section",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                    )
+                } else {
+                    friends.forEach { friend ->
+                        FriendItem(
+                            friend = friend,
+                            onRemoveFriend = { onRemoveFriend(friend.uid) },
+                            onCancelInvite = { onCancelInvite(friend.uid) },
+                            onClick = { onClick(friend) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -520,22 +607,6 @@ fun FriendItem(
 
                 Text(
                     text = friend.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = when {
-                        isInvited -> MaterialTheme.colorScheme.onInactiveContainer
-                        friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
-                        else -> MaterialTheme.colorScheme.onBusyContainer
-                    }
-                )
-
-                Spacer(modifier = Modifier.weight(1.0f))
-
-                Text(
-                    text = when {
-                        isInvited -> "Invited"
-                        friend.isFreeNow -> "Free2Party"
-                        else -> "Busy"
-                    },
                     style = MaterialTheme.typography.bodyLarge,
                     color = when {
                         isInvited -> MaterialTheme.colorScheme.onInactiveContainer
