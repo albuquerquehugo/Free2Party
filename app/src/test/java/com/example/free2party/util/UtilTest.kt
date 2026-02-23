@@ -1,5 +1,6 @@
 package com.example.free2party.util
 
+import com.example.free2party.data.model.FuturePlan
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -85,6 +86,49 @@ class UtilTest {
     }
 
     @Test
+    fun `parseDateTimeToMillis parses local time correctly`() {
+        val millis = parseLocalDateTimeToMillis("2026-05-20", "14:30")
+        val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
+            timeInMillis = millis!!
+        }
+        
+        assertEquals(2026, calendar.get(Calendar.YEAR))
+        assertEquals(Calendar.MAY, calendar.get(Calendar.MONTH))
+        assertEquals(20, calendar.get(Calendar.DAY_OF_MONTH))
+        assertEquals(14, calendar.get(Calendar.HOUR_OF_DAY))
+        assertEquals(30, calendar.get(Calendar.MINUTE))
+    }
+
+    @Test
+    fun `isPlanActive returns true when current time is within range`() {
+        val plan = FuturePlan(
+            startDate = "2026-05-20",
+            endDate = "2026-05-20",
+            startTime = "14:00",
+            endTime = "16:00"
+        )
+        
+        val now = parseLocalDateTimeToMillis("2026-05-20", "15:00")!!
+        assertTrue(isPlanActive(plan, now))
+    }
+
+    @Test
+    fun `isPlanActive returns false when current time is outside range`() {
+        val plan = FuturePlan(
+            startDate = "2026-05-20",
+            endDate = "2026-05-20",
+            startTime = "14:00",
+            endTime = "16:00"
+        )
+        
+        val before = parseLocalDateTimeToMillis("2026-05-20", "13:59")!!
+        val after = parseLocalDateTimeToMillis("2026-05-20", "16:00")!!
+        
+        assertFalse(isPlanActive(plan, before))
+        assertFalse(isPlanActive(plan, after))
+    }
+
+    @Test
     fun `isDateTimeInPast returns true for past dates`() {
         val now = Calendar.getInstance().apply {
             set(2026, Calendar.MAY, 20, 12, 0)
@@ -120,13 +164,9 @@ class UtilTest {
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
 
-        // Past time today
         assertTrue(isDateTimeInPast(todayMillis, "12:00", now))
-        // Current time today
         assertTrue(isDateTimeInPast(todayMillis, "12:30", now))
-        // Future time today
         assertFalse(isDateTimeInPast(todayMillis, "13:00", now))
-        // Invalid time defaults to start of day (0:00), which is in the past
         assertTrue(isDateTimeInPast(todayMillis, "invalid", now))
     }
 }
