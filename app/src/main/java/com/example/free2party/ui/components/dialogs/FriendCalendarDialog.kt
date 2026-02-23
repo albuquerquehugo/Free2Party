@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.BuildConfig
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.components.MonthCalendar
 import com.example.free2party.ui.components.PlanResults
@@ -47,7 +48,7 @@ fun FriendCalendarDialog(
 
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
-            delay(5_000)
+            delay(BuildConfig.updateFrequency)
             value = System.currentTimeMillis()
         }
     }

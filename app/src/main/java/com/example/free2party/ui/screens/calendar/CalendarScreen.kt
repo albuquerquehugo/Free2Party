@@ -18,7 +18,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePickerState
@@ -38,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.BuildConfig
 import com.example.free2party.R
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.ui.components.MonthCalendar
@@ -58,7 +58,8 @@ fun CalendarRoute(viewModel: CalendarViewModel = viewModel()) {
     val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
     val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
 
-    val plannedDays = viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
+    val plannedDays =
+        viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
 
     LaunchedEffect(viewModel.selectedDateMillis) {
         if (viewModel.selectedDateMillis != startDatePickerState.selectedDateMillis) {
@@ -137,7 +138,7 @@ fun CalendarScreen(
 ) {
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
-            delay(5_000)
+            delay(BuildConfig.updateFrequency)
             value = System.currentTimeMillis()
         }
     }
@@ -155,67 +156,66 @@ fun CalendarScreen(
 
     val isSelectedDateInPast = viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
 
-    Scaffold { paddingValues ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo_light_full_transparent),
-                    contentDescription = "Free2Party Logo",
-                    modifier = Modifier.height(20.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-
-            MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
-
-            IconButton(
-                onClick = {
-                    editingPlan = null
-                    setShowPlanDialog(true)
-                },
-                enabled = !isSelectedDateInPast,
-                modifier = Modifier
-                    .padding(top = 16.dp, bottom = 24.dp)
-                    .background(
-                        if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
-                        else MaterialTheme.colorScheme.primary,
-                        CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Plan",
-                    tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = 0.38f
-                    )
-                    else MaterialTheme.colorScheme.onPrimary
-                )
-            }
-
-            PlanResults(
-                plans = viewModel.filteredPlans,
-                isDateSelected = viewModel.selectedDateMillis != null,
-                selectedDateText = selectedDateText,
-                currentTimeMillis = currentTimeMillis,
-                onEdit = { plan ->
-                    editingPlan = plan
-                    setShowPlanDialog(true)
-                },
-                onDelete = { plan ->
-                    planToDelete = plan
-                    setShowDeleteDialog(true)
-                }
+            Image(
+                painter = painterResource(id = R.drawable.logo_light_full_transparent),
+                contentDescription = "Free2Party Logo",
+                modifier = Modifier.height(20.dp),
+                contentScale = ContentScale.Fit
             )
         }
+
+        MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+
+        IconButton(
+            onClick = {
+                editingPlan = null
+                setShowPlanDialog(true)
+            },
+            enabled = !isSelectedDateInPast,
+            modifier = Modifier
+                .padding(top = 16.dp, bottom = 24.dp)
+                .background(
+                    if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
+                    else MaterialTheme.colorScheme.primary,
+                    CircleShape
+                )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add Plan",
+                tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.38f
+                )
+                else MaterialTheme.colorScheme.onPrimary
+            )
+        }
+
+        PlanResults(
+            plans = viewModel.filteredPlans,
+            isDateSelected = viewModel.selectedDateMillis != null,
+            selectedDateText = selectedDateText,
+            currentTimeMillis = currentTimeMillis,
+            onEdit = { plan ->
+                editingPlan = plan
+                setShowPlanDialog(true)
+            },
+            onDelete = { plan ->
+                planToDelete = plan
+                setShowDeleteDialog(true)
+            }
+        )
     }
 
     if (showPlanDialog) {

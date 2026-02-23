@@ -16,6 +16,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val frequency = System.getenv("updateFrequency") ?: "5000"
+        buildConfigField("long", "updateFrequency", "${frequency}L")
     }
 
     buildTypes {
@@ -47,6 +50,7 @@ android {
 dependencies {
     // --- Core & Platform ---
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // --- Jetpack Compose (UI) ---
@@ -72,6 +76,7 @@ dependencies {
 
     // --- Image Loading ---
     implementation(libs.coil.compose)
+    implementation(libs.androidx.lifecycle.process)
 
     // --- Desugaring ---
     coreLibraryDesugaring(libs.desugar.jdk.libs)

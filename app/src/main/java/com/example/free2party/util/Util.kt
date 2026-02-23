@@ -1,5 +1,6 @@
 package com.example.free2party.util
 
+import com.example.free2party.data.model.FuturePlan
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -53,7 +54,6 @@ fun parseTimeToMillis(time: String): Long? {
     return parseTimeToMinutes(time)?.let { it * 60000L }
 }
 
-
 /**
  * Formats a date "yyyy-MM-dd" to "MMM dd, yyyy".
  * @param dateStr The date string to be formatted.
@@ -75,8 +75,8 @@ fun formatPlanDate(dateStr: String): String {
 }
 
 /**
- * Parses a date string in "yyyy-MM-dd" format into milliseconds representing UTC midnight of that date.
- * @param dateString The date string to parse.
+ * Parses a date string into milliseconds representing UTC midnight of that date into epoch milliseconds.
+ * @param dateString The date string in "yyyy-MM-dd" format to parse.
  * @return The time in milliseconds since the epoch, or null if parsing fails.
  */
 fun parseDateToMillis(dateString: String): Long? {
@@ -85,6 +85,19 @@ fun parseDateToMillis(dateString: String): Long? {
         isLenient = false
     }
     return runCatching { sdf.parse(dateString)?.time }.getOrNull()
+}
+
+/**
+ * Parses a date string and a time string into epoch milliseconds using the system's default time zone.
+ * @param dateString The date string in "yyyy-MM-dd" format.
+ * @param timeString The time string in "H:mm" or "HH:mm" format.
+ * @return The epoch milliseconds, or null if the input strings are invalid.
+ */
+fun parseLocalDateTimeToMillis(dateString: String, timeString: String): Long? {
+    val sdf = SimpleDateFormat("yyyy-MM-dd H:mm", Locale.getDefault()).apply {
+        isLenient = false
+    }
+    return runCatching { sdf.parse("$dateString $timeString")?.time }.getOrNull()
 }
 
 /**
@@ -120,4 +133,19 @@ fun isDateTimeInPast(
     }
 
     return false
+}
+
+/**
+ * Checks if the specified time falls within the start and end range of a given [FuturePlan]
+ * (inclusive start, exclusive end).
+ * @param plan The plan containing the start and end dates and times to evaluate.
+ * @param currentTimeMillis The reference time in milliseconds to check against,
+ * defaults to the current system time.
+ * @return `true` if [currentTimeMillis] is inclusive of the start time and exclusive of the end time,
+ * `false` otherwise or if the date/time strings are invalid.
+ */
+fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeMillis()): Boolean {
+    val start = parseLocalDateTimeToMillis(plan.startDate, plan.startTime) ?: return false
+    val end = parseLocalDateTimeToMillis(plan.endDate, plan.endTime) ?: return false
+    return currentTimeMillis in start until end
 }
