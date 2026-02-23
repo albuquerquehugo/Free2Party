@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +55,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -156,9 +159,20 @@ fun HomeScreen(
     val (showUserMenu, setShowUserMenu) = remember { mutableStateOf(false) }
     val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
+    val rootFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        // Redirect initial focus to the root container to avoid highlighting the user menu
+        rootFocusRequester.requestFocus()
+    }
 
     Scaffold { paddingValues ->
-        Column {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .focusRequester(rootFocusRequester)
+                .focusable()
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
