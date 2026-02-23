@@ -8,6 +8,7 @@ import java.util.TimeZone
 
 /**
  * Formats the given hour and minute into a string with the format "H:mm" or "HH:mm".
+ * This is the internal storage format.
  * @param hour The hour of the day.
  * @param minute The minute of the hour.
  * @return A string representation of the time, ensuring the minute is always two digits.
@@ -18,9 +19,33 @@ fun formatTime(hour: Int, minute: Int): String {
 }
 
 /**
- * Parses a time string in the format "H:mm" or "HH:mm" back into hour and minute integers.
- * @param time The formatted time string to parse.
- * @return A [Pair] where the first element is the hour and the second is the minute or 0:0 if the format is invalid.
+ * Formats the given internal time string into a user-friendly display string.
+ * @param time Internal time string in the format "H:mm" or "HH:mm".
+ * @param use24Hour Whether to use 24-hour or am/pm format.
+ */
+fun formatTimeForDisplay(time: String, use24Hour: Boolean): String {
+    val (hour, minute) = unformatTime(time)
+    return if (use24Hour) {
+        val hh = hour.toString().padStart(2, '0')
+        val mm = minute.toString().padStart(2, '0')
+        "$hh:$mm"
+    } else {
+        val amPm = if (hour < 12) "AM" else "PM"
+        val displayHour = when {
+            hour == 0 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
+        val mm = minute.toString().padStart(2, '0')
+        "$displayHour:$mm $amPm"
+    }
+}
+
+/**
+ * Parses a time string back into hour and minute integers.
+ * @param time The formatted time string in the format "H:mm" or "HH:mm" to parse.
+ * @return A [Pair] where the first element is the hour and the second is the minute or
+ * 0:0 if the format is invalid.
  */
 fun unformatTime(time: String): Pair<Int, Int> {
     val parts = time.split(":")
@@ -31,9 +56,8 @@ fun unformatTime(time: String): Pair<Int, Int> {
 }
 
 /**
- * Parses a time string in the format "H:mm" or "HH:mm" into the total number of minutes from the
- * start of the day.
- * @param time The time string to parse.
+ * Parses a time string into the total number of minutes from the start of the day.
+ * @param time The time string in the format "H:mm" or "HH:mm" to parse.
  * @return The total number of minutes, or null if the string format is invalid.
  */
 fun parseTimeToMinutes(time: String): Int? {
@@ -45,9 +69,8 @@ fun parseTimeToMinutes(time: String): Int? {
 }
 
 /**
- * Parses a time string in the format "H:mm" or "HH:mm" into the total number of milliseconds
- * from the start of the day.
- * @param time The time string to parse.
+ * Parses a time string into the total number of milliseconds from the start of the day.
+ * @param time The time string in the format "H:mm" or "HH:mm" to parse.
  * @return The total number of milliseconds, or null if the string format is invalid.
  */
 fun parseTimeToMillis(time: String): Long? {
@@ -68,7 +91,7 @@ fun formatPlanDate(dateStr: String): String {
         "01" -> "Jan"; "02" -> "Feb"; "03" -> "Mar"; "04" -> "Apr"
         "05" -> "May"; "06" -> "Jun"; "07" -> "Jul"; "08" -> "Aug"
         "09" -> "Sep"; "10" -> "Oct"; "11" -> "Nov"; "12" -> "Dec"
-        else -> return dateStr // Return original string if month is invalid
+        else -> return dateStr
     }
     val day = parts[2].toIntOrNull() ?: return dateStr
     return "$month $day, ${parts[0]}"
@@ -128,7 +151,6 @@ fun isDateTimeInPast(
     if (dateUtcMillis == todayUtc.timeInMillis && timeString != null) {
         val currentMins = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
         val targetMins = parseTimeToMinutes(timeString) ?: 0
-        // If the current minute is the same as or greater than the target minute, it is in the past/started
         return targetMins <= currentMins
     }
 

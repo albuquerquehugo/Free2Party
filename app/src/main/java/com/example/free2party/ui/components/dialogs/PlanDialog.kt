@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.util.formatTime
+import com.example.free2party.util.formatTimeForDisplay
 import com.example.free2party.util.isDateTimeInPast
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMinutes
@@ -48,6 +50,7 @@ import java.util.TimeZone
 @Composable
 fun PlanDialog(
     editingPlan: FuturePlan?,
+    use24HourFormat: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String, String) -> Unit,
     startDatePickerState: DatePickerState,
@@ -86,7 +89,8 @@ fun PlanDialog(
         if (startMillis < endMillis) return@remember true
         if (startMillis > endMillis) return@remember false
 
-        val startMins = parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute)) ?: 0
+        val startMins =
+            parseTimeToMinutes(formatTime(startTimeState.hour, startTimeState.minute)) ?: 0
         val endMins = parseTimeToMinutes(formatTime(endTimeState.hour, endTimeState.minute)) ?: 0
         startMins < endMins
     }
@@ -234,7 +238,10 @@ fun PlanDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = formatTime(startTimeState.hour, startTimeState.minute),
+                                    text = formatTimeForDisplay(
+                                        formatTime(startTimeState.hour, startTimeState.minute),
+                                        use24HourFormat
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color =
                                         if (isStartTimeInPast || !isDateTimeValid) {
@@ -284,7 +291,10 @@ fun PlanDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = formatTime(endTimeState.hour, endTimeState.minute),
+                                    text = formatTimeForDisplay(
+                                        formatTime(endTimeState.hour, endTimeState.minute),
+                                        use24HourFormat
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color =
                                         if (!isDateTimeValid) MaterialTheme.colorScheme.error
@@ -394,13 +404,25 @@ fun PlanDialog(
         }
     }
     if (showStartTimePicker || showEndTimePicker) {
+        val pickerState = rememberTimePickerState(
+            initialHour = if (showStartTimePicker) startTimeState.hour else endTimeState.hour,
+            initialMinute = if (showStartTimePicker) startTimeState.minute else endTimeState.minute,
+            is24Hour = use24HourFormat
+        )
+
         AlertDialog(
             onDismissRequest = { setShowStartTimePicker(false); setShowEndTimePicker(false) },
             confirmButton = {
                 TextButton(onClick = {
-                    setShowStartTimePicker(false); setShowEndTimePicker(
-                    false
-                )
+                    if (showStartTimePicker) {
+                        startTimeState.hour = pickerState.hour
+                        startTimeState.minute = pickerState.minute
+                    } else {
+                        endTimeState.hour = pickerState.hour
+                        endTimeState.minute = pickerState.minute
+                    }
+                    setShowStartTimePicker(false)
+                    setShowEndTimePicker(false)
                 }) { Text("OK") }
             },
             text = {
@@ -410,7 +432,7 @@ fun PlanDialog(
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    TimePicker(state = if (showStartTimePicker) startTimeState else endTimeState)
+                    TimePicker(state = pickerState)
                 }
             }
         )

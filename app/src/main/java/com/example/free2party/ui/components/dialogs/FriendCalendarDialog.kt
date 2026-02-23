@@ -41,6 +41,8 @@ fun FriendCalendarDialog(
         factory = CalendarViewModel.provideFactory(friend.uid)
     )
 
+    val use24HourFormat = viewModel.use24HourFormat
+
     val handleDismiss = {
         viewModel.goToToday()
         onDismiss()
@@ -103,6 +105,7 @@ fun FriendCalendarDialog(
                     isDateSelected = viewModel.selectedDateMillis != null,
                     selectedDateText = selectedDateText,
                     currentTimeMillis = currentTimeMillis,
+                    use24HourFormat = use24HourFormat,
                     onEdit = {},
                     onDelete = {},
                     modifier = Modifier.weight(1f)

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.util.formatPlanDate
+import com.example.free2party.util.formatTimeForDisplay
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
@@ -49,6 +50,7 @@ import java.util.TimeZone
 fun PlanItem(
     modifier: Modifier = Modifier,
     plan: FuturePlan,
+    use24HourFormat: Boolean,
     currentTimeMillis: Long,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null
@@ -141,12 +143,16 @@ fun PlanItem(
                 ) {
                     if (plan.startDate == plan.endDate) {
                         Text(
-                            text = "${plan.startTime} - ${plan.endTime}",
+                            text = formatTimeForDisplay(plan.startTime, use24HourFormat) + " - " +
+                                    formatTimeForDisplay(plan.endTime, use24HourFormat),
                             style = MaterialTheme.typography.titleSmall
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            DateTimeLabel(time = plan.startTime, date = plan.startDate)
+                            DateTimeLabel(
+                                time = formatTimeForDisplay(plan.startTime, use24HourFormat),
+                                date = plan.startDate
+                            )
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowRightAlt,
                                 contentDescription = null,
@@ -155,7 +161,10 @@ fun PlanItem(
                                     .size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
-                            DateTimeLabel(time = plan.endTime, date = plan.endDate)
+                            DateTimeLabel(
+                                time = formatTimeForDisplay(plan.endTime, use24HourFormat),
+                                date = plan.endDate
+                            )
                         }
                     }
 

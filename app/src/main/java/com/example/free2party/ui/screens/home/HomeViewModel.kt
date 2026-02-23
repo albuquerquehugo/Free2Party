@@ -33,6 +33,7 @@ sealed interface HomeUiState {
         val userName: String = "",
         val profilePicUrl: String = "",
         val isUserFree: Boolean = false,
+        val use24HourFormat: Boolean = true,
         val friendsList: List<FriendInfo> = emptyList(),
         val isActionLoading: Boolean = false
     ) : HomeUiState
@@ -86,6 +87,7 @@ class HomeViewModel(
                 userName = user.fullName,
                 profilePicUrl = user.profilePicUrl,
                 isUserFree = user.isFreeNow,
+                use24HourFormat = user.settings.use24HourFormat,
                 friendsList = sortedFriends
             )
         }.onEach { newState ->

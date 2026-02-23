@@ -27,12 +27,13 @@ sealed class SettingsUiEvent {
     data class ShowToast(val message: String) : SettingsUiEvent()
 }
 
-class SettingsViewModel : ViewModel() {
+class SettingsViewModel(
     private val userRepository: UserRepository = UserRepositoryImpl(
         auth = Firebase.auth,
         db = Firebase.firestore,
         storage = Firebase.storage
     )
+) : ViewModel() {
 
     var uiState by mutableStateOf<SettingsUiState>(SettingsUiState.Loading)
         private set

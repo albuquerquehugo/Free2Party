@@ -26,6 +26,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -51,12 +52,34 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarRoute(viewModel: CalendarViewModel = viewModel()) {
+fun CalendarRoute(
+    viewModel: CalendarViewModel = viewModel(
+        factory = CalendarViewModel.provideFactory(
+            null
+        )
+    )
+) {
     val context = LocalContext.current
+    val use24HourFormat = viewModel.use24HourFormat
+
     val startDatePickerState = rememberDatePickerState()
     val endDatePickerState = rememberDatePickerState()
-    val startTimeState = rememberTimePickerState(initialHour = 12, initialMinute = 0)
-    val endTimeState = rememberTimePickerState(initialHour = 13, initialMinute = 0)
+
+    // Recreate time picker states whenever the 24-hour format preference changes
+    val startTimeState = key(use24HourFormat) {
+        rememberTimePickerState(
+            initialHour = 12,
+            initialMinute = 0,
+            is24Hour = use24HourFormat
+        )
+    }
+    val endTimeState = key(use24HourFormat) {
+        rememberTimePickerState(
+            initialHour = 13,
+            initialMinute = 0,
+            is24Hour = use24HourFormat
+        )
+    }
 
     val plannedDays =
         viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
@@ -136,6 +159,8 @@ fun CalendarScreen(
     onSavePlan: (String, String, String, String, String, String?) -> Unit,
     onDeletePlan: (String) -> Unit
 ) {
+    val use24HourFormat = viewModel.use24HourFormat
+
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
             delay(BuildConfig.updateFrequency)
@@ -207,6 +232,7 @@ fun CalendarScreen(
             isDateSelected = viewModel.selectedDateMillis != null,
             selectedDateText = selectedDateText,
             currentTimeMillis = currentTimeMillis,
+            use24HourFormat = use24HourFormat,
             onEdit = { plan ->
                 editingPlan = plan
                 setShowPlanDialog(true)
@@ -221,6 +247,7 @@ fun CalendarScreen(
     if (showPlanDialog) {
         PlanDialog(
             editingPlan = editingPlan,
+            use24HourFormat = use24HourFormat,
             onDismiss = { setShowPlanDialog(false) },
             onConfirm = { startDate, endDate, startTime, endTime, note ->
                 onSavePlan(startDate, endDate, startTime, endTime, note, editingPlan?.id)

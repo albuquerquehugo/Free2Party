@@ -21,6 +21,7 @@ fun PlanResults(
     isDateSelected: Boolean,
     selectedDateText: String,
     currentTimeMillis: Long,
+    use24HourFormat: Boolean,
     onEdit: (FuturePlan) -> Unit,
     onDelete: (FuturePlan) -> Unit,
     modifier: Modifier = Modifier
@@ -47,6 +48,7 @@ fun PlanResults(
                 items(plans, key = { it.id }) { plan ->
                     PlanItem(
                         plan = plan,
+                        use24HourFormat = use24HourFormat,
                         currentTimeMillis = currentTimeMillis,
                         onEdit = { onEdit(plan) },
                         onDelete = { onDelete(plan) }

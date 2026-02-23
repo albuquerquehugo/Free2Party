@@ -4,6 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,10 +50,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.free2party.R
 import com.example.free2party.data.model.User
 import kotlinx.coroutines.flow.collectLatest
 
@@ -93,7 +96,8 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                contentAlignment = Alignment.Center
             ) {
                 IconButton(
                     modifier = Modifier.align(Alignment.CenterStart),
@@ -104,6 +108,13 @@ fun ProfileScreen(
                         contentDescription = "Back"
                     )
                 }
+
+                Image(
+                    painter = painterResource(id = R.drawable.logo_light_full_transparent),
+                    contentDescription = "Free2Party Logo",
+                    modifier = Modifier.height(20.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
         }
     ) { paddingValues ->
@@ -165,11 +176,7 @@ fun ProfileScreenContent(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Your Profile",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(vertical = 32.dp)
-        )
+        Text(text = "Your Profile", style = MaterialTheme.typography.headlineMedium)
 
         // Profile Picture Section
         Box(
@@ -200,7 +207,7 @@ fun ProfileScreenContent(
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
-                
+
                 if (isUploadingImage) {
                     Box(
                         modifier = Modifier
@@ -257,7 +264,9 @@ fun ProfileScreenContent(
                         OutlinedTextField(
                             value = editedFirstName,
                             onValueChange = { editedFirstName = it },
-                            modifier = Modifier.fillMaxWidth().testTag("first_name_field"),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("first_name_field"),
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyLarge,
                             enabled = !isSaving
@@ -277,7 +286,9 @@ fun ProfileScreenContent(
                         OutlinedTextField(
                             value = editedLastName,
                             onValueChange = { editedLastName = it },
-                            modifier = Modifier.fillMaxWidth().testTag("last_name_field"),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("last_name_field"),
                             singleLine = true,
                             textStyle = MaterialTheme.typography.bodyLarge,
                             enabled = !isSaving
@@ -299,7 +310,9 @@ fun ProfileScreenContent(
                     OutlinedTextField(
                         value = editedBio,
                         onValueChange = { editedBio = it },
-                        modifier = Modifier.fillMaxWidth().testTag("bio_field"),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("bio_field"),
                         minLines = 3,
                         maxLines = 5,
                         textStyle = MaterialTheme.typography.bodyLarge,
@@ -364,7 +377,9 @@ fun ProfileScreenContent(
                     editedLastName = user.lastName
                     editedBio = user.bio
                 },
-                modifier = Modifier.fillMaxWidth().testTag("discard_button"),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("discard_button"),
                 enabled = !isSaving
             ) {
                 Text(text = "Discard Changes", color = MaterialTheme.colorScheme.outline)

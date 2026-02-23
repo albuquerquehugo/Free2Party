@@ -10,12 +10,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
+import com.example.free2party.data.repository.UserRepository
+import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -26,6 +29,7 @@ import java.util.TimeZone
 
 class CalendarViewModel(
     private val planRepository: PlanRepository,
+    private val userRepository: UserRepository,
     targetUserId: String? = null,
     currentUserId: String = ""
 ) : ViewModel() {
@@ -54,11 +58,23 @@ class CalendarViewModel(
 
     var selectedDateMillis by mutableStateOf<Long?>(null)
 
+    var use24HourFormat by mutableStateOf(true)
+        private set
+
     val userIdToObserve = targetUserId ?: currentUserId
 
     init {
         goToToday()
         observePlans()
+        observeUserSettings()
+    }
+
+    private fun observeUserSettings() {
+        userRepository.observeUser(userRepository.currentUserId)
+            .onEach { user ->
+                use24HourFormat = user.settings.use24HourFormat
+            }
+            .launchIn(viewModelScope)
     }
 
     // TODO: Implement visibility restrictions to plans (all friends, except chosen ones,
@@ -216,6 +232,11 @@ class CalendarViewModel(
             planRepository: PlanRepository = PlanRepositoryImpl(
                 auth = Firebase.auth,
                 db = Firebase.firestore
+            ),
+            userRepository: UserRepository = UserRepositoryImpl(
+                auth = Firebase.auth,
+                db = Firebase.firestore,
+                storage = Firebase.storage
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -223,6 +244,7 @@ class CalendarViewModel(
                 if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
                     return CalendarViewModel(
                         planRepository = planRepository,
+                        userRepository = userRepository,
                         targetUserId = targetUserId,
                         currentUserId = Firebase.auth.currentUser?.uid ?: ""
                     ) as T
