@@ -54,9 +54,7 @@ import java.util.TimeZone
 @Composable
 fun CalendarRoute(
     viewModel: CalendarViewModel = viewModel(
-        factory = CalendarViewModel.provideFactory(
-            null
-        )
+        factory = CalendarViewModel.provideFactory(null)
     )
 ) {
     val context = LocalContext.current

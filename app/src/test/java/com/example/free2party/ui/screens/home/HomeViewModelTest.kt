@@ -3,6 +3,7 @@ package com.example.free2party.ui.screens.home
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.User
+import com.example.free2party.data.model.UserSettings
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
@@ -37,7 +38,14 @@ class HomeViewModelTest {
     private val authRepository: AuthRepository = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    private val userFlow = MutableStateFlow(User(uid = "me", firstName = "John", lastName = "Doe"))
+    private val userFlow = MutableStateFlow(
+        User(
+            uid = "me",
+            firstName = "John",
+            lastName = "Doe",
+            settings = UserSettings(use24HourFormat = true)
+        )
+    )
     private val friendsFlow = MutableStateFlow<List<FriendInfo>>(emptyList())
 
     @Before
@@ -76,6 +84,7 @@ class HomeViewModelTest {
         assertEquals("John Doe", state.userName)
         assertEquals(2, state.friendsList.size)
         assertEquals("Alice", state.friendsList[0].name)
+        assertEquals(true, state.use24HourFormat)
     }
 
     @Test

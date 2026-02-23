@@ -1,7 +1,9 @@
 package com.example.free2party.ui.screens.calendar
 
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.data.model.User
 import com.example.free2party.data.repository.PlanRepository
+import com.example.free2party.data.repository.UserRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -26,15 +28,21 @@ import java.util.TimeZone
 class CalendarViewModelTest {
     private lateinit var viewModel: CalendarViewModel
     private val planRepository: PlanRepository = mockk(relaxed = true)
+    private val userRepository: UserRepository = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val plansFlow = MutableStateFlow<List<FuturePlan>>(emptyList())
+    private val userFlow = MutableStateFlow(User(uid = "testUser"))
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         plansFlow.value = emptyList()
-        // Default behavior for getPlans to prevent issues during init
+        userFlow.value = User(uid = "testUser")
+        
+        // Default behavior for getPlans and observeUser to prevent issues during init
         every { planRepository.getPlans(any()) } returns plansFlow
+        every { userRepository.currentUserId } returns "testUser"
+        every { userRepository.observeUser(any()) } returns userFlow
     }
 
     @After
@@ -44,7 +52,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToNextMonth increments month correctly`() = runTest {
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         viewModel.displayedMonth = Calendar.JANUARY
         viewModel.displayedYear = 2026
 
@@ -56,7 +64,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToNextMonth rolls over year correctly`() = runTest {
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         viewModel.displayedMonth = Calendar.DECEMBER
         viewModel.displayedYear = 2025
 
@@ -68,7 +76,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToPreviousMonth decrements month correctly`() = runTest {
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         viewModel.displayedMonth = Calendar.FEBRUARY
         viewModel.displayedYear = 2026
 
@@ -80,7 +88,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToPreviousMonth rolls over year correctly`() = runTest {
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         viewModel.displayedMonth = Calendar.JANUARY
         viewModel.displayedYear = 2026
 
@@ -108,7 +116,7 @@ class CalendarViewModelTest {
         )
         
         plansFlow.value = plans
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
 
         val plannedDays = viewModel.getPlannedDaysForMonth(2026, Calendar.MAY)
 
@@ -126,7 +134,7 @@ class CalendarViewModelTest {
             )
         )
         plansFlow.value = plans
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
 
         val plannedDays = viewModel.getPlannedDaysForMonth(2026, Calendar.MAY)
 
@@ -160,7 +168,7 @@ class CalendarViewModelTest {
             )
         )
         plansFlow.value = plans
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
 
         // Set selected date to 2026-05-10 in UTC
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -179,7 +187,7 @@ class CalendarViewModelTest {
     @Test
     fun `savePlan calls repository and triggers onSuccess`() = runTest {
         coEvery { planRepository.savePlan(any()) } returns Result.success(Unit)
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         var successCalled = false
 
         viewModel.savePlan(
@@ -200,7 +208,7 @@ class CalendarViewModelTest {
     fun `savePlan triggers onValidationError on failure`() = runTest {
         val errorMessage = "Overlap detected"
         coEvery { planRepository.savePlan(any()) } returns Result.failure(Exception(errorMessage))
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         var errorReceived = ""
 
         viewModel.savePlan(
@@ -219,7 +227,7 @@ class CalendarViewModelTest {
     @Test
     fun `updatePlan calls repository and triggers onSuccess`() = runTest {
         coEvery { planRepository.updatePlan(any()) } returns Result.success(Unit)
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         var successCalled = false
 
         viewModel.updatePlan(
@@ -241,7 +249,7 @@ class CalendarViewModelTest {
     fun `updatePlan triggers onError on failure`() = runTest {
         val errorMessage = "Update failed"
         coEvery { planRepository.updatePlan(any()) } returns Result.failure(Exception(errorMessage))
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         var errorReceived = ""
 
         viewModel.updatePlan(
@@ -261,7 +269,7 @@ class CalendarViewModelTest {
     @Test
     fun `deletePlan calls repository and triggers onSuccess`() = runTest {
         coEvery { planRepository.deletePlan(any()) } returns Result.success(Unit)
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         var successCalled = false
 
         viewModel.deletePlan(
@@ -276,7 +284,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `selectDate updates selectedDateMillis correctly`() = runTest {
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         viewModel.displayedYear = 2026
         viewModel.displayedMonth = Calendar.JUNE
 
@@ -293,7 +301,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `goToToday resets view to current date`() = runTest {
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         // Move to some other date first
         viewModel.displayedYear = 2000
         viewModel.displayedMonth = Calendar.JANUARY
@@ -316,7 +324,7 @@ class CalendarViewModelTest {
     @Test
     fun `filteredPlans returns empty list when no date is selected`() = runTest {
         plansFlow.value = listOf(FuturePlan(startDate = "2026-05-10", endDate = "2026-05-10"))
-        viewModel = CalendarViewModel(planRepository, currentUserId = "testUser")
+        viewModel = CalendarViewModel(planRepository, userRepository, currentUserId = "testUser")
         viewModel.selectedDateMillis = null
 
         assertTrue(viewModel.filteredPlans.isEmpty())
@@ -325,7 +333,7 @@ class CalendarViewModelTest {
     @Test
     @Suppress("unused")
     fun `init observes plans for targetUserId if provided`() = runTest {
-        viewModel = CalendarViewModel(planRepository, targetUserId = "friend123")
+        viewModel = CalendarViewModel(planRepository, userRepository, targetUserId = "friend123")
         verify {
             @Suppress("UNUSED_VARIABLE")
             val unusedPlans = planRepository.getPlans("friend123") 
@@ -335,7 +343,7 @@ class CalendarViewModelTest {
     @Test
     @Suppress("unused")
     fun `init observes plans for currentUserId if targetUserId is null`() = runTest {
-        viewModel = CalendarViewModel(planRepository, targetUserId = null, currentUserId = "me123")
+        viewModel = CalendarViewModel(planRepository, userRepository, targetUserId = null, currentUserId = "me123")
         verify { 
             @Suppress("UNUSED_VARIABLE")
             val unusedPlans = planRepository.getPlans("me123")

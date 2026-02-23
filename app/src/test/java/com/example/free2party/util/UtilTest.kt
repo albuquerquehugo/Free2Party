@@ -19,6 +19,21 @@ class UtilTest {
     }
 
     @Test
+    fun `formatTimeForDisplay handles 24-hour format`() {
+        assertEquals("14:30", formatTimeForDisplay("14:30", true))
+        assertEquals("09:05", formatTimeForDisplay("9:05", true))
+        assertEquals("00:00", formatTimeForDisplay("0:00", true))
+    }
+
+    @Test
+    fun `formatTimeForDisplay handles AM-PM format`() {
+        assertEquals("2:30 PM", formatTimeForDisplay("14:30", false))
+        assertEquals("9:05 AM", formatTimeForDisplay("9:05", false))
+        assertEquals("12:00 AM", formatTimeForDisplay("0:00", false))
+        assertEquals("12:00 PM", formatTimeForDisplay("12:00", false))
+    }
+
+    @Test
     fun `unformatTime correctly parses time string`() {
         val (hour1, min1) = unformatTime("9:05")
         assertEquals(9, hour1)
@@ -86,7 +101,7 @@ class UtilTest {
     }
 
     @Test
-    fun `parseDateTimeToMillis parses local time correctly`() {
+    fun `parseLocalDateTimeToMillis parses local time correctly`() {
         val millis = parseLocalDateTimeToMillis("2026-05-20", "14:30")
         val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
             timeInMillis = millis!!
