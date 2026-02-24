@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 
 @Composable
@@ -22,6 +23,7 @@ fun PlanResults(
     selectedDateText: String,
     currentTimeMillis: Long,
     use24HourFormat: Boolean,
+    friends: List<FriendInfo>,
     onEdit: (FuturePlan) -> Unit,
     onDelete: (FuturePlan) -> Unit,
     modifier: Modifier = Modifier
@@ -50,6 +52,7 @@ fun PlanResults(
                         plan = plan,
                         use24HourFormat = use24HourFormat,
                         currentTimeMillis = currentTimeMillis,
+                        friends = friends,
                         onEdit = { onEdit(plan) },
                         onDelete = { onDelete(plan) }
                     )

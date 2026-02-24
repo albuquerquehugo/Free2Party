@@ -169,7 +169,7 @@ fun SettingsScreenContent(
             ) {
                 Text(
                     text = "Time Format",
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -177,23 +177,20 @@ fun SettingsScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 48.dp)
                         .selectableGroup(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TimeFormatOption(
                         label = "24-hour",
                         selected = use24HourFormat,
                         onClick = { use24HourFormat = true },
-                        enabled = !isSaving,
-                        modifier = Modifier.weight(1f)
+                        enabled = !isSaving
                     )
                     TimeFormatOption(
                         label = "AM/PM",
                         selected = !use24HourFormat,
                         onClick = { use24HourFormat = false },
-                        enabled = !isSaving,
-                        modifier = Modifier.weight(1f)
+                        enabled = !isSaving
                     )
                 }
             }
@@ -230,11 +227,10 @@ fun TimeFormatOption(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier
+    enabled: Boolean
 ) {
     Row(
-        modifier = modifier
+        modifier = Modifier
             .height(32.dp)
             .selectable(
                 selected = selected,
@@ -251,7 +247,7 @@ fun TimeFormatOption(
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 8.dp)
         )
     }

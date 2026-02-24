@@ -70,19 +70,13 @@ class Free2PartyApp : Application() {
         automationJob = ProcessLifecycleOwner.get().lifecycleScope.launch {
             var lastAutomatedStatus: Boolean? = null
 
-            planRepository.getPlans(uid).collectLatest { plans ->
+            planRepository.getOwnPlans().collectLatest { plans ->
                 Log.d("Automation", "Plans updated, count: ${plans.size}")
                 while (true) {
                     val shouldBeFree = plans.any { isPlanActive(it) }
                     
                     if (lastAutomatedStatus != shouldBeFree) {
                         Log.d("Automation", "Status transition detected: $lastAutomatedStatus -> $shouldBeFree")
-                        
-                        // If this is the first run, we don't want to force an update immediately
-                        // unless we are sure we are entering a plan.
-                        // Actually, if lastAutomatedStatus is null, it means the app just started.
-                        // We set it but only toggle if it's true (entering a plan) 
-                        // or if we were already running and it changed.
                         
                         if (lastAutomatedStatus != null || shouldBeFree) {
                             userRepository.toggleAvailability(shouldBeFree)

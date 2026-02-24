@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
@@ -34,6 +35,10 @@ class FriendViewModel(
             auth = Firebase.auth,
             db = Firebase.firestore,
             storage = Firebase.storage
+        ),
+        planRepository = PlanRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore
         )
     )
 ) : ViewModel() {

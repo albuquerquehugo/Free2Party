@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -37,7 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.util.formatPlanDate
 import com.example.free2party.util.formatTimeForDisplay
 import com.example.free2party.util.parseDateToMillis
@@ -52,6 +55,7 @@ fun PlanItem(
     plan: FuturePlan,
     use24HourFormat: Boolean,
     currentTimeMillis: Long,
+    friends: List<FriendInfo>,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null
 ) {
@@ -106,6 +110,25 @@ fun PlanItem(
             hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
             hours > 0 -> "${hours}h"
             else -> "${minutes}m"
+        }
+    }
+
+    val friendsSelection = remember(plan.visibility, plan.friendsSelection, friends) {
+        when (plan.visibility) {
+            PlanVisibility.EVERYONE -> "Everyone"
+            PlanVisibility.EXCEPT -> {
+                val names = plan.friendsSelection.mapNotNull { uid ->
+                    friends.find { it.uid == uid }?.name
+                }
+                if (names.isEmpty()) "Everyone" else "Everyone except: ${names.joinToString(", ")}"
+            }
+
+            PlanVisibility.ONLY -> {
+                val names = plan.friendsSelection.mapNotNull { uid ->
+                    friends.find { it.uid == uid }?.name
+                }
+                if (names.isEmpty()) "Only you" else "Only: ${names.joinToString(", ")}"
+            }
         }
     }
 
@@ -169,6 +192,24 @@ fun PlanItem(
                     }
 
                     DurationBadge(text = duration, isCurrent = planStatus.isCurrent)
+                }
+
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.People,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    Text(
+                        text = friendsSelection,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        modifier = Modifier.padding(start = 4.dp),
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
 
                 if (plan.note.isNotBlank()) {

@@ -25,6 +25,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -100,7 +101,7 @@ fun CalendarRoute(
         endDatePickerState = endDatePickerState,
         startTimeState = startTimeState,
         endTimeState = endTimeState,
-        onSavePlan = { startDate, endDate, startTime, endTime, note, editingPlanId ->
+        onSavePlan = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection, editingPlanId ->
             val onError = { errorMessage: String ->
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
             }
@@ -115,6 +116,8 @@ fun CalendarRoute(
                     startTime = startTime,
                     endTime = endTime,
                     note = note,
+                    visibility = visibility,
+                    friendsSelection = friendsSelection,
                     onValidationError = onError,
                     onSuccess = { onSuccess("Plan successfully added!") }
                 )
@@ -126,6 +129,8 @@ fun CalendarRoute(
                     startTime = startTime,
                     endTime = endTime,
                     note = note,
+                    visibility = visibility,
+                    friendsSelection = friendsSelection,
                     onError = onError,
                     onSuccess = { onSuccess("Plan successfully updated!") }
                 )
@@ -154,10 +159,11 @@ fun CalendarScreen(
     endDatePickerState: DatePickerState,
     startTimeState: TimePickerState,
     endTimeState: TimePickerState,
-    onSavePlan: (String, String, String, String, String, String?) -> Unit,
+    onSavePlan: (String, String, String, String, String, com.example.free2party.data.model.PlanVisibility, List<String>, String?) -> Unit,
     onDeletePlan: (String) -> Unit
 ) {
     val use24HourFormat = viewModel.use24HourFormat
+    val friends by viewModel.friendsList.collectAsState()
 
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
@@ -231,6 +237,7 @@ fun CalendarScreen(
             selectedDateText = selectedDateText,
             currentTimeMillis = currentTimeMillis,
             use24HourFormat = use24HourFormat,
+            friends = friends,
             onEdit = { plan ->
                 editingPlan = plan
                 setShowPlanDialog(true)
@@ -246,9 +253,10 @@ fun CalendarScreen(
         PlanDialog(
             editingPlan = editingPlan,
             use24HourFormat = use24HourFormat,
+            friends = friends,
             onDismiss = { setShowPlanDialog(false) },
-            onConfirm = { startDate, endDate, startTime, endTime, note ->
-                onSavePlan(startDate, endDate, startTime, endTime, note, editingPlan?.id)
+            onConfirm = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection ->
+                onSavePlan(startDate, endDate, startTime, endTime, note, visibility, friendsSelection, editingPlan?.id)
                 setShowPlanDialog(false)
             },
             startDatePickerState = startDatePickerState,

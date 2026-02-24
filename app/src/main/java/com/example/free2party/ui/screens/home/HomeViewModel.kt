@@ -10,6 +10,7 @@ import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
+import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
@@ -54,7 +55,11 @@ class HomeViewModel(
     ),
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
         db = Firebase.firestore,
-        userRepository = userRepository
+        userRepository = userRepository,
+        planRepository = PlanRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore
+        )
     ),
     private val authRepository: AuthRepository = AuthRepositoryImpl(
         auth = Firebase.auth,

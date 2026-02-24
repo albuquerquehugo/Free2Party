@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.InvalidPlanDataException
 import com.example.free2party.exception.NetworkUnavailableException
@@ -29,14 +30,13 @@ class PlanRepositoryImpl(
 ) : PlanRepository {
     private val currentUserId: String get() = auth.currentUser?.uid ?: ""
 
-    override fun getPlans(userId: String): Flow<List<FuturePlan>> = callbackFlow {
-        val targetUserId = userId.ifBlank { currentUserId }
-        if (targetUserId.isBlank()) {
+    override fun getOwnPlans(): Flow<List<FuturePlan>> = callbackFlow {
+        if (currentUserId.isBlank()) {
             close(UnauthorizedException())
             return@callbackFlow
         }
 
-        val listener = db.collection("users").document(targetUserId)
+        val listener = db.collection("users").document(currentUserId)
             .collection("plans")
             .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
@@ -52,24 +52,66 @@ class PlanRepositoryImpl(
         awaitClose { listener.remove() }
     }
 
+    override fun getPublicPlans(userId: String): Flow<List<FuturePlan>> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            close(UnauthorizedException())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("users").document(userId)
+            .collection("plans")
+            .orderBy("startDate", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToPlanException(error))
+                    return@addSnapshotListener
+                }
+                val allPlans = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+
+                // Only return plans that are visible to the current user
+                val visiblePlans = allPlans.filter { plan ->
+                    when (plan.visibility) {
+                        PlanVisibility.EVERYONE -> true
+                        PlanVisibility.EXCEPT -> currentUserId !in plan.friendsSelection
+                        PlanVisibility.ONLY -> currentUserId in plan.friendsSelection
+                    }
+                }
+                trySend(visiblePlans)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    override fun getAllPlans(userId: String): Flow<List<FuturePlan>> = callbackFlow {
+        val listener = db.collection("users").document(userId)
+            .collection("plans")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToPlanException(error))
+                    return@addSnapshotListener
+                }
+                val allPlans = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+                trySend(allPlans)
+            }
+        awaitClose { listener.remove() }
+    }
+
     override suspend fun savePlan(plan: FuturePlan): Result<Unit> = try {
         validateSession()
         validatePlanDateTime(plan)
 
-        val targetUserId = plan.userId.ifBlank { currentUserId }
-
-        // Validation: Check for overlaps
-        val existingPlans = fetchPlansSync(targetUserId)
+        val existingPlans = fetchPlansSync(currentUserId)
         if (isOverlapping(plan, existingPlans)) {
             throw OverlappingPlanException()
         }
 
-        // Get a new document reference to generate an ID
-        val docRef = db.collection("users").document(targetUserId)
+        val docRef = db.collection("users").document(currentUserId)
             .collection("plans").document()
 
-        // Assign the generated ID to the plan and save it
-        val planWithId = plan.copy(id = docRef.id, userId = targetUserId)
+        val planWithId = plan.copy(id = docRef.id, userId = currentUserId)
         docRef.set(planWithId).await()
 
         Result.success(Unit)
@@ -81,23 +123,22 @@ class PlanRepositoryImpl(
         validateSession()
         validatePlanDateTime(plan)
 
-        val targetUserId = plan.userId.ifBlank { currentUserId }
-
-        // Validation: Check for overlaps (excluding the current plan being updated)
-        val existingPlans = fetchPlansSync(targetUserId).filter { it.id != plan.id }
+        val existingPlans = fetchPlansSync(currentUserId).filter { it.id != plan.id }
         if (isOverlapping(plan, existingPlans)) {
             throw OverlappingPlanException()
         }
 
         val updatedData = mapOf(
-            "userId" to targetUserId,
+            "userId" to currentUserId,
             "startDate" to plan.startDate,
             "endDate" to plan.endDate,
             "startTime" to plan.startTime,
             "endTime" to plan.endTime,
-            "note" to plan.note
+            "note" to plan.note,
+            "visibility" to plan.visibility.name,
+            "friendsSelection" to plan.friendsSelection
         )
-        db.collection("users").document(targetUserId)
+        db.collection("users").document(currentUserId)
             .collection("plans").document(plan.id)
             .update(updatedData)
             .await()

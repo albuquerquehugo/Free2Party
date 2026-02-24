@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -42,6 +43,7 @@ fun FriendCalendarDialog(
     )
 
     val use24HourFormat = viewModel.use24HourFormat
+    val friends by viewModel.friendsList.collectAsState()
 
     val handleDismiss = {
         viewModel.goToToday()
@@ -106,6 +108,7 @@ fun FriendCalendarDialog(
                     selectedDateText = selectedDateText,
                     currentTimeMillis = currentTimeMillis,
                     use24HourFormat = use24HourFormat,
+                    friends = friends,
                     onEdit = {},
                     onDelete = {},
                     modifier = Modifier.weight(1f)

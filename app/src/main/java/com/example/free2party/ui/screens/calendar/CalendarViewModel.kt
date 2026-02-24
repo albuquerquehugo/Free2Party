@@ -8,8 +8,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.data.model.PlanVisibility
+import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
+import com.example.free2party.data.repository.SocialRepository
+import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.util.parseDateToMillis
@@ -19,8 +23,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -30,6 +37,7 @@ import java.util.TimeZone
 class CalendarViewModel(
     private val planRepository: PlanRepository,
     private val userRepository: UserRepository,
+    private val socialRepository: SocialRepository,
     targetUserId: String? = null,
     currentUserId: String = ""
 ) : ViewModel() {
@@ -62,6 +70,10 @@ class CalendarViewModel(
         private set
 
     val userIdToObserve = targetUserId ?: currentUserId
+    val isViewingOwnCalendar = targetUserId == null || targetUserId == currentUserId
+
+    val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         goToToday()
@@ -77,15 +89,18 @@ class CalendarViewModel(
             .launchIn(viewModelScope)
     }
 
-    // TODO: Implement visibility restrictions to plans (all friends, except chosen ones,
-    //  exclusively to chosen ones)
-
     private fun observePlans() {
         if (userIdToObserve.isBlank()) return
 
-        planRepository.getPlans(userIdToObserve)
-            .onEach { plansList = it }
-            .launchIn(viewModelScope)
+        if (isViewingOwnCalendar) {
+            planRepository.getOwnPlans()
+                .onEach { plansList = it }
+                .launchIn(viewModelScope)
+        } else {
+            planRepository.getPublicPlans(userIdToObserve)
+                .onEach { plansList = it }
+                .launchIn(viewModelScope)
+        }
     }
 
     fun savePlan(
@@ -94,6 +109,8 @@ class CalendarViewModel(
         startTime: String,
         endTime: String,
         note: String,
+        visibility: PlanVisibility,
+        friendsSelection: List<String>,
         onValidationError: (String) -> Unit,
         onSuccess: () -> Unit
     ) {
@@ -103,7 +120,9 @@ class CalendarViewModel(
             endDate = endDate,
             startTime = startTime,
             endTime = endTime,
-            note = note
+            note = note,
+            visibility = visibility,
+            friendsSelection = friendsSelection
         )
         viewModelScope.launch {
             planRepository.savePlan(plan)
@@ -123,6 +142,8 @@ class CalendarViewModel(
         startTime: String,
         endTime: String,
         note: String,
+        visibility: PlanVisibility,
+        friendsSelection: List<String>,
         onError: (String) -> Unit,
         onSuccess: () -> Unit
     ) {
@@ -133,7 +154,9 @@ class CalendarViewModel(
             endDate = endDate,
             startTime = startTime,
             endTime = endTime,
-            note = note
+            note = note,
+            visibility = visibility,
+            friendsSelection = friendsSelection
         )
         viewModelScope.launch {
             planRepository.updatePlan(updatedPlan)
@@ -237,6 +260,11 @@ class CalendarViewModel(
                 auth = Firebase.auth,
                 db = Firebase.firestore,
                 storage = Firebase.storage
+            ),
+            socialRepository: SocialRepository = SocialRepositoryImpl(
+                db = Firebase.firestore,
+                userRepository = userRepository,
+                planRepository = planRepository
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -245,6 +273,7 @@ class CalendarViewModel(
                     return CalendarViewModel(
                         planRepository = planRepository,
                         userRepository = userRepository,
+                        socialRepository = socialRepository,
                         targetUserId = targetUserId,
                         currentUserId = Firebase.auth.currentUser?.uid ?: ""
                     ) as T

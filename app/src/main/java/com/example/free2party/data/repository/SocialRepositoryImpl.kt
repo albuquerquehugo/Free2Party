@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import android.util.Log
+import com.example.free2party.BuildConfig
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -12,19 +13,26 @@ import com.example.free2party.exception.FriendRequestAlreadySentException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
+import com.example.free2party.util.isPlanActive
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 class SocialRepositoryImpl(
     private val db: FirebaseFirestore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val planRepository: PlanRepository
 ) : SocialRepository {
 
     private val currentUserId: String
@@ -50,101 +58,70 @@ class SocialRepositoryImpl(
         awaitClose { listener.remove() }
     }
 
-    override fun getFriendsList(): Flow<List<FriendInfo>> = callbackFlow {
-        if (currentUserId.isBlank()) {
-            close(UnauthorizedException())
-            return@callbackFlow
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getFriendsList(): Flow<List<FriendInfo>> {
+        if (currentUserId.isBlank()) return flowOf(emptyList())
+
+        val tickerFlow = flow {
+            while (true) {
+                emit(System.currentTimeMillis())
+                delay(BuildConfig.updateFrequency)
+            }
         }
 
-        val friendsMap = mutableMapOf<String, FriendInfo>()
-        val friendListeners = mutableMapOf<String, ListenerRegistration>()
-        val inviteStatuses = mutableMapOf<String, InviteStatus>()
-
-        val collectionListener = db.collection("users").document(currentUserId)
-            .collection("friends")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(mapToSocialException(error))
-                    return@addSnapshotListener
-                }
-
-                val currentFriendIds = snapshot?.documents?.map { it.id }?.toSet() ?: emptySet()
-
-                // Cleanup removed friends
-                friendsMap.keys.filter { it !in currentFriendIds }.toList().forEach { id ->
-                    friendsMap.remove(id)
-                    inviteStatuses.remove(id)
-                    friendListeners[id]?.remove()
-                    friendListeners.remove(id)
-                }
-
-                snapshot?.documents?.forEach { doc ->
-                    val friendId = doc.id
-                    val inviteStatusValue =
-                        doc.getString("inviteStatus") ?: InviteStatus.ACCEPTED.name
-                    val inviteStatus = try {
-                        InviteStatus.valueOf(inviteStatusValue)
-                    } catch (e: Exception) {
-                        Log.e(
-                            "SocialRepository",
-                            "Invalid invite status in DB: $inviteStatusValue",
-                            e
-                        )
-                        InviteStatus.ACCEPTED
+        return callbackFlow {
+            val collectionListener = db.collection("users").document(currentUserId)
+                .collection("friends")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(mapToSocialException(error))
+                        return@addSnapshotListener
                     }
-
-                    val oldStatus = inviteStatuses[friendId]
-                    inviteStatuses[friendId] = inviteStatus
-
-                    if (!friendListeners.containsKey(friendId)) {
-                        val listener = db.collection("users").document(friendId)
-                            .addSnapshotListener { friendSnapshot, _ ->
-                                if (friendSnapshot != null && friendSnapshot.exists()) {
-                                    val firstName = friendSnapshot.getString("firstName") ?: ""
-                                    val lastName = friendSnapshot.getString("lastName") ?: ""
-                                    val fullName = "$firstName $lastName".trim()
-
-                                    val info = FriendInfo(
-                                        uid = friendId,
-                                        name = fullName.ifBlank { "Unknown" },
-                                        isFreeNow = friendSnapshot.getBoolean("isFreeNow") ?: false,
-                                        inviteStatus = inviteStatuses[friendId]
-                                            ?: InviteStatus.ACCEPTED
-                                    )
-                                    friendsMap[friendId] = info
-                                    trySend(friendsMap.values.toList().sortedBy { it.name })
-                                }
+                    val friendIds = snapshot?.documents?.map { it.id } ?: emptyList()
+                    val inviteStatuses = snapshot?.documents?.associate {
+                        it.id to (it.getString("inviteStatus")?.let { status ->
+                            try {
+                                InviteStatus.valueOf(status)
+                            } catch (e: Exception) {
+                                Log.e("SocialRepositoryImpl", "Error parsing invite status", e)
+                                InviteStatus.ACCEPTED
                             }
-                        friendListeners[friendId] = listener
-                    } else if (oldStatus != inviteStatus) {
-                        // Status updated for an existing friend in our map
-                        val existing = friendsMap[friendId]
-                        if (existing != null) {
-                            friendsMap[friendId] = existing.copy(inviteStatus = inviteStatus)
-                            trySend(friendsMap.values.toList().sortedBy { it.name })
-                        }
-                    }
+                        } ?: InviteStatus.ACCEPTED)
+                    } ?: emptyMap()
+
+                    trySend(friendIds to inviteStatuses)
                 }
+            awaitClose { collectionListener.remove() }
+        }.flatMapLatest { (friendIds, inviteStatuses) ->
+            if (friendIds.isEmpty()) return@flatMapLatest flowOf(emptyList())
 
-                trySend(friendsMap.values.toList().sortedBy { it.name })
+            val friendFlows = friendIds.map { friendId ->
+                combine(
+                    userRepository.observeUser(friendId),
+                    planRepository.getPublicPlans(friendId),
+                    planRepository.getAllPlans(friendId),
+                    tickerFlow
+                ) { user, publicPlans, allPlans, currentTime ->
+                    val hasActiveSharedPlan = publicPlans.any { isPlanActive(it, currentTime) }
+                    val hasAnyActivePlan = allPlans.any { isPlanActive(it, currentTime) }
+
+                    FriendInfo(
+                        uid = friendId,
+                        name = user.fullName.ifBlank { "Unknown" },
+                        isFreeNow = hasActiveSharedPlan || (user.isFreeNow && !hasAnyActivePlan),
+                        inviteStatus = inviteStatuses[friendId] ?: InviteStatus.ACCEPTED
+                    )
+                }
             }
-
-        awaitClose {
-            collectionListener.remove()
-            friendListeners.values.forEach { it.remove() }
+            combine(friendFlows) { it.toList().sortedBy { friend -> friend.name } }
         }
     }
 
     override suspend fun sendFriendRequest(friendEmail: String): Result<Unit> = try {
         validateSession()
-
-        // Find request receiver using UserRepository
         val receiver = userRepository.getUserByEmail(friendEmail).getOrThrow()
-
-        // Check if adding self
         if (receiver.uid == currentUserId) throw CannotAddSelfException()
 
-        // Check if already invited or added
         val existingFriendDoc = db.collection("users").document(currentUserId)
             .collection("friends").document(receiver.uid).get().await()
         if (existingFriendDoc.exists()) {
@@ -153,12 +130,10 @@ class SocialRepositoryImpl(
             else if (inviteStatus == InviteStatus.INVITED.name) throw FriendRequestAlreadySentException()
         }
 
-        // Find current user (yourself) using UserRepository
         val sender = userRepository.getUserById(currentUserId).getOrThrow()
         val requestId = "${currentUserId}_${receiver.uid}"
 
         db.runTransaction { transaction ->
-            // Create Friend Request with sender details
             val requestRef = db.collection("friendRequests").document(requestId)
             transaction.set(
                 requestRef, FriendRequest(
@@ -171,7 +146,6 @@ class SocialRepositoryImpl(
                 )
             )
 
-            // Add to sender's friends list as INVITED
             val senderFriendRef = db.collection("users").document(currentUserId)
                 .collection("friends").document(receiver.uid)
             transaction.set(
@@ -190,17 +164,13 @@ class SocialRepositoryImpl(
 
     override suspend fun cancelFriendRequest(friendId: String): Result<Unit> = try {
         validateSession()
-
         val requestId = "${currentUserId}_${friendId}"
         db.runTransaction { transaction ->
-            // Delete the Friend Request document
-            val requestRef = db.collection("friendRequests").document(requestId)
-            transaction.delete(requestRef)
-
-            // Remove item from sender's (current user) friends sub-collection
-            val senderFriendRef = db.collection("users").document(currentUserId)
-                .collection("friends").document(friendId)
-            transaction.delete(senderFriendRef)
+            transaction.delete(db.collection("friendRequests").document(requestId))
+            transaction.delete(
+                db.collection("users").document(currentUserId).collection("friends")
+                    .document(friendId)
+            )
         }.await()
         Result.success(Unit)
     } catch (e: Exception) {
@@ -212,7 +182,6 @@ class SocialRepositoryImpl(
         friendRequestStatus: FriendRequestStatus
     ): Result<Unit> = try {
         validateSession()
-
         db.runTransaction { transaction ->
             val requestRef = db.collection("friendRequests").document(requestId)
             val requestDoc = transaction.get(requestRef)
@@ -220,34 +189,27 @@ class SocialRepositoryImpl(
             val senderName = requestDoc.getString("senderName") ?: "Unknown"
 
             if (friendRequestStatus == FriendRequestStatus.ACCEPTED) {
-                // Update request status to ACCEPTED
                 transaction.update(requestRef, "friendRequestStatus", FriendRequestStatus.ACCEPTED)
-
-                // Update sender's record in receiver's list as ACCEPTED
-                val receiverFriendRef = db.collection("users").document(currentUserId)
-                    .collection("friends").document(senderId)
                 transaction.set(
-                    receiverFriendRef, mapOf(
+                    db.collection("users").document(currentUserId).collection("friends")
+                        .document(senderId),
+                    mapOf(
                         "uid" to senderId,
                         "name" to senderName,
                         "inviteStatus" to InviteStatus.ACCEPTED.name,
                         "addedAt" to FieldValue.serverTimestamp()
                     )
                 )
-
-                // Update receiver's record in sender's list to ACCEPTED
-                val senderFriendRef = db.collection("users").document(senderId)
-                    .collection("friends").document(currentUserId)
-                transaction.update(senderFriendRef, "inviteStatus", InviteStatus.ACCEPTED.name)
-
-            } else { // DECLINED
-                // Delete the request
+                transaction.update(
+                    db.collection("users").document(senderId).collection("friends")
+                        .document(currentUserId), "inviteStatus", InviteStatus.ACCEPTED.name
+                )
+            } else {
                 transaction.delete(requestRef)
-
-                // Remove from sender's list
-                val senderFriendRef = db.collection("users").document(senderId)
-                    .collection("friends").document(currentUserId)
-                transaction.delete(senderFriendRef)
+                transaction.delete(
+                    db.collection("users").document(senderId).collection("friends")
+                        .document(currentUserId)
+                )
             }
         }.await()
         Result.success(Unit)
@@ -258,18 +220,14 @@ class SocialRepositoryImpl(
     override suspend fun removeFriend(friendId: String): Result<Unit> = try {
         validateSession()
         db.runTransaction { transaction ->
-            // Remove friend from current user's friends list
-            val myFriendRef = db.collection("users").document(currentUserId)
-                .collection("friends").document(friendId)
-            transaction.delete(myFriendRef)
-
-            // Remove current user from friend's friends list
-            val theirFriendRef = db.collection("users").document(friendId)
-                .collection("friends").document(currentUserId)
-            transaction.delete(theirFriendRef)
-
-            // Also delete any friend request between them (cleanup)
-            // It could be sender_receiver or receiver_sender
+            transaction.delete(
+                db.collection("users").document(currentUserId).collection("friends")
+                    .document(friendId)
+            )
+            transaction.delete(
+                db.collection("users").document(friendId).collection("friends")
+                    .document(currentUserId)
+            )
             transaction.delete(
                 db.collection("friendRequests").document("${currentUserId}_${friendId}")
             )
