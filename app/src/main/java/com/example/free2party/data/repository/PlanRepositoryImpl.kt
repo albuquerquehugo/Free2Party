@@ -3,6 +3,7 @@ package com.example.free2party.data.repository
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.exception.DatabaseOperationException
+import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.InvalidPlanDataException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.OverlappingPlanException
@@ -235,6 +236,7 @@ class PlanRepositoryImpl(
 
             is FirebaseNetworkException -> NetworkUnavailableException()
             is PlanException -> e
+            is InfrastructureException -> e
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown error")
         }
     }
