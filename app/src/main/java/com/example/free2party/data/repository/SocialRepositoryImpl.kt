@@ -10,6 +10,7 @@ import com.example.free2party.exception.CannotAddSelfException
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.FriendRequestAlreadyAcceptedException
 import com.example.free2party.exception.FriendRequestAlreadySentException
+import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
@@ -257,6 +258,7 @@ class SocialRepositoryImpl(
                 }
             }
 
+            is InfrastructureException -> e
             is SocialException -> e
             else -> DatabaseOperationException(e.localizedMessage ?: "Unknown social error")
         }
