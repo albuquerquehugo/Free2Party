@@ -1,13 +1,10 @@
 package com.example.free2party.data.repository
 
 import com.example.free2party.data.model.FuturePlan
-import com.example.free2party.data.model.PlanVisibility
-import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.InvalidPlanDataException
 import com.example.free2party.exception.OverlappingPlanException
 import com.example.free2party.exception.PastDateTimeException
 import com.example.free2party.exception.UnauthorizedException
-import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
