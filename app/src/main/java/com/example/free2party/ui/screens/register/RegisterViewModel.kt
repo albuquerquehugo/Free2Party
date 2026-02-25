@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
@@ -33,12 +34,18 @@ class RegisterViewModel(
         )
     )
 ) : ViewModel() {
-
     var firstName by mutableStateOf("")
     var lastName by mutableStateOf("")
     var email by mutableStateOf("")
     var password by mutableStateOf("")
     var profilePicUri by mutableStateOf<Uri?>(null)
+    var phoneNumber by mutableStateOf("")
+    var birthday by mutableStateOf("")
+    var bio by mutableStateOf("")
+    var facebookUsername by mutableStateOf("")
+    var instagramUsername by mutableStateOf("")
+    var tiktokUsername by mutableStateOf("")
+    var xUsername by mutableStateOf("")
 
     val isFormValid by derivedStateOf {
         firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank()
@@ -50,7 +57,7 @@ class RegisterViewModel(
     fun onRegisterClick() {
         val normalizedEmail = email.trim().lowercase()
         if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() || password.isBlank()) {
-            uiState = RegisterUiState.Error("All fields are required")
+            uiState = RegisterUiState.Error("Required fields (*) must be filled")
             return
         }
 
@@ -62,8 +69,22 @@ class RegisterViewModel(
 
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
-            authRepository.register(firstName, lastName, normalizedEmail, password, profilePicUri)
-                .onSuccess { uiState = RegisterUiState.Success }
+            authRepository.register(
+                firstName = firstName,
+                lastName = lastName,
+                email = normalizedEmail,
+                password = password,
+                profilePicUri = profilePicUri,
+                phoneNumber = phoneNumber,
+                birthday = birthday,
+                bio = bio,
+                socials = UserSocials(
+                    facebookUsername = facebookUsername,
+                    instagramUsername = instagramUsername,
+                    tiktokUsername = tiktokUsername,
+                    xUsername = xUsername
+                )
+            ).onSuccess { uiState = RegisterUiState.Success }
                 .onFailure { e ->
                     uiState = RegisterUiState.Error(
                         e.localizedMessage ?: "Registration failed"
@@ -78,6 +99,13 @@ class RegisterViewModel(
         email = ""
         password = ""
         profilePicUri = null
+        phoneNumber = ""
+        birthday = ""
+        bio = ""
+        facebookUsername = ""
+        instagramUsername = ""
+        tiktokUsername = ""
+        xUsername = ""
         uiState = RegisterUiState.Idle
     }
 }

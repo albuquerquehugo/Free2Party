@@ -2,39 +2,18 @@ package com.example.free2party.ui.screens.profile
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,22 +25,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
-import com.example.free2party.R
 import com.example.free2party.data.model.User
+import com.example.free2party.data.model.UserSocials
+import com.example.free2party.ui.components.ProfileContent
+import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ProfileRoute(
-    viewModel: ProfileViewModel = viewModel(),
+    viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.provideFactory()),
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -93,29 +69,11 @@ fun ProfileScreen(
 ) {
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    onClick = onBack
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-
-                Image(
-                    painter = painterResource(id = R.drawable.logo_light_full_transparent),
-                    contentDescription = "Free2Party Logo",
-                    modifier = Modifier.height(20.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
+            TopBar(
+                title = "Your Profile",
+                onBack = onBack,
+                enabled = uiState !is ProfileUiState.Loading
+            )
         }
     ) { paddingValues ->
         when (uiState) {
@@ -156,237 +114,130 @@ fun ProfileScreenContent(
 ) {
     var editedFirstName by remember(user.firstName) { mutableStateOf(user.firstName) }
     var editedLastName by remember(user.lastName) { mutableStateOf(user.lastName) }
+    var editedPhoneNumber by remember(user.phoneNumber) { mutableStateOf(user.phoneNumber) }
+    var editedBirthday by remember(user.birthday) { mutableStateOf(user.birthday) }
     var editedBio by remember(user.bio) { mutableStateOf(user.bio) }
+    var editedFacebookUsername by remember(user.socials.facebookUsername) { mutableStateOf(user.socials.facebookUsername) }
+    var editedInstagramUsername by remember(user.socials.instagramUsername) { mutableStateOf(user.socials.instagramUsername) }
+    var editedTiktokUsername by remember(user.socials.tiktokUsername) { mutableStateOf(user.socials.tiktokUsername) }
+    var editedXUsername by remember(user.socials.xUsername) { mutableStateOf(user.socials.xUsername) }
 
-    val hasChanges = remember(user, editedFirstName, editedLastName, editedBio) {
-        editedFirstName != user.firstName || editedLastName != user.lastName || editedBio != user.bio
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { onUploadImage(it) }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val hasChanges = remember(
+        user,
+        editedFirstName,
+        editedLastName,
+        editedPhoneNumber,
+        editedBirthday,
+        editedBio,
+        editedFacebookUsername,
+        editedInstagramUsername,
+        editedTiktokUsername,
+        editedXUsername
     ) {
-        Text(text = "Your Profile", style = MaterialTheme.typography.headlineMedium)
+        editedFirstName != user.firstName ||
+                editedLastName != user.lastName ||
+                editedPhoneNumber != user.phoneNumber ||
+                editedBirthday != user.birthday ||
+                editedBio != user.bio ||
+                editedFacebookUsername != user.socials.facebookUsername ||
+                editedInstagramUsername != user.socials.instagramUsername ||
+                editedTiktokUsername != user.socials.tiktokUsername ||
+                editedXUsername != user.socials.xUsername
+    }
 
-        // Profile Picture Section
-        Box(
-            modifier = Modifier
-                .size(140.dp)
-                .clickable(enabled = !isUploadingImage) { launcher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                if (user.profilePicUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = user.profilePicUrl,
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-
-                if (isUploadingImage) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(40.dp),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                    .size(40.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AddPhotoAlternate,
-                    contentDescription = "Edit Photo",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Name Section
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "First Name",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        OutlinedTextField(
-                            value = editedFirstName,
-                            onValueChange = { editedFirstName = it },
+    Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+        ProfileContent(
+            isLoading = isSaving || isUploadingImage,
+            profilePicture = user.profilePicUrl,
+            onProfilePicChange = { onUploadImage(it) },
+            firstName = editedFirstName,
+            onFirstNameChange = { editedFirstName = it },
+            lastName = editedLastName,
+            onLastNameChange = { editedLastName = it },
+            isEmailEnabled = false,
+            email = user.email,
+            onEmailChange = {},
+            phoneNumber = editedPhoneNumber,
+            onPhoneNumberChange = { editedPhoneNumber = it },
+            birthday = editedBirthday,
+            onBirthdayChange = { editedBirthday = it },
+            bio = editedBio,
+            onBioChange = { editedBio = it },
+            facebookUsername = editedFacebookUsername,
+            onFacebookUsernameChange = { editedFacebookUsername = it },
+            instagramUsername = editedInstagramUsername,
+            onInstagramUsernameChange = { editedInstagramUsername = it },
+            tiktokUsername = editedTiktokUsername,
+            onTiktokUsernameChange = { editedTiktokUsername = it },
+            xUsername = editedXUsername,
+            onXUsernameChange = { editedXUsername = it },
+            confirmButtons = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (hasChanges) {
+                        TextButton(
+                            onClick = {
+                                editedFirstName = user.firstName
+                                editedLastName = user.lastName
+                                editedPhoneNumber = user.phoneNumber
+                                editedBirthday = user.birthday
+                                editedFacebookUsername = user.socials.facebookUsername
+                                editedInstagramUsername = user.socials.instagramUsername
+                                editedTiktokUsername = user.socials.tiktokUsername
+                                editedXUsername = user.socials.xUsername
+                                editedBio = user.bio
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .testTag("first_name_field"),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyLarge,
+                                .testTag("discard_button"),
                             enabled = !isSaving
-                        )
+                        ) {
+                            Text(
+                                text = "Discard Changes",
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Last Name",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                        OutlinedTextField(
-                            value = editedLastName,
-                            onValueChange = { editedLastName = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("last_name_field"),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyLarge,
-                            enabled = !isSaving
-                        )
-                    }
-                }
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                // Bio Field
-                Column {
-                    Text(
-                        text = "Bio",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    OutlinedTextField(
-                        value = editedBio,
-                        onValueChange = { editedBio = it },
+                    Button(
+                        onClick = {
+                            onUpdateProfile(
+                                user.copy(
+                                    firstName = editedFirstName,
+                                    lastName = editedLastName,
+                                    phoneNumber = editedPhoneNumber,
+                                    birthday = editedBirthday,
+                                    socials = UserSocials(
+                                        facebookUsername = editedFacebookUsername,
+                                        instagramUsername = editedInstagramUsername,
+                                        tiktokUsername = editedTiktokUsername,
+                                        xUsername = editedXUsername
+                                    ),
+                                    bio = editedBio
+                                )
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .testTag("bio_field"),
-                        minLines = 3,
-                        maxLines = 5,
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        enabled = !isSaving,
-                        placeholder = { Text("Tell us a bit about yourself...") }
-                    )
-                }
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                // Email Field (Read-only)
-                Column {
-                    Text(
-                        text = "Email",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = user.email,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
+                            .height(56.dp)
+                            .testTag("save_button"),
+                        enabled = hasChanges && !isSaving && editedFirstName.isNotBlank() && editedLastName.isNotBlank()
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Save Changes", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
                 }
             }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                onUpdateProfile(
-                    user.copy(
-                        firstName = editedFirstName,
-                        lastName = editedLastName,
-                        bio = editedBio
-                    )
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .testTag("save_button"),
-            enabled = hasChanges && !isSaving && editedFirstName.isNotBlank() && editedLastName.isNotBlank()
-        ) {
-            if (isSaving) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text("Save Changes", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-
-        if (hasChanges) {
-            TextButton(
-                onClick = {
-                    editedFirstName = user.firstName
-                    editedLastName = user.lastName
-                    editedBio = user.bio
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("discard_button"),
-                enabled = !isSaving
-            ) {
-                Text(text = "Discard Changes", color = MaterialTheme.colorScheme.outline)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
+        )
     }
 }

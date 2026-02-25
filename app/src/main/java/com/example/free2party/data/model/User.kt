@@ -8,12 +8,22 @@ data class UserSettings(
     val use24HourFormat: Boolean = true
 )
 
+data class UserSocials(
+    val facebookUsername: String = "",
+    val instagramUsername: String = "",
+    val tiktokUsername: String = "",
+    val xUsername: String = ""
+)
+
 data class User(
     val uid: String = "",
     val firstName: String = "",
     val lastName: String = "",
     val email: String = "",
+    val phoneNumber: String = "",
+    val birthday: String = "", // Format: YYYY-MM-DD
     val bio: String = "",
+    val socials: UserSocials = UserSocials(),
     val profilePicUrl: String = "",
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,

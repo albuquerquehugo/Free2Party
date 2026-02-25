@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.User
 import com.example.free2party.data.repository.UserRepository
@@ -34,15 +35,11 @@ sealed class ProfileUiEvent {
 }
 
 class ProfileViewModel(
-    private val userRepository: UserRepository = UserRepositoryImpl(
-        auth = Firebase.auth,
-        db = Firebase.firestore,
-        storage = Firebase.storage
-    )
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<ProfileUiState>(ProfileUiState.Loading)
-        private set
+        internal set
 
     private val _uiEvent = MutableSharedFlow<ProfileUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
@@ -125,6 +122,21 @@ class ProfileViewModel(
                         )
                     )
                 }
+        }
+    }
+
+    companion object {
+        fun provideFactory(
+            userRepository: UserRepository = UserRepositoryImpl(
+                auth = Firebase.auth,
+                db = Firebase.firestore,
+                storage = Firebase.storage
+            )
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ProfileViewModel(userRepository) as T
+            }
         }
     }
 }

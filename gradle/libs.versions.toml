@@ -15,7 +15,7 @@ lifecycleProcess = "2.10.0"
 lifecycleRuntimeKtx = "2.10.0"
 mockk = "1.14.9"
 navigationCompose = "2.9.7"
-uiTextGoogleFonts = "1.10.3"
+uiTextGoogleFonts = "1.10.4"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -46,6 +46,8 @@ firebase-storage = { module = "com.google.firebase:firebase-storage" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

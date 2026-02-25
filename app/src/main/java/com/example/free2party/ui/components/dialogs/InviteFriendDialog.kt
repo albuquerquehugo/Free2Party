@@ -10,7 +10,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.screens.home.InviteFriendUiState
 
 @Composable
@@ -47,16 +47,15 @@ fun InviteFriendDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                OutlinedTextField(
+                InputTextField(
                     value = email,
                     onValueChange = {
                         email = it
                         if (uiState is InviteFriendUiState.Error) onResetState()
                     },
-                    label = { Text("Email") },
+                    label = "Email",
                     modifier = Modifier.fillMaxWidth(),
                     enabled = uiState !is InviteFriendUiState.Searching,
-                    singleLine = true,
                     isError = uiState is InviteFriendUiState.Error,
                     supportingText = {
                         if (uiState is InviteFriendUiState.Error) {

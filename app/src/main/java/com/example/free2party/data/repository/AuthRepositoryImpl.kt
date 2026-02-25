@@ -2,6 +2,7 @@ package com.example.free2party.data.repository
 
 import android.net.Uri
 import com.example.free2party.data.model.User
+import com.example.free2party.data.model.UserSocials
 import com.example.free2party.exception.*
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
@@ -24,7 +25,11 @@ class AuthRepositoryImpl(
         lastName: String,
         email: String,
         password: String,
-        profilePicUri: Uri?
+        profilePicUri: Uri?,
+        phoneNumber: String,
+        birthday: String,
+        bio: String,
+        socials: UserSocials
     ): Result<FirebaseUser> = try {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val firebaseUser = result.user ?: throw UserNullException()
@@ -39,12 +44,15 @@ class AuthRepositoryImpl(
             firstName = firstName,
             lastName = lastName,
             email = email,
+            phoneNumber = phoneNumber,
+            birthday = birthday,
+            socials = socials,
+            bio = bio,
             profilePicUrl = profilePicUrl,
             isFreeNow = false
             // createdAt is handled by @ServerTimestamp in User model
         )
 
-        // Use UserRepository to handle profile creation
         userRepository.createUserProfile(newUser).getOrThrow()
 
         Result.success(firebaseUser)

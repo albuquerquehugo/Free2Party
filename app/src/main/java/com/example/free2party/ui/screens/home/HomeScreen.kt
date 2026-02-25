@@ -248,6 +248,7 @@ fun HomeScreen(
                                     )
                                 }
                             )
+                            // TODO: Add About menu
                             HorizontalDivider()
                             DropdownMenuItem(
                                 text = { Text("Logout") },
@@ -366,7 +367,7 @@ fun HomeContent(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.logo_light_full_transparent),
+                painter = painterResource(id = R.drawable.free2party_full_transparent_light),
                 contentDescription = "Free2Party Logo",
                 modifier = Modifier.height(40.dp),
                 contentScale = ContentScale.Fit

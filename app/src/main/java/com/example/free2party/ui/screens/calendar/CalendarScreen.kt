@@ -198,7 +198,7 @@ fun CalendarScreen(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.logo_light_full_transparent),
+                painter = painterResource(id = R.drawable.free2party_full_transparent_light),
                 contentDescription = "Free2Party Logo",
                 modifier = Modifier.height(20.dp),
                 contentScale = ContentScale.Fit
@@ -256,7 +256,16 @@ fun CalendarScreen(
             friends = friends,
             onDismiss = { setShowPlanDialog(false) },
             onConfirm = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection ->
-                onSavePlan(startDate, endDate, startTime, endTime, note, visibility, friendsSelection, editingPlan?.id)
+                onSavePlan(
+                    startDate,
+                    endDate,
+                    startTime,
+                    endTime,
+                    note,
+                    visibility,
+                    friendsSelection,
+                    editingPlan?.id
+                )
                 setShowPlanDialog(false)
             },
             startDatePickerState = startDatePickerState,
