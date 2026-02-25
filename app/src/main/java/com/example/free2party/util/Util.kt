@@ -1,5 +1,6 @@
 package com.example.free2party.util
 
+import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.FuturePlan
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -83,7 +84,7 @@ fun parseTimeToMillis(time: String): Long? {
  * @return A formatted date string in the format "MMM dd, yyyy". If the format is invalid, it
  * returns the original string
  */
-fun formatPlanDate(dateStr: String): String {
+fun formatPlanDateInFull(dateStr: String): String {
     val parts = dateStr.split("-")
     if (parts.size < 3) return dateStr
 
@@ -95,6 +96,20 @@ fun formatPlanDate(dateStr: String): String {
     }
     val day = parts[2].toIntOrNull() ?: return dateStr
     return "$month $day, ${parts[0]}"
+}
+
+fun formatPlanDateShort(dateStr: String, pattern: DatePattern = DatePattern.YYYY_MM_DD): String {
+    val internalSdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    val targetSdf = SimpleDateFormat(pattern.pattern, Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+
+    return runCatching {
+        val date = internalSdf.parse(dateStr)
+        if (date != null) targetSdf.format(date) else dateStr
+    }.getOrDefault(dateStr)
 }
 
 /**
@@ -170,4 +185,27 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
     val start = parseLocalDateTimeToMillis(plan.startDate, plan.startTime) ?: return false
     val end = parseLocalDateTimeToMillis(plan.endDate, plan.endTime) ?: return false
     return currentTimeMillis in start until end
+}
+
+/**
+ * Validates whether a string of exactly 8 digits represents a valid date according to the provided pattern.
+ * The function strips separators from the pattern to match the digit-only input and ensures
+ * the resulting date is not in the future.
+ * @param digits A string containing 8 numeric characters.
+ * @param pattern The [DatePattern] defining the expected sequence of years, months, and days.
+ * @return `true` if the string is a valid past or present date; `false` otherwise.
+ */
+fun isValidDateDigits(digits: String, pattern: DatePattern): Boolean {
+    if (digits.length != 8) return false
+    
+    val format = SimpleDateFormat(pattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+        isLenient = false
+    }
+    
+    return runCatching {
+        val date = format.parse(digits)
+        // Ensure date is valid and not in the future (optional, depending on business logic)
+        date != null && date.time <= System.currentTimeMillis()
+    }.getOrDefault(false)
 }

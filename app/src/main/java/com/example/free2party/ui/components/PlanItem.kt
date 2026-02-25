@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.PlanVisibility
-import com.example.free2party.util.formatPlanDate
+import com.example.free2party.util.formatPlanDateInFull
 import com.example.free2party.util.formatTimeForDisplay
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
@@ -267,7 +267,7 @@ private fun DateTimeLabel(time: String, date: String) {
             style = MaterialTheme.typography.titleSmall
         )
         Text(
-            text = " (${formatPlanDate(date)})",
+            text = " (${formatPlanDateInFull(date)})",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
             modifier = Modifier.padding(start = 2.dp),

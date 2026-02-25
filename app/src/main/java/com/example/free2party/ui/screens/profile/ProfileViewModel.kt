@@ -31,7 +31,7 @@ sealed interface ProfileUiState {
 }
 
 sealed class ProfileUiEvent {
-    data class ShowToast(val message: String) : ProfileUiEvent()
+    data class ShowToast(val message: String, val navigateBack: Boolean = false) : ProfileUiEvent()
 }
 
 class ProfileViewModel(
@@ -77,7 +77,7 @@ class ProfileViewModel(
                 .onSuccess {
                     uiState =
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
-                    _uiEvent.emit(ProfileUiEvent.ShowToast("Profile updated successfully!"))
+                    _uiEvent.emit(ProfileUiEvent.ShowToast("Profile updated successfully!", navigateBack = true))
                 }
                 .onFailure { e ->
                     uiState =

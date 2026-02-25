@@ -45,10 +45,12 @@ import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.ui.components.MonthCalendar
 import com.example.free2party.ui.components.dialogs.PlanDialog
 import com.example.free2party.ui.components.PlanResults
+import com.example.free2party.util.formatPlanDateInFull
 import com.example.free2party.util.isDateTimeInPast
 import kotlinx.coroutines.delay
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -178,9 +180,10 @@ fun CalendarScreen(
     var planToDelete by remember { mutableStateOf<FuturePlan?>(null) }
 
     val selectedDateText = startDatePickerState.selectedDateMillis?.let {
-        val format = DateFormat.getDateInstance()
-        format.timeZone = TimeZone.getTimeZone("UTC")
-        format.format(Date(it))
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        formatPlanDateInFull(sdf.format(Date(it)))
     } ?: ""
 
     val isSelectedDateInPast = viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false

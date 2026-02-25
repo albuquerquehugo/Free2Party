@@ -21,13 +21,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +51,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.free2party.R
+import com.example.free2party.data.model.DatePattern
+import com.example.free2party.util.DateVisualTransformation
+import com.example.free2party.util.isValidDateDigits
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileContent(
     isLoading: Boolean,
@@ -59,6 +77,7 @@ fun ProfileContent(
     onPhoneNumberChange: (String) -> Unit,
     birthday: String,
     onBirthdayChange: (String) -> Unit,
+    datePattern: DatePattern = DatePattern.YYYY_MM_DD,
     bio: String,
     onBioChange: (String) -> Unit,
     facebookUsername: String,
@@ -77,6 +96,11 @@ fun ProfileContent(
         uri?.let { onProfilePicChange(it) }
     }
     val focusManager = LocalFocusManager.current
+    val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
+
+    val isBirthdayError = remember(birthday, datePattern) {
+        birthday.isNotEmpty() && birthday.length == 8 && !isValidDateDigits(birthday, datePattern)
+    }
 
     Column(
         modifier = Modifier
@@ -94,6 +118,7 @@ fun ProfileContent(
             Box(
                 modifier = Modifier
                     .size(140.dp)
+                    .padding(top = 16.dp)
                     .clickable(enabled = !isLoading) { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
@@ -189,10 +214,14 @@ fun ProfileContent(
 
             passwordField?.invoke()
 
-            // TODO: Implement phone number regex and phone mask by country
+            // TODO: Implement phone number regex, mask and country selection
             InputTextField(
                 value = phoneNumber,
-                onValueChange = onPhoneNumberChange,
+                onValueChange = { newValue ->
+                    if (newValue.length <= 15) {
+                        onPhoneNumberChange(newValue.filter { it.isDigit() })
+                    }
+                },
                 label = "Phone Number",
                 placeholder = "XXX-XXX-XXXX",
                 icon = Icons.Default.Phone,
@@ -206,15 +235,34 @@ fun ProfileContent(
                 )
             )
 
-            // TODO: Implement date regex, date mask and date picker
             InputTextField(
-                value = birthday,
-                onValueChange = onBirthdayChange,
+                value = birthday.filter { it.isDigit() },
+                onValueChange = { newValue ->
+                    if (newValue.length <= 8) {
+                        onBirthdayChange(newValue)
+                    }
+                },
                 label = "Birthday",
-                placeholder = "YYYY-MM-DD",
+                placeholder = datePattern.label,
                 icon = Icons.Default.Cake,
+                isError = isBirthdayError,
+                supportingText = if (isBirthdayError) {
+                    { Text("Invalid date", color = MaterialTheme.colorScheme.error) }
+                } else null,
+                visualTransformation = DateVisualTransformation(datePattern),
+                trailingIcon = {
+                    IconButton(onClick = { setShowDatePicker(true) }) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "Select Birthday"
+                        )
+                    }
+                },
                 enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
                 )
@@ -226,9 +274,13 @@ fun ProfileContent(
                 label = "Bio",
                 placeholder = "Write about yourself...",
                 icon = Icons.Default.Public,
+                minLines = 1,
                 maxLines = 5,
                 enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Next
+                ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
                 )
@@ -276,7 +328,10 @@ fun ProfileContent(
                 label = "X Username",
                 painter = painterResource(id = R.drawable.x),
                 enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                )
             )
         }
 
@@ -289,6 +344,33 @@ fun ProfileContent(
             ) {
                 confirmButtons()
             }
+        }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { setShowDatePicker(false) },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
+                        onBirthdayChange(sdf.format(Date(millis)))
+                    }
+                    setShowDatePicker(false)
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { setShowDatePicker(false) }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState, showModeToggle = false)
         }
     }
 }

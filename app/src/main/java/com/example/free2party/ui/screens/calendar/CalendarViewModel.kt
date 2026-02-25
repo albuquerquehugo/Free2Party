@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.data.model.FriendInfo
@@ -69,6 +70,9 @@ class CalendarViewModel(
     var use24HourFormat by mutableStateOf(true)
         private set
 
+    var datePattern by mutableStateOf(DatePattern.YYYY_MM_DD)
+        private set
+
     val userIdToObserve = targetUserId ?: currentUserId
     val isViewingOwnCalendar = targetUserId == null || targetUserId == currentUserId
 
@@ -85,6 +89,7 @@ class CalendarViewModel(
         userRepository.observeUser(userRepository.currentUserId)
             .onEach { user ->
                 use24HourFormat = user.settings.use24HourFormat
+                datePattern = user.settings.datePattern
             }
             .launchIn(viewModelScope)
     }

@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -37,6 +38,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.User
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
@@ -111,9 +113,12 @@ fun SettingsScreenContent(
     var use24HourFormat by remember(user.settings.use24HourFormat) {
         mutableStateOf(user.settings.use24HourFormat)
     }
+    var datePattern by remember(user.settings.datePattern) {
+        mutableStateOf(user.settings.datePattern)
+    }
 
-    val hasChanges = remember(user, use24HourFormat) {
-        use24HourFormat != user.settings.use24HourFormat
+    val hasChanges = remember(user, use24HourFormat, datePattern) {
+        use24HourFormat != user.settings.use24HourFormat || datePattern != user.settings.datePattern
     }
 
     Column(
@@ -127,19 +132,20 @@ fun SettingsScreenContent(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp),
+                .padding(top = 16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
             )
         ) {
             // TODO: Add dark/light mode selection
 
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Time Format",
+                    text = "Time Format:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -148,16 +154,17 @@ fun SettingsScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(16.dp)
                         .selectableGroup(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TimeFormatOption(
+                    SettingsOption(
                         label = "24-hour",
                         selected = use24HourFormat,
                         onClick = { use24HourFormat = true },
                         enabled = !isSaving
                     )
-                    TimeFormatOption(
+                    SettingsOption(
                         label = "AM/PM",
                         selected = !use24HourFormat,
                         onClick = { use24HourFormat = false },
@@ -165,14 +172,51 @@ fun SettingsScreenContent(
                     )
                 }
             }
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Date Format:",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .selectableGroup(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    DatePattern.entries.forEach { pattern ->
+                        SettingsOption(
+                            label = pattern.label,
+                            selected = datePattern == pattern,
+                            onClick = { datePattern = pattern },
+                            enabled = !isSaving
+                        )
+                    }
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
                 onUpdateSettings(
-                    user.copy(settings = user.settings.copy(use24HourFormat = use24HourFormat))
+                    user.copy(
+                        settings = user.settings.copy(
+                            use24HourFormat = use24HourFormat,
+                            datePattern = datePattern
+                        )
+                    )
                 )
             },
             modifier = Modifier
@@ -194,7 +238,7 @@ fun SettingsScreenContent(
 }
 
 @Composable
-fun TimeFormatOption(
+fun SettingsOption(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
@@ -202,7 +246,7 @@ fun TimeFormatOption(
 ) {
     Row(
         modifier = Modifier
-            .height(32.dp)
+            .height(40.dp)
             .selectable(
                 selected = selected,
                 onClick = onClick,
@@ -213,7 +257,7 @@ fun TimeFormatOption(
     ) {
         RadioButton(
             selected = selected,
-            onClick = null, // null recommended for accessibility with selectable modifier
+            onClick = null,
             enabled = enabled
         )
         Text(

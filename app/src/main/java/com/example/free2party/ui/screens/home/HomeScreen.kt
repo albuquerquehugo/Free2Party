@@ -457,14 +457,12 @@ fun FriendsListSection(
         }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
-
     if (friends.isEmpty()) {
         Text(
             text = "You don't have any friends yet!",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(top = 16.dp)
         )
     } else {
         val freeFriends =
@@ -533,7 +531,7 @@ fun ExpandableFriendSection(
         ) {
             Text(
                 text = "$title (${friends.size})",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.secondary
             )
@@ -622,7 +620,7 @@ fun FriendItem(
 
                 Text(
                     text = friend.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = when {
                         isInvited -> MaterialTheme.colorScheme.onInactiveContainer
                         friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer

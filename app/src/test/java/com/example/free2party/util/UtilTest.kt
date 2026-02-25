@@ -68,17 +68,17 @@ class UtilTest {
 
     @Test
     fun `formatPlanDate correctly formats yyyy-MM-dd`() {
-        assertEquals("Jan 1, 2026", formatPlanDate("2026-01-01"))
-        assertEquals("Dec 31, 2025", formatPlanDate("2025-12-31"))
-        assertEquals("invalid-date", formatPlanDate("invalid-date"))
+        assertEquals("Jan 1, 2026", formatPlanDateInFull("2026-01-01"))
+        assertEquals("Dec 31, 2025", formatPlanDateInFull("2025-12-31"))
+        assertEquals("invalid-date", formatPlanDateInFull("invalid-date"))
     }
 
     @Test
     fun `formatPlanDate returns original string for invalid parts`() {
         // Non-numeric day
-        assertEquals("2026-01-aa", formatPlanDate("2026-01-aa"))
+        assertEquals("2026-01-aa", formatPlanDateInFull("2026-01-aa"))
         // Invalid month
-        assertEquals("2026-13-01", formatPlanDate("2026-13-01"))
+        assertEquals("2026-13-01", formatPlanDateInFull("2026-13-01"))
     }
 
     @Test

@@ -89,7 +89,7 @@ class HomeViewModel(
                     .thenBy { it.name }
             )
             HomeUiState.Success(
-                userName = user.fullName,
+                userName = user.firstName,
                 profilePicUrl = user.profilePicUrl,
                 isUserFree = user.isFreeNow,
                 use24HourFormat = user.settings.use24HourFormat,

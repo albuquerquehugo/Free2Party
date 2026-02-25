@@ -4,8 +4,15 @@ import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
+enum class DatePattern(val pattern: String, val label: String) {
+    YYYY_MM_DD("yyyy-MM-dd", "YYYY/MM/DD"),
+    MM_DD_YYYY("MM-dd-yyyy", "MM/DD/YYYY"),
+    DD_MM_YYYY("dd-MM-yyyy", "DD/MM/YYYY")
+}
+
 data class UserSettings(
-    val use24HourFormat: Boolean = true
+    val use24HourFormat: Boolean = true,
+    val datePattern: DatePattern = DatePattern.YYYY_MM_DD
 )
 
 data class UserSocials(
@@ -21,7 +28,7 @@ data class User(
     val lastName: String = "",
     val email: String = "",
     val phoneNumber: String = "",
-    val birthday: String = "", // Format: YYYY-MM-DD
+    val birthday: String = "", // Format: Raw digits (YYYYMMDD) or similar, formatted by pattern
     val bio: String = "",
     val socials: UserSocials = UserSocials(),
     val profilePicUrl: String = "",

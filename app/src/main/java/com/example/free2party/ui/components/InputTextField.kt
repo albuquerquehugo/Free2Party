@@ -50,6 +50,8 @@ fun InputTextField(
     minLines: Int = 1,
     maxLines: Int = 1,
     supportingText: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
@@ -77,7 +79,11 @@ fun InputTextField(
         isError = isError,
         supportingText = supportingText,
         interactionSource = interactionSource,
-        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (isPassword && !passwordVisible) {
+            PasswordVisualTransformation()
+        } else {
+            visualTransformation
+        },
         leadingIcon = if (icon != null || painter != null) {
             {
                 Box(
@@ -109,14 +115,16 @@ fun InputTextField(
                         )
                     }
                 }
+
                 if (isPassword) {
-                    val image =
-                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     val description = if (passwordVisible) "Hide password" else "Show password"
                     IconButton(onClick = changeVisibility) {
                         Icon(imageVector = image, contentDescription = description)
                     }
                 }
+
+                trailingIcon?.invoke()
             }
         },
         singleLine = !isMultiLine,

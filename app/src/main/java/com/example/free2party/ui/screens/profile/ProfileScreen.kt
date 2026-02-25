@@ -47,6 +47,9 @@ fun ProfileRoute(
             when (event) {
                 is ProfileUiEvent.ShowToast -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    if (event.navigateBack) {
+                        onBack()
+                    }
                 }
             }
         }
@@ -161,6 +164,7 @@ fun ProfileScreenContent(
             onPhoneNumberChange = { editedPhoneNumber = it },
             birthday = editedBirthday,
             onBirthdayChange = { editedBirthday = it },
+            datePattern = user.settings.datePattern,
             bio = editedBio,
             onBioChange = { editedBio = it },
             facebookUsername = editedFacebookUsername,
