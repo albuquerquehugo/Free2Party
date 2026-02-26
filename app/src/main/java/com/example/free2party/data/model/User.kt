@@ -28,7 +28,8 @@ data class User(
     val lastName: String = "",
     val email: String = "",
     val phoneNumber: String = "",
-    val birthday: String = "", // Format: Raw digits (YYYYMMDD) or similar, formatted by pattern
+    val countryCode: String = "",
+    val birthday: String = "",
     val bio: String = "",
     val socials: UserSocials = UserSocials(),
     val profilePicUrl: String = "",

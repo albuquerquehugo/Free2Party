@@ -8,18 +8,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Email
@@ -28,6 +33,8 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,12 +43,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -49,10 +59,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.free2party.R
+import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.util.DateVisualTransformation
+import com.example.free2party.util.PhoneVisualTransformation
 import com.example.free2party.util.isValidDateDigits
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -73,6 +86,8 @@ fun ProfileContent(
     email: String,
     onEmailChange: (String) -> Unit,
     passwordField: @Composable (() -> Unit)? = null,
+    countryCode: String,
+    onCountryCodeChange: (String) -> Unit,
     phoneNumber: String,
     onPhoneNumberChange: (String) -> Unit,
     birthday: String,
@@ -97,6 +112,9 @@ fun ProfileContent(
     }
     val focusManager = LocalFocusManager.current
     val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
+    var showCountryMenu by remember { mutableStateOf(false) }
+    val selectedCountry = Countries.find { it.code == countryCode }
+    val phoneFocusRequester = remember { FocusRequester() }
 
     val isBirthdayError = remember(birthday, datePattern) {
         birthday.isNotEmpty() && birthday.length == 8 && !isValidDateDigits(birthday, datePattern)
@@ -214,17 +232,92 @@ fun ProfileContent(
 
             passwordField?.invoke()
 
-            // TODO: Implement phone number regex, mask and country selection
             InputTextField(
                 value = phoneNumber,
                 onValueChange = { newValue ->
-                    if (newValue.length <= 15) {
+                    if (selectedCountry != null && newValue.length <= selectedCountry.digitsCount) {
+                        onPhoneNumberChange(newValue.filter { it.isDigit() })
+                    } else if (selectedCountry == null) {
                         onPhoneNumberChange(newValue.filter { it.isDigit() })
                     }
                 },
                 label = "Phone Number",
-                placeholder = "XXX-XXX-XXXX",
+                placeholder = selectedCountry?.phoneMask ?: "Please select a country",
                 icon = Icons.Default.Phone,
+                focusRequester = phoneFocusRequester,
+                leadingIconExtra = {
+                    Box(modifier = Modifier.padding(start = 16.dp)) {
+                        Row(
+                            modifier = Modifier.clickable { showCountryMenu = true },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (selectedCountry != null) {
+                                Text(
+                                    text = selectedCountry.flag,
+                                    fontSize = 20.sp
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = selectedCountry.phoneCode,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    softWrap = false,
+                                    maxLines = 1
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Public,
+                                    contentDescription = "Select Country",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showCountryMenu,
+                            onDismissRequest = { showCountryMenu = false }
+                        ) {
+                            Countries.forEach { country ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                country.flag,
+                                                modifier = Modifier.padding(end = 8.dp)
+                                            )
+                                            Text(country.name)
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                "(${country.phoneCode})",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = 0.6f
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        onCountryCodeChange(country.code)
+                                        onPhoneNumberChange("") // Reset number when country changes
+                                        showCountryMenu = false
+                                        phoneFocusRequester.requestFocus()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                },
+                visualTransformation = PhoneVisualTransformation(selectedCountry?.phoneMask ?: ""),
+                onClear = if (selectedCountry != null || phoneNumber.isNotEmpty()) {
+                    {
+                        onCountryCodeChange("")
+                        onPhoneNumberChange("")
+                    }
+                } else null,
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
@@ -273,7 +366,7 @@ fun ProfileContent(
                 onValueChange = onBioChange,
                 label = "Bio",
                 placeholder = "Write about yourself...",
-                icon = Icons.Default.Public,
+                icon = Icons.AutoMirrored.Filled.Notes,
                 minLines = 1,
                 maxLines = 5,
                 enabled = !isLoading,

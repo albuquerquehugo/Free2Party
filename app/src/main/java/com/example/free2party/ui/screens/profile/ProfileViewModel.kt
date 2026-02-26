@@ -1,15 +1,19 @@
 package com.example.free2party.ui.screens.profile
 
 import android.net.Uri
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.User
+import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.util.isValidDateDigits
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -44,6 +48,47 @@ class ProfileViewModel(
     private val _uiEvent = MutableSharedFlow<ProfileUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    // Edited fields
+    var firstName by mutableStateOf("")
+    var lastName by mutableStateOf("")
+    var countryCode by mutableStateOf("")
+    var phoneNumber by mutableStateOf("")
+    var birthday by mutableStateOf("")
+    var bio by mutableStateOf("")
+    var facebookUsername by mutableStateOf("")
+    var instagramUsername by mutableStateOf("")
+    var tiktokUsername by mutableStateOf("")
+    var xUsername by mutableStateOf("")
+
+    val isPhoneValid by derivedStateOf {
+        if (phoneNumber.isEmpty()) return@derivedStateOf countryCode.isEmpty()
+        val country = Countries.find { it.code == countryCode }
+        country == null || phoneNumber.length == country.digitsCount
+    }
+
+    val isBirthdayValid by derivedStateOf {
+        val pattern = (uiState as? ProfileUiState.Success)?.user?.settings?.datePattern
+        birthday.isEmpty() || (pattern != null && isValidDateDigits(birthday, pattern))
+    }
+
+    val hasChanges by derivedStateOf {
+        val user = (uiState as? ProfileUiState.Success)?.user ?: return@derivedStateOf false
+        firstName != user.firstName ||
+                lastName != user.lastName ||
+                countryCode != user.countryCode ||
+                phoneNumber != user.phoneNumber ||
+                birthday != user.birthday ||
+                bio != user.bio ||
+                facebookUsername != user.socials.facebookUsername ||
+                instagramUsername != user.socials.instagramUsername ||
+                tiktokUsername != user.socials.tiktokUsername ||
+                xUsername != user.socials.xUsername
+    }
+
+    val isFormValid by derivedStateOf {
+        firstName.isNotBlank() && lastName.isNotBlank() && isPhoneValid && isBirthdayValid
+    }
+
     init {
         loadProfile()
     }
@@ -59,6 +104,10 @@ class ProfileViewModel(
                 }
                 .collect { user ->
                     val currentState = uiState
+                    if (currentState !is ProfileUiState.Success) {
+                        // Initial load, populate edited fields
+                        initializeFields(user)
+                    }
                     uiState = if (currentState is ProfileUiState.Success) {
                         currentState.copy(user = user)
                     } else {
@@ -68,16 +117,56 @@ class ProfileViewModel(
         }
     }
 
-    fun updateProfile(updatedUser: User) {
+    private fun initializeFields(user: User) {
+        firstName = user.firstName
+        lastName = user.lastName
+        countryCode = user.countryCode
+        phoneNumber = user.phoneNumber
+        birthday = user.birthday
+        bio = user.bio
+        facebookUsername = user.socials.facebookUsername
+        instagramUsername = user.socials.instagramUsername
+        tiktokUsername = user.socials.tiktokUsername
+        xUsername = user.socials.xUsername
+    }
+
+    fun discardChanges() {
+        val user = (uiState as? ProfileUiState.Success)?.user ?: return
+        initializeFields(user)
+    }
+
+    fun updateProfile() {
         val currentState = uiState as? ProfileUiState.Success ?: return
+        if (!isFormValid) return
+
         uiState = currentState.copy(isSaving = true)
+
+        val updatedUser = currentState.user.copy(
+            firstName = firstName,
+            lastName = lastName,
+            countryCode = countryCode,
+            phoneNumber = phoneNumber,
+            birthday = birthday,
+            bio = bio,
+            socials = UserSocials(
+                facebookUsername = facebookUsername,
+                instagramUsername = instagramUsername,
+                tiktokUsername = tiktokUsername,
+                xUsername = xUsername
+            )
+        )
 
         viewModelScope.launch {
             userRepository.updateUser(updatedUser)
                 .onSuccess {
                     uiState =
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
-                    _uiEvent.emit(ProfileUiEvent.ShowToast("Profile updated successfully!", navigateBack = true))
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            "Profile updated successfully!",
+                            navigateBack = true
+                        )
+                    )
                 }
                 .onFailure { e ->
                     uiState =

@@ -27,6 +27,7 @@ class AuthRepositoryImpl(
         password: String,
         profilePicUri: Uri?,
         phoneNumber: String,
+        countryCode: String,
         birthday: String,
         bio: String,
         socials: UserSocials
@@ -45,6 +46,7 @@ class AuthRepositoryImpl(
             lastName = lastName,
             email = email,
             phoneNumber = phoneNumber,
+            countryCode = countryCode,
             birthday = birthday,
             socials = socials,
             bio = bio,

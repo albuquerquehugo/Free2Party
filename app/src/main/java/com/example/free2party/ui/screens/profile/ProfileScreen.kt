@@ -19,18 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.free2party.data.model.User
-import com.example.free2party.data.model.UserSocials
 import com.example.free2party.ui.components.ProfileContent
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
@@ -58,8 +52,31 @@ fun ProfileRoute(
     ProfileScreen(
         uiState = viewModel.uiState,
         onBack = onBack,
-        onUpdateProfile = { viewModel.updateProfile(it) },
-        onUploadImage = { viewModel.uploadProfilePicture(it) }
+        onUploadImage = { viewModel.uploadProfilePicture(it) },
+        firstName = viewModel.firstName,
+        onFirstNameChange = { viewModel.firstName = it },
+        lastName = viewModel.lastName,
+        onLastNameChange = { viewModel.lastName = it },
+        countryCode = viewModel.countryCode,
+        onCountryCodeChange = { viewModel.countryCode = it },
+        phoneNumber = viewModel.phoneNumber,
+        onPhoneNumberChange = { viewModel.phoneNumber = it },
+        birthday = viewModel.birthday,
+        onBirthdayChange = { viewModel.birthday = it },
+        bio = viewModel.bio,
+        onBioChange = { viewModel.bio = it },
+        facebookUsername = viewModel.facebookUsername,
+        onFacebookUsernameChange = { viewModel.facebookUsername = it },
+        instagramUsername = viewModel.instagramUsername,
+        onInstagramUsernameChange = { viewModel.instagramUsername = it },
+        tiktokUsername = viewModel.tiktokUsername,
+        onTiktokUsernameChange = { viewModel.tiktokUsername = it },
+        xUsername = viewModel.xUsername,
+        onXUsernameChange = { viewModel.xUsername = it },
+        hasChanges = viewModel.hasChanges,
+        isFormValid = viewModel.isFormValid,
+        onDiscardChanges = { viewModel.discardChanges() },
+        onUpdateProfile = { viewModel.updateProfile() }
     )
 }
 
@@ -67,8 +84,31 @@ fun ProfileRoute(
 fun ProfileScreen(
     uiState: ProfileUiState,
     onBack: () -> Unit,
-    onUpdateProfile: (User) -> Unit,
-    onUploadImage: (Uri) -> Unit
+    onUploadImage: (Uri) -> Unit,
+    firstName: String,
+    onFirstNameChange: (String) -> Unit,
+    lastName: String,
+    onLastNameChange: (String) -> Unit,
+    countryCode: String,
+    onCountryCodeChange: (String) -> Unit,
+    phoneNumber: String,
+    onPhoneNumberChange: (String) -> Unit,
+    birthday: String,
+    onBirthdayChange: (String) -> Unit,
+    bio: String,
+    onBioChange: (String) -> Unit,
+    facebookUsername: String,
+    onFacebookUsernameChange: (String) -> Unit,
+    instagramUsername: String,
+    onInstagramUsernameChange: (String) -> Unit,
+    tiktokUsername: String,
+    onTiktokUsernameChange: (String) -> Unit,
+    xUsername: String,
+    onXUsernameChange: (String) -> Unit,
+    hasChanges: Boolean,
+    isFormValid: Boolean,
+    onDiscardChanges: () -> Unit,
+    onUpdateProfile: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -95,11 +135,32 @@ fun ProfileScreen(
             is ProfileUiState.Success -> {
                 ProfileScreenContent(
                     paddingValues = paddingValues,
-                    user = uiState.user,
-                    isSaving = uiState.isSaving,
-                    isUploadingImage = uiState.isUploadingImage,
-                    onUpdateProfile = onUpdateProfile,
-                    onUploadImage = onUploadImage
+                    uiState = uiState,
+                    onUploadImage = onUploadImage,
+                    firstName = firstName,
+                    onFirstNameChange = onFirstNameChange,
+                    lastName = lastName,
+                    onLastNameChange = onLastNameChange,
+                    countryCode = countryCode,
+                    onCountryCodeChange = onCountryCodeChange,
+                    phoneNumber = phoneNumber,
+                    onPhoneNumberChange = onPhoneNumberChange,
+                    birthday = birthday,
+                    onBirthdayChange = onBirthdayChange,
+                    bio = bio,
+                    onBioChange = onBioChange,
+                    facebookUsername = facebookUsername,
+                    onFacebookUsernameChange = onFacebookUsernameChange,
+                    instagramUsername = instagramUsername,
+                    onInstagramUsernameChange = onInstagramUsernameChange,
+                    tiktokUsername = tiktokUsername,
+                    onTiktokUsernameChange = onTiktokUsernameChange,
+                    xUsername = xUsername,
+                    onXUsernameChange = onXUsernameChange,
+                    hasChanges = hasChanges,
+                    isFormValid = isFormValid,
+                    onDiscardChanges = onDiscardChanges,
+                    onUpdateProfile = onUpdateProfile
                 )
             }
         }
@@ -109,72 +170,66 @@ fun ProfileScreen(
 @Composable
 fun ProfileScreenContent(
     paddingValues: PaddingValues,
-    user: User,
-    isSaving: Boolean,
-    isUploadingImage: Boolean,
-    onUpdateProfile: (User) -> Unit,
-    onUploadImage: (Uri) -> Unit
+    uiState: ProfileUiState.Success,
+    onUploadImage: (Uri) -> Unit,
+    firstName: String,
+    onFirstNameChange: (String) -> Unit,
+    lastName: String,
+    onLastNameChange: (String) -> Unit,
+    countryCode: String,
+    onCountryCodeChange: (String) -> Unit,
+    phoneNumber: String,
+    onPhoneNumberChange: (String) -> Unit,
+    birthday: String,
+    onBirthdayChange: (String) -> Unit,
+    bio: String,
+    onBioChange: (String) -> Unit,
+    facebookUsername: String,
+    onFacebookUsernameChange: (String) -> Unit,
+    instagramUsername: String,
+    onInstagramUsernameChange: (String) -> Unit,
+    tiktokUsername: String,
+    onTiktokUsernameChange: (String) -> Unit,
+    xUsername: String,
+    onXUsernameChange: (String) -> Unit,
+    hasChanges: Boolean,
+    isFormValid: Boolean,
+    onDiscardChanges: () -> Unit,
+    onUpdateProfile: () -> Unit
 ) {
-    var editedFirstName by remember(user.firstName) { mutableStateOf(user.firstName) }
-    var editedLastName by remember(user.lastName) { mutableStateOf(user.lastName) }
-    var editedPhoneNumber by remember(user.phoneNumber) { mutableStateOf(user.phoneNumber) }
-    var editedBirthday by remember(user.birthday) { mutableStateOf(user.birthday) }
-    var editedBio by remember(user.bio) { mutableStateOf(user.bio) }
-    var editedFacebookUsername by remember(user.socials.facebookUsername) { mutableStateOf(user.socials.facebookUsername) }
-    var editedInstagramUsername by remember(user.socials.instagramUsername) { mutableStateOf(user.socials.instagramUsername) }
-    var editedTiktokUsername by remember(user.socials.tiktokUsername) { mutableStateOf(user.socials.tiktokUsername) }
-    var editedXUsername by remember(user.socials.xUsername) { mutableStateOf(user.socials.xUsername) }
-
-    val hasChanges = remember(
-        user,
-        editedFirstName,
-        editedLastName,
-        editedPhoneNumber,
-        editedBirthday,
-        editedBio,
-        editedFacebookUsername,
-        editedInstagramUsername,
-        editedTiktokUsername,
-        editedXUsername
-    ) {
-        editedFirstName != user.firstName ||
-                editedLastName != user.lastName ||
-                editedPhoneNumber != user.phoneNumber ||
-                editedBirthday != user.birthday ||
-                editedBio != user.bio ||
-                editedFacebookUsername != user.socials.facebookUsername ||
-                editedInstagramUsername != user.socials.instagramUsername ||
-                editedTiktokUsername != user.socials.tiktokUsername ||
-                editedXUsername != user.socials.xUsername
-    }
+    val user = uiState.user
+    val isSaving = uiState.isSaving
+    val isUploadingImage = uiState.isUploadingImage
 
     Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
         ProfileContent(
             isLoading = isSaving || isUploadingImage,
             profilePicture = user.profilePicUrl,
             onProfilePicChange = { onUploadImage(it) },
-            firstName = editedFirstName,
-            onFirstNameChange = { editedFirstName = it },
-            lastName = editedLastName,
-            onLastNameChange = { editedLastName = it },
+            firstName = firstName,
+            onFirstNameChange = onFirstNameChange,
+            lastName = lastName,
+            onLastNameChange = onLastNameChange,
             isEmailEnabled = false,
             email = user.email,
             onEmailChange = {},
-            phoneNumber = editedPhoneNumber,
-            onPhoneNumberChange = { editedPhoneNumber = it },
-            birthday = editedBirthday,
-            onBirthdayChange = { editedBirthday = it },
+            countryCode = countryCode,
+            onCountryCodeChange = onCountryCodeChange,
+            phoneNumber = phoneNumber,
+            onPhoneNumberChange = onPhoneNumberChange,
+            birthday = birthday,
+            onBirthdayChange = onBirthdayChange,
             datePattern = user.settings.datePattern,
-            bio = editedBio,
-            onBioChange = { editedBio = it },
-            facebookUsername = editedFacebookUsername,
-            onFacebookUsernameChange = { editedFacebookUsername = it },
-            instagramUsername = editedInstagramUsername,
-            onInstagramUsernameChange = { editedInstagramUsername = it },
-            tiktokUsername = editedTiktokUsername,
-            onTiktokUsernameChange = { editedTiktokUsername = it },
-            xUsername = editedXUsername,
-            onXUsernameChange = { editedXUsername = it },
+            bio = bio,
+            onBioChange = onBioChange,
+            facebookUsername = facebookUsername,
+            onFacebookUsernameChange = onFacebookUsernameChange,
+            instagramUsername = instagramUsername,
+            onInstagramUsernameChange = onInstagramUsernameChange,
+            tiktokUsername = tiktokUsername,
+            onTiktokUsernameChange = onTiktokUsernameChange,
+            xUsername = xUsername,
+            onXUsernameChange = onXUsernameChange,
             confirmButtons = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -183,17 +238,7 @@ fun ProfileScreenContent(
                 ) {
                     if (hasChanges) {
                         TextButton(
-                            onClick = {
-                                editedFirstName = user.firstName
-                                editedLastName = user.lastName
-                                editedPhoneNumber = user.phoneNumber
-                                editedBirthday = user.birthday
-                                editedFacebookUsername = user.socials.facebookUsername
-                                editedInstagramUsername = user.socials.instagramUsername
-                                editedTiktokUsername = user.socials.tiktokUsername
-                                editedXUsername = user.socials.xUsername
-                                editedBio = user.bio
-                            },
+                            onClick = onDiscardChanges,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .testTag("discard_button"),
@@ -207,28 +252,12 @@ fun ProfileScreenContent(
                     }
 
                     Button(
-                        onClick = {
-                            onUpdateProfile(
-                                user.copy(
-                                    firstName = editedFirstName,
-                                    lastName = editedLastName,
-                                    phoneNumber = editedPhoneNumber,
-                                    birthday = editedBirthday,
-                                    socials = UserSocials(
-                                        facebookUsername = editedFacebookUsername,
-                                        instagramUsername = editedInstagramUsername,
-                                        tiktokUsername = editedTiktokUsername,
-                                        xUsername = editedXUsername
-                                    ),
-                                    bio = editedBio
-                                )
-                            )
-                        },
+                        onClick = onUpdateProfile,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .testTag("save_button"),
-                        enabled = hasChanges && !isSaving && editedFirstName.isNotBlank() && editedLastName.isNotBlank()
+                        enabled = hasChanges && !isSaving && isFormValid
                     ) {
                         if (isSaving) {
                             CircularProgressIndicator(

@@ -2,6 +2,7 @@ package com.example.free2party.ui.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -26,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,19 +44,22 @@ fun InputTextField(
     placeholder: String? = null,
     icon: ImageVector? = null,
     painter: Painter? = null,
+    leadingIconExtra: @Composable (() -> Unit)? = null,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
     changeVisibility: () -> Unit = {},
     enabled: Boolean = true,
     isError: Boolean = false,
     showClearIcon: Boolean = true,
+    onClear: (() -> Unit)? = null,
     minLines: Int = 1,
     maxLines: Int = 1,
     supportingText: @Composable (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    focusRequester: FocusRequester = remember { FocusRequester() }
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -74,6 +80,7 @@ fun InputTextField(
         },
         modifier = modifier
             .fillMaxWidth()
+            .focusRequester(focusRequester)
             .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier),
         enabled = enabled,
         isError = isError,
@@ -84,13 +91,21 @@ fun InputTextField(
         } else {
             visualTransformation
         },
-        leadingIcon = if (icon != null || painter != null) {
-            {
-                Box(
-                    modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,
-                    contentAlignment = if (isMultiLine) Alignment.TopCenter else Alignment.Center
-                ) {
-                    Box(modifier = Modifier.padding(top = if (isMultiLine) 16.dp else 0.dp)) {
+        leadingIcon = {
+            Row(
+                modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,
+                verticalAlignment = if (isMultiLine) Alignment.Top else Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                if (icon != null || painter != null) {
+                    Box(
+                        modifier = Modifier.padding(
+                            top = if (isMultiLine) 16.dp else 0.dp,
+                            start = 12.dp,
+                            end = if (leadingIconExtra != null) 0.dp else 12.dp
+                        ),
+                        contentAlignment = Alignment.Center
+                    ) {
                         if (painter != null) {
                             Icon(
                                 painter,
@@ -102,12 +117,14 @@ fun InputTextField(
                         }
                     }
                 }
+
+                leadingIconExtra?.invoke()
             }
-        } else null,
+        },
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (showClearIcon && value.isNotEmpty() && isFocused) {
-                    IconButton(onClick = { onValueChange("") }) {
+                if (showClearIcon && (value.isNotEmpty() || onClear != null) && isFocused) {
+                    IconButton(onClick = { onClear?.invoke() ?: onValueChange("") }) {
                         Icon(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Clear",

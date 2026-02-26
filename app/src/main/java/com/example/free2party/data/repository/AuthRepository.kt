@@ -13,6 +13,7 @@ interface AuthRepository {
         password: String,
         profilePicUri: Uri? = null,
         phoneNumber: String = "",
+        countryCode: String = "",
         birthday: String = "",
         bio: String = "",
         socials: UserSocials = UserSocials()
