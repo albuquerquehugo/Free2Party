@@ -81,7 +81,7 @@ class HomeViewModelTest {
 
         assertTrue(viewModel.uiState is HomeUiState.Success)
         val state = viewModel.uiState as HomeUiState.Success
-        assertEquals("John Doe", state.userName)
+        assertEquals("John", state.userName)
         assertEquals(2, state.friendsList.size)
         assertEquals("Alice", state.friendsList[0].name)
         assertEquals(true, state.use24HourFormat)

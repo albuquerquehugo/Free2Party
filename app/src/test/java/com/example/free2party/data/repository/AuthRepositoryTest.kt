@@ -1,5 +1,6 @@
 package com.example.free2party.data.repository
 
+import com.example.free2party.data.model.UserSocials
 import com.example.free2party.exception.EmailAlreadyInUseException
 import com.example.free2party.exception.WeakPasswordException
 import com.google.android.gms.tasks.Tasks
@@ -9,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -38,17 +40,39 @@ class AuthRepositoryTest {
     fun `register success`() = runTest {
         val email = "test@test.com"
         val password = "password123"
+        val phoneNumber = "123456789"
+        val birthday = "1990-01-01"
+        val socials = UserSocials(facebookUsername = "fb_user")
         
         every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forResult(authResult)
         every { authResult.user } returns firebaseUser
         every { firebaseUser.uid } returns "user123"
         coEvery { userRepository.createUserProfile(any()) } returns Result.success(Unit)
 
-        val result = repository.register("First", "Last", email, password)
+        val result = repository.register(
+            firstName = "First",
+            lastName = "Last",
+            email = email,
+            password = password,
+            phoneNumber = phoneNumber,
+            birthday = birthday,
+            socials = socials
+        )
         
         assertTrue(result.isSuccess)
         assertEquals(firebaseUser, result.getOrNull())
         verify { auth.createUserWithEmailAndPassword(email, password) }
+        coVerify { 
+            userRepository.createUserProfile(match { 
+                it.uid == "user123" && 
+                it.firstName == "First" && 
+                it.lastName == "Last" && 
+                it.email == email &&
+                it.phoneNumber == phoneNumber &&
+                it.birthday == birthday &&
+                it.socials == socials
+            }) 
+        }
     }
 
     @Test

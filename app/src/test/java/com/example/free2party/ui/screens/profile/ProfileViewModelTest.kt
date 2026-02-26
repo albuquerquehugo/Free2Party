@@ -52,10 +52,10 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun `updateProfile success updates state and emits toast`() = runTest {
+    fun `updateProfile success updates state and emits toast with navigateBack true`() = runTest {
         val updatedUser = User(uid = "me", firstName = "Jane", lastName = "Doe")
         coEvery { userRepository.updateUser(updatedUser) } returns Result.success(Unit)
-        
+
         viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
@@ -72,7 +72,9 @@ class ProfileViewModelTest {
         assertEquals(false, state.isSaving)
         val event = events.firstOrNull()
         assertTrue(event is ProfileUiEvent.ShowToast)
-        assertEquals("Profile updated successfully!", (event as ProfileUiEvent.ShowToast).message)
+        val toastEvent = event as ProfileUiEvent.ShowToast
+        assertEquals("Profile updated successfully!", toastEvent.message)
+        assertEquals(true, toastEvent.navigateBack)
     }
 
     @Test
@@ -97,6 +99,6 @@ class ProfileViewModelTest {
         coVerify { userRepository.updateUser(match { it.profilePicUrl == downloadUrl }) }
         val state = viewModel.uiState as ProfileUiState.Success
         assertEquals(false, state.isUploadingImage)
-        assertTrue(events.any { it is ProfileUiEvent.ShowToast && it.message == "Profile picture updated!" })
+        assertTrue(events.any { it is ProfileUiEvent.ShowToast && it.message == "Profile picture updated!" && !it.navigateBack })
     }
 }

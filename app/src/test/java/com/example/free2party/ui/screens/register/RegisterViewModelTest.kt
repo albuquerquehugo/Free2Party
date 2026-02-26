@@ -68,7 +68,7 @@ class RegisterViewModelTest {
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
         assertEquals(
-            "All fields are required",
+            "Required fields (*) must be filled",
             (viewModel.uiState as RegisterUiState.Error).message
         )
     }
