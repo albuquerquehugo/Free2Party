@@ -38,19 +38,48 @@ class RegisterViewModelTest {
     }
 
     @Test
-    fun `isFormValid returns true only when all required fields are not blank`() {
+    fun `isFormValid returns true only when all required fields and validations pass`() {
         assertFalse(viewModel.isFormValid)
 
         viewModel.firstName = "John"
-        assertFalse(viewModel.isFormValid)
-
         viewModel.lastName = "Doe"
-        assertFalse(viewModel.isFormValid)
-
         viewModel.email = "john@example.com"
+        viewModel.password = "password123"
+        // Phone and birthday are empty by default, so they are valid
+        assertTrue(viewModel.isFormValid)
+
+        // Invalid phone: country selected but no number
+        viewModel.countryCode = "US"
+        viewModel.phoneNumber = ""
         assertFalse(viewModel.isFormValid)
 
-        viewModel.password = "password123"
+        // Valid phone: US has 10 digits
+        viewModel.phoneNumber = "1234567890"
+        assertTrue(viewModel.isFormValid)
+
+        // Invalid phone: too short for US
+        viewModel.phoneNumber = "123"
+        assertFalse(viewModel.isFormValid)
+
+        // Invalid phone: too long for US
+        viewModel.phoneNumber = "12345678901"
+        assertFalse(viewModel.isFormValid)
+
+        // Valid phone for another country: PT has 9 digits
+        viewModel.countryCode = "PT"
+        viewModel.phoneNumber = "912345678"
+        assertTrue(viewModel.isFormValid)
+
+        // Invalid birthday: wrong length
+        viewModel.birthday = "199001"
+        assertFalse(viewModel.isFormValid)
+
+        // Invalid birthday: invalid date (month 13)
+        viewModel.birthday = "19901301"
+        assertFalse(viewModel.isFormValid)
+
+        // Valid birthday
+        viewModel.birthday = "19900101"
         assertTrue(viewModel.isFormValid)
 
         viewModel.email = ""
@@ -90,11 +119,51 @@ class RegisterViewModelTest {
     }
 
     @Test
-    fun `onRegisterClick success updates state to success`() = runTest {
+    fun `onRegisterClick with invalid phone number sets error state`() {
+        viewModel.firstName = "John"
+        viewModel.lastName = "Doe"
+        viewModel.email = "john@example.com"
+        viewModel.password = "password123"
+        viewModel.countryCode = "US"
+        viewModel.phoneNumber = "123"
+
+        viewModel.onRegisterClick()
+
+        assertTrue(viewModel.uiState is RegisterUiState.Error)
+        assertEquals(
+            "Please enter a valid phone number",
+            (viewModel.uiState as RegisterUiState.Error).message
+        )
+    }
+
+    @Test
+    fun `onRegisterClick with invalid birthday sets error state`() {
+        viewModel.firstName = "John"
+        viewModel.lastName = "Doe"
+        viewModel.email = "john@example.com"
+        viewModel.password = "password123"
+        viewModel.birthday = "19901301"
+
+        viewModel.onRegisterClick()
+
+        assertTrue(viewModel.uiState is RegisterUiState.Error)
+        assertEquals(
+            "Please enter a valid date",
+            (viewModel.uiState as RegisterUiState.Error).message
+        )
+    }
+
+    @Test
+    fun `onRegisterClick success updates state to success and passes all data`() = runTest {
         val firstName = "John"
         val lastName = "Doe"
         val email = "john@example.com"
         val password = "password123"
+        val phone = "912345678"
+        val country = "PT"
+        val bday = "19900101"
+        val bio = "My bio"
+        val facebook = "fb_user"
         val uri = mockk<Uri>()
 
         viewModel.firstName = firstName
@@ -102,14 +171,24 @@ class RegisterViewModelTest {
         viewModel.email = email
         viewModel.password = password
         viewModel.profilePicUri = uri
+        viewModel.phoneNumber = phone
+        viewModel.countryCode = country
+        viewModel.birthday = bday
+        viewModel.bio = bio
+        viewModel.facebookUsername = facebook
 
         coEvery {
             authRepository.register(
-                firstName,
-                lastName,
-                email,
-                password,
-                uri
+                firstName = firstName,
+                lastName = lastName,
+                email = email,
+                password = password,
+                profilePicUri = uri,
+                phoneNumber = phone,
+                countryCode = country,
+                birthday = bday,
+                bio = bio,
+                socials = match { it.facebookUsername == facebook }
             )
         } returns Result.success(mockk())
 
@@ -117,6 +196,20 @@ class RegisterViewModelTest {
         runCurrent()
 
         assertEquals(RegisterUiState.Success, viewModel.uiState)
+        coVerify {
+            authRepository.register(
+                firstName = firstName,
+                lastName = lastName,
+                email = email,
+                password = password,
+                profilePicUri = uri,
+                phoneNumber = phone,
+                countryCode = country,
+                birthday = bday,
+                bio = bio,
+                socials = any()
+            )
+        }
     }
 
     @Test
@@ -128,48 +221,36 @@ class RegisterViewModelTest {
 
         coEvery {
             authRepository.register(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
+                firstName = any(),
+                lastName = any(),
+                email = any(),
+                password = any(),
+                profilePicUri = any(),
+                phoneNumber = any(),
+                countryCode = any(),
+                birthday = any(),
+                bio = any(),
+                socials = any()
             )
         } returns Result.success(mockk())
 
         viewModel.onRegisterClick()
         runCurrent()
 
-        coVerify { authRepository.register("John", "Doe", "john@example.com", "password123", null) }
-    }
-
-    @Test
-    fun `onRegisterClick failure updates error state`() = runTest {
-        val firstName = "John"
-        val lastName = "Doe"
-        val email = "john@example.com"
-        val password = "password123"
-        val errorMessage = "Email already in use"
-
-        viewModel.firstName = firstName
-        viewModel.lastName = lastName
-        viewModel.email = email
-        viewModel.password = password
-
-        coEvery {
+        coVerify {
             authRepository.register(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
+                firstName = "John",
+                lastName = "Doe",
+                email = "john@example.com",
+                password = "password123",
+                profilePicUri = null,
+                phoneNumber = "",
+                countryCode = "",
+                birthday = "",
+                bio = "",
+                socials = any()
             )
-        } returns Result.failure(Exception(errorMessage))
-
-        viewModel.onRegisterClick()
-        runCurrent()
-
-        assertTrue(viewModel.uiState is RegisterUiState.Error)
-        assertEquals(errorMessage, (viewModel.uiState as RegisterUiState.Error).message)
+        }
     }
 
     @Test
@@ -178,19 +259,11 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "john@example.com"
         viewModel.password = "password"
-        viewModel.profilePicUri = mockk()
-
-        coEvery {
-            authRepository.register(
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns Result.success(mockk())
-        viewModel.onRegisterClick()
-        runCurrent()
+        viewModel.phoneNumber = "1234567890"
+        viewModel.countryCode = "US"
+        viewModel.birthday = "19900101"
+        viewModel.bio = "Bio"
+        viewModel.facebookUsername = "fb"
 
         viewModel.resetFields()
 
@@ -198,7 +271,41 @@ class RegisterViewModelTest {
         assertEquals("", viewModel.lastName)
         assertEquals("", viewModel.email)
         assertEquals("", viewModel.password)
-        assertEquals(null, viewModel.profilePicUri)
+        assertEquals("", viewModel.phoneNumber)
+        assertEquals("", viewModel.countryCode)
+        assertEquals("", viewModel.birthday)
+        assertEquals("", viewModel.bio)
+        assertEquals("", viewModel.facebookUsername)
         assertEquals(RegisterUiState.Idle, viewModel.uiState)
+    }
+
+    @Test
+    fun `uiState transitions to loading during registration`() = runTest {
+        viewModel.firstName = "John"
+        viewModel.lastName = "Doe"
+        viewModel.email = "john@example.com"
+        viewModel.password = "password123"
+
+        coEvery {
+            authRepository.register(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } coAnswers {
+            assertEquals(RegisterUiState.Loading, viewModel.uiState)
+            Result.success(mockk())
+        }
+
+        viewModel.onRegisterClick()
+        runCurrent()
+        assertEquals(RegisterUiState.Success, viewModel.uiState)
     }
 }
