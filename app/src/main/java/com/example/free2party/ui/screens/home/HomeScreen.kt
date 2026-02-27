@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.HourglassEmpty
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
@@ -65,8 +66,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.free2party.R
-import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
+import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.ui.components.dialogs.AboutDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.example.free2party.ui.components.dialogs.InviteFriendDialog
 import com.example.free2party.ui.theme.available
@@ -94,12 +96,13 @@ fun HomeRoute(
         homeViewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        event.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-
-                HomeUiEvent.Logout -> {
-                    onLogout()
-                }
+                is HomeUiEvent.Logout -> onLogout()
             }
         }
     }
@@ -110,7 +113,7 @@ fun HomeRoute(
                 is FriendUiEvent.InviteSentSuccessfully -> {
                     Toast.makeText(
                         context,
-                        "Invite successfully sent to ${event.email}!",
+                        "Invite sent to ${event.email}!",
                         Toast.LENGTH_SHORT
                     ).show()
                     setShowInviteFriendDialog(false)
@@ -158,6 +161,7 @@ fun HomeScreen(
 ) {
     val (showUserMenu, setShowUserMenu) = remember { mutableStateOf(false) }
     val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
 
@@ -248,7 +252,19 @@ fun HomeScreen(
                                     )
                                 }
                             )
-                            // TODO: Add About menu
+                            DropdownMenuItem(
+                                text = { Text("About") },
+                                onClick = {
+                                    setShowUserMenu(false)
+                                    showAboutDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
                             HorizontalDivider()
                             DropdownMenuItem(
                                 text = { Text("Logout") },
@@ -320,6 +336,10 @@ fun HomeScreen(
                     }
                 }
             )
+        }
+
+        if (showAboutDialog) {
+            AboutDialog(onDismiss = { showAboutDialog = false })
         }
 
         if (showInviteFriendDialog) {
