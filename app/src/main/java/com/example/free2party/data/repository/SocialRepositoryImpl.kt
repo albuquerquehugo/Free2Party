@@ -2,6 +2,7 @@ package com.example.free2party.data.repository
 
 import android.util.Log
 import com.example.free2party.BuildConfig
+import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -41,13 +42,13 @@ class SocialRepositoryImpl(
 
     override fun getIncomingFriendRequests(): Flow<List<FriendRequest>> = callbackFlow {
         if (currentUserId.isBlank()) {
-            close(UnauthorizedException())
+            trySend(emptyList())
             return@callbackFlow
         }
 
         val listener = db.collection("friendRequests")
             .whereEqualTo("receiverId", currentUserId)
-            .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING)
+            .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(mapToSocialException(error))
@@ -106,11 +107,16 @@ class SocialRepositoryImpl(
                     val hasActiveSharedPlan = publicPlans.any { isPlanActive(it, currentTime) }
                     val hasAnyActivePlan = allPlans.any { isPlanActive(it, currentTime) }
 
+                    val phoneCode = Countries.find { it.code == user.countryCode }?.phoneCode ?: ""
+
                     FriendInfo(
                         uid = friendId,
                         name = user.fullName.ifBlank { "Unknown" },
                         isFreeNow = hasActiveSharedPlan || (user.isFreeNow && !hasAnyActivePlan),
-                        inviteStatus = inviteStatuses[friendId] ?: InviteStatus.ACCEPTED
+                        inviteStatus = inviteStatuses[friendId] ?: InviteStatus.ACCEPTED,
+                        phoneCode = phoneCode,
+                        phoneNumber = user.phoneNumber,
+                        socials = user.socials
                     )
                 }
             }
@@ -190,7 +196,7 @@ class SocialRepositoryImpl(
             val senderName = requestDoc.getString("senderName") ?: "Unknown"
 
             if (friendRequestStatus == FriendRequestStatus.ACCEPTED) {
-                transaction.update(requestRef, "friendRequestStatus", FriendRequestStatus.ACCEPTED)
+                transaction.update(requestRef, "friendRequestStatus", FriendRequestStatus.ACCEPTED.name)
                 transaction.set(
                     db.collection("users").document(currentUserId).collection("friends")
                         .document(senderId),

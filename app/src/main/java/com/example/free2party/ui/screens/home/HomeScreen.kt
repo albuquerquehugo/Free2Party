@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.home
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -23,15 +24,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -71,6 +77,7 @@ import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.ui.components.dialogs.AboutDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.example.free2party.ui.components.dialogs.InviteFriendDialog
+import com.example.free2party.ui.theme.TelegramColor
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
@@ -79,6 +86,9 @@ import com.example.free2party.ui.theme.inactiveContainer
 import com.example.free2party.ui.theme.onAvailableContainer
 import com.example.free2party.ui.theme.onBusyContainer
 import com.example.free2party.ui.theme.onInactiveContainer
+import com.example.free2party.ui.theme.WhatsAppColor
+import com.example.free2party.util.openSMS
+import com.example.free2party.util.openThirdPartyApp
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -102,6 +112,7 @@ fun HomeRoute(
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+
                 is HomeUiEvent.Logout -> onLogout()
             }
         }
@@ -159,8 +170,8 @@ fun HomeScreen(
     onInviteFriendDismiss: () -> Unit,
     onInviteFriendResetState: () -> Unit
 ) {
-    val (showUserMenu, setShowUserMenu) = remember { mutableStateOf(false) }
-    val (showLogoutDialog, setShowLogoutDialog) = remember { mutableStateOf(false) }
+    var showUserMenu by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
@@ -180,14 +191,14 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .clip(CircleShape)
-                        .clickable { setShowUserMenu(true) }
+                        .clickable { showUserMenu = true }
                         .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -210,7 +221,7 @@ fun HomeScreen(
                                 model = profilePicUrl,
                                 contentDescription = "User Menu",
                                 modifier = Modifier
-                                    .size(64.dp)
+                                    .size(40.dp)
                                     .clip(CircleShape),
                                 contentScale = ContentScale.Crop
                             )
@@ -224,12 +235,12 @@ fun HomeScreen(
                         }
                         DropdownMenu(
                             expanded = showUserMenu,
-                            onDismissRequest = { setShowUserMenu(false) }
+                            onDismissRequest = { showUserMenu = false }
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Profile") },
                                 onClick = {
-                                    setShowUserMenu(false)
+                                    showUserMenu = false
                                     onNavigateToProfile()
                                 },
                                 leadingIcon = {
@@ -242,7 +253,7 @@ fun HomeScreen(
                             DropdownMenuItem(
                                 text = { Text("Settings") },
                                 onClick = {
-                                    setShowUserMenu(false)
+                                    showUserMenu = false
                                     onNavigateToSettings()
                                 },
                                 leadingIcon = {
@@ -255,7 +266,7 @@ fun HomeScreen(
                             DropdownMenuItem(
                                 text = { Text("About") },
                                 onClick = {
-                                    setShowUserMenu(false)
+                                    showUserMenu = false
                                     showAboutDialog = true
                                 },
                                 leadingIcon = {
@@ -269,8 +280,8 @@ fun HomeScreen(
                             DropdownMenuItem(
                                 text = { Text("Logout") },
                                 onClick = {
-                                    setShowUserMenu(false)
-                                    setShowLogoutDialog(true)
+                                    showUserMenu = false
+                                    showLogoutDialog = true
                                 },
                                 leadingIcon = {
                                     Icon(
@@ -319,19 +330,19 @@ fun HomeScreen(
 
         if (showLogoutDialog) {
             AlertDialog(
-                onDismissRequest = { setShowLogoutDialog(false) },
+                onDismissRequest = { showLogoutDialog = false },
                 title = { Text("Logout") },
                 text = { Text("Are you sure you want to logout?") },
                 confirmButton = {
                     TextButton(onClick = {
-                        setShowLogoutDialog(false)
+                        showLogoutDialog = false
                         onLogoutClick()
                     }) {
                         Text("Logout", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { setShowLogoutDialog(false) }) {
+                    TextButton(onClick = { showLogoutDialog = false }) {
                         Text("Cancel")
                     }
                 }
@@ -389,7 +400,7 @@ fun HomeContent(
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_transparent_light),
                 contentDescription = "Free2Party Logo",
-                modifier = Modifier.height(40.dp),
+                modifier = Modifier.height(32.dp),
                 contentScale = ContentScale.Fit
             )
         }
@@ -402,21 +413,21 @@ fun HomeContent(
                     if (isUserFree) MaterialTheme.colorScheme.availableContainer
                     else MaterialTheme.colorScheme.busyContainer
                 )
-                .padding(horizontal = 32.dp, vertical = 16.dp),
-            style = MaterialTheme.typography.headlineSmall,
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color =
                 if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
                 else MaterialTheme.colorScheme.onBusyContainer
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .width(176.dp)
+                .height(48.dp)
                 .padding(horizontal = 16.dp)
-                .height(56.dp)
                 .clip(MaterialTheme.shapes.medium)
                 .background(
                     if (isUserFree) MaterialTheme.colorScheme.error
@@ -430,7 +441,7 @@ fun HomeContent(
             } else {
                 Text(
                     text = if (isUserFree) "Make Me Busy" else "Make Me Free",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color =
                         if (isUserFree) MaterialTheme.colorScheme.onError
                         else MaterialTheme.colorScheme.onPrimary
@@ -461,7 +472,7 @@ fun FriendsListSection(
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
             text = "Your Friends",
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.titleLarge
         )
 
         IconButton(
@@ -593,8 +604,10 @@ fun FriendItem(
     onCancelInvite: (String) -> Unit,
     onClick: () -> Unit
 ) {
-    var showMenu by remember { mutableStateOf(false) }
+    var showFriendMenu by remember { mutableStateOf(false) }
+    var showContactMenu by remember { mutableStateOf(false) }
     val isInvited = friend.inviteStatus == InviteStatus.INVITED
+    val context = LocalContext.current
 
     Box {
         Card(
@@ -603,7 +616,7 @@ fun FriendItem(
                 .padding(vertical = 4.dp)
                 .combinedClickable(
                     onClick = { if (!isInvited) onClick() },
-                    onLongClick = { showMenu = true }
+                    onLongClick = { showFriendMenu = true }
                 ),
             colors = CardDefaults.cardColors(
                 containerColor = when {
@@ -617,23 +630,30 @@ fun FriendItem(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isInvited) {
-                    Icon(
-                        imageVector = Icons.Default.HourglassEmpty,
-                        contentDescription = "Pending",
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.onInactiveContainer
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(12.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (friend.isFreeNow) MaterialTheme.colorScheme.available
-                                else MaterialTheme.colorScheme.busy
-                            )
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(start = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isInvited) {
+                        Icon(
+                            imageVector = Icons.Default.HourglassEmpty,
+                            contentDescription = "Pending",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onInactiveContainer
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (friend.isFreeNow) MaterialTheme.colorScheme.available
+                                    else MaterialTheme.colorScheme.busy
+                                )
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -641,42 +661,231 @@ fun FriendItem(
                 Text(
                     text = friend.name,
                     style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f),
                     color = when {
                         isInvited -> MaterialTheme.colorScheme.onInactiveContainer
                         friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
                         else -> MaterialTheme.colorScheme.onBusyContainer
                     }
                 )
-            }
-        }
 
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false }
-        ) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        if (isInvited) "Cancel Invite" else "Remove Friend",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                },
-                onClick = {
-                    showMenu = false
-                    if (isInvited) {
-                        onCancelInvite(friend.uid)
-                    } else {
-                        onRemoveFriend(friend.uid)
+                if (!isInvited) {
+                    Box {
+                        IconButton(onClick = { showContactMenu = true }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Chat,
+                                contentDescription = "Contact Options",
+                                tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
+                                else MaterialTheme.colorScheme.onBusyContainer
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showContactMenu,
+                            onDismissRequest = { showContactMenu = false }
+                        ) {
+                            // SMS
+                            val smsNumber = "${friend.phoneCode}${friend.phoneNumber}"
+                            if (smsNumber.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("SMS") },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Sms,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openSMS(context, smsNumber)
+                                    }
+                                )
+                            }
+
+                            // Facebook
+                            if (friend.socials.facebookUsername.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("Facebook") },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Facebook,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color(0xFF1877F2)
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openThirdPartyApp(
+                                            context,
+                                            "https://facebook.com/${friend.socials.facebookUsername}"
+                                        )
+                                    }
+                                )
+                            }
+
+                            // Instagram
+                            if (friend.socials.instagramUsername.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("Instagram") },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.instagram_color),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color.Unspecified
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openThirdPartyApp(
+                                            context,
+                                            "https://instagram.com/${friend.socials.instagramUsername}"
+                                        )
+                                    }
+                                )
+                            }
+
+                            // Telegram
+                            if (friend.socials.telegramUsername.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("Telegram") },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.telegram),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = TelegramColor
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openThirdPartyApp(
+                                            context,
+                                            "https://t.me/${friend.socials.telegramUsername}"
+                                        )
+                                    }
+                                )
+                            }
+
+                            // TikTok
+                            if (friend.socials.tiktokUsername.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("TikTok") },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.tiktok_color),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color.Unspecified
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openThirdPartyApp(
+                                            context,
+                                            "https://tiktok.com/@${friend.socials.tiktokUsername}"
+                                        )
+                                    }
+                                )
+                            }
+
+                            // WhatsApp
+                            val waNumber = friend.socials.whatsappFullNumber.ifBlank {
+                                "${friend.phoneCode}${friend.phoneNumber}".replace("+", "")
+                                    .filter { it.isDigit() }
+                            }
+                            if (waNumber.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("WhatsApp") },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.whatsapp),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = WhatsAppColor
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openThirdPartyApp(
+                                            context,
+                                            "https://wa.me/$waNumber?text=${Uri.encode("Hey! Saw you're Free2Party, want to hang out?")}"
+                                        )
+                                    }
+                                )
+                            }
+
+                            // X
+                            if (friend.socials.xUsername.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text("X") },
+                                    leadingIcon = {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.x),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color.Unspecified
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openThirdPartyApp(
+                                            context,
+                                            "https://x.com/${friend.socials.xUsername}"
+                                        )
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
-            )
+
+                Box {
+                    IconButton(onClick = { showFriendMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Friend Options",
+                            tint = when {
+                                isInvited -> MaterialTheme.colorScheme.onInactiveContainer
+                                friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
+                                else -> MaterialTheme.colorScheme.onBusyContainer
+                            }
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showFriendMenu,
+                        onDismissRequest = { showFriendMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    if (isInvited) "Cancel Invite" else "Remove Friend",
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            onClick = {
+                                showFriendMenu = false
+                                if (isInvited) {
+                                    onCancelInvite(friend.uid)
+                                } else {
+                                    onRemoveFriend(friend.uid)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }

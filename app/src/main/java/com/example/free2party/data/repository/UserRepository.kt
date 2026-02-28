@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
     val currentUserId: String
+    val userIdFlow: Flow<String>
     fun getCurrentUserStatus(): Flow<Boolean>
     fun observeUser(uid: String): Flow<User>
     suspend fun createUserProfile(user: User): Result<Unit>

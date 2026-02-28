@@ -23,23 +23,29 @@ data class UserSettings(
 )
 
 data class UserSocials(
+    val whatsappNumber: String = "",
+    val whatsappCountryCode: String = "",
+    val whatsappFullNumber: String = "",
+    val telegramUsername: String = "",
     val facebookUsername: String = "",
     val instagramUsername: String = "",
     val tiktokUsername: String = "",
+    @get:PropertyName("xUsername")
+    @field:PropertyName("xUsername")
     val xUsername: String = ""
 )
 
 data class User(
     val uid: String = "",
+    val profilePicUrl: String = "",
     val firstName: String = "",
     val lastName: String = "",
     val email: String = "",
-    val phoneNumber: String = "",
     val countryCode: String = "",
+    val phoneNumber: String = "",
     val birthday: String = "",
     val bio: String = "",
     val socials: UserSocials = UserSocials(),
-    val profilePicUrl: String = "",
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,
     val settings: UserSettings = UserSettings(),

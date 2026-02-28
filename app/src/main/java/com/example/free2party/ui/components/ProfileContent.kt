@@ -90,6 +90,10 @@ fun ProfileContent(
     onCountryCodeChange: (String) -> Unit,
     phoneNumber: String,
     onPhoneNumberChange: (String) -> Unit,
+    whatsappCountryCode: String,
+    onWhatsappCountryCodeChange: (String) -> Unit,
+    whatsappNumber: String,
+    onWhatsappNumberChange: (String) -> Unit,
     birthday: String,
     onBirthdayChange: (String) -> Unit,
     datePattern: DatePattern = DatePattern.YYYY_MM_DD,
@@ -103,6 +107,8 @@ fun ProfileContent(
     onTiktokUsernameChange: (String) -> Unit,
     xUsername: String,
     onXUsernameChange: (String) -> Unit,
+    telegramUsername: String,
+    onTelegramUsernameChange: (String) -> Unit,
     confirmButtons: @Composable (() -> Unit)? = null
 ) {
     val launcher = rememberLauncherForActivityResult(
@@ -113,8 +119,13 @@ fun ProfileContent(
     val focusManager = LocalFocusManager.current
     val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
     var showCountryMenu by remember { mutableStateOf(false) }
+    var showWhatsappCountryMenu by remember { mutableStateOf(false) }
+    
     val selectedCountry = Countries.find { it.code == countryCode }
+    val selectedWhatsappCountry = Countries.find { it.code == whatsappCountryCode }
+    
     val phoneFocusRequester = remember { FocusRequester() }
+    val whatsappFocusRequester = remember { FocusRequester() }
 
     val isBirthdayError = remember(birthday, datePattern) {
         birthday.isNotEmpty() && birthday.length == 8 && !isValidDateDigits(birthday, datePattern)
@@ -232,6 +243,7 @@ fun ProfileContent(
 
             passwordField?.invoke()
 
+            // TODO: Insert a search field on country selection
             InputTextField(
                 value = phoneNumber,
                 onValueChange = { newValue ->
@@ -379,11 +391,126 @@ fun ProfileContent(
                 )
             )
 
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.CenterStart) {
+                Text(text = "Socials", style = MaterialTheme.typography.titleSmall)
+            }
+
+            // WhatsApp Number Field
+            InputTextField(
+                value = whatsappNumber,
+                onValueChange = { newValue ->
+                    if (selectedWhatsappCountry != null && newValue.length <= selectedWhatsappCountry.digitsCount) {
+                        onWhatsappNumberChange(newValue.filter { it.isDigit() })
+                    } else if (selectedWhatsappCountry == null) {
+                        onWhatsappNumberChange(newValue.filter { it.isDigit() })
+                    }
+                },
+                label = "WhatsApp Number",
+                placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country",
+                painter = painterResource(id = R.drawable.whatsapp),
+                focusRequester = whatsappFocusRequester,
+                leadingIconExtra = {
+                    Box(modifier = Modifier.padding(start = 16.dp)) {
+                        Row(
+                            modifier = Modifier.clickable { showWhatsappCountryMenu = true },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (selectedWhatsappCountry != null) {
+                                Text(
+                                    text = selectedWhatsappCountry.flag,
+                                    fontSize = 20.sp
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = selectedWhatsappCountry.phoneCode,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    softWrap = false,
+                                    maxLines = 1
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Public,
+                                    contentDescription = "Select Country",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showWhatsappCountryMenu,
+                            onDismissRequest = { showWhatsappCountryMenu = false }
+                        ) {
+                            Countries.forEach { country ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                country.flag,
+                                                modifier = Modifier.padding(end = 8.dp)
+                                            )
+                                            Text(country.name)
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                "(${country.phoneCode})",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = 0.6f
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        onWhatsappCountryCodeChange(country.code)
+                                        onWhatsappNumberChange("")
+                                        showWhatsappCountryMenu = false
+                                        whatsappFocusRequester.requestFocus()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                },
+                visualTransformation = PhoneVisualTransformation(selectedWhatsappCountry?.phoneMask ?: ""),
+                onClear = if (selectedWhatsappCountry != null || whatsappNumber.isNotEmpty()) {
+                    {
+                        onWhatsappCountryCodeChange("")
+                        onWhatsappNumberChange("")
+                    }
+                } else null,
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                )
+            )
+
+            InputTextField(
+                value = telegramUsername,
+                onValueChange = onTelegramUsernameChange,
+                label = "Telegram Username",
+                painter = painterResource(id = R.drawable.telegram),
+                prefix = { Text("@") },
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                )
+            )
+
             InputTextField(
                 value = facebookUsername,
                 onValueChange = onFacebookUsernameChange,
                 label = "Facebook Username",
                 icon = Icons.Default.Facebook,
+                prefix = { Text("@") },
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(
@@ -396,6 +523,7 @@ fun ProfileContent(
                 onValueChange = onInstagramUsernameChange,
                 label = "Instagram Username",
                 painter = painterResource(id = R.drawable.instagram),
+                prefix = { Text("@") },
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(
@@ -408,6 +536,7 @@ fun ProfileContent(
                 onValueChange = onTiktokUsernameChange,
                 label = "TikTok Username",
                 painter = painterResource(id = R.drawable.tiktok),
+                prefix = { Text("@") },
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(
@@ -420,6 +549,7 @@ fun ProfileContent(
                 onValueChange = onXUsernameChange,
                 label = "X Username",
                 painter = painterResource(id = R.drawable.x),
+                prefix = { Text("@") },
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(

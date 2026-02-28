@@ -1,11 +1,14 @@
 package com.example.free2party.util
 
+import android.content.Context
+import android.content.Intent
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.FuturePlan
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import androidx.core.net.toUri
 
 /**
  * Formats the given hour and minute into a string with the format "H:mm" or "HH:mm".
@@ -197,15 +200,37 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
  */
 fun isValidDateDigits(digits: String, pattern: DatePattern): Boolean {
     if (digits.length != 8) return false
-    
+
     val format = SimpleDateFormat(pattern.pattern.replace("-", ""), Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("UTC")
         isLenient = false
     }
-    
+
     return runCatching {
         val date = format.parse(digits)
         // Ensure date is valid and not in the future (optional, depending on business logic)
         date != null && date.time <= System.currentTimeMillis()
     }.getOrDefault(false)
+}
+
+fun openSMS(
+    context: Context,
+    phoneNumber: String,
+    message: String = "Hey! Saw you're Free2Party, want to hang out?"
+) {
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = "smsto:$phoneNumber".toUri()
+        putExtra("sms_body", message)
+    }
+    context.startActivity(intent)
+}
+
+fun openThirdPartyApp(
+    context: Context,
+    url: String
+) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = url.toUri()
+    }
+    context.startActivity(intent)
 }

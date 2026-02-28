@@ -55,6 +55,9 @@ class ProfileViewModel(
     var phoneNumber by mutableStateOf("")
     var birthday by mutableStateOf("")
     var bio by mutableStateOf("")
+    var whatsappCountryCode by mutableStateOf("")
+    var whatsappNumber by mutableStateOf("")
+    var telegramUsername by mutableStateOf("")
     var facebookUsername by mutableStateOf("")
     var instagramUsername by mutableStateOf("")
     var tiktokUsername by mutableStateOf("")
@@ -71,6 +74,16 @@ class ProfileViewModel(
         birthday.isEmpty() || (pattern != null && isValidDateDigits(birthday, pattern))
     }
 
+    val isWhatsappValid by derivedStateOf {
+        if (whatsappNumber.isEmpty()) return@derivedStateOf whatsappCountryCode.isEmpty()
+        val country = Countries.find { it.code == whatsappCountryCode }
+        country == null || whatsappNumber.length == country.digitsCount
+    }
+
+    val isFormValid by derivedStateOf {
+        firstName.isNotBlank() && lastName.isNotBlank() && isPhoneValid && isBirthdayValid && isWhatsappValid
+    }
+
     val hasChanges by derivedStateOf {
         val user = (uiState as? ProfileUiState.Success)?.user ?: return@derivedStateOf false
         firstName != user.firstName ||
@@ -79,14 +92,13 @@ class ProfileViewModel(
                 phoneNumber != user.phoneNumber ||
                 birthday != user.birthday ||
                 bio != user.bio ||
+                whatsappCountryCode != user.socials.whatsappCountryCode ||
+                whatsappNumber != user.socials.whatsappNumber ||
+                telegramUsername != user.socials.telegramUsername ||
                 facebookUsername != user.socials.facebookUsername ||
                 instagramUsername != user.socials.instagramUsername ||
                 tiktokUsername != user.socials.tiktokUsername ||
                 xUsername != user.socials.xUsername
-    }
-
-    val isFormValid by derivedStateOf {
-        firstName.isNotBlank() && lastName.isNotBlank() && isPhoneValid && isBirthdayValid
     }
 
     init {
@@ -124,6 +136,9 @@ class ProfileViewModel(
         phoneNumber = user.phoneNumber
         birthday = user.birthday
         bio = user.bio
+        whatsappCountryCode = user.socials.whatsappCountryCode
+        whatsappNumber = user.socials.whatsappNumber
+        telegramUsername = user.socials.telegramUsername
         facebookUsername = user.socials.facebookUsername
         instagramUsername = user.socials.instagramUsername
         tiktokUsername = user.socials.tiktokUsername
@@ -137,9 +152,28 @@ class ProfileViewModel(
 
     fun updateProfile() {
         val currentState = uiState as? ProfileUiState.Success ?: return
+        if (!isPhoneValid) {
+            uiState = ProfileUiState.Error("Please enter a valid phone number")
+            return
+        }
+
+        if (!isBirthdayValid) {
+            uiState = ProfileUiState.Error("Please enter a valid date")
+            return
+        }
+
+        if (!isWhatsappValid) {
+            uiState = ProfileUiState.Error("Please enter a valid WhatsApp number")
+            return
+        }
+
         if (!isFormValid) return
 
-        uiState = currentState.copy(isSaving = true)
+        val whatsappFullNumber = if (whatsappNumber.isNotBlank()) {
+            val country = Countries.find { it.code == whatsappCountryCode }
+            val code = country?.phoneCode?.filter { it.isDigit() } ?: ""
+            code + whatsappNumber
+        } else ""
 
         val updatedUser = currentState.user.copy(
             firstName = firstName,
@@ -149,6 +183,10 @@ class ProfileViewModel(
             birthday = birthday,
             bio = bio,
             socials = UserSocials(
+                whatsappNumber = whatsappNumber,
+                whatsappCountryCode = whatsappCountryCode,
+                whatsappFullNumber = whatsappFullNumber,
+                telegramUsername = telegramUsername,
                 facebookUsername = facebookUsername,
                 instagramUsername = instagramUsername,
                 tiktokUsername = tiktokUsername,
@@ -156,6 +194,7 @@ class ProfileViewModel(
             )
         )
 
+        uiState = currentState.copy(isSaving = true)
         viewModelScope.launch {
             userRepository.updateUser(updatedUser)
                 .onSuccess {

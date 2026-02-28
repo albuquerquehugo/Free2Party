@@ -396,6 +396,7 @@ fun PlanDialog(
                     color = MaterialTheme.colorScheme.primary
                 )
 
+                // TODO: Restrict selectable friends to accepted (not invited)
                 Column {
                     VisibilityOption(
                         label = "Everyone",

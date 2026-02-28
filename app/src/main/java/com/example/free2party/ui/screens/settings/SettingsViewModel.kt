@@ -65,6 +65,7 @@ class SettingsViewModel(
         }
     }
 
+    // TODO: Fix dark mode changing
     fun updateSettings(updatedUser: User) {
         val currentState = uiState as? SettingsUiState.Success ?: return
         uiState = currentState.copy(isSaving = true)

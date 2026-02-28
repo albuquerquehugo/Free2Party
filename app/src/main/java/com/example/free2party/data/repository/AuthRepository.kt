@@ -7,13 +7,13 @@ import com.google.firebase.auth.FirebaseUser
 interface AuthRepository {
     val currentUser: FirebaseUser?
     suspend fun register(
+        profilePicUri: Uri? = null,
         firstName: String,
         lastName: String,
         email: String,
         password: String,
-        profilePicUri: Uri? = null,
-        phoneNumber: String = "",
         countryCode: String = "",
+        phoneNumber: String = "",
         birthday: String = "",
         bio: String = "",
         socials: UserSocials = UserSocials()

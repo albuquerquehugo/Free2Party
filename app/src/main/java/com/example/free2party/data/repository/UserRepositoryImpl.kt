@@ -27,6 +27,15 @@ class UserRepositoryImpl(
     override val currentUserId: String
         get() = auth.currentUser?.uid ?: ""
 
+    override val userIdFlow: Flow<String> = callbackFlow {
+        val listener = FirebaseAuth.IdTokenListener { firebaseAuth: FirebaseAuth ->
+            trySend(firebaseAuth.currentUser?.uid ?: "")
+        }
+        auth.addIdTokenListener(listener)
+        trySend(auth.currentUser?.uid ?: "")
+        awaitClose { auth.removeIdTokenListener(listener) }
+    }
+
     override fun getCurrentUserStatus(): Flow<Boolean> = callbackFlow {
         val uid = currentUserId
         if (uid.isBlank()) {

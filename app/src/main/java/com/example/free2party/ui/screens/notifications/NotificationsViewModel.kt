@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -42,16 +43,34 @@ class NotificationsViewModel(
     val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests.asStateFlow()
 
     init {
-        listenToIncomingRequests()
+        // We need a UserRepository to observe the auth state
+        val userRepository = UserRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore,
+            storage = Firebase.storage
+        )
+        
+        viewModelScope.launch {
+            userRepository.userIdFlow.collectLatest { uid ->
+                if (uid.isNotBlank()) {
+                    listenToIncomingRequests()
+                } else {
+                    observationJob?.cancel()
+                    _friendRequests.value = emptyList()
+                }
+            }
+        }
     }
 
     private fun listenToIncomingRequests() {
         observationJob?.cancel()
         observationJob = socialRepository.getIncomingFriendRequests()
+            .onEach { requests ->
+                _friendRequests.value = requests
+            }
             .catch { e ->
                 Log.e("NotificationsViewModel", "Error observing requests", e)
             }
-            .onEach { _friendRequests.value = it }
             .launchIn(viewModelScope)
     }
 
@@ -69,4 +88,6 @@ class NotificationsViewModel(
             socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
         }
     }
+
+    // TODO: Update Notifications to show accepted or declined friend requests
 }

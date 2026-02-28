@@ -45,6 +45,7 @@ fun InputTextField(
     icon: ImageVector? = null,
     painter: Painter? = null,
     leadingIconExtra: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
     changeVisibility: () -> Unit = {},
@@ -91,6 +92,7 @@ fun InputTextField(
         } else {
             visualTransformation
         },
+        prefix = prefix,
         leadingIcon = {
             Row(
                 modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,

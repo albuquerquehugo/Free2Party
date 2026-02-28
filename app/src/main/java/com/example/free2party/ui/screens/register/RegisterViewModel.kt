@@ -42,10 +42,13 @@ class RegisterViewModel(
     var email by mutableStateOf("")
     var password by mutableStateOf("")
     var profilePicUri by mutableStateOf<Uri?>(null)
-    var phoneNumber by mutableStateOf("")
     var countryCode by mutableStateOf("")
+    var phoneNumber by mutableStateOf("")
     var birthday by mutableStateOf("")
     var bio by mutableStateOf("")
+    var whatsappCountryCode by mutableStateOf("")
+    var whatsappNumber by mutableStateOf("")
+    var telegramUsername by mutableStateOf("")
     var facebookUsername by mutableStateOf("")
     var instagramUsername by mutableStateOf("")
     var tiktokUsername by mutableStateOf("")
@@ -61,13 +64,15 @@ class RegisterViewModel(
         birthday.isEmpty() || isValidDateDigits(birthday, DatePattern.YYYY_MM_DD)
     }
 
+    private val isWhatsappValid by derivedStateOf {
+        if (whatsappNumber.isEmpty()) return@derivedStateOf whatsappCountryCode.isEmpty()
+        val country = Countries.find { it.code == whatsappCountryCode }
+        country == null || whatsappNumber.length == country.digitsCount
+    }
+
     val isFormValid by derivedStateOf {
-        firstName.isNotBlank() &&
-                lastName.isNotBlank() &&
-                email.isNotBlank() &&
-                password.isNotBlank() &&
-                isPhoneValid &&
-                isBirthdayValid
+        firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+                && isPhoneValid && isBirthdayValid && isWhatsappValid
     }
 
     var uiState by mutableStateOf<RegisterUiState>(RegisterUiState.Idle)
@@ -96,6 +101,17 @@ class RegisterViewModel(
             return
         }
 
+        if (!isWhatsappValid) {
+            uiState = RegisterUiState.Error("Please enter a valid WhatsApp number")
+            return
+        }
+
+        val whatsappFullNumber = if (whatsappNumber.isNotBlank()) {
+            val country = Countries.find { it.code == whatsappCountryCode }
+            val code = country?.phoneCode?.filter { it.isDigit() } ?: ""
+            code + whatsappNumber
+        } else ""
+
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
             authRepository.register(
@@ -109,6 +125,10 @@ class RegisterViewModel(
                 birthday = birthday,
                 bio = bio,
                 socials = UserSocials(
+                    whatsappNumber = whatsappNumber,
+                    whatsappCountryCode = whatsappCountryCode,
+                    whatsappFullNumber = whatsappFullNumber,
+                    telegramUsername = telegramUsername,
                     facebookUsername = facebookUsername,
                     instagramUsername = instagramUsername,
                     tiktokUsername = tiktokUsername,
@@ -133,6 +153,9 @@ class RegisterViewModel(
         countryCode = ""
         birthday = ""
         bio = ""
+        whatsappNumber = ""
+        whatsappCountryCode = ""
+        telegramUsername = ""
         facebookUsername = ""
         instagramUsername = ""
         tiktokUsername = ""

@@ -21,13 +21,13 @@ class AuthRepositoryImpl(
         get() = auth.currentUser
 
     override suspend fun register(
+        profilePicUri: Uri?,
         firstName: String,
         lastName: String,
         email: String,
         password: String,
-        profilePicUri: Uri?,
-        phoneNumber: String,
         countryCode: String,
+        phoneNumber: String,
         birthday: String,
         bio: String,
         socials: UserSocials
@@ -42,15 +42,15 @@ class AuthRepositoryImpl(
 
         val newUser = User(
             uid = firebaseUser.uid,
+            profilePicUrl = profilePicUrl,
             firstName = firstName,
             lastName = lastName,
             email = email,
-            phoneNumber = phoneNumber,
             countryCode = countryCode,
+            phoneNumber = phoneNumber,
             birthday = birthday,
             socials = socials,
             bio = bio,
-            profilePicUrl = profilePicUrl,
             isFreeNow = false
             // createdAt is handled by @ServerTimestamp in User model
         )

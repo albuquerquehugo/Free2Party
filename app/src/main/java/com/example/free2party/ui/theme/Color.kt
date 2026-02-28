@@ -53,3 +53,6 @@ val Red70 = Color(0xFFE30000)
 val Red80 = Color(0xFFFFB4AB)
 val Red90 = Color(0xFFFFDAD6)
 val Red95 = Color(0xFFFFEDEA)
+
+val TelegramColor = Color(0xFF24A1DE)
+val WhatsAppColor = Color(0xFF25D366)

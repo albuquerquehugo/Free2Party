@@ -191,6 +191,7 @@ fun PlanItem(
                         }
                     }
 
+                    // TODO: Move the duration badge near to time
                     DurationBadge(text = duration, isCurrent = planStatus.isCurrent)
                 }
 
@@ -247,6 +248,7 @@ fun PlanItem(
             }
         }
 
+        // TODO: Add menu on the right side
         if (!isReadOnly) {
             PlanActionsMenu(
                 expanded = showMenu,
