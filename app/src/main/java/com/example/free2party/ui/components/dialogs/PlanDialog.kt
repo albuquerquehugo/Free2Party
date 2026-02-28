@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.util.formatTime
 import com.example.free2party.util.formatTimeForDisplay
@@ -76,6 +77,10 @@ fun PlanDialog(
         mutableStateOf(
             editingPlan?.visibility ?: PlanVisibility.EVERYONE
         )
+    }
+
+    val acceptedFriends = remember(friends) {
+        friends.filter { it.inviteStatus == InviteStatus.ACCEPTED }
     }
 
     var exceptFriendIds by remember {
@@ -396,7 +401,6 @@ fun PlanDialog(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                // TODO: Restrict selectable friends to accepted (not invited)
                 Column {
                     VisibilityOption(
                         label = "Everyone",
@@ -413,7 +417,7 @@ fun PlanDialog(
                         })
                     AnimatedVisibility(visible = visibility == PlanVisibility.EXCEPT) {
                         FriendSelector(
-                            friends = friends,
+                            friends = acceptedFriends,
                             selectedFriendIds = exceptFriendIds,
                             onToggleFriend = { friendId ->
                                 exceptFriendIds = if (friendId in exceptFriendIds) {
@@ -422,7 +426,7 @@ fun PlanDialog(
                                     exceptFriendIds + friendId
                                 }
                             },
-                            onSelectAll = { exceptFriendIds = friends.map { it.uid } },
+                            onSelectAll = { exceptFriendIds = acceptedFriends.map { it.uid } },
                             onUnselectAll = { exceptFriendIds = emptyList() }
                         )
                     }
@@ -435,7 +439,7 @@ fun PlanDialog(
                         })
                     AnimatedVisibility(visible = visibility == PlanVisibility.ONLY) {
                         FriendSelector(
-                            friends = friends,
+                            friends = acceptedFriends,
                             selectedFriendIds = onlyFriendIds,
                             onToggleFriend = { friendId ->
                                 onlyFriendIds = if (friendId in onlyFriendIds) {
@@ -444,7 +448,7 @@ fun PlanDialog(
                                     onlyFriendIds + friendId
                                 }
                             },
-                            onSelectAll = { onlyFriendIds = friends.map { it.uid } },
+                            onSelectAll = { onlyFriendIds = acceptedFriends.map { it.uid } },
                             onUnselectAll = { onlyFriendIds = emptyList() }
                         )
                     }
