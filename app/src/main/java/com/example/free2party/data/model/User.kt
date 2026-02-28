@@ -10,9 +10,16 @@ enum class DatePattern(val pattern: String, val label: String) {
     DD_MM_YYYY("dd-MM-yyyy", "DD/MM/YYYY")
 }
 
+enum class ThemeMode(val label: String) {
+    AUTOMATIC("Automatic"),
+    LIGHT("Light"),
+    DARK("Dark")
+}
+
 data class UserSettings(
     val use24HourFormat: Boolean = true,
-    val datePattern: DatePattern = DatePattern.YYYY_MM_DD
+    val datePattern: DatePattern = DatePattern.YYYY_MM_DD,
+    val themeMode: ThemeMode = ThemeMode.AUTOMATIC
 )
 
 data class UserSocials(

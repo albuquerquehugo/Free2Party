@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.data.model.DatePattern
+import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
@@ -116,9 +117,14 @@ fun SettingsScreenContent(
     var datePattern by remember(user.settings.datePattern) {
         mutableStateOf(user.settings.datePattern)
     }
+    var themeMode by remember(user.settings.themeMode) {
+        mutableStateOf(user.settings.themeMode)
+    }
 
-    val hasChanges = remember(user, use24HourFormat, datePattern) {
-        use24HourFormat != user.settings.use24HourFormat || datePattern != user.settings.datePattern
+    val hasChanges = remember(user, use24HourFormat, datePattern, themeMode) {
+        use24HourFormat != user.settings.use24HourFormat ||
+                datePattern != user.settings.datePattern ||
+                themeMode != user.settings.themeMode
     }
 
     Column(
@@ -137,24 +143,56 @@ fun SettingsScreenContent(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
             )
         ) {
-            // TODO: Add dark/light mode selection
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "App Theme:",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .selectableGroup(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    ThemeMode.entries.forEach { mode ->
+                        SettingsOption(
+                            label = mode.label,
+                            selected = themeMode == mode,
+                            onClick = { themeMode = mode },
+                            enabled = !isSaving
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = "Time Format:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 12.dp)
                 )
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
                         .selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -176,21 +214,22 @@ fun SettingsScreenContent(
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = "Date Format:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 12.dp)
                 )
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
                         .selectableGroup(),
                     horizontalAlignment = Alignment.Start
                 ) {
@@ -214,7 +253,8 @@ fun SettingsScreenContent(
                     user.copy(
                         settings = user.settings.copy(
                             use24HourFormat = use24HourFormat,
-                            datePattern = datePattern
+                            datePattern = datePattern,
+                            themeMode = themeMode
                         )
                     )
                 )
