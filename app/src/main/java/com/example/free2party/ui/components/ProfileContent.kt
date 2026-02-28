@@ -12,11 +12,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -31,14 +35,17 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -55,6 +62,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -62,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.free2party.R
+import com.example.free2party.data.model.Country
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.util.DateVisualTransformation
@@ -118,8 +127,9 @@ fun ProfileContent(
     }
     val focusManager = LocalFocusManager.current
     val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
-    var showCountryMenu by remember { mutableStateOf(false) }
-    var showWhatsappCountryMenu by remember { mutableStateOf(false) }
+    
+    val (showCountryDialog, setShowCountryDialog) = remember { mutableStateOf(false) }
+    val (showWhatsappCountryDialog, setShowWhatsappCountryDialog) = remember { mutableStateOf(false) }
     
     val selectedCountry = Countries.find { it.code == countryCode }
     val selectedWhatsappCountry = Countries.find { it.code == whatsappCountryCode }
@@ -243,7 +253,6 @@ fun ProfileContent(
 
             passwordField?.invoke()
 
-            // TODO: Insert a search field on country selection
             InputTextField(
                 value = phoneNumber,
                 onValueChange = { newValue ->
@@ -260,7 +269,7 @@ fun ProfileContent(
                 leadingIconExtra = {
                     Box(modifier = Modifier.padding(start = 16.dp)) {
                         Row(
-                            modifier = Modifier.clickable { showCountryMenu = true },
+                            modifier = Modifier.clickable { setShowCountryDialog(true) },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (selectedCountry != null) {
@@ -287,39 +296,6 @@ fun ProfileContent(
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
-                        }
-
-                        DropdownMenu(
-                            expanded = showCountryMenu,
-                            onDismissRequest = { showCountryMenu = false }
-                        ) {
-                            Countries.forEach { country ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                country.flag,
-                                                modifier = Modifier.padding(end = 8.dp)
-                                            )
-                                            Text(country.name)
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                "(${country.phoneCode})",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.6f
-                                                )
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        onCountryCodeChange(country.code)
-                                        onPhoneNumberChange("") // Reset number when country changes
-                                        showCountryMenu = false
-                                        phoneFocusRequester.requestFocus()
-                                    }
-                                )
-                            }
                         }
                     }
                 },
@@ -412,7 +388,7 @@ fun ProfileContent(
                 leadingIconExtra = {
                     Box(modifier = Modifier.padding(start = 16.dp)) {
                         Row(
-                            modifier = Modifier.clickable { showWhatsappCountryMenu = true },
+                            modifier = Modifier.clickable { setShowWhatsappCountryDialog(true) },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (selectedWhatsappCountry != null) {
@@ -439,39 +415,6 @@ fun ProfileContent(
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
-                        }
-
-                        DropdownMenu(
-                            expanded = showWhatsappCountryMenu,
-                            onDismissRequest = { showWhatsappCountryMenu = false }
-                        ) {
-                            Countries.forEach { country ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                country.flag,
-                                                modifier = Modifier.padding(end = 8.dp)
-                                            )
-                                            Text(country.name)
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(
-                                                "(${country.phoneCode})",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.6f
-                                                )
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        onWhatsappCountryCodeChange(country.code)
-                                        onWhatsappNumberChange("")
-                                        showWhatsappCountryMenu = false
-                                        whatsappFocusRequester.requestFocus()
-                                    }
-                                )
-                            }
                         }
                     }
                 },
@@ -570,6 +513,30 @@ fun ProfileContent(
         }
     }
 
+    if (showCountryDialog) {
+        SearchableCountryPickerDialog(
+            onDismissRequest = { setShowCountryDialog(false) },
+            onCountrySelected = { country ->
+                onCountryCodeChange(country.code)
+                onPhoneNumberChange("")
+                setShowCountryDialog(false)
+                phoneFocusRequester.requestFocus()
+            }
+        )
+    }
+
+    if (showWhatsappCountryDialog) {
+        SearchableCountryPickerDialog(
+            onDismissRequest = { setShowWhatsappCountryDialog(false) },
+            onCountrySelected = { country ->
+                onWhatsappCountryCodeChange(country.code)
+                onWhatsappNumberChange("")
+                setShowWhatsappCountryDialog(false)
+                whatsappFocusRequester.requestFocus()
+            }
+        )
+    }
+
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState()
         DatePickerDialog(
@@ -594,6 +561,122 @@ fun ProfileContent(
             }
         ) {
             DatePicker(state = datePickerState, showModeToggle = false)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchableCountryPickerDialog(
+    onDismissRequest: () -> Unit,
+    onCountrySelected: (Country) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredCountries = remember(searchQuery) {
+        Countries.filter { 
+            it.name.contains(searchQuery, ignoreCase = true) ||
+            it.phoneCode.contains(searchQuery)
+        }
+    }
+
+    BasicAlertDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().height(600.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()
+            ) {
+                Text(
+                    text = "Select Country",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 16.dp, start = 16.dp)
+                )
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    placeholder = { Text("Search country or code...", style = MaterialTheme.typography.bodyMedium) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    if (filteredCountries.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "No results found",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        items(filteredCountries) { country ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onCountrySelected(country) }
+                                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(text = country.flag, fontSize = 24.sp)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = country.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                Text(
+                                    text = country.phoneCode,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismissRequest) {
+                        Text("Close")
+                    }
+                }
+            }
         }
     }
 }
