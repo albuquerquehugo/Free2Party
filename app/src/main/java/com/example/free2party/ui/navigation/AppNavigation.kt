@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,15 +30,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.screens.calendar.CalendarRoute
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import com.example.free2party.ui.screens.home.HomeRoute
 import com.example.free2party.ui.screens.login.LoginRoute
+import com.example.free2party.ui.screens.login.LoginViewModel
 import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
 import com.example.free2party.ui.screens.settings.SettingsRoute
+import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
@@ -58,7 +62,10 @@ val BottomNavItems = listOf(
 )
 
 @Composable
-fun AppNavigation(notificationsViewModel: NotificationsViewModel = viewModel()) {
+fun AppNavigation(
+    settingsRepository: SettingsRepository,
+    notificationsViewModel: NotificationsViewModel = viewModel()
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -74,6 +81,7 @@ fun AppNavigation(notificationsViewModel: NotificationsViewModel = viewModel()) 
     ) { innerPadding ->
         Free2PartyNavGraph(
             navController = navController,
+            settingsRepository = settingsRepository,
             notificationsViewModel = notificationsViewModel,
             modifier = Modifier.padding(innerPadding)
         )
@@ -128,10 +136,13 @@ fun BottomNavigationBar(
 @Composable
 fun Free2PartyNavGraph(
     navController: NavHostController,
+    settingsRepository: SettingsRepository,
     notificationsViewModel: NotificationsViewModel,
     modifier: Modifier = Modifier
 ) {
-    val startDest = if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
+    val startDest = remember {
+        if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
+    }
 
     NavHost(
         navController = navController,
@@ -140,6 +151,9 @@ fun Free2PartyNavGraph(
     ) {
         composable(Screen.Login.route) {
             LoginRoute(
+                viewModel = viewModel(
+                    factory = LoginViewModel.provideFactory(settingsRepository)
+                ),
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -201,7 +215,12 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            SettingsRoute(onBack = { navController.popBackStack() })
+            SettingsRoute(
+                viewModel = viewModel(
+                    factory = SettingsViewModel.provideFactory(settingsRepository)
+                ),
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

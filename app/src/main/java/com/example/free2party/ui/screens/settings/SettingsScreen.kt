@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
@@ -46,7 +45,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun SettingsRoute(
-    viewModel: SettingsViewModel = viewModel(),
+    viewModel: SettingsViewModel,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -63,7 +62,9 @@ fun SettingsRoute(
 
     SettingsScreen(
         uiState = viewModel.uiState,
+        currentThemeMode = viewModel.themeMode,
         onBack = onBack,
+        onSetThemeMode = { viewModel.updateThemeMode(it) },
         onUpdateSettings = { viewModel.updateSettings(it) }
     )
 }
@@ -71,7 +72,9 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    currentThemeMode: ThemeMode,
     onBack: () -> Unit,
+    onSetThemeMode: (ThemeMode) -> Unit,
     onUpdateSettings: (User) -> Unit
 ) {
     Scaffold(
@@ -96,7 +99,9 @@ fun SettingsScreen(
                 SettingsScreenContent(
                     paddingValues = paddingValues,
                     user = uiState.user,
+                    currentThemeMode = currentThemeMode,
                     isSaving = uiState.isSaving,
+                    onSetThemeMode = onSetThemeMode,
                     onUpdateSettings = onUpdateSettings
                 )
             }
@@ -108,7 +113,9 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     paddingValues: PaddingValues,
     user: User,
+    currentThemeMode: ThemeMode,
     isSaving: Boolean,
+    onSetThemeMode: (ThemeMode) -> Unit,
     onUpdateSettings: (User) -> Unit
 ) {
     var use24HourFormat by remember(user.settings.use24HourFormat) {
@@ -117,14 +124,10 @@ fun SettingsScreenContent(
     var datePattern by remember(user.settings.datePattern) {
         mutableStateOf(user.settings.datePattern)
     }
-    var themeMode by remember(user.settings.themeMode) {
-        mutableStateOf(user.settings.themeMode)
-    }
 
-    val hasChanges = remember(user, use24HourFormat, datePattern, themeMode) {
+    val hasChanges = remember(user, use24HourFormat, datePattern) {
         use24HourFormat != user.settings.use24HourFormat ||
-                datePattern != user.settings.datePattern ||
-                themeMode != user.settings.themeMode
+                datePattern != user.settings.datePattern
     }
 
     Column(
@@ -166,9 +169,9 @@ fun SettingsScreenContent(
                     ThemeMode.entries.forEach { mode ->
                         SettingsOption(
                             label = mode.label,
-                            selected = themeMode == mode,
-                            onClick = { themeMode = mode },
-                            enabled = !isSaving
+                            selected = currentThemeMode == mode,
+                            onClick = { onSetThemeMode(mode) },
+                            enabled = true
                         )
                     }
                 }
@@ -253,8 +256,7 @@ fun SettingsScreenContent(
                     user.copy(
                         settings = user.settings.copy(
                             use24HourFormat = use24HourFormat,
-                            datePattern = datePattern,
-                            themeMode = themeMode
+                            datePattern = datePattern
                         )
                     )
                 )

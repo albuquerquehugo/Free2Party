@@ -5,9 +5,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -15,6 +18,7 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 sealed interface LoginUiState {
@@ -29,14 +33,8 @@ sealed class LoginUiEvent {
 }
 
 class LoginViewModel(
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        auth = Firebase.auth,
-        userRepository = UserRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore,
-            storage = Firebase.storage
-        )
-    )
+    private val authRepository: AuthRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     var email by mutableStateOf("")
@@ -49,8 +47,29 @@ class LoginViewModel(
     var uiState by mutableStateOf<LoginUiState>(LoginUiState.Idle)
         private set
 
+    var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
+        private set
+
     private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    init {
+        observeThemeMode()
+    }
+
+    private fun observeThemeMode() {
+        viewModelScope.launch {
+            settingsRepository.themeModeFlow.collectLatest { mode ->
+                themeMode = mode
+            }
+        }
+    }
+
+    fun updateThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            settingsRepository.setThemeMode(mode)
+        }
+    }
 
     fun onLoginClick(onSuccess: () -> Unit) {
         if (uiState is LoginUiState.Loading) return
@@ -105,5 +124,24 @@ class LoginViewModel(
         email = ""
         password = ""
         uiState = LoginUiState.Idle
+    }
+
+    companion object {
+        fun provideFactory(
+            settingsRepository: SettingsRepository,
+            authRepository: AuthRepository = AuthRepositoryImpl(
+                auth = Firebase.auth,
+                userRepository = UserRepositoryImpl(
+                    auth = Firebase.auth,
+                    db = Firebase.firestore,
+                    storage = Firebase.storage
+                )
+            )
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return LoginViewModel(authRepository, settingsRepository) as T
+            }
+        }
     }
 }

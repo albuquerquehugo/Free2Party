@@ -18,8 +18,7 @@ enum class ThemeMode(val label: String) {
 
 data class UserSettings(
     val use24HourFormat: Boolean = true,
-    val datePattern: DatePattern = DatePattern.YYYY_MM_DD,
-    val themeMode: ThemeMode = ThemeMode.AUTOMATIC
+    val datePattern: DatePattern = DatePattern.YYYY_MM_DD
 )
 
 data class UserSocials(

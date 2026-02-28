@@ -7,48 +7,36 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.ThemeMode
-import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import com.example.free2party.data.repository.SettingsRepository
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val userRepository: UserRepository
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
         private set
 
     init {
-        observeUserSettings()
+        observeThemeMode()
     }
 
-    private fun observeUserSettings() {
+    private fun observeThemeMode() {
         viewModelScope.launch {
-            val currentUserId = userRepository.currentUserId
-            if (currentUserId.isNotEmpty()) {
-                userRepository.observeUser(currentUserId).collectLatest { user ->
-                    themeMode = user.settings.themeMode
-                }
+            settingsRepository.themeModeFlow.collectLatest { mode ->
+                themeMode = mode
             }
         }
     }
 
     companion object {
         fun provideFactory(
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            )
+            settingsRepository: SettingsRepository
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MainViewModel(userRepository) as T
+                return MainViewModel(settingsRepository) as T
             }
         }
     }
