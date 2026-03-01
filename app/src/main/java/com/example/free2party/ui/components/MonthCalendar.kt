@@ -207,7 +207,9 @@ fun MonthCalendar(
                         fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
                         color = when {
                             isSelected -> MaterialTheme.colorScheme.onPrimary
-                            isPlanned -> MaterialTheme.colorScheme.onPrimaryContainer
+                            isPlanned && !isDateTimeInPast(dateMillis) ->
+                                MaterialTheme.colorScheme.onPrimaryContainer
+
                             isDateTimeInPast(dateMillis) && !isToday ->
                                 MaterialTheme.colorScheme.inactive
 

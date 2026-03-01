@@ -217,7 +217,7 @@ fun CalendarScreen(
             },
             enabled = !isSelectedDateInPast,
             modifier = Modifier
-                .padding(top = 16.dp, bottom = 24.dp)
+                .padding(bottom = 24.dp)
                 .background(
                     if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
                     else MaterialTheme.colorScheme.primary,

@@ -32,12 +32,13 @@ class PlanRepositoryImpl(
     private val currentUserId: String get() = auth.currentUser?.uid ?: ""
 
     override fun getOwnPlans(): Flow<List<FuturePlan>> = callbackFlow {
-        if (currentUserId.isBlank()) {
+        val uid = currentUserId
+        if (uid.isBlank()) {
             close(UnauthorizedException())
             return@callbackFlow
         }
 
-        val listener = db.collection("users").document(currentUserId)
+        val listener = db.collection("users").document(uid)
             .collection("plans")
             .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
@@ -46,7 +47,7 @@ class PlanRepositoryImpl(
                     return@addSnapshotListener
                 }
                 val plans = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)
+                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id, userId = uid)
                 } ?: emptyList()
                 trySend(plans)
             }
@@ -68,7 +69,7 @@ class PlanRepositoryImpl(
                     return@addSnapshotListener
                 }
                 val allPlans = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)
+                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id, userId = userId)
                 } ?: emptyList()
 
                 // Only return plans that are visible to the current user
@@ -93,7 +94,7 @@ class PlanRepositoryImpl(
                     return@addSnapshotListener
                 }
                 val allPlans = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)
+                    doc.toObject(FuturePlan::class.java)?.copy(id = doc.id, userId = userId)
                 } ?: emptyList()
                 trySend(allPlans)
             }
@@ -163,7 +164,7 @@ class PlanRepositoryImpl(
         val snapshot = db.collection("users").document(userId)
             .collection("plans").get().await()
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(FuturePlan::class.java)?.copy(id = doc.id)
+            doc.toObject(FuturePlan::class.java)?.copy(id = doc.id, userId = userId)
         }
     }
 

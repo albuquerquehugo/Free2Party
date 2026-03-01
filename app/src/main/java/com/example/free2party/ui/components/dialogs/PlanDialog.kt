@@ -94,9 +94,6 @@ fun PlanDialog(
         )
     }
 
-    val originalVisibility = remember { editingPlan?.visibility ?: PlanVisibility.EVERYONE }
-    val originalFriendIds = remember { editingPlan?.friendsSelection ?: emptyList() }
-
     val (showStartDatePicker, setShowStartDatePicker) = remember { mutableStateOf(false) }
     val (showEndDatePicker, setShowEndDatePicker) = remember { mutableStateOf(false) }
     val (showStartTimePicker, setShowStartTimePicker) = remember { mutableStateOf(false) }
@@ -232,12 +229,39 @@ fun PlanDialog(
         else -> emptyList()
     }
 
-    val hasSocialChanges =
-        originalVisibility != visibility || originalFriendIds != currentSelectedIds
+    val hasChanges = remember(
+        note, visibility, currentSelectedIds,
+        startDatePickerState.selectedDateMillis,
+        endDatePickerState.selectedDateMillis,
+        startTimeState.hour, startTimeState.minute,
+        endTimeState.hour, endTimeState.minute,
+
+        editingPlan
+    ) {
+        if (editingPlan == null) true
+        else {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val currentStartDate =
+                startDatePickerState.selectedDateMillis?.let { sdf.format(Date(it)) }
+            val currentEndDate = endDatePickerState.selectedDateMillis?.let { sdf.format(Date(it)) }
+            val currentStartTime = formatTime(startTimeState.hour, startTimeState.minute)
+            val currentEndTime = formatTime(endTimeState.hour, endTimeState.minute)
+
+            currentStartDate != editingPlan.startDate ||
+                    currentEndDate != editingPlan.endDate ||
+                    currentStartTime != editingPlan.startTime ||
+                    currentEndTime != editingPlan.endTime ||
+                    note != editingPlan.note ||
+                    visibility != editingPlan.visibility ||
+                    currentSelectedIds != editingPlan.friendsSelection
+        }
+    }
 
     val isConfirmEnabled = isDateTimeValid && !isStartDateInPast && !isStartTimeInPast &&
             (visibility == PlanVisibility.EVERYONE || currentSelectedIds.isNotEmpty()) &&
-            (editingPlan == null || hasSocialChanges)
+            hasChanges
 
     AlertDialog(
         onDismissRequest = onDismiss,

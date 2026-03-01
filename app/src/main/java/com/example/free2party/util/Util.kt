@@ -191,6 +191,46 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
 }
 
 /**
+ * Calculates the duration between two date-time points and returns a formatted string.
+ * @param startDate The starting date in "yyyy-MM-dd" format.
+ * @param endDate The ending date in "yyyy-MM-dd" format.
+ * @param startTime The starting time in "H:mm" or "HH:mm" format.
+ * @param endTime The ending time in "H:mm" or "HH:mm" format.
+ * @return A user-friendly string representing the duration (e.g., "1d 2h 30m", "5h 15m", "45m").
+ * Returns "0m" if the duration is zero or negative.
+ */
+fun calculateDuration(startDate: String, endDate: String, startTime: String, endTime: String): String {
+    val startDateMillis = parseDateToMillis(startDate) ?: 0L
+    val endDateMillis = parseDateToMillis(endDate) ?: 0L
+    val startTimeMinutes = parseTimeToMinutes(startTime) ?: 0
+    val endTimeMinutes = parseTimeToMinutes(endTime) ?: 0
+
+    val totalMins = ((endDateMillis - startDateMillis) / 60000L) + endTimeMinutes - startTimeMinutes
+
+    if (totalMins <= 0) return "0m"
+
+    val days = totalMins / 1440
+    val remainingMinsAfterDays = totalMins % 1440
+    val hours = remainingMinsAfterDays / 60
+    val minutes = remainingMinsAfterDays % 60
+
+    return when {
+        days > 0 -> {
+            val d = "${days}d"
+            val h = if (hours > 0) " ${hours}h" else ""
+            val m = if (minutes > 0) " ${minutes}m" else ""
+            "$d$h$m".trim()
+        }
+        hours > 0 -> {
+            val h = "${hours}h"
+            val m = if (minutes > 0) " ${minutes}m" else ""
+            "$h$m".trim()
+        }
+        else -> "${minutes}m"
+    }
+}
+
+/**
  * Validates whether a string of exactly 8 digits represents a valid date according to the provided pattern.
  * The function strips separators from the pattern to match the digit-only input and ensures
  * the resulting date is not in the future.

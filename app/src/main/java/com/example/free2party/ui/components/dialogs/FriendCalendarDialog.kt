@@ -1,17 +1,19 @@
 package com.example.free2party.ui.components.dialogs
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -94,7 +96,7 @@ fun FriendCalendarDialog(
                 )
                 MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 val selectedDateText = viewModel.selectedDateMillis?.let {
                     val format = DateFormat.getDateInstance()
@@ -109,18 +111,18 @@ fun FriendCalendarDialog(
                     currentTimeMillis = currentTimeMillis,
                     use24HourFormat = use24HourFormat,
                     friends = friends,
-                    onEdit = {},
-                    onDelete = {},
+                    onEdit = null,
+                    onDelete = null,
                     modifier = Modifier.weight(1f)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = handleDismiss,
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text("Close")
+                    TextButton(onClick = handleDismiss) {
+                        Text("Close")
+                    }
                 }
             }
         }
