@@ -9,6 +9,9 @@ import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -22,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -45,14 +49,37 @@ import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 
-sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
-    object Login : Screen("login", "Login", Icons.AutoMirrored.Filled.Login)
-    object Register : Screen("register", "Register", Icons.Default.HowToReg)
-    object Home : Screen("home", "Home", Icons.Default.Home)
-    object Calendar : Screen("calendar", "Calendar", Icons.Default.CalendarMonth)
-    object Notifications : Screen("notifications", "Notifications", Icons.Default.Notifications)
-    object Profile : Screen("profile", "Profile", Icons.Default.Person)
-    object Settings : Screen("settings", "Settings", Icons.Default.Settings)
+sealed class Screen(
+    val route: String,
+    val label: String? = null,
+    val icon: ImageVector? = null,
+    val iconSelected: ImageVector? = null
+) {
+    object Login : Screen(route = "login", label = "Login", icon = Icons.AutoMirrored.Filled.Login)
+    object Register : Screen(route = "register", label = "Register", icon = Icons.Default.HowToReg)
+    object Profile : Screen(route = "profile", label = "Profile", icon = Icons.Default.Person)
+    object Settings : Screen(route = "settings", label = "Settings", icon = Icons.Default.Settings)
+    object Home : Screen(
+        route = "home",
+        label = "Home",
+        icon = Icons.Outlined.Home,
+        iconSelected = Icons.Filled.Home
+    )
+
+    object Calendar :
+        Screen(
+            route = "calendar",
+            label = "Calendar",
+            icon = Icons.Outlined.CalendarMonth,
+            iconSelected = Icons.Filled.CalendarMonth
+        )
+
+    object Notifications : Screen(
+        route = "notifications",
+        label = "Notifications",
+        icon = Icons.Outlined.Notifications,
+        iconSelected = Icons.Filled.Notifications
+    )
 }
 
 val BottomNavItems = listOf(
@@ -95,29 +122,52 @@ fun BottomNavigationBar(
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val friendRequests by notificationsViewModel.friendRequests.collectAsState()
-    val pendingCount = friendRequests.size
+
+    val unreadCountState = notificationsViewModel.unreadCount.collectAsState(initial = 0)
+    val totalUnread = unreadCountState.value
 
     NavigationBar {
         BottomNavItems.forEach { screen ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
             NavigationBarItem(
                 icon = {
-                    if (screen is Screen.Notifications && pendingCount > 0) {
+                    if (screen is Screen.Notifications && totalUnread > 0) {
                         BadgedBox(
                             badge = {
                                 Badge {
-                                    Text(pendingCount.toString())
+                                    Text(totalUnread.toString())
                                 }
                             }
                         ) {
-                            Icon(screen.icon!!, contentDescription = screen.label)
+                            Icon(
+                                if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                contentDescription = screen.label
+                            )
+
                         }
                     } else {
-                        screen.icon?.let { Icon(it, contentDescription = screen.label) }
+                        if (isSelected && screen.iconSelected != null) {
+                            Icon(screen.iconSelected, contentDescription = screen.label)
+                        } else {
+                            screen.icon?.let {
+                                Icon(it, contentDescription = screen.label)
+                            }
+                        }
                     }
                 },
-                label = { screen.label?.let { Text(it) } },
+                label = {
+                    screen.label?.let {
+                        Text(
+                            text = it,
+                            fontWeight =
+                                if (isSelected) {
+                                    FontWeight.ExtraBold
+                                } else {
+                                    FontWeight.Normal
+                                }
+                        )
+                    }
+                },
                 selected = isSelected,
                 onClick = {
                     navController.navigate(screen.route) {

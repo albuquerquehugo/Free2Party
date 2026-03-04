@@ -76,11 +76,6 @@ val ColorScheme.onInactiveContainer: Color
     @Composable
     get() = Gray50
 
-@get:Suppress("UnusedReceiverParameter")
-val ColorScheme.userText: Color
-    @Composable
-    get() = Gray10
-
 @Composable
 fun Free2PartyTheme(
     themeMode: ThemeMode = ThemeMode.AUTOMATIC,

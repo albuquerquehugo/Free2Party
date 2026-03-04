@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
+import com.example.free2party.data.model.Notification
 import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
@@ -15,13 +16,33 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+sealed class NotificationItem {
+    data class Request(val friendRequest: FriendRequest) : NotificationItem()
+    data class Info(val notification: Notification) : NotificationItem()
+
+    val timestamp: java.util.Date?
+        get() = when (this) {
+            is Request -> friendRequest.timestamp
+            is Info -> notification.timestamp
+        }
+
+    val id: String
+        get() = when (this) {
+            is Request -> friendRequest.id
+            is Info -> notification.id
+        }
+}
 
 class NotificationsViewModel(
     private val socialRepository: SocialRepository = SocialRepositoryImpl(
@@ -42,36 +63,59 @@ class NotificationsViewModel(
     private val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
     val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests.asStateFlow()
 
+    private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
+
+    val unreadCount: StateFlow<Int> = _notifications
+        .onEach { notificationList ->
+            Log.d(
+                "NotificationsViewModel",
+                "Unread count update: ${notificationList.count { !it.isRead }}"
+            )
+        }
+        .combine(_friendRequests) { notifications, requests ->
+            notifications.count { !it.isRead } + requests.size
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val notificationItems: StateFlow<List<NotificationItem>> = combine(
+        _notifications,
+        _friendRequests
+    ) { notifications, requests ->
+        val items = notifications.map { NotificationItem.Info(it) } +
+                requests.map { NotificationItem.Request(it) }
+        items.sortedByDescending { it.timestamp }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     init {
-        // We need a UserRepository to observe the auth state
         val userRepository = UserRepositoryImpl(
             auth = Firebase.auth,
             db = Firebase.firestore,
             storage = Firebase.storage
         )
-        
+
         viewModelScope.launch {
             userRepository.userIdFlow.collectLatest { uid ->
                 if (uid.isNotBlank()) {
-                    listenToIncomingRequests()
+                    listenToData()
                 } else {
                     observationJob?.cancel()
                     _friendRequests.value = emptyList()
+                    _notifications.value = emptyList()
                 }
             }
         }
     }
 
-    private fun listenToIncomingRequests() {
+    private fun listenToData() {
         observationJob?.cancel()
-        observationJob = socialRepository.getIncomingFriendRequests()
-            .onEach { requests ->
-                _friendRequests.value = requests
-            }
-            .catch { e ->
-                Log.e("NotificationsViewModel", "Error observing requests", e)
-            }
-            .launchIn(viewModelScope)
+        observationJob = combine(
+            socialRepository.getIncomingFriendRequests(),
+            socialRepository.getNotifications()
+        ) { requests, notifications ->
+            _friendRequests.value = requests
+            _notifications.value = notifications
+        }.catch { e ->
+            Log.e("NotificationsViewModel", "Error observing notifications", e)
+        }.launchIn(viewModelScope)
     }
 
     fun acceptFriendRequest(request: FriendRequest) {
@@ -89,5 +133,31 @@ class NotificationsViewModel(
         }
     }
 
-    // TODO: Update Notifications to show accepted or declined friend requests
+    fun toggleReadStatus(notification: Notification) {
+        viewModelScope.launch {
+            if (notification.isRead) {
+                socialRepository.markNotificationAsUnread(notification.id)
+            } else {
+                socialRepository.markNotificationAsRead(notification.id)
+            }
+        }
+    }
+
+    fun markAllVisibleAsRead(visibleIds: List<String>) {
+        val unreadVisibleIds = _notifications.value
+            .filter { it.id in visibleIds && !it.isRead }
+            .map { it.id }
+
+        if (unreadVisibleIds.isNotEmpty()) {
+            viewModelScope.launch {
+                socialRepository.markNotificationsAsRead(unreadVisibleIds)
+            }
+        }
+    }
+
+    fun deleteNotification(notificationId: String) {
+        viewModelScope.launch {
+            socialRepository.deleteNotification(notificationId)
+        }
+    }
 }

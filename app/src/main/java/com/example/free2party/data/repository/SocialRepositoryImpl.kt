@@ -7,6 +7,8 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.data.model.Notification
+import com.example.free2party.data.model.NotificationType
 import com.example.free2party.exception.CannotAddSelfException
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.FriendRequestAlreadyAcceptedException
@@ -20,6 +22,7 @@ import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -124,6 +127,28 @@ class SocialRepositoryImpl(
         }
     }
 
+    override fun getNotifications(): Flow<List<Notification>> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            trySend(emptyList())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("users").document(currentUserId)
+            .collection("notifications")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToSocialException(error))
+                    return@addSnapshotListener
+                }
+                val notifications = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(Notification::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+                trySend(notifications)
+            }
+        awaitClose { listener.remove() }
+    }
+
     override suspend fun sendFriendRequest(friendEmail: String): Result<Unit> = try {
         validateSession()
         val receiver = userRepository.getUserByEmail(friendEmail).getOrThrow()
@@ -192,11 +217,23 @@ class SocialRepositoryImpl(
         db.runTransaction { transaction ->
             val requestRef = db.collection("friendRequests").document(requestId)
             val requestDoc = transaction.get(requestRef)
+
             val senderId = requestDoc.getString("senderId") ?: return@runTransaction
             val senderName = requestDoc.getString("senderName") ?: "Unknown"
+            val senderEmail = requestDoc.getString("senderEmail") ?: "Unknown"
+
+            val receiverId = requestDoc.getString("receiverId") ?: return@runTransaction
+            val receiverRef = db.collection("users").document(receiverId)
+            val receiverDoc = transaction.get(receiverRef)
+            val receiverName = receiverDoc.getString("fullName") ?: "Someone"
+            val receiverEmail = receiverDoc.getString("email") ?: ""
 
             if (friendRequestStatus == FriendRequestStatus.ACCEPTED) {
-                transaction.update(requestRef, "friendRequestStatus", FriendRequestStatus.ACCEPTED.name)
+                transaction.update(
+                    requestRef,
+                    "friendRequestStatus",
+                    FriendRequestStatus.ACCEPTED.name
+                )
                 transaction.set(
                     db.collection("users").document(currentUserId).collection("friends")
                         .document(senderId),
@@ -211,11 +248,59 @@ class SocialRepositoryImpl(
                     db.collection("users").document(senderId).collection("friends")
                         .document(currentUserId), "inviteStatus", InviteStatus.ACCEPTED.name
                 )
+
+                // Create notification for sender
+                val senderNotifRef = db.collection("users").document(senderId)
+                    .collection("notifications").document()
+                transaction.set(
+                    senderNotifRef, mapOf(
+                        "message" to "$receiverName ($receiverEmail) was added as a friend",
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.FRIEND_ADDED.name
+                    )
+                )
+
+                // Create notification for receiver
+                val receiverNotifRef = db.collection("users").document(currentUserId)
+                    .collection("notifications").document()
+                transaction.set(
+                    receiverNotifRef, mapOf(
+                        "message" to "$senderName ($senderEmail) was added as a friend",
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.FRIEND_ADDED.name
+                    )
+                )
             } else {
                 transaction.delete(requestRef)
                 transaction.delete(
                     db.collection("users").document(senderId).collection("friends")
                         .document(currentUserId)
+                )
+
+                // Create notification for sender
+                val senderNotifRef = db.collection("users").document(senderId)
+                    .collection("notifications").document()
+                transaction.set(
+                    senderNotifRef, mapOf(
+                        "message" to "Your friend request to $receiverName ($receiverEmail) was declined",
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.FRIEND_DECLINED.name
+                    )
+                )
+
+                // Create notification for receiver
+                val receiverNotifRef = db.collection("users").document(currentUserId)
+                    .collection("notifications").document()
+                transaction.set(
+                    receiverNotifRef, mapOf(
+                        "message" to "$senderName ($senderEmail) friend request was declined",
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.FRIEND_DECLINED.name
+                    )
                 )
             }
         }.await()
@@ -247,11 +332,59 @@ class SocialRepositoryImpl(
         Result.failure(mapToSocialException(e))
     }
 
+    override suspend fun markNotificationAsRead(notificationId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("notifications").document(notificationId)
+            .update("isRead", true).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun markNotificationAsUnread(notificationId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("notifications").document(notificationId)
+            .update("isRead", false).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun markNotificationsAsRead(notificationIds: List<String>): Result<Unit> =
+        try {
+            validateSession()
+            if (notificationIds.isEmpty()) Result.success(Unit)
+            else {
+                val batch = db.batch()
+                notificationIds.forEach { id ->
+                    val ref = db.collection("users").document(currentUserId)
+                        .collection("notifications").document(id)
+                    batch.update(ref, "isRead", true)
+                }
+                batch.commit().await()
+                Result.success(Unit)
+            }
+        } catch (e: Exception) {
+            Result.failure(mapToSocialException(e))
+        }
+
+    override suspend fun deleteNotification(notificationId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("notifications").document(notificationId)
+            .delete().await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
     private fun validateSession() {
         if (currentUserId.isBlank()) throw UnauthorizedException()
     }
 
-    private fun mapToSocialException(e: Exception): Exception {
+    private fun mapToSocialException(e: Throwable): Exception {
         return when (e) {
             is FirebaseNetworkException -> NetworkUnavailableException()
             is FirebaseFirestoreException -> {
