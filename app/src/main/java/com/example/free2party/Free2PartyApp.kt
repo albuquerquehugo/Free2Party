@@ -30,9 +30,10 @@ class Free2PartyApp : Application() {
 
         if (BuildConfig.DEBUG) {
             // Point Firebase to the local emulators
-            Firebase.auth.useEmulator("10.0.2.2", 9099)
-            Firebase.firestore.useEmulator("10.0.2.2", 8080)
-            Firebase.storage.useEmulator("10.0.2.2", 9199)
+            val computerIp = BuildConfig.COMPUTER_IP
+            Firebase.auth.useEmulator(computerIp, 9099)
+            Firebase.firestore.useEmulator(computerIp, 8080)
+            Firebase.storage.useEmulator(computerIp, 9199)
         }
 
         userRepository = UserRepositoryImpl(

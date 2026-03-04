@@ -25,6 +25,12 @@ android {
         debug {
             isMinifyEnabled = false
             isDebuggable = true
+
+            // IP for device emulator
+//            val computerIp = "10.0.2.2"
+            // IP for physical device (insert your computer IP here)
+            val computerIp = "192.168.1.175"
+            buildConfigField("String", "COMPUTER_IP", "\""+computerIp+"\"")
         }
         release {
             isMinifyEnabled = false
