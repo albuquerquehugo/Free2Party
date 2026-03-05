@@ -143,14 +143,14 @@ class NotificationsViewModel(
         }
     }
 
-    fun markAllVisibleAsRead(visibleIds: List<String>) {
-        val unreadVisibleIds = _notifications.value
-            .filter { it.id in visibleIds && !it.isRead }
+    fun markAllAsRead() {
+        val unreadIds = _notifications.value
+            .filter { !it.isRead }
             .map { it.id }
 
-        if (unreadVisibleIds.isNotEmpty()) {
+        if (unreadIds.isNotEmpty()) {
             viewModelScope.launch {
-                socialRepository.markNotificationsAsRead(unreadVisibleIds)
+                socialRepository.markNotificationsAsRead(unreadIds)
             }
         }
     }

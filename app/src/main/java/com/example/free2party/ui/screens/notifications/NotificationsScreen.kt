@@ -36,14 +36,12 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,7 +73,7 @@ fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel()) {
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
         onToggleRead = { viewModel.toggleReadStatus(it) },
         onDelete = { viewModel.deleteNotification(it) },
-        onMarkVisibleAsRead = { viewModel.markAllVisibleAsRead(it) }
+        onMarkAllAsRead = { viewModel.markAllAsRead() }
     )
 }
 
@@ -87,33 +85,9 @@ fun NotificationsScreen(
     onDeclineRequest: (FriendRequest) -> Unit,
     onToggleRead: (Notification) -> Unit,
     onDelete: (String) -> Unit,
-    onMarkVisibleAsRead: (List<String>) -> Unit
+    onMarkAllAsRead: () -> Unit
 ) {
     val listState = rememberLazyListState()
-
-    // Track which unread notifications are currently visible
-    val visibleUnreadIds by remember(listState, items) {
-        derivedStateOf {
-            listState.layoutInfo.visibleItemsInfo.mapNotNull { visibleItem ->
-                val item = items.getOrNull(visibleItem.index)
-                if (item is NotificationItem.Info && !item.notification.isRead) {
-                    item.notification.id
-                } else null
-            }
-        }
-    }
-
-    // Capture the latest visible IDs to ensure the dispose effect uses fresh data
-    val latestVisibleUnreadIds by rememberUpdatedState(visibleUnreadIds)
-
-    // TODO: Change behavior to mark as read if the notification appeared once in the screen
-    DisposableEffect(onMarkVisibleAsRead) {
-        onDispose {
-            if (latestVisibleUnreadIds.isNotEmpty()) {
-                onMarkVisibleAsRead(latestVisibleUnreadIds)
-            }
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -135,12 +109,25 @@ fun NotificationsScreen(
             )
         }
 
-        val titleText = if (unreadCount > 0) "Notifications ($unreadCount)" else "Notifications"
-        Text(
-            text = titleText,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val titleText = if (unreadCount > 0) "Notifications ($unreadCount)" else "Notifications"
+            Text(
+                text = titleText,
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            if (unreadCount > 0) {
+                TextButton(onClick = onMarkAllAsRead) {
+                    Text("Mark all as read")
+                }
+            }
+        }
 
         if (items.isEmpty()) {
             Column(
