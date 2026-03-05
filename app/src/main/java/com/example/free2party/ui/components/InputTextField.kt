@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -42,6 +43,7 @@ fun InputTextField(
     label: String,
     modifier: Modifier = Modifier,
     placeholder: String? = null,
+    placeholderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
     icon: ImageVector? = null,
     painter: Painter? = null,
     leadingIconExtra: @Composable (() -> Unit)? = null,
@@ -74,8 +76,9 @@ fun InputTextField(
         placeholder = placeholder?.let {
             {
                 Text(
-                    it,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = placeholderColor
                 )
             }
         },

@@ -241,14 +241,17 @@ fun ProfileContent(
         InputTextField(
             value = phoneNumber,
             onValueChange = { newValue ->
-                if (selectedCountry != null && newValue.length <= selectedCountry.digitsCount) {
-                    onPhoneNumberChange(newValue.filter { it.isDigit() })
-                } else if (selectedCountry == null) {
-                    onPhoneNumberChange(newValue.filter { it.isDigit() })
+                if (selectedCountry != null) {
+                    if (newValue.length <= selectedCountry.digitsCount) {
+                        onPhoneNumberChange(newValue.filter { it.isDigit() })
+                    }
                 }
             },
             label = "Phone Number",
-            placeholder = selectedCountry?.phoneMask ?: "Please select a country",
+            placeholder = selectedCountry?.phoneMask ?: "Please select a country first",
+            placeholderColor = if (selectedCountry == null)
+                MaterialTheme.colorScheme.error.copy(alpha = 0.7f) 
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             icon = Icons.Default.Phone,
             focusRequester = phoneFocusRequester,
             leadingIconExtra = {
@@ -285,7 +288,7 @@ fun ProfileContent(
                 }
             },
             visualTransformation = PhoneVisualTransformation(selectedCountry?.phoneMask ?: ""),
-            onClear = if (selectedCountry != null || phoneNumber.isNotEmpty()) {
+            onClear = if (selectedCountry != null) {
                 {
                     onCountryCodeChange("")
                     onPhoneNumberChange("")
@@ -364,14 +367,18 @@ fun ProfileContent(
         InputTextField(
             value = whatsappNumber,
             onValueChange = { newValue ->
-                if (selectedWhatsappCountry != null && newValue.length <= selectedWhatsappCountry.digitsCount) {
-                    onWhatsappNumberChange(newValue.filter { it.isDigit() })
-                } else if (selectedWhatsappCountry == null) {
-                    onWhatsappNumberChange(newValue.filter { it.isDigit() })
+                if (selectedWhatsappCountry != null) {
+                    if (newValue.length <= selectedWhatsappCountry.digitsCount) {
+                        onWhatsappNumberChange(newValue.filter { it.isDigit() })
+                    }
                 }
             },
             label = "WhatsApp Number",
-            placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country",
+            placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country first",
+            // Change placeholder color if no country is selected
+            placeholderColor = if (selectedWhatsappCountry == null) 
+                MaterialTheme.colorScheme.error.copy(alpha = 0.7f) 
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             painter = painterResource(id = R.drawable.whatsapp),
             focusRequester = whatsappFocusRequester,
             leadingIconExtra = {
@@ -410,7 +417,7 @@ fun ProfileContent(
             visualTransformation = PhoneVisualTransformation(
                 selectedWhatsappCountry?.phoneMask ?: ""
             ),
-            onClear = if (selectedWhatsappCountry != null || whatsappNumber.isNotEmpty()) {
+            onClear = if (selectedWhatsappCountry != null) {
                 {
                     onWhatsappCountryCodeChange("")
                     onWhatsappNumberChange("")
