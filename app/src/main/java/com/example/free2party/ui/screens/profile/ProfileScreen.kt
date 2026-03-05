@@ -225,7 +225,7 @@ fun ProfileScreenContent(
     val isSaving = uiState.isSaving
     val isUploadingImage = uiState.isUploadingImage
 
-    Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+    Box(modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
         ProfileContent(
             isLoading = isSaving || isUploadingImage,
             profilePicture = user.profilePicUrl,

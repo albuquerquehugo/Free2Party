@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -115,13 +116,13 @@ fun ProfileContent(
     }
     val focusManager = LocalFocusManager.current
     val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
-    
+
     val (showCountryDialog, setShowCountryDialog) = remember { mutableStateOf(false) }
     val (showWhatsappCountryDialog, setShowWhatsappCountryDialog) = remember { mutableStateOf(false) }
-    
+
     val selectedCountry = Countries.find { it.code == countryCode }
     val selectedWhatsappCountry = Countries.find { it.code == whatsappCountryCode }
-    
+
     val phoneFocusRequester = remember { FocusRequester() }
     val whatsappFocusRequester = remember { FocusRequester() }
 
@@ -129,365 +130,366 @@ fun ProfileContent(
         birthday.isNotEmpty() && birthday.length == 8 && !isValidDateDigits(birthday, datePattern)
     }
 
+
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .size(140.dp)
+                .padding(top = 16.dp)
+                .clickable(enabled = !isLoading) { launcher.launch("image/*") },
+            contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(140.dp)
-                    .padding(top = 16.dp)
-                    .clickable(enabled = !isLoading) { launcher.launch("image/*") },
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val hasImage = when (profilePicture) {
-                        is String -> profilePicture.isNotBlank()
-                        is Uri -> true
-                        else -> false
-                    }
-                    if (hasImage) {
-                        AsyncImage(
-                            model = profilePicture,
-                            contentDescription = "Profile Picture",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(100.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                val hasImage = when (profilePicture) {
+                    is String -> profilePicture.isNotBlank()
+                    is Uri -> true
+                    else -> false
                 }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .size(40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                if (hasImage) {
+                    AsyncImage(
+                        model = profilePicture,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
                     Icon(
-                        imageVector = Icons.Default.AddPhotoAlternate,
-                        contentDescription = "Edit Photo",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(20.dp)
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(100.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
-
-            InputTextField(
-                value = firstName,
-                onValueChange = onFirstNameChange,
-                label = "First Name *",
-                icon = Icons.Default.AccountCircle,
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    .size(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddPhotoAlternate,
+                    contentDescription = "Edit Photo",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(20.dp)
                 )
+            }
+        }
+
+        InputTextField(
+            value = firstName,
+            onValueChange = onFirstNameChange,
+            label = "First Name *",
+            icon = Icons.Default.AccountCircle,
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = lastName,
-                onValueChange = onLastNameChange,
-                label = "Last Name *",
-                icon = Icons.Default.AccountCircle,
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = lastName,
+            onValueChange = onLastNameChange,
+            label = "Last Name *",
+            icon = Icons.Default.AccountCircle,
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                label = "Email *",
-                icon = Icons.Default.Email,
-                enabled = !isLoading && isEmailEnabled,
-                showClearIcon = isEmailEnabled,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            label = "Email *",
+            icon = Icons.Default.Email,
+            enabled = !isLoading && isEmailEnabled,
+            showClearIcon = isEmailEnabled,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            passwordField?.invoke()
+        passwordField?.invoke()
 
-            InputTextField(
-                value = phoneNumber,
-                onValueChange = { newValue ->
-                    if (selectedCountry != null && newValue.length <= selectedCountry.digitsCount) {
-                        onPhoneNumberChange(newValue.filter { it.isDigit() })
-                    } else if (selectedCountry == null) {
-                        onPhoneNumberChange(newValue.filter { it.isDigit() })
-                    }
-                },
-                label = "Phone Number",
-                placeholder = selectedCountry?.phoneMask ?: "Please select a country",
-                icon = Icons.Default.Phone,
-                focusRequester = phoneFocusRequester,
-                leadingIconExtra = {
-                    Box(modifier = Modifier.padding(start = 16.dp)) {
-                        Row(
-                            modifier = Modifier.clickable { setShowCountryDialog(true) },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (selectedCountry != null) {
-                                Text(
-                                    text = selectedCountry.flag,
-                                    fontSize = 20.sp
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = selectedCountry.phoneCode,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    softWrap = false,
-                                    maxLines = 1
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Public,
-                                    contentDescription = "Select Country",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+        InputTextField(
+            value = phoneNumber,
+            onValueChange = { newValue ->
+                if (selectedCountry != null && newValue.length <= selectedCountry.digitsCount) {
+                    onPhoneNumberChange(newValue.filter { it.isDigit() })
+                } else if (selectedCountry == null) {
+                    onPhoneNumberChange(newValue.filter { it.isDigit() })
+                }
+            },
+            label = "Phone Number",
+            placeholder = selectedCountry?.phoneMask ?: "Please select a country",
+            icon = Icons.Default.Phone,
+            focusRequester = phoneFocusRequester,
+            leadingIconExtra = {
+                Box(modifier = Modifier.padding(start = 16.dp)) {
+                    Row(
+                        modifier = Modifier.clickable { setShowCountryDialog(true) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (selectedCountry != null) {
+                            Text(
+                                text = selectedCountry.flag,
+                                fontSize = 20.sp
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = selectedCountry.phoneCode,
+                                style = MaterialTheme.typography.bodyMedium,
+                                softWrap = false,
+                                maxLines = 1
+                            )
+                        } else {
                             Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                imageVector = Icons.Default.Public,
+                                contentDescription = "Select Country",
+                                modifier = Modifier.size(24.dp)
                             )
                         }
-                    }
-                },
-                visualTransformation = PhoneVisualTransformation(selectedCountry?.phoneMask ?: ""),
-                onClear = if (selectedCountry != null || phoneNumber.isNotEmpty()) {
-                    {
-                        onCountryCodeChange("")
-                        onPhoneNumberChange("")
-                    }
-                } else null,
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
-            )
-
-            InputTextField(
-                value = birthday.filter { it.isDigit() },
-                onValueChange = { newValue ->
-                    if (newValue.length <= 8) {
-                        onBirthdayChange(newValue)
-                    }
-                },
-                label = "Birthday",
-                placeholder = datePattern.label,
-                icon = Icons.Default.Cake,
-                isError = isBirthdayError,
-                supportingText = if (isBirthdayError) {
-                    { Text("Invalid date", color = MaterialTheme.colorScheme.error) }
-                } else null,
-                visualTransformation = DateVisualTransformation(datePattern),
-                trailingIcon = {
-                    IconButton(onClick = { setShowDatePicker(true) }) {
                         Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = "Select Birthday"
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
-                },
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                }
+            },
+            visualTransformation = PhoneVisualTransformation(selectedCountry?.phoneMask ?: ""),
+            onClear = if (selectedCountry != null || phoneNumber.isNotEmpty()) {
+                {
+                    onCountryCodeChange("")
+                    onPhoneNumberChange("")
+                }
+            } else null,
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = bio,
-                onValueChange = onBioChange,
-                label = "Bio",
-                placeholder = "Write about yourself...",
-                icon = Icons.AutoMirrored.Filled.Notes,
-                minLines = 1,
-                maxLines = 5,
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = birthday.filter { it.isDigit() },
+            onValueChange = { newValue ->
+                if (newValue.length <= 8) {
+                    onBirthdayChange(newValue)
+                }
+            },
+            label = "Birthday",
+            placeholder = datePattern.label,
+            icon = Icons.Default.Cake,
+            isError = isBirthdayError,
+            supportingText = if (isBirthdayError) {
+                { Text("Invalid date", color = MaterialTheme.colorScheme.error) }
+            } else null,
+            visualTransformation = DateVisualTransformation(datePattern),
+            trailingIcon = {
+                IconButton(onClick = { setShowDatePicker(true) }) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Select Birthday"
+                    )
+                }
+            },
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.CenterStart) {
-                Text(text = "Socials", style = MaterialTheme.typography.titleSmall)
-            }
+        InputTextField(
+            value = bio,
+            onValueChange = onBioChange,
+            label = "Bio",
+            placeholder = "Write about yourself...",
+            icon = Icons.AutoMirrored.Filled.Notes,
+            minLines = 1,
+            maxLines = 5,
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+            )
+        )
 
-            // WhatsApp Number Field
-            InputTextField(
-                value = whatsappNumber,
-                onValueChange = { newValue ->
-                    if (selectedWhatsappCountry != null && newValue.length <= selectedWhatsappCountry.digitsCount) {
-                        onWhatsappNumberChange(newValue.filter { it.isDigit() })
-                    } else if (selectedWhatsappCountry == null) {
-                        onWhatsappNumberChange(newValue.filter { it.isDigit() })
-                    }
-                },
-                label = "WhatsApp Number",
-                placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country",
-                painter = painterResource(id = R.drawable.whatsapp),
-                focusRequester = whatsappFocusRequester,
-                leadingIconExtra = {
-                    Box(modifier = Modifier.padding(start = 16.dp)) {
-                        Row(
-                            modifier = Modifier.clickable { setShowWhatsappCountryDialog(true) },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (selectedWhatsappCountry != null) {
-                                Text(
-                                    text = selectedWhatsappCountry.flag,
-                                    fontSize = 20.sp
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = selectedWhatsappCountry.phoneCode,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    softWrap = false,
-                                    maxLines = 1
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Public,
-                                    contentDescription = "Select Country",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(text = "Socials", style = MaterialTheme.typography.titleSmall)
+        }
+
+        InputTextField(
+            value = whatsappNumber,
+            onValueChange = { newValue ->
+                if (selectedWhatsappCountry != null && newValue.length <= selectedWhatsappCountry.digitsCount) {
+                    onWhatsappNumberChange(newValue.filter { it.isDigit() })
+                } else if (selectedWhatsappCountry == null) {
+                    onWhatsappNumberChange(newValue.filter { it.isDigit() })
+                }
+            },
+            label = "WhatsApp Number",
+            placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country",
+            painter = painterResource(id = R.drawable.whatsapp),
+            focusRequester = whatsappFocusRequester,
+            leadingIconExtra = {
+                Box(modifier = Modifier.padding(start = 16.dp)) {
+                    Row(
+                        modifier = Modifier.clickable { setShowWhatsappCountryDialog(true) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (selectedWhatsappCountry != null) {
+                            Text(
+                                text = selectedWhatsappCountry.flag,
+                                fontSize = 20.sp
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = selectedWhatsappCountry.phoneCode,
+                                style = MaterialTheme.typography.bodyMedium,
+                                softWrap = false,
+                                maxLines = 1
+                            )
+                        } else {
                             Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                imageVector = Icons.Default.Public,
+                                contentDescription = "Select Country",
+                                modifier = Modifier.size(24.dp)
                             )
                         }
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
-                },
-                visualTransformation = PhoneVisualTransformation(selectedWhatsappCountry?.phoneMask ?: ""),
-                onClear = if (selectedWhatsappCountry != null || whatsappNumber.isNotEmpty()) {
-                    {
-                        onWhatsappCountryCodeChange("")
-                        onWhatsappNumberChange("")
-                    }
-                } else null,
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                }
+            },
+            visualTransformation = PhoneVisualTransformation(
+                selectedWhatsappCountry?.phoneMask ?: ""
+            ),
+            onClear = if (selectedWhatsappCountry != null || whatsappNumber.isNotEmpty()) {
+                {
+                    onWhatsappCountryCodeChange("")
+                    onWhatsappNumberChange("")
+                }
+            } else null,
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = telegramUsername,
-                onValueChange = onTelegramUsernameChange,
-                label = "Telegram Username",
-                painter = painterResource(id = R.drawable.telegram),
-                prefix = { Text("@") },
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = telegramUsername,
+            onValueChange = onTelegramUsernameChange,
+            label = "Telegram Username",
+            painter = painterResource(id = R.drawable.telegram),
+            prefix = { Text("@") },
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = facebookUsername,
-                onValueChange = onFacebookUsernameChange,
-                label = "Facebook Username",
-                icon = Icons.Default.Facebook,
-                prefix = { Text("@") },
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = facebookUsername,
+            onValueChange = onFacebookUsernameChange,
+            label = "Facebook Username",
+            icon = Icons.Default.Facebook,
+            prefix = { Text("@") },
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = instagramUsername,
-                onValueChange = onInstagramUsernameChange,
-                label = "Instagram Username",
-                painter = painterResource(id = R.drawable.instagram),
-                prefix = { Text("@") },
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = instagramUsername,
+            onValueChange = onInstagramUsernameChange,
+            label = "Instagram Username",
+            painter = painterResource(id = R.drawable.instagram),
+            prefix = { Text("@") },
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = tiktokUsername,
-                onValueChange = onTiktokUsernameChange,
-                label = "TikTok Username",
-                painter = painterResource(id = R.drawable.tiktok),
-                prefix = { Text("@") },
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+        InputTextField(
+            value = tiktokUsername,
+            onValueChange = onTiktokUsernameChange,
+            label = "TikTok Username",
+            painter = painterResource(id = R.drawable.tiktok),
+            prefix = { Text("@") },
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             )
+        )
 
-            InputTextField(
-                value = xUsername,
-                onValueChange = onXUsernameChange,
-                label = "X Username",
-                painter = painterResource(id = R.drawable.x),
-                prefix = { Text("@") },
-                enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() }
-                )
+        InputTextField(
+            value = xUsername,
+            onValueChange = onXUsernameChange,
+            label = "X Username",
+            painter = painterResource(id = R.drawable.x),
+            prefix = { Text("@") },
+            enabled = !isLoading,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
             )
-        }
+        )
 
         if (confirmButtons != null) {
             Box(
@@ -499,6 +501,8 @@ fun ProfileContent(
                 confirmButtons()
             }
         }
+
+        Spacer(modifier = Modifier.imePadding())
     }
 
     if (showCountryDialog) {

@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -147,7 +148,7 @@ fun RegisterScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
+        Box(modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
             ProfileContent(
                 isLoading = uiState is RegisterUiState.Loading,
                 profilePicture = profilePicUri,

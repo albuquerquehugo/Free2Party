@@ -3,7 +3,6 @@ package com.example.free2party.ui.screens.login
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -89,7 +88,10 @@ fun LoginRoute(
         },
         onSetThemeMode = { viewModel.updateThemeMode(it) },
         onLoginClick = { viewModel.onLoginClick(onLoginSuccess) },
-        onForgotPasswordClick = { setShowForgotPasswordDialog(true) },
+        onForgotPasswordClick = {
+            viewModel.resetFields()
+            setShowForgotPasswordDialog(true)
+        },
         onForgotPasswordConfirm = { email -> viewModel.onForgotPasswordConfirm(email) },
         onDismissForgotPassword = {
             viewModel.resetState()
@@ -125,12 +127,12 @@ fun LoginScreen(
     var showThemeMenu by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
         IconButton(
             onClick = { showThemeMenu = true },
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp)
+                .align(Alignment.End)
+                .padding(top = 16.dp, end = 16.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Contrast,
@@ -177,8 +179,8 @@ fun LoginScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -187,11 +189,12 @@ fun LoginScreen(
                 contentDescription = "Free2Party Logo",
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 16.dp)
                     .height(50.dp),
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             InputTextField(
                 value = email,
@@ -245,11 +248,9 @@ fun LoginScreen(
                     text = uiState.message,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             if (uiState is LoginUiState.Loading && !showForgotPasswordDialog) {
                 CircularProgressIndicator()
@@ -263,8 +264,6 @@ fun LoginScreen(
                 ) {
                     Text("Login")
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
 
                 TextButton(
                     onClick = onNavigateToRegister,
