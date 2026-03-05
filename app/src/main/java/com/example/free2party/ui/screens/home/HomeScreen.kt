@@ -208,8 +208,7 @@ fun HomeScreen(
                         Text(
                             text = successState.userName,
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            fontWeight = FontWeight.ExtraBold
                         )
                     }
 
@@ -387,7 +386,7 @@ fun HomeContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
+            .padding(top = paddingValues.calculateTopPadding())
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
@@ -415,8 +414,7 @@ fun HomeContent(
                     else MaterialTheme.colorScheme.busyContainer
                 )
                 .padding(horizontal = 24.dp, vertical = 16.dp),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleLarge,
             color =
                 if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
                 else MaterialTheme.colorScheme.onBusyContainer
@@ -431,8 +429,8 @@ fun HomeContent(
                 .padding(horizontal = 16.dp)
                 .clip(MaterialTheme.shapes.medium)
                 .background(
-                    if (isUserFree) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.primary
+                    if (isUserFree) MaterialTheme.colorScheme.busyContainer
+                    else MaterialTheme.colorScheme.availableContainer
                 )
                 .clickable(enabled = !isActionLoading) { onToggleAvailability() },
             contentAlignment = Alignment.Center
@@ -444,8 +442,8 @@ fun HomeContent(
                     text = if (isUserFree) "Make Me Busy" else "Make Me Free",
                     style = MaterialTheme.typography.titleMedium,
                     color =
-                        if (isUserFree) MaterialTheme.colorScheme.onError
-                        else MaterialTheme.colorScheme.onPrimary
+                        if (isUserFree) MaterialTheme.colorScheme.onBusyContainer
+                        else MaterialTheme.colorScheme.onAvailableContainer
                 )
             }
         }
@@ -534,6 +532,9 @@ fun FriendsListSection(
                     onClick = onFriendItemClick
                 )
             }
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -564,8 +565,7 @@ fun ExpandableFriendSection(
             Text(
                 text = "$title (${friends.size})",
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.secondary
+                fontWeight = FontWeight.Bold
             )
             Icon(
                 imageVector = Icons.Default.ExpandMore,

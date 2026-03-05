@@ -12,74 +12,119 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.example.free2party.data.model.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    error = Red80
+    primary = Blue70,
+    onPrimary = Blue20,
+    primaryContainer = Blue30,
+    onPrimaryContainer = Blue90,
+    secondary = Purple80,
+    onSecondary = Purple20,
+    secondaryContainer = Purple30,
+    onSecondaryContainer = Purple90,
+    tertiary = Red80,
+    onTertiary = Red20,
+    tertiaryContainer = Red30,
+    onTertiaryContainer = Red90,
+    error = Red70,
+    onError = Red20,
+    errorContainer = Red30,
+    onErrorContainer = Red90,
+    background = Gray10,
+    onBackground = Gray90,
+    surface = Gray10,
+    onSurface = Gray90,
+    surfaceVariant = Gray20,
+    onSurfaceVariant = Gray80,
+    outline = Gray60,
+    outlineVariant = Gray30,
+    scrim = Color.Black,
+    inverseSurface = Gray90,
+    inverseOnSurface = Gray10,
+    inversePrimary = Blue40
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    error = Red40
+    primary = Blue40,
+    onPrimary = Color.White,
+    primaryContainer = Blue85,
+    onPrimaryContainer = Blue10,
+    secondary = Purple40,
+    onSecondary = Color.White,
+    secondaryContainer = Purple90,
+    onSecondaryContainer = Purple10,
+    tertiary = Red40,
+    onTertiary = Color.White,
+    tertiaryContainer = Red90,
+    onTertiaryContainer = Red10,
+    error = Red40,
+    onError = Color.White,
+    errorContainer = Red90,
+    onErrorContainer = Red10,
+    background = Blue95,
+    onBackground = Gray10,
+    surface = Gray95,
+    onSurface = Gray10,
+    surfaceVariant = Gray90,
+    onSurfaceVariant = Gray30,
+    outline = Gray50,
+    outlineVariant = Gray80,
+    scrim = Color.Black,
+    inverseSurface = Gray20,
+    inverseOnSurface = Gray95,
+    inversePrimary = Blue80
 )
 
-@get:Suppress("UnusedReceiverParameter")
+// Helper to detect if the resolved color scheme is dark or light
+private val ColorScheme.isDark: Boolean
+    get() = surface.luminance() < 0.5f
+
+// Custom Extension properties for your app-specific logic
 val ColorScheme.available: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Green40 else Green60
+    get() = if (isDark) Green65 else Green60
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.availableContainer: Color
     @Composable
-    get() = Blue90
+    get() = if (isDark) Blue20 else Blue80
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.onAvailableContainer: Color
     @Composable
-    get() = Blue30
+    get() = if (isDark) Blue80 else Blue30
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busy: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) Red40 else Red60
+    get() = if (isDark) Red65 else Red60
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.busyContainer: Color
     @Composable
-    get() = Red90
+    get() = if (isDark) Red20 else Red85
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.onBusyContainer: Color
     @Composable
-    get() = Red40
+    get() = if (isDark) Red80 else Red40
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.inactive: Color
     @Composable
-    get() = Gray70
+    get() = if (isDark) Gray40 else Gray70
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.inactiveContainer: Color
     @Composable
-    get() = Gray90
+    get() = if (isDark) Gray20 else Gray90
 
-@get:Suppress("UnusedReceiverParameter")
 val ColorScheme.onInactiveContainer: Color
     @Composable
-    get() = Gray50
+    get() = if (isDark) Gray70 else Gray50
 
 @Composable
 fun Free2PartyTheme(
     themeMode: ThemeMode = ThemeMode.AUTOMATIC,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {

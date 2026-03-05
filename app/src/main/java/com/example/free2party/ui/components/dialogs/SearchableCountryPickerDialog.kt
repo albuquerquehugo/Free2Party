@@ -57,7 +57,7 @@ fun SearchableCountryPickerDialog(
         modifier = Modifier.fillMaxWidth()
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth().height(600.dp),
+            modifier = Modifier.fillMaxWidth().height(440.dp),
             shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp

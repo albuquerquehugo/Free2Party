@@ -155,7 +155,6 @@ fun SettingsScreenContent(
                     text = "App Theme:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
@@ -188,7 +187,6 @@ fun SettingsScreenContent(
                     text = "Time Format:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
@@ -225,7 +223,6 @@ fun SettingsScreenContent(
                     text = "Date Format:",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 

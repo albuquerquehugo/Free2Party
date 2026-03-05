@@ -60,8 +60,7 @@ fun AboutDialog(
                 )
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    contentDescription = null
                 )
             }
         },
@@ -74,7 +73,6 @@ fun AboutDialog(
                 Text(
                     text = "Free2Party",
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.padding(top = 32.dp)
                 )
@@ -100,7 +98,6 @@ fun AboutDialog(
                 Text(
                     text = "Developed by",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 Text(
