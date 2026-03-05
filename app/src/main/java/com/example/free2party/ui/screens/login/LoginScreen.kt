@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.example.free2party.R
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.ui.components.InputTextField
-import com.example.free2party.ui.components.dialogs.ForgotPasswordDialog
+import com.example.free2party.ui.components.dialogs.EmailDialog
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -94,7 +94,7 @@ fun LoginRoute(
         },
         onForgotPasswordConfirm = { email -> viewModel.onForgotPasswordConfirm(email) },
         onDismissForgotPassword = {
-            viewModel.resetState()
+            viewModel.resetFields()
             setShowForgotPasswordDialog(false)
         },
         onResetState = { viewModel.resetState() },
@@ -136,21 +136,22 @@ fun LoginScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Contrast,
-                contentDescription = "Theme Settings"
+                contentDescription = "Appearance"
             )
 
             DropdownMenu(
                 expanded = showThemeMenu,
-                onDismissRequest = { showThemeMenu = false }
+                onDismissRequest = { showThemeMenu = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp
             ) {
                 Text(
-                    text = "Theme",
+                    text = "Appearance",
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp, bottom = 16.dp),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
 
@@ -276,11 +277,20 @@ fun LoginScreen(
     }
 
     if (showForgotPasswordDialog) {
-        ForgotPasswordDialog(
-            uiState = uiState,
-            onDismiss = onDismissForgotPassword,
-            onConfirm = onForgotPasswordConfirm,
-            onResetState = onResetState
+        val (forgotPasswordEmail, setForgotPasswordEmail) = remember { mutableStateOf("") }
+        EmailDialog(
+            title = "Reset Password",
+            description = "Enter your email address and we'll send you a link to reset your password.",
+            inputValue = forgotPasswordEmail,
+            onValueChange = {
+                setForgotPasswordEmail(it)
+                if (uiState is LoginUiState.Error) onResetState()
+            },
+            onDismiss = { onDismissForgotPassword() },
+            onConfirm = { onForgotPasswordConfirm(forgotPasswordEmail) },
+            isLoading = uiState is LoginUiState.Loading,
+            errorMessage = if (uiState is LoginUiState.Error) uiState.message else null,
+            confirmButtonLabel = "Send link"
         )
     }
 }

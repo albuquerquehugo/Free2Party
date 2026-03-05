@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -137,7 +139,6 @@ fun PlanDialog(
         isDateTimeInPast(it, formatTime(startTimeState.hour, startTimeState.minute))
     } ?: false
 
-    // Initialize state when editing an existing plan
     LaunchedEffect(editingPlan) {
         editingPlan?.let {
             val start = unformatTime(it.startTime)
@@ -159,7 +160,6 @@ fun PlanDialog(
         }
     }
 
-    // Update default times for new plans
     LaunchedEffect(startDatePickerState.selectedDateMillis) {
         if (editingPlan == null) {
             val now = Calendar.getInstance()
@@ -235,7 +235,6 @@ fun PlanDialog(
         endDatePickerState.selectedDateMillis,
         startTimeState.hour, startTimeState.minute,
         endTimeState.hour, endTimeState.minute,
-
         editingPlan
     ) {
         if (editingPlan == null) true
@@ -263,27 +262,33 @@ fun PlanDialog(
             (visibility == PlanVisibility.EVERYONE || currentSelectedIds.isNotEmpty()) &&
             hasChanges
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = if (editingPlan == null) "Schedule your plan" else "Edit your plan",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Time Selection Section
+    BaseDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = if (editingPlan == null) "Schedule your plan" else "Edit your plan",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Start Section
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "Start:",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
-
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedCard(
                             modifier = Modifier
@@ -291,17 +296,11 @@ fun PlanDialog(
                                 .height(48.dp),
                             onClick = { setShowStartDatePicker(true) }
                         ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = startDateText,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color =
-                                        if (isStartDateInPast || !isDateTimeValid) {
-                                            MaterialTheme.colorScheme.error
-                                        } else Color.Unspecified
+                                    color = if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
                                 )
                             }
                         }
@@ -311,26 +310,23 @@ fun PlanDialog(
                                 .height(48.dp),
                             onClick = { setShowStartTimePicker(true) }
                         ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = formatTimeForDisplay(
-                                        formatTime(startTimeState.hour, startTimeState.minute),
-                                        use24HourFormat
+                                        formatTime(
+                                            startTimeState.hour,
+                                            startTimeState.minute
+                                        ), use24HourFormat
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color =
-                                        if (isStartTimeInPast || !isDateTimeValid) {
-                                            MaterialTheme.colorScheme.error
-                                        } else Color.Unspecified
+                                    color = if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
                                 )
                             }
                         }
                     }
                 }
 
+                // End Section
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "End:",
@@ -342,11 +338,9 @@ fun PlanDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
-                            onClick = { setShowEndDatePicker(true) }) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            onClick = { setShowEndDatePicker(true) }
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = endDateText,
                                     style = MaterialTheme.typography.bodySmall,
@@ -360,19 +354,16 @@ fun PlanDialog(
                                 .height(48.dp),
                             onClick = { setShowEndTimePicker(true) }
                         ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = formatTimeForDisplay(
-                                        formatTime(endTimeState.hour, endTimeState.minute),
-                                        use24HourFormat
+                                        formatTime(
+                                            endTimeState.hour,
+                                            endTimeState.minute
+                                        ), use24HourFormat
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color =
-                                        if (!isDateTimeValid) MaterialTheme.colorScheme.error
-                                        else Color.Unspecified
+                                    color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
                                 )
                             }
                         }
@@ -443,18 +434,15 @@ fun PlanDialog(
                         FriendSelector(
                             friends = acceptedFriends,
                             selectedFriendIds = exceptFriendIds,
-                            onToggleFriend = { friendId ->
-                                exceptFriendIds = if (friendId in exceptFriendIds) {
-                                    exceptFriendIds - friendId
-                                } else {
-                                    exceptFriendIds + friendId
-                                }
+                            onToggleFriend = { id ->
+                                exceptFriendIds =
+                                    if (id in exceptFriendIds) exceptFriendIds - id
+                                    else exceptFriendIds + id
                             },
                             onSelectAll = { exceptFriendIds = acceptedFriends.map { it.uid } },
                             onUnselectAll = { exceptFriendIds = emptyList() }
                         )
                     }
-
                     VisibilityOption(
                         label = "Only selected people...",
                         selected = visibility == PlanVisibility.ONLY,
@@ -465,12 +453,10 @@ fun PlanDialog(
                         FriendSelector(
                             friends = acceptedFriends,
                             selectedFriendIds = onlyFriendIds,
-                            onToggleFriend = { friendId ->
-                                onlyFriendIds = if (friendId in onlyFriendIds) {
-                                    onlyFriendIds - friendId
-                                } else {
-                                    onlyFriendIds + friendId
-                                }
+                            onToggleFriend = { id ->
+                                onlyFriendIds =
+                                    if (id in onlyFriendIds) onlyFriendIds - id
+                                    else onlyFriendIds + id
                             },
                             onSelectAll = { onlyFriendIds = acceptedFriends.map { it.uid } },
                             onUnselectAll = { onlyFriendIds = emptyList() }
@@ -478,35 +464,41 @@ fun PlanDialog(
                     }
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val startDateMillis = startDatePickerState.selectedDateMillis
-                    val endDateMillis = endDatePickerState.selectedDateMillis
 
-                    if (startDateMillis != null && endDateMillis != null) {
-                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-                            timeZone = TimeZone.getTimeZone("UTC")
-                        }
-                        onConfirm(
-                            sdf.format(Date(startDateMillis)),
-                            sdf.format(Date(endDateMillis)),
-                            formatTime(startTimeState.hour, startTimeState.minute),
-                            formatTime(endTimeState.hour, endTimeState.minute),
-                            note,
-                            visibility,
-                            currentSelectedIds
-                        )
-                    }
-                },
-                enabled = isConfirmEnabled
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(if (editingPlan == null) "Add" else "Update")
+                TextButton(onClick = onDismiss) { Text("Cancel") }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        val startMillis = startDatePickerState.selectedDateMillis
+                        val endMillis = endDatePickerState.selectedDateMillis
+                        if (startMillis != null && endMillis != null) {
+                            val sdf = SimpleDateFormat(
+                                "yyyy-MM-dd",
+                                Locale.getDefault()
+                            ).apply { timeZone = TimeZone.getTimeZone("UTC") }
+                            onConfirm(
+                                sdf.format(Date(startMillis)),
+                                sdf.format(Date(endMillis)),
+                                formatTime(startTimeState.hour, startTimeState.minute),
+                                formatTime(endTimeState.hour, endTimeState.minute),
+                                note,
+                                visibility,
+                                currentSelectedIds
+                            )
+                        }
+                    },
+                    enabled = isConfirmEnabled
+                ) {
+                    Text(if (editingPlan == null) "Add" else "Update")
+                }
             }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
+        }
+    }
 
     if (showStartDatePicker) {
         DatePickerDialog(
@@ -605,6 +597,7 @@ fun FriendSelector(
         OutlinedCard(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(vertical = 4.dp)
                 .heightIn(max = 150.dp)
         ) {
             if (friends.isEmpty()) {
@@ -634,7 +627,7 @@ fun FriendSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp, end = 16.dp),
+                .padding(top = 4.dp, bottom = 4.dp, end = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Text(

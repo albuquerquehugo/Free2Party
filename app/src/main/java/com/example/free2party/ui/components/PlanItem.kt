@@ -354,7 +354,11 @@ fun PlanActionsMenu(
     onDelete: (() -> Unit)?,
     editEnabled: Boolean = true
 ) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
+    DropdownMenu(
+        expanded = expanded, onDismissRequest = onDismissRequest,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp
+    ) {
         onEdit?.let {
             DropdownMenuItem(
                 text = { Text("Edit") },

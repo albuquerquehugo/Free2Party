@@ -6,12 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,8 +19,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.BuildConfig
 import com.example.free2party.data.model.FriendInfo
@@ -59,70 +55,65 @@ fun FriendCalendarDialog(
         }
     }
 
-    Dialog(
+    BaseDialog(
         onDismissRequest = handleDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        modifier = Modifier.fillMaxWidth(0.9f)
     ) {
-        Surface(
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .padding(16.dp)
+                .fillMaxWidth()
                 .fillMaxHeight(0.75f),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surface
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "${friend.name}'s Calendar",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val plannedDays = viewModel.getPlannedDaysForMonth(
-                    viewModel.displayedYear,
-                    viewModel.displayedMonth
+                Text(
+                    text = "${friend.name}'s Calendar",
+                    style = MaterialTheme.typography.headlineSmall
                 )
-                MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+            }
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                val selectedDateText = viewModel.selectedDateMillis?.let {
-                    val format = DateFormat.getDateInstance()
-                    format.timeZone = TimeZone.getTimeZone("UTC")
-                    format.format(Date(it))
-                } ?: ""
+            val plannedDays = viewModel.getPlannedDaysForMonth(
+                viewModel.displayedYear,
+                viewModel.displayedMonth
+            )
+            MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
 
-                PlanResults(
-                    plans = viewModel.filteredPlans,
-                    isDateSelected = viewModel.selectedDateMillis != null,
-                    selectedDateText = selectedDateText,
-                    currentTimeMillis = currentTimeMillis,
-                    use24HourFormat = use24HourFormat,
-                    friends = friends,
-                    onEdit = null,
-                    onDelete = null,
-                    modifier = Modifier.weight(1f)
-                )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = handleDismiss) {
-                        Text("Close")
-                    }
+            val selectedDateText = viewModel.selectedDateMillis?.let {
+                val format = DateFormat.getDateInstance()
+                format.timeZone = TimeZone.getTimeZone("UTC")
+                format.format(Date(it))
+            } ?: ""
+
+            PlanResults(
+                plans = viewModel.filteredPlans,
+                isDateSelected = viewModel.selectedDateMillis != null,
+                selectedDateText = selectedDateText,
+                currentTimeMillis = currentTimeMillis,
+                use24HourFormat = use24HourFormat,
+                friends = friends,
+                onEdit = null,
+                onDelete = null,
+                modifier = Modifier.weight(1f)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = handleDismiss) {
+                    Text("Close")
                 }
             }
         }

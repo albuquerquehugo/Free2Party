@@ -75,9 +75,8 @@ import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.ui.components.dialogs.AboutDialog
+import com.example.free2party.ui.components.dialogs.EmailDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
-import com.example.free2party.ui.components.dialogs.InviteFriendDialog
-import com.example.free2party.ui.theme.TelegramColor
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
@@ -86,6 +85,7 @@ import com.example.free2party.ui.theme.inactiveContainer
 import com.example.free2party.ui.theme.onAvailableContainer
 import com.example.free2party.ui.theme.onBusyContainer
 import com.example.free2party.ui.theme.onInactiveContainer
+import com.example.free2party.ui.theme.TelegramColor
 import com.example.free2party.ui.theme.WhatsAppColor
 import com.example.free2party.util.openSMS
 import com.example.free2party.util.openThirdPartyApp
@@ -134,7 +134,7 @@ fun HomeRoute(
     }
 
     HomeScreen(
-        uiState = homeViewModel.uiState,
+        homeUiState = homeViewModel.uiState,
         inviteFriendUiState = friendViewModel.uiState,
         showInviteFriendDialog = showInviteFriendDialog,
         onLogoutClick = { homeViewModel.logout(onLogout) },
@@ -156,7 +156,7 @@ fun HomeRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    uiState: HomeUiState,
+    homeUiState: HomeUiState,
     inviteFriendUiState: InviteFriendUiState,
     showInviteFriendDialog: Boolean,
     onLogoutClick: () -> Unit,
@@ -203,7 +203,7 @@ fun HomeScreen(
                         .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val successState = uiState as? HomeUiState.Success
+                    val successState = homeUiState as? HomeUiState.Success
                     if (successState != null) {
                         Text(
                             text = successState.userName,
@@ -215,7 +215,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Box {
-                        val profilePicUrl = (uiState as? HomeUiState.Success)?.profilePicUrl
+                        val profilePicUrl = (homeUiState as? HomeUiState.Success)?.profilePicUrl
                         if (!profilePicUrl.isNullOrBlank()) {
                             AsyncImage(
                                 model = profilePicUrl,
@@ -235,7 +235,9 @@ fun HomeScreen(
                         }
                         DropdownMenu(
                             expanded = showUserMenu,
-                            onDismissRequest = { showUserMenu = false }
+                            onDismissRequest = { showUserMenu = false },
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 3.dp
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Profile") },
@@ -296,7 +298,7 @@ fun HomeScreen(
                 }
             }
 
-            when (uiState) {
+            when (homeUiState) {
                 is HomeUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
@@ -306,7 +308,7 @@ fun HomeScreen(
                 is HomeUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = uiState.message,
+                            text = homeUiState.message,
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -315,9 +317,9 @@ fun HomeScreen(
                 is HomeUiState.Success -> {
                     HomeContent(
                         paddingValues = paddingValues,
-                        isUserFree = uiState.isUserFree,
-                        friendsList = uiState.friendsList,
-                        isActionLoading = uiState.isActionLoading,
+                        isUserFree = homeUiState.isUserFree,
+                        friendsList = homeUiState.friendsList,
+                        isActionLoading = homeUiState.isActionLoading,
                         onToggleAvailability = onToggleAvailability,
                         onRemoveFriend = onRemoveFriend,
                         onCancelInvite = onCancelInvite,
@@ -354,11 +356,20 @@ fun HomeScreen(
         }
 
         if (showInviteFriendDialog) {
-            InviteFriendDialog(
-                uiState = inviteFriendUiState,
+            var inviteEmail by remember { mutableStateOf("") }
+            EmailDialog(
+                title = "Invite Friend",
+                description = "Enter your friend's email to send an invite.",
+                inputValue = inviteEmail,
+                onValueChange = {
+                    inviteEmail = it
+                    if (inviteFriendUiState is InviteFriendUiState.Error) onInviteFriendResetState()
+                },
                 onDismiss = onInviteFriendDismiss,
-                onConfirm = onInviteFriendConfirm,
-                onResetState = onInviteFriendResetState
+                onConfirm = { onInviteFriendConfirm(inviteEmail) },
+                isLoading = inviteFriendUiState is InviteFriendUiState.Searching,
+                errorMessage = if (inviteFriendUiState is InviteFriendUiState.Error) inviteFriendUiState.message else null,
+                confirmButtonLabel = "Send invite"
             )
         }
 
@@ -683,9 +694,10 @@ fun FriendItem(
 
                         DropdownMenu(
                             expanded = showContactMenu,
-                            onDismissRequest = { showContactMenu = false }
+                            onDismissRequest = { showContactMenu = false },
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 3.dp
                         ) {
-                            // SMS
                             val smsNumber = "${friend.phoneCode}${friend.phoneNumber}"
                             if (smsNumber.isNotBlank()) {
                                 DropdownMenuItem(
@@ -705,7 +717,6 @@ fun FriendItem(
                                 )
                             }
 
-                            // Facebook
                             if (friend.socials.facebookUsername.isNotBlank()) {
                                 DropdownMenuItem(
                                     text = { Text("Facebook") },
@@ -727,7 +738,6 @@ fun FriendItem(
                                 )
                             }
 
-                            // Instagram
                             if (friend.socials.instagramUsername.isNotBlank()) {
                                 DropdownMenuItem(
                                     text = { Text("Instagram") },
@@ -749,7 +759,6 @@ fun FriendItem(
                                 )
                             }
 
-                            // Telegram
                             if (friend.socials.telegramUsername.isNotBlank()) {
                                 DropdownMenuItem(
                                     text = { Text("Telegram") },
@@ -771,7 +780,6 @@ fun FriendItem(
                                 )
                             }
 
-                            // TikTok
                             if (friend.socials.tiktokUsername.isNotBlank()) {
                                 DropdownMenuItem(
                                     text = { Text("TikTok") },
@@ -793,7 +801,6 @@ fun FriendItem(
                                 )
                             }
 
-                            // WhatsApp
                             val waNumber = friend.socials.whatsappFullNumber.ifBlank {
                                 "${friend.phoneCode}${friend.phoneNumber}".replace("+", "")
                                     .filter { it.isDigit() }
@@ -819,7 +826,6 @@ fun FriendItem(
                                 )
                             }
 
-                            // X
                             if (friend.socials.xUsername.isNotBlank()) {
                                 DropdownMenuItem(
                                     text = { Text("X") },
@@ -859,7 +865,9 @@ fun FriendItem(
 
                     DropdownMenu(
                         expanded = showFriendMenu,
-                        onDismissRequest = { showFriendMenu = false }
+                        onDismissRequest = { showFriendMenu = false },
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 3.dp
                     ) {
                         DropdownMenuItem(
                             text = {
