@@ -1,3 +1,6 @@
+import java.net.Inet4Address
+import java.net.NetworkInterface
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -26,11 +29,9 @@ android {
             isMinifyEnabled = false
             isDebuggable = true
 
-            // IP for device emulator
-//            val computerIp = "10.0.2.2"
-            // IP for physical device (insert your computer IP here)
-            val computerIp = "192.168.1.175"
-            buildConfigField("String", "COMPUTER_IP", "\""+computerIp+"\"")
+            val virtualDeviceEmulator = false
+            val computerIp = if (virtualDeviceEmulator) "10.0.2.2" else getLocalIpAddress()
+            buildConfigField("String", "COMPUTER_IP", "\"$computerIp\"")
         }
         release {
             isMinifyEnabled = false
@@ -104,4 +105,31 @@ dependencies {
     // --- Debug Tools ---
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+fun getLocalIpAddress(): String {
+    try {
+        val interfaces = NetworkInterface.getNetworkInterfaces()
+        val addresses = mutableListOf<String>()
+        
+        for (networkInterface in interfaces) {
+            if (networkInterface.isLoopback || !networkInterface.isUp) continue
+
+            val interfaceAddresses = networkInterface.inetAddresses
+            for (address in interfaceAddresses) {
+                if (address is Inet4Address && !address.isLoopbackAddress) {
+                    val hostAddress = address.hostAddress
+                    // Prioritize common local network ranges
+                    if (hostAddress.startsWith("192.168.") || hostAddress.startsWith("10.")) {
+                        return hostAddress
+                    }
+                    addresses.add(hostAddress)
+                }
+            }
+        }
+        return addresses.firstOrNull() ?: "10.0.2.2"
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return "10.0.2.2"
 }

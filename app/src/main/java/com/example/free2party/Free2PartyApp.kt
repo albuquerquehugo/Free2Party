@@ -29,8 +29,8 @@ class Free2PartyApp : Application() {
         super.onCreate()
 
         if (BuildConfig.DEBUG) {
-            // Point Firebase to the local emulators
             val computerIp = BuildConfig.COMPUTER_IP
+            Log.d("Free2PartyApp", "Connecting to Firebase Emulators at: $computerIp")
             Firebase.auth.useEmulator(computerIp, 9099)
             Firebase.firestore.useEmulator(computerIp, 8080)
             Firebase.storage.useEmulator(computerIp, 9199)
