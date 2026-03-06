@@ -47,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -58,7 +57,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.Notification
-import com.example.free2party.ui.theme.Red80
 import com.example.free2party.ui.theme.inactive
 
 @Composable
@@ -218,17 +216,13 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
     val direction = dismissState.dismissDirection
     if (direction == SwipeToDismissBoxValue.Settled) return
 
-    val markAsReadColor = Color(0xFF4CAF50) // Green
-    val markAsUnreadColor = Color(0xFF2196F3) // Blue
-
-    // TODO: Improve dismiss background color
     val backgroundColor by animateColorAsState(
-        when (dismissState.targetValue) {
+        when (direction) {
             SwipeToDismissBoxValue.StartToEnd ->
-                if (notification.isRead) markAsUnreadColor else markAsReadColor
+                if (notification.isRead) MaterialTheme.colorScheme.secondaryContainer
+                else MaterialTheme.colorScheme.primaryContainer
 
-            SwipeToDismissBoxValue.EndToStart -> Red80
-            else -> Color.Transparent
+            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.tertiaryContainer
         },
         label = "backgroundColor"
     )
@@ -264,10 +258,13 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
                 icon,
                 contentDescription = null,
                 modifier = Modifier.scale(scale),
-                tint =
-                    if (direction == SwipeToDismissBoxValue.EndToStart) MaterialTheme.colorScheme.error
-                    else if (notification.isRead) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.inactive
+                tint = when (direction) {
+                    SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
+                    SwipeToDismissBoxValue.StartToEnd -> {
+                        if (notification.isRead) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                }
             )
         }
     }
