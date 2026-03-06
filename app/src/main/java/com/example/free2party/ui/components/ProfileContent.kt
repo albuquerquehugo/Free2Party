@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -249,8 +251,8 @@ fun ProfileContent(
             },
             label = "Phone Number",
             placeholder = selectedCountry?.phoneMask ?: "Please select a country first",
-            placeholderColor = if (selectedCountry == null)
-                MaterialTheme.colorScheme.error.copy(alpha = 0.7f) 
+            placeholderColor =
+                if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             icon = Icons.Default.Phone,
             focusRequester = phoneFocusRequester,
@@ -375,9 +377,8 @@ fun ProfileContent(
             },
             label = "WhatsApp Number",
             placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country first",
-            // Change placeholder color if no country is selected
-            placeholderColor = if (selectedWhatsappCountry == null) 
-                MaterialTheme.colorScheme.error.copy(alpha = 0.7f) 
+            placeholderColor =
+                if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             painter = painterResource(id = R.drawable.whatsapp),
             focusRequester = whatsappFocusRequester,
@@ -537,9 +538,20 @@ fun ProfileContent(
     }
 
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState()
+        val initialDateMillis = if (birthday.length == 8) {
+            val sdf =
+                SimpleDateFormat(datePattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+            runCatching { sdf.parse(birthday)?.time }.getOrNull()
+        } else null
+
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
+        val dialogColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+
         DatePickerDialog(
             onDismissRequest = { setShowDatePicker(false) },
+            colors = DatePickerDefaults.colors(containerColor = dialogColor),
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
@@ -559,7 +571,18 @@ fun ProfileContent(
                 }
             }
         ) {
-            DatePicker(state = datePickerState, showModeToggle = false)
+            DatePicker(
+                state = datePickerState,
+                showModeToggle = false,
+                colors = DatePickerDefaults.colors(containerColor = dialogColor),
+                title = {
+                    Text(
+                        text = "Select birthday",
+                        modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
+            )
         }
     }
 }

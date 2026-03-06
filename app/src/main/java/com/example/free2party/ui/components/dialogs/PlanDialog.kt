@@ -21,6 +21,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,8 +33,10 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -500,33 +503,40 @@ fun PlanDialog(
         }
     }
 
+    val dialogColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+
     if (showStartDatePicker) {
         DatePickerDialog(
             onDismissRequest = { setShowStartDatePicker(false) },
+            colors = DatePickerDefaults.colors(containerColor = dialogColor),
             confirmButton = { TextButton(onClick = { setShowStartDatePicker(false) }) { Text("OK") } }) {
             DatePicker(
                 state = startDatePickerState,
+                colors = DatePickerDefaults.colors(containerColor = dialogColor),
                 title = {
                     Text(
                         text = "Select start date",
-                        modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
-                        style = MaterialTheme.typography.labelLarge
+                        modifier = Modifier.padding(start = 24.dp, top = 16.dp),
+                        style = MaterialTheme.typography.headlineMedium
                     )
                 }
             )
         }
     }
+
     if (showEndDatePicker) {
         DatePickerDialog(
             onDismissRequest = { setShowEndDatePicker(false) },
+            colors = DatePickerDefaults.colors(containerColor = dialogColor),
             confirmButton = { TextButton(onClick = { setShowEndDatePicker(false) }) { Text("OK") } }) {
             DatePicker(
                 state = endDatePickerState,
+                colors = DatePickerDefaults.colors(containerColor = dialogColor),
                 title = {
                     Text(
                         text = "Select end date",
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.headlineMedium
                     )
                 }
             )
@@ -540,6 +550,7 @@ fun PlanDialog(
         )
         AlertDialog(
             onDismissRequest = { setShowStartTimePicker(false); setShowEndTimePicker(false) },
+            containerColor = dialogColor,
             confirmButton = {
                 TextButton(onClick = {
                     if (showStartTimePicker) {
@@ -557,10 +568,18 @@ fun PlanDialog(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = if (showStartTimePicker) "Select start time" else "Select end time",
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    TimePicker(state = pickerState)
+                    TimePicker(
+                        state = pickerState,
+                        colors = TimePickerDefaults.colors(
+                            clockDialColor = dialogColor,
+                            periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            timeSelectorUnselectedContainerColor = dialogColor
+                        )
+                    )
                 }
             }
         )
