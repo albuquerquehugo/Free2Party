@@ -9,6 +9,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import androidx.core.net.toUri
+import java.util.Date
 
 /**
  * Formats the given hour and minute into a string with the format "H:mm" or "HH:mm".
@@ -20,6 +21,27 @@ import androidx.core.net.toUri
 fun formatTime(hour: Int, minute: Int): String {
     val mm = minute.toString().padStart(2, '0')
     return "$hour:$mm"
+}
+
+/**
+ * Formats the time elapsed since the given [Date] into a user-friendly string.
+ * @param timestamp The date to calculate the elapsed time from.
+ * @return A string representing the time ago (e.g., "just now", "5m ago", "2h ago", "3d ago").
+ */
+fun formatTimeAgo(timestamp: Date?): String {
+    if (timestamp == null) return ""
+    val diff = System.currentTimeMillis() - timestamp.time
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+
+    return when {
+        seconds < 60 -> "just now"
+        minutes < 60 -> "${minutes}m ago"
+        hours < 24 -> "${hours}h ago"
+        else -> "${days}d ago"
+    }
 }
 
 /**

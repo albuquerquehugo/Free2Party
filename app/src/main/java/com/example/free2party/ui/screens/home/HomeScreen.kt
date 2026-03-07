@@ -333,6 +333,8 @@ fun HomeScreen(
         if (showLogoutDialog) {
             AlertDialog(
                 onDismissRequest = { showLogoutDialog = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp,
                 title = { Text("Logout") },
                 text = { Text("Are you sure you want to logout?") },
                 confirmButton = {

@@ -53,7 +53,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
 
 ---
 
-## 📝 MVP Roadmap (Sprint 1)
+## 📝 MVP Roadmap (Sprint 1) -- DONE --
 - [x] **Phase 1: Foundation**
     - [x] Project setup & Firebase connection.
     - [x] Google/Email Authentication.
@@ -68,7 +68,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
     - [x] Friends list showing "Free/Busy" status.
 - [ ] **Phase 4: Interaction**
     - [x] "Invite" button (triggers Push Notification).
-    - [ ] Deep-link to WhatsApp/SMS for chat.
+    - [x] Deep-link to WhatsApp/SMS for chat.
 
 ---
 

@@ -126,7 +126,7 @@ fun BottomNavigationBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val unreadCountState = notificationsViewModel.unreadCount.collectAsState(initial = 0)
+    val unreadCountState = notificationsViewModel.itemsUnreadCount.collectAsState(initial = 0)
     val totalUnread = unreadCountState.value
 
     NavigationBar(

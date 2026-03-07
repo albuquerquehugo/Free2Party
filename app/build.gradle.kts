@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.text.google.fonts)
 
     // --- Architecture & Navigation ---
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
 
@@ -84,7 +85,6 @@ dependencies {
 
     // --- Image Loading ---
     implementation(libs.coil.compose)
-    implementation(libs.androidx.lifecycle.process)
 
     // --- Desugaring ---
     coreLibraryDesugaring(libs.desugar.jdk.libs)

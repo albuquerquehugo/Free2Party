@@ -283,6 +283,8 @@ fun CalendarScreen(
             title = { Text("Delete Plan") },
             text = { Text("Are you sure you want to delete this plan?") },
             onDismissRequest = { setShowDeleteDialog(false) },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 3.dp,
             confirmButton = {
                 TextButton(
                     onClick = {

@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -65,7 +66,7 @@ class NotificationsViewModel(
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
 
-    val unreadCount: StateFlow<Int> = _notifications
+    val itemsUnreadCount: StateFlow<Int> = _notifications
         .onEach { notificationList ->
             Log.d(
                 "NotificationsViewModel",
@@ -75,6 +76,10 @@ class NotificationsViewModel(
         .combine(_friendRequests) { notifications, requests ->
             notifications.count { !it.isRead } + requests.size
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    
+    val notificationsUnreadCount: StateFlow<Int> = _notifications
+        .map { notifications -> notifications.count { !it.isRead } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val notificationItems: StateFlow<List<NotificationItem>> = combine(
         _notifications,

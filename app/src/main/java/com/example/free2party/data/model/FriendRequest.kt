@@ -6,6 +6,7 @@ import java.util.Date
 data class FriendRequest(
     val id: String = "",
     val senderId: String = "",
+    val senderProfilePicUrl: String = "",
     val senderName: String = "",
     val senderEmail: String = "",
     val receiverId: String = "",

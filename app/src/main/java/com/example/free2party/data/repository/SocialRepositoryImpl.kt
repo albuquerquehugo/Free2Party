@@ -173,6 +173,7 @@ class SocialRepositoryImpl(
                     senderId = currentUserId,
                     senderName = sender.fullName,
                     senderEmail = sender.email,
+                    senderProfilePicUrl = sender.profilePicUrl,
                     receiverId = receiver.uid,
                     friendRequestStatus = FriendRequestStatus.PENDING
                 )

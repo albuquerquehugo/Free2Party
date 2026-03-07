@@ -1,7 +1,6 @@
 package com.example.free2party.ui.screens.notifications
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,17 +20,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.MarkEmailUnread
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -42,31 +45,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.Notification
 import com.example.free2party.ui.theme.inactive
+import com.example.free2party.util.formatTimeAgo
 
 @Composable
 fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel()) {
     val items by viewModel.notificationItems.collectAsState()
-    val unreadCount by viewModel.unreadCount.collectAsState()
+    val itemsUnreadCount by viewModel.itemsUnreadCount.collectAsState()
+    val notificationsUnreadCount by viewModel.notificationsUnreadCount.collectAsState()
 
     NotificationsScreen(
         items = items,
-        unreadCount = unreadCount,
+        itemsUnreadCount = itemsUnreadCount,
+        notificationsUnreadCount = notificationsUnreadCount,
         onAcceptRequest = { viewModel.acceptFriendRequest(it) },
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
         onToggleRead = { viewModel.toggleReadStatus(it) },
@@ -78,7 +87,8 @@ fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel()) {
 @Composable
 fun NotificationsScreen(
     items: List<NotificationItem>,
-    unreadCount: Int,
+    itemsUnreadCount: Int,
+    notificationsUnreadCount: Int,
     onAcceptRequest: (FriendRequest) -> Unit,
     onDeclineRequest: (FriendRequest) -> Unit,
     onToggleRead: (Notification) -> Unit,
@@ -90,13 +100,13 @@ fun NotificationsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = 20.dp),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -107,25 +117,12 @@ fun NotificationsScreen(
             )
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val titleText = if (unreadCount > 0) "Notifications ($unreadCount)" else "Notifications"
-            Text(
-                text = titleText,
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            if (unreadCount > 0) {
-                TextButton(onClick = onMarkAllAsRead) {
-                    Text("Mark all as read")
-                }
-            }
-        }
+        val titleText =
+            if (itemsUnreadCount > 0) "Notifications ($itemsUnreadCount)" else "Notifications"
+        Text(
+            text = titleText,
+            style = MaterialTheme.typography.headlineMedium
+        )
 
         if (items.isEmpty()) {
             Column(
@@ -142,30 +139,164 @@ fun NotificationsScreen(
                 Text("All caught up!", color = MaterialTheme.colorScheme.inactive)
             }
         } else {
-            LazyColumn(state = listState) {
-                items(items, key = { it.id }) { item ->
-                    when (item) {
-                        is NotificationItem.Request -> {
-                            FriendRequestItem(
-                                request = item.friendRequest,
-                                onAccept = { onAcceptRequest(item.friendRequest) },
-                                onDecline = { onDeclineRequest(item.friendRequest) }
-                            )
-                        }
+            val requests = items.filterIsInstance<NotificationItem.Request>()
+            val notifications = items.filterIsInstance<NotificationItem.Info>()
 
-                        is NotificationItem.Info -> {
-                            DismissibleNotificationItem(
-                                notification = item.notification,
-                                onToggleRead = { onToggleRead(item.notification) },
-                                onDelete = { onDelete(item.notification.id) }
-                            )
+            LazyColumn(state = listState, horizontalAlignment = Alignment.CenterHorizontally) {
+                if (requests.isNotEmpty()) {
+                    item {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(top = 24.dp)
+                        )
+                    }
+                    items(requests, key = { it.id }) { item ->
+                        FriendRequestItem(
+                            request = item.friendRequest,
+                            onAccept = { onAcceptRequest(item.friendRequest) },
+                            onDecline = { onDeclineRequest(item.friendRequest) }
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
+                    }
+                }
+
+                if (notifications.isNotEmpty()) {
+                    item {
+                        TextButton(
+                            enabled = notificationsUnreadCount > 0,
+                            onClick = onMarkAllAsRead,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Text("Mark all as read")
                         }
                     }
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        thickness = 1.dp
+                    item {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
+                    }
+                    items(notifications, key = { it.id }) { item ->
+                        DismissibleNotificationItem(
+                            notification = item.notification,
+                            onToggleRead = { onToggleRead(item.notification) },
+                            onDelete = { onDelete(item.notification.id) }
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            thickness = 1.dp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FriendRequestItem(
+    request: FriendRequest,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Friend Request",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (request.senderProfilePicUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = request.senderProfilePicUrl,
+                        contentDescription = "Friend's Picture",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
                     )
                 }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = request.senderName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = request.senderEmail,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = formatTimeAgo(request.timestamp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.error)
+                    .clickable { onDecline() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Decline",
+                    tint = MaterialTheme.colorScheme.onError,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { onAccept() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Accept",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
     }
@@ -205,7 +336,13 @@ fun DismissibleNotificationItem(
         SwipeToDismissBox(
             state = dismissState,
             backgroundContent = { DismissBackground(notification, dismissState) },
-            content = { NotificationBox(notification) }
+            content = {
+                NotificationBox(
+                    notification = notification,
+                    onToggleRead = currentOnToggleRead,
+                    onDelete = currentOnDelete
+                )
+            }
         )
     }
 }
@@ -219,31 +356,12 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
     val backgroundColor by animateColorAsState(
         when (direction) {
             SwipeToDismissBoxValue.StartToEnd ->
-                if (notification.isRead) MaterialTheme.colorScheme.secondaryContainer
-                else MaterialTheme.colorScheme.primaryContainer
+                if (notification.isRead) MaterialTheme.colorScheme.primaryContainer
+                else Color.Transparent
 
             SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.tertiaryContainer
         },
         label = "backgroundColor"
-    )
-
-    val alignment = when (direction) {
-        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
-        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-    }
-
-    val icon: ImageVector? = when (direction) {
-        SwipeToDismissBoxValue.StartToEnd ->
-            if (notification.isRead) Icons.Default.MarkEmailUnread
-            else Icons.Default.MarkEmailRead
-
-        SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
-    }
-
-    val scale by animateFloatAsState(
-        if (dismissState.targetValue == SwipeToDismissBoxValue.Settled) 0.75f
-        else 1.2f,
-        label = "iconScale"
     )
 
     Box(
@@ -251,18 +369,29 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
             .fillMaxSize()
             .background(backgroundColor)
             .padding(horizontal = 24.dp),
-        contentAlignment = alignment
+        contentAlignment =
+            when (direction) {
+                SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+            }
     ) {
+        val icon: ImageVector? = when (direction) {
+            SwipeToDismissBoxValue.StartToEnd ->
+                if (notification.isRead) Icons.Default.MarkEmailUnread
+                else Icons.Default.MarkEmailRead
+
+            SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
+        }
+
         if (icon != null) {
             Icon(
                 icon,
                 contentDescription = null,
-                modifier = Modifier.scale(scale),
                 tint = when (direction) {
                     SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
                     SwipeToDismissBoxValue.StartToEnd -> {
                         if (notification.isRead) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.outline
                     }
                 }
             )
@@ -271,98 +400,89 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
 }
 
 @Composable
-fun NotificationBox(notification: Notification) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        val backgroundColor =
-            if (notification.isRead) MaterialTheme.colorScheme.surface
-            else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                .compositeOver(MaterialTheme.colorScheme.surface)
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(backgroundColor)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = notification.message,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-fun FriendRequestItem(
-    request: FriendRequest,
-    onAccept: () -> Unit,
-    onDecline: () -> Unit
+fun NotificationBox(
+    notification: Notification,
+    onToggleRead: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-        .compositeOver(MaterialTheme.colorScheme.surface)
+    var showMenu by remember { mutableStateOf(false) }
+
+    val backgroundColor =
+        if (notification.isRead) MaterialTheme.colorScheme.background
+        else MaterialTheme.colorScheme.primaryContainer
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = "Friend Request: ${request.senderName}",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
+                text = notification.message,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold
             )
+
             Text(
-                text = request.senderEmail,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                text = formatTimeAgo(notification.timestamp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
             )
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.error)
-                    .clickable { onDecline() },
-                contentAlignment = Alignment.Center
-            ) {
+        Box {
+            IconButton(onClick = { showMenu = true }) {
                 Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Decline",
-                    tint = MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.size(16.dp)
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { onAccept() },
-                contentAlignment = Alignment.Center
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Accept",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(16.dp)
+                DropdownMenuItem(
+                    text = {
+                        Text(if (notification.isRead) "Mark as unread" else "Mark as read")
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector =
+                                if (notification.isRead) Icons.Default.MarkEmailUnread
+                                else Icons.Default.MarkEmailRead,
+                            tint =
+                                if (notification.isRead) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.outline,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        onToggleRead()
+                        showMenu = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = {
+                        onDelete()
+                        showMenu = false
+                    }
                 )
             }
         }
