@@ -1,12 +1,19 @@
 package com.example.free2party.ui.screens.profile
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import com.example.free2party.data.model.User
@@ -19,6 +26,76 @@ class ProfileScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * A wrapper to provide state management for testing ProfileScreenContent,
+     * which is now a stateless component.
+     */
+    @Composable
+    private fun ProfileScreenTestWrapper(
+        initialUser: User,
+        onUpdateProfileClicked: (User) -> Unit = {}
+    ) {
+        var firstName by remember { mutableStateOf(initialUser.firstName) }
+        var lastName by remember { mutableStateOf(initialUser.lastName) }
+        var bio by remember { mutableStateOf(initialUser.bio) }
+
+        val uiState = ProfileUiState.Success(user = initialUser)
+
+        val hasChanges = firstName != initialUser.firstName ||
+                lastName != initialUser.lastName ||
+                bio != initialUser.bio
+
+        val isFormValid = firstName.isNotBlank() && lastName.isNotBlank()
+
+        ProfileScreenContent(
+            paddingValues = PaddingValues(0.dp),
+            uiState = uiState,
+            onUploadImage = {},
+            firstName = firstName,
+            onFirstNameChange = { firstName = it },
+            lastName = lastName,
+            onLastNameChange = { lastName = it },
+            countryCode = initialUser.countryCode,
+            onCountryCodeChange = {},
+            phoneNumber = initialUser.phoneNumber,
+            onPhoneNumberChange = {},
+            birthday = initialUser.birthday,
+            onBirthdayChange = {},
+            bio = bio,
+            onBioChange = { bio = it },
+            whatsappCountryCode = initialUser.socials.whatsappCountryCode,
+            onWhatsappCountryCodeChange = {},
+            whatsappNumber = initialUser.socials.whatsappNumber,
+            onWhatsappNumberChange = {},
+            telegramUsername = initialUser.socials.telegramUsername,
+            onTelegramUsernameChange = {},
+            facebookUsername = initialUser.socials.facebookUsername,
+            onFacebookUsernameChange = {},
+            instagramUsername = initialUser.socials.instagramUsername,
+            onInstagramUsernameChange = {},
+            tiktokUsername = initialUser.socials.tiktokUsername,
+            onTiktokUsernameChange = {},
+            xUsername = initialUser.socials.xUsername,
+            onXUsernameChange = {},
+            hasChanges = hasChanges,
+            isFormValid = isFormValid,
+            onDiscardChanges = {
+                firstName = initialUser.firstName
+                lastName = initialUser.lastName
+                bio = initialUser.bio
+            },
+            onUpdateProfile = {
+                onUpdateProfileClicked(
+                    initialUser.copy(
+                        firstName = firstName,
+                        lastName = lastName,
+                        bio = bio
+                    )
+                )
+            }
+        )
+    }
+
     @Test
     fun discardButton_appearsWhenTextIsChanged_andResetsValuesOnClick() {
         val initialUser = User(
@@ -30,14 +107,7 @@ class ProfileScreenTest {
         )
 
         composeTestRule.setContent {
-            ProfileScreenContent(
-                paddingValues = PaddingValues(0.dp),
-                user = initialUser,
-                isSaving = false,
-                isUploadingImage = false,
-                onUpdateProfile = {},
-                onUploadImage = {}
-            )
+            ProfileScreenTestWrapper(initialUser = initialUser)
         }
 
         // Initially, the discard button should not exist
@@ -52,13 +122,13 @@ class ProfileScreenTest {
         // Change the bio as well
         composeTestRule.onNodeWithTag("bio_field").performTextReplacement("New bio")
 
-        // Click discard
-        composeTestRule.onNodeWithTag("discard_button").performClick()
+        // Click discard (scroll to it first as it might be at the bottom)
+        composeTestRule.onNodeWithTag("discard_button").performScrollTo().performClick()
 
         // Verify values are reset to initial
-        composeTestRule.onNodeWithTag("first_name_field").assertTextEquals("John")
-        composeTestRule.onNodeWithTag("last_name_field").assertTextEquals("Doe")
-        composeTestRule.onNodeWithTag("bio_field").assertTextEquals("Initial bio")
+        composeTestRule.onNodeWithTag("first_name_field").assert(hasText("John"))
+        composeTestRule.onNodeWithTag("last_name_field").assert(hasText("Doe"))
+        composeTestRule.onNodeWithTag("bio_field").assert(hasText("Initial bio"))
 
         // Verify the discard button is gone again
         composeTestRule.onNodeWithTag("discard_button").assertDoesNotExist()
@@ -75,31 +145,24 @@ class ProfileScreenTest {
         )
 
         composeTestRule.setContent {
-            ProfileScreenContent(
-                paddingValues = PaddingValues(0.dp),
-                user = initialUser,
-                isSaving = false,
-                isUploadingImage = false,
-                onUpdateProfile = {},
-                onUploadImage = {}
-            )
+            ProfileScreenTestWrapper(initialUser = initialUser)
         }
 
         // Initially, save button should be disabled (no changes)
-        composeTestRule.onNodeWithTag("save_button").assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("save_button").performScrollTo().assertIsNotEnabled()
 
         // Change a field
         composeTestRule.onNodeWithTag("first_name_field").performTextReplacement("Jane")
-        composeTestRule.onNodeWithTag("save_button").assertIsEnabled()
+        composeTestRule.onNodeWithTag("save_button").performScrollTo().assertIsEnabled()
 
         // Make first name empty
         composeTestRule.onNodeWithTag("first_name_field").performTextReplacement("")
-        composeTestRule.onNodeWithTag("save_button").assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("save_button").performScrollTo().assertIsNotEnabled()
 
         // Restore first name but make last name empty
         composeTestRule.onNodeWithTag("first_name_field").performTextReplacement("John")
         composeTestRule.onNodeWithTag("last_name_field").performTextReplacement("")
-        composeTestRule.onNodeWithTag("save_button").assertIsNotEnabled()
+        composeTestRule.onNodeWithTag("save_button").performScrollTo().assertIsNotEnabled()
     }
 
     @Test
@@ -114,13 +177,9 @@ class ProfileScreenTest {
         var updatedUser: User? = null
 
         composeTestRule.setContent {
-            ProfileScreenContent(
-                paddingValues = PaddingValues(0.dp),
-                user = initialUser,
-                isSaving = false,
-                isUploadingImage = false,
-                onUpdateProfile = { updatedUser = it },
-                onUploadImage = {}
+            ProfileScreenTestWrapper(
+                initialUser = initialUser,
+                onUpdateProfileClicked = { updatedUser = it }
             )
         }
 
@@ -129,7 +188,7 @@ class ProfileScreenTest {
         composeTestRule.onNodeWithTag("bio_field").performTextReplacement("New bio")
 
         // Click save
-        composeTestRule.onNodeWithTag("save_button").performClick()
+        composeTestRule.onNodeWithTag("save_button").performScrollTo().performClick()
 
         // Verify the callback was triggered with correct data
         assertEquals("Jane", updatedUser?.firstName)

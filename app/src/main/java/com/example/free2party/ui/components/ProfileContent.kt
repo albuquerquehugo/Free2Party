@@ -53,6 +53,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -197,6 +198,7 @@ fun ProfileContent(
             onValueChange = onFirstNameChange,
             label = "First Name *",
             icon = Icons.Default.AccountCircle,
+            modifier = Modifier.testTag("first_name_field"),
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
@@ -212,6 +214,7 @@ fun ProfileContent(
             onValueChange = onLastNameChange,
             label = "Last Name *",
             icon = Icons.Default.AccountCircle,
+            modifier = Modifier.testTag("last_name_field"),
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
@@ -227,6 +230,7 @@ fun ProfileContent(
             onValueChange = onEmailChange,
             label = "Email *",
             icon = Icons.Default.Email,
+            modifier = Modifier.testTag("email_field"),
             enabled = !isLoading && isEmailEnabled,
             showClearIcon = isEmailEnabled,
             keyboardOptions = KeyboardOptions(
@@ -255,6 +259,7 @@ fun ProfileContent(
                 if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             icon = Icons.Default.Phone,
+            modifier = Modifier.testTag("phone_field"),
             focusRequester = phoneFocusRequester,
             leadingIconExtra = {
                 Box(modifier = Modifier.padding(start = 16.dp)) {
@@ -316,6 +321,7 @@ fun ProfileContent(
             label = "Birthday",
             placeholder = datePattern.label,
             icon = Icons.Default.Cake,
+            modifier = Modifier.testTag("birthday_field"),
             isError = isBirthdayError,
             supportingText = if (isBirthdayError) {
                 { Text("Invalid date", color = MaterialTheme.colorScheme.error) }
@@ -345,6 +351,7 @@ fun ProfileContent(
             label = "Bio",
             placeholder = "Write about yourself...",
             icon = Icons.AutoMirrored.Filled.Notes,
+            modifier = Modifier.testTag("bio_field"),
             minLines = 1,
             maxLines = 5,
             enabled = !isLoading,
@@ -381,6 +388,7 @@ fun ProfileContent(
                 if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             painter = painterResource(id = R.drawable.whatsapp),
+            modifier = Modifier.testTag("whatsapp_field"),
             focusRequester = whatsappFocusRequester,
             leadingIconExtra = {
                 Box(modifier = Modifier.padding(start = 16.dp)) {
@@ -439,6 +447,7 @@ fun ProfileContent(
             onValueChange = onTelegramUsernameChange,
             label = "Telegram Username",
             painter = painterResource(id = R.drawable.telegram),
+            modifier = Modifier.testTag("telegram_field"),
             prefix = { Text("@") },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -452,6 +461,7 @@ fun ProfileContent(
             onValueChange = onFacebookUsernameChange,
             label = "Facebook Username",
             icon = Icons.Default.Facebook,
+            modifier = Modifier.testTag("facebook_field"),
             prefix = { Text("@") },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -465,6 +475,7 @@ fun ProfileContent(
             onValueChange = onInstagramUsernameChange,
             label = "Instagram Username",
             painter = painterResource(id = R.drawable.instagram),
+            modifier = Modifier.testTag("instagram_field"),
             prefix = { Text("@") },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -478,6 +489,7 @@ fun ProfileContent(
             onValueChange = onTiktokUsernameChange,
             label = "TikTok Username",
             painter = painterResource(id = R.drawable.tiktok),
+            modifier = Modifier.testTag("tiktok_field"),
             prefix = { Text("@") },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -491,6 +503,7 @@ fun ProfileContent(
             onValueChange = onXUsernameChange,
             label = "X Username",
             painter = painterResource(id = R.drawable.x),
+            modifier = Modifier.testTag("x_field"),
             prefix = { Text("@") },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
