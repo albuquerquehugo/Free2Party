@@ -83,7 +83,12 @@ class AuthRepositoryTest {
         
         every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(exception)
 
-        val result = repository.register("First", "Last", email, password)
+        val result = repository.register(
+            firstName = "First",
+            lastName = "Last",
+            email = email,
+            password = password
+        )
         
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is WeakPasswordException)
@@ -97,7 +102,12 @@ class AuthRepositoryTest {
         
         every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(exception)
 
-        val result = repository.register("First", "Last", email, password)
+        val result = repository.register(
+            firstName = "First",
+            lastName = "Last",
+            email = email,
+            password = password
+        )
         
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is EmailAlreadyInUseException)

@@ -2,6 +2,7 @@ package com.example.free2party.ui.screens.notifications
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -9,6 +10,7 @@ import com.example.free2party.data.model.Notification
 import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
+import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -46,18 +48,8 @@ sealed class NotificationItem {
 }
 
 class NotificationsViewModel(
-    private val socialRepository: SocialRepository = SocialRepositoryImpl(
-        db = Firebase.firestore,
-        userRepository = UserRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore,
-            storage = Firebase.storage
-        ),
-        planRepository = PlanRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore
-        )
-    )
+    private val socialRepository: SocialRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     private var observationJob: Job? = null
 
@@ -91,12 +83,6 @@ class NotificationsViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
-        val userRepository = UserRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore,
-            storage = Firebase.storage
-        )
-
         viewModelScope.launch {
             userRepository.userIdFlow.collectLatest { uid ->
                 if (uid.isNotBlank()) {
@@ -163,6 +149,29 @@ class NotificationsViewModel(
     fun deleteNotification(notificationId: String) {
         viewModelScope.launch {
             socialRepository.deleteNotification(notificationId)
+        }
+    }
+
+    companion object {
+        fun provideFactory(
+            userRepository: UserRepository = UserRepositoryImpl(
+                auth = Firebase.auth,
+                db = Firebase.firestore,
+                storage = Firebase.storage
+            ),
+            socialRepository: SocialRepository = SocialRepositoryImpl(
+                db = Firebase.firestore,
+                userRepository = userRepository,
+                planRepository = PlanRepositoryImpl(
+                    auth = Firebase.auth,
+                    db = Firebase.firestore
+                )
+            )
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return NotificationsViewModel(socialRepository, userRepository) as T
+            }
         }
     }
 }

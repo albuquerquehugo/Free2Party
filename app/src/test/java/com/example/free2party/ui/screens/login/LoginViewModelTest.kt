@@ -1,11 +1,15 @@
 package com.example.free2party.ui.screens.login
 
+import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.repository.AuthRepository
+import com.example.free2party.data.repository.SettingsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -23,12 +27,14 @@ class LoginViewModelTest {
 
     private lateinit var viewModel: LoginViewModel
     private val authRepository: AuthRepository = mockk()
+    private val settingsRepository: SettingsRepository = mockk()
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = LoginViewModel(authRepository)
+        every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
+        viewModel = LoginViewModel(authRepository, settingsRepository)
     }
 
     @After
