@@ -214,6 +214,7 @@ fun SettingsScreenContent(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
+            // TODO: Fix bug where the user birthday is not displayed correctly after changing the date pattern
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.Top,

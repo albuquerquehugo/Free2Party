@@ -66,7 +66,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
     - [x] Search users by email.
     - [x] Friend request system.
     - [x] Friends list showing "Free/Busy" status.
-- [ ] **Phase 4: Interaction**
+- [x] **Phase 4: Interaction**
     - [x] "Invite" button (triggers Push Notification).
     - [x] Deep-link to WhatsApp/SMS for chat.
 
