@@ -16,6 +16,7 @@ lifecycleProcess = "2.10.0"
 lifecycleRuntimeKtx = "2.10.0"
 mockk = "1.14.9"
 navigationCompose = "2.9.7"
+playIntegrity = "1.6.0"
 uiTextGoogleFonts = "1.10.4"
 
 [libraries]
@@ -40,6 +41,9 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+firebase-appcheck = { module = "com.google.firebase:firebase-appcheck" }
+firebase-appcheck-debug = { module = "com.google.firebase:firebase-appcheck-debug" }
+firebase-appcheck-playintegrity = { module = "com.google.firebase:firebase-appcheck-playintegrity" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-common = { module = "com.google.firebase:firebase-common" }
@@ -50,6 +54,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

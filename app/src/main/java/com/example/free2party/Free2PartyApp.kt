@@ -10,6 +10,9 @@ import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.util.isPlanActive
 import com.google.firebase.Firebase
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
@@ -36,6 +39,18 @@ class Free2PartyApp : Application() {
             Firebase.auth.useEmulator(computerIp, 9099)
             Firebase.firestore.useEmulator(computerIp, 8080)
             Firebase.storage.useEmulator(computerIp, 9199)
+        }
+
+        // Initialize Firebase App Check
+        val firebaseAppCheck = FirebaseAppCheck.getInstance()
+        if (BuildConfig.DEBUG) {
+            firebaseAppCheck.installAppCheckProviderFactory(
+                DebugAppCheckProviderFactory.getInstance()
+            )
+        } else {
+            firebaseAppCheck.installAppCheckProviderFactory(
+                PlayIntegrityAppCheckProviderFactory.getInstance()
+            )
         }
 
         userRepository = UserRepositoryImpl(

@@ -130,6 +130,7 @@ fun LoginScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         IconButton(
             onClick = { showThemeMenu = true },
+            enabled = uiState !is LoginUiState.Loading,
             modifier = Modifier
                 .align(Alignment.End)
                 .padding(top = 16.dp, end = 16.dp)
@@ -240,7 +241,9 @@ fun LoginScreen(
                 Text(
                     text = "Forgot Password?",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color =
+                        if (uiState is LoginUiState.Loading) MaterialTheme.colorScheme.outline
+                        else MaterialTheme.colorScheme.primary
                 )
             }
 
