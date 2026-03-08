@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -46,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.free2party.data.model.FriendInfo
@@ -265,6 +265,8 @@ fun PlanDialog(
             (visibility == PlanVisibility.EVERYONE || currentSelectedIds.isNotEmpty()) &&
             hasChanges
 
+    val dialogColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+
     BaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -275,6 +277,7 @@ fun PlanDialog(
             Text(
                 text = if (editingPlan == null) "Schedule your plan" else "Edit your plan",
                 style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -421,49 +424,38 @@ fun PlanDialog(
 
                 Column {
                     VisibilityOption(
-                        label = "Everyone",
-                        selected = visibility == PlanVisibility.EVERYONE,
-                        onClick = {
-                            visibility = PlanVisibility.EVERYONE
-                        })
-
+                        "Everyone",
+                        visibility == PlanVisibility.EVERYONE
+                    ) { visibility = PlanVisibility.EVERYONE }
                     VisibilityOption(
-                        label = "Everyone except...",
-                        selected = visibility == PlanVisibility.EXCEPT,
-                        onClick = {
-                            visibility = PlanVisibility.EXCEPT
-                        })
+                        "Everyone except...",
+                        visibility == PlanVisibility.EXCEPT
+                    ) { visibility = PlanVisibility.EXCEPT }
                     AnimatedVisibility(visible = visibility == PlanVisibility.EXCEPT) {
                         FriendSelector(
-                            friends = acceptedFriends,
-                            selectedFriendIds = exceptFriendIds,
-                            onToggleFriend = { id ->
+                            acceptedFriends,
+                            exceptFriendIds,
+                            { id ->
                                 exceptFriendIds =
-                                    if (id in exceptFriendIds) exceptFriendIds - id
-                                    else exceptFriendIds + id
+                                    if (id in exceptFriendIds) exceptFriendIds - id else exceptFriendIds + id
                             },
-                            onSelectAll = { exceptFriendIds = acceptedFriends.map { it.uid } },
-                            onUnselectAll = { exceptFriendIds = emptyList() }
-                        )
+                            { exceptFriendIds = acceptedFriends.map { it.uid } },
+                            { exceptFriendIds = emptyList() })
                     }
                     VisibilityOption(
-                        label = "Only selected people...",
-                        selected = visibility == PlanVisibility.ONLY,
-                        onClick = {
-                            visibility = PlanVisibility.ONLY
-                        })
+                        "Only selected people...",
+                        visibility == PlanVisibility.ONLY
+                    ) { visibility = PlanVisibility.ONLY }
                     AnimatedVisibility(visible = visibility == PlanVisibility.ONLY) {
                         FriendSelector(
-                            friends = acceptedFriends,
-                            selectedFriendIds = onlyFriendIds,
-                            onToggleFriend = { id ->
+                            acceptedFriends,
+                            onlyFriendIds,
+                            { id ->
                                 onlyFriendIds =
-                                    if (id in onlyFriendIds) onlyFriendIds - id
-                                    else onlyFriendIds + id
+                                    if (id in onlyFriendIds) onlyFriendIds - id else onlyFriendIds + id
                             },
-                            onSelectAll = { onlyFriendIds = acceptedFriends.map { it.uid } },
-                            onUnselectAll = { onlyFriendIds = emptyList() }
-                        )
+                            { onlyFriendIds = acceptedFriends.map { it.uid } },
+                            { onlyFriendIds = emptyList() })
                     }
                 }
             }
@@ -502,8 +494,6 @@ fun PlanDialog(
             }
         }
     }
-
-    val dialogColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
 
     if (showStartDatePicker) {
         DatePickerDialog(
@@ -548,41 +538,49 @@ fun PlanDialog(
             initialMinute = if (showStartTimePicker) startTimeState.minute else endTimeState.minute,
             is24Hour = use24HourFormat
         )
-        AlertDialog(
-            onDismissRequest = { setShowStartTimePicker(false); setShowEndTimePicker(false) },
-            containerColor = dialogColor,
-            confirmButton = {
-                TextButton(onClick = {
-                    if (showStartTimePicker) {
-                        startTimeState.hour = pickerState.hour
-                        startTimeState.minute = pickerState.minute
-                    } else {
-                        endTimeState.hour = pickerState.hour
-                        endTimeState.minute = pickerState.minute
-                    }
-                    setShowStartTimePicker(false)
-                    setShowEndTimePicker(false)
-                }) { Text("OK") }
-            },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = if (showStartTimePicker) "Select start time" else "Select end time",
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.padding(bottom = 16.dp)
+        BaseDialog(onDismissRequest = {
+            setShowStartTimePicker(false); setShowEndTimePicker(false)
+        }) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (showStartTimePicker) "Select start time" else "Select end time",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                TimePicker(
+                    state = pickerState,
+                    colors = TimePickerDefaults.colors(
+                        clockDialColor = dialogColor,
+                        containerColor = dialogColor,
+                        periodSelectorUnselectedContainerColor = dialogColor,
+                        periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        timeSelectorUnselectedContainerColor = dialogColor
                     )
-                    TimePicker(
-                        state = pickerState,
-                        colors = TimePickerDefaults.colors(
-                            clockDialColor = dialogColor,
-                            periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            timeSelectorUnselectedContainerColor = dialogColor
-                        )
-                    )
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = {
+                        if (showStartTimePicker) {
+                            startTimeState.hour = pickerState.hour
+                            startTimeState.minute = pickerState.minute
+                        } else {
+                            endTimeState.hour = pickerState.hour
+                            endTimeState.minute = pickerState.minute
+                        }
+                        setShowStartTimePicker(false)
+                        setShowEndTimePicker(false)
+                    }) { Text("OK") }
                 }
             }
-        )
+        }
     }
 }
 

@@ -12,14 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -45,6 +42,7 @@ import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.ui.components.MonthCalendar
 import com.example.free2party.ui.components.dialogs.PlanDialog
 import com.example.free2party.ui.components.PlanResults
+import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.util.formatPlanDateInFull
 import com.example.free2party.util.isDateTimeInPast
 import kotlinx.coroutines.delay
@@ -279,27 +277,17 @@ fun CalendarScreen(
     }
 
     if (showDeleteDialog && planToDelete != null) {
-        AlertDialog(
-            title = { Text("Delete Plan") },
-            text = { Text("Are you sure you want to delete this plan?") },
-            onDismissRequest = { setShowDeleteDialog(false) },
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 3.dp,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeletePlan(planToDelete!!.id)
-                        setShowDeleteDialog(false)
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+        ConfirmationDialog(
+            title = "Delete Plan",
+            text = "Are you sure you want to delete this plan?",
+            confirmButtonText = "Delete",
+            onConfirm = {
+                onDeletePlan(planToDelete!!.id)
+                setShowDeleteDialog(false)
             },
-            dismissButton = {
-                TextButton(onClick = { setShowDeleteDialog(false) }) {
-                    Text("Cancel")
-                }
-            }
+            dismissButtonText = "Cancel",
+            onDismiss = { setShowDeleteDialog(false) },
+            isDestructive = true
         )
     }
 }

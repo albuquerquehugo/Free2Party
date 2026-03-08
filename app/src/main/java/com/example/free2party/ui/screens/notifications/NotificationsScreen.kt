@@ -121,7 +121,8 @@ fun NotificationsScreen(
             if (itemsUnreadCount > 0) "Notifications ($itemsUnreadCount)" else "Notifications"
         Text(
             text = titleText,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
         )
 
         if (items.isEmpty()) {

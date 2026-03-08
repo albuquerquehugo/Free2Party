@@ -57,6 +57,7 @@ fun SearchableCountryPickerDialog(
             Text(
                 text = "Select Country",
                 style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 8.dp)
             )
 

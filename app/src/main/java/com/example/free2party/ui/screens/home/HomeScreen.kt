@@ -37,7 +37,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sms
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -50,7 +49,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +73,7 @@ import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.ui.components.dialogs.AboutDialog
+import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.dialogs.EmailDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.example.free2party.ui.theme.available
@@ -172,6 +171,8 @@ fun HomeScreen(
 ) {
     var showUserMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showRemoveFriendDialog by remember { mutableStateOf(false) }
+    var friendIdToRemove by remember { mutableStateOf<String?>(null) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
@@ -321,7 +322,10 @@ fun HomeScreen(
                         friendsList = homeUiState.friendsList,
                         isActionLoading = homeUiState.isActionLoading,
                         onToggleAvailability = onToggleAvailability,
-                        onRemoveFriend = onRemoveFriend,
+                        onRemoveFriend = { uid ->
+                            friendIdToRemove = uid
+                            showRemoveFriendDialog = true
+                        },
                         onCancelInvite = onCancelInvite,
                         onInviteFriendClick = onInviteFriendClick,
                         onFriendItemClick = { friend -> selectedFriend = friend }
@@ -331,25 +335,36 @@ fun HomeScreen(
         }
 
         if (showLogoutDialog) {
-            AlertDialog(
-                onDismissRequest = { showLogoutDialog = false },
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp,
-                title = { Text("Logout") },
-                text = { Text("Are you sure you want to logout?") },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showLogoutDialog = false
-                        onLogoutClick()
-                    }) {
-                        Text("Logout", color = MaterialTheme.colorScheme.error)
-                    }
+            ConfirmationDialog(
+                title = "Logout",
+                text = "Are you sure you want to logout?",
+                confirmButtonText = "Logout",
+                onConfirm = {
+                    showLogoutDialog = false
+                    onLogoutClick()
                 },
-                dismissButton = {
-                    TextButton(onClick = { showLogoutDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
+                dismissButtonText = "Cancel",
+                onDismiss = { showLogoutDialog = false },
+                isDestructive = true
+            )
+        }
+
+        if (showRemoveFriendDialog) {
+            ConfirmationDialog(
+                title = "Remove Friend",
+                text = "Are you sure you want to remove this friend?",
+                confirmButtonText = "Remove",
+                onConfirm = {
+                    showRemoveFriendDialog = false
+                    friendIdToRemove?.let { onRemoveFriend(it) }
+                    friendIdToRemove = null
+                },
+                dismissButtonText = "Cancel",
+                onDismiss = {
+                    showRemoveFriendDialog = false
+                    friendIdToRemove = null
+                },
+                isDestructive = true
             )
         }
 
