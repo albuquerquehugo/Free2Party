@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users full access to their own document AND all its subcollections (plans, notifications, friends)
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow users to see OTHER users' basic info (but NOT their subcollections)
+    match /users/{userId} {
+       allow read: if request.auth != null;
+    }
+
+    // Rules for plans, notifications, and friend requests
+    match /plans/{planId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /friendRequests/{requestId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -28,7 +28,9 @@ class Free2PartyApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        if (BuildConfig.DEBUG) {
+        val useEmulators = false
+
+        if (BuildConfig.DEBUG && useEmulators) {
             val computerIp = BuildConfig.COMPUTER_IP
             Log.d("Free2PartyApp", "Connecting to Firebase Emulators at: $computerIp")
             Firebase.auth.useEmulator(computerIp, 9099)

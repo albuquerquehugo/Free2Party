@@ -94,7 +94,9 @@ val BottomNavItems = listOf(
 @Composable
 fun AppNavigation(
     settingsRepository: SettingsRepository,
-    notificationsViewModel: NotificationsViewModel = viewModel()
+    notificationsViewModel: NotificationsViewModel = viewModel(
+        factory = NotificationsViewModel.provideFactory()
+    )
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
