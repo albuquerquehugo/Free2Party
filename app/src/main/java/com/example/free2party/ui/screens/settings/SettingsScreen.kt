@@ -42,6 +42,9 @@ import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun SettingsRoute(
@@ -214,7 +217,6 @@ fun SettingsScreenContent(
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-            // TODO: Fix bug where the user birthday is not displayed correctly after changing the date pattern
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.Top,
@@ -250,8 +252,29 @@ fun SettingsScreenContent(
 
         Button(
             onClick = {
+                val oldPattern = user.settings.datePattern
+                val newPattern = datePattern
+                
+                val updatedBirthday = if (oldPattern != newPattern && user.birthday.length == 8) {
+                    // Convert birthday from old pattern digits to new pattern digits
+                    val oldSdf = SimpleDateFormat(oldPattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+                    val newSdf = SimpleDateFormat(newPattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+                    
+                    runCatching {
+                        val date = oldSdf.parse(user.birthday)
+                        if (date != null) newSdf.format(date) else user.birthday
+                    }.getOrDefault(user.birthday)
+                } else {
+                    user.birthday
+                }
+
                 onUpdateSettings(
                     user.copy(
+                        birthday = updatedBirthday,
                         settings = user.settings.copy(
                             use24HourFormat = use24HourFormat,
                             datePattern = datePattern
