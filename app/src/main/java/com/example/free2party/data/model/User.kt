@@ -1,5 +1,7 @@
 package com.example.free2party.data.model
 
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
@@ -34,6 +36,7 @@ data class UserSocials(
     val xUsername: String = ""
 )
 
+@IgnoreExtraProperties
 data class User(
     val uid: String = "",
     val profilePicUrl: String = "",
@@ -51,5 +54,6 @@ data class User(
     @ServerTimestamp
     val createdAt: Date? = null
 ) {
+    @get:Exclude
     val fullName: String get() = "$firstName $lastName".trim()
 }

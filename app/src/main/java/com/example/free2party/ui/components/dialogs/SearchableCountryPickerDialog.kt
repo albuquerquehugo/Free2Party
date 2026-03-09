@@ -1,5 +1,7 @@
 package com.example.free2party.ui.components.dialogs
 
+import android.content.Context
+import android.telephony.TelephonyManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,22 +30,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.free2party.data.model.Country
 import com.example.free2party.data.model.Countries
+import java.util.Locale
 
 @Composable
 fun SearchableCountryPickerDialog(
     onDismissRequest: () -> Unit,
     onCountrySelected: (Country) -> Unit
 ) {
+    val context = LocalContext.current
+    val detectedCountryCode = remember {
+        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+        val countryIso = telephonyManager?.networkCountryIso?.uppercase()
+            ?.takeIf { it.isNotBlank() }
+            ?: telephonyManager?.simCountryIso?.uppercase()
+                ?.takeIf { it.isNotBlank() }
+            ?: Locale.getDefault().country.uppercase()
+        countryIso
+    }
+
     var searchQuery by remember { mutableStateOf("") }
-    val filteredCountries = remember(searchQuery) {
-        Countries.filter { 
+    val filteredCountries = remember(searchQuery, detectedCountryCode) {
+        val baseList = Countries.filter { 
             it.name.contains(searchQuery, ignoreCase = true) ||
-            it.phoneCode.contains(searchQuery)
+            it.phoneCode.contains(searchQuery) ||
+            it.code.contains(searchQuery, ignoreCase = true)
+        }
+        
+        if (searchQuery.isEmpty()) {
+            val detected = baseList.find { it.code == detectedCountryCode }
+            if (detected != null) {
+                listOf(detected) + (baseList - detected)
+            } else {
+                baseList
+            }
+        } else {
+            baseList
         }
     }
 
@@ -96,35 +123,39 @@ fun SearchableCountryPickerDialog(
                         }
                     }
                 } else {
-                    items(filteredCountries) { country ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onCountrySelected(country) }
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = country.flag, fontSize = 24.sp)
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = country.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
+                    val suggestedCountry = if (searchQuery.isEmpty()) {
+                        filteredCountries.firstOrNull()?.takeIf { it.code == detectedCountryCode }
+                    } else null
+
+                    if (suggestedCountry != null) {
+                        item {
                             Text(
-                                text = country.phoneCode,
-                                style = MaterialTheme.typography.bodyMedium,
+                                "Suggested",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
+                                modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 4.dp)
                             )
                         }
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
+                        item {
+                            CountryItem(suggestedCountry, onCountrySelected)
+                        }
+                        item {
+                            Text(
+                                "All Countries",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 12.dp, top = 16.dp, bottom = 4.dp)
+                            )
+                        }
+                        items(filteredCountries.drop(1)) { country ->
+                            CountryItem(country, onCountrySelected)
+                        }
+                    } else {
+                        items(filteredCountries) { country ->
+                            CountryItem(country, onCountrySelected)
+                        }
                     }
                 }
             }
@@ -138,5 +169,42 @@ fun SearchableCountryPickerDialog(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CountryItem(
+    country: Country,
+    onCountrySelected: (Country) -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onCountrySelected(country) }
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = country.flag, fontSize = 24.sp)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = country.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Text(
+                text = country.phoneCode,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
     }
 }
