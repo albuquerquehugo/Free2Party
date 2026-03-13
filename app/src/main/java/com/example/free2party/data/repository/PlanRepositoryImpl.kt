@@ -228,8 +228,7 @@ class PlanRepositoryImpl(
             is FirebaseFirestoreException -> {
                 when (e.code) {
                     FirebaseFirestoreException.Code.NOT_FOUND -> PlanNotFoundException()
-                    FirebaseFirestoreException.Code.PERMISSION_DENIED ->
-                        UnauthorizedException("You don't have permission to modify this plan")
+                    FirebaseFirestoreException.Code.PERMISSION_DENIED -> UnauthorizedException()
                     FirebaseFirestoreException.Code.UNAVAILABLE -> NetworkUnavailableException()
                     else -> DatabaseOperationException(e.localizedMessage ?: "Database error")
                 }

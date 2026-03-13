@@ -28,6 +28,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -102,9 +103,18 @@ class SocialRepositoryImpl(
 
             val friendFlows = friendIds.map { friendId ->
                 combine(
-                    userRepository.observeUser(friendId),
-                    planRepository.getPublicPlans(friendId),
-                    planRepository.getAllPlans(friendId),
+                    userRepository.observeUser(friendId)
+                        .catch { e -> Log.e("SocialRepository", "Error observing user $friendId", e) },
+                    planRepository.getPublicPlans(friendId)
+                        .catch { e -> 
+                            Log.e("SocialRepository", "Error fetching public plans for $friendId", e)
+                            emit(emptyList())
+                        },
+                    planRepository.getAllPlans(friendId)
+                        .catch { e -> 
+                            Log.e("SocialRepository", "Error fetching all plans for $friendId", e)
+                            emit(emptyList())
+                        },
                     tickerFlow
                 ) { user, publicPlans, allPlans, currentTime ->
                     val hasActiveSharedPlan = publicPlans.any { isPlanActive(it, currentTime) }
@@ -121,6 +131,14 @@ class SocialRepositoryImpl(
                         phoneNumber = user.phoneNumber,
                         socials = user.socials
                     )
+                }.catch { e ->
+                    Log.e("SocialRepository", "Critical error in friend flow for $friendId", e)
+                    // Emit a basic FriendInfo so the list doesn't break
+                    emit(FriendInfo(
+                        uid = friendId,
+                        name = "Friend",
+                        inviteStatus = inviteStatuses[friendId] ?: InviteStatus.ACCEPTED
+                    ))
                 }
             }
             combine(friendFlows) { it.toList().sortedBy { friend -> friend.name } }

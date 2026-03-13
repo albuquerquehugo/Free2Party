@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.calendar
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +27,7 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -77,6 +79,7 @@ class CalendarViewModel(
     val isViewingOwnCalendar = targetUserId == null || targetUserId == currentUserId
 
     val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
+        .catch { e -> Log.e("CalendarViewModel", "Error in friendsList flow", e) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
@@ -86,11 +89,15 @@ class CalendarViewModel(
     }
 
     private fun observeUserSettings() {
-        userRepository.observeUser(userRepository.currentUserId)
+        val uid = userRepository.currentUserId
+        if (uid.isBlank()) return
+        
+        userRepository.observeUser(uid)
             .onEach { user ->
                 use24HourFormat = user.settings.use24HourFormat
                 datePattern = user.settings.datePattern
             }
+            .catch { e -> Log.e("CalendarViewModel", "Error observing user settings", e) }
             .launchIn(viewModelScope)
     }
 
@@ -100,10 +107,18 @@ class CalendarViewModel(
         if (isViewingOwnCalendar) {
             planRepository.getOwnPlans()
                 .onEach { plansList = it }
+                .catch { e -> 
+                    Log.e("CalendarViewModel", "Error observing own plans", e)
+                    plansList = emptyList()
+                }
                 .launchIn(viewModelScope)
         } else {
             planRepository.getPublicPlans(userIdToObserve)
                 .onEach { plansList = it }
+                .catch { e ->
+                    Log.e("CalendarViewModel", "Error observing public plans", e)
+                    plansList = emptyList()
+                }
                 .launchIn(viewModelScope)
         }
     }
