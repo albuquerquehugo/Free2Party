@@ -1,10 +1,10 @@
 [versions]
-activityCompose = "1.12.4"
-agp = "9.0.1"
+activityCompose = "1.13.0"
+agp = "9.1.0"
 coil = "2.7.0"
-composeBom = "2026.02.01"
-coreKtx = "1.17.0"
-datastorePreferences = "1.2.0"
+composeBom = "2026.03.00"
+coreKtx = "1.18.0"
+datastorePreferences = "1.2.1"
 desugar_jdk_libs = "2.1.5"
 espressoCore = "3.7.0"
 firebaseBom = "34.10.0"
@@ -17,7 +17,7 @@ lifecycleRuntimeKtx = "2.10.0"
 mockk = "1.14.9"
 navigationCompose = "2.9.7"
 playIntegrity = "1.6.0"
-uiTextGoogleFonts = "1.10.4"
+uiTextGoogleFonts = "1.10.5"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

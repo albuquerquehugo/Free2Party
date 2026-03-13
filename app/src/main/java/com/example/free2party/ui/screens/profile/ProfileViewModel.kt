@@ -13,6 +13,9 @@ import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.InfrastructureException
+import com.example.free2party.exception.SocialException
+import com.example.free2party.util.UiText
 import com.example.free2party.util.isValidDateDigits
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -31,11 +34,11 @@ sealed interface ProfileUiState {
         val isUploadingImage: Boolean = false
     ) : ProfileUiState
 
-    data class Error(val message: String) : ProfileUiState
+    data class Error(val message: UiText) : ProfileUiState
 }
 
 sealed class ProfileUiEvent {
-    data class ShowToast(val message: String, val navigateBack: Boolean = false) : ProfileUiEvent()
+    data class ShowToast(val message: UiText, val navigateBack: Boolean = false) : ProfileUiEvent()
 }
 
 class ProfileViewModel(
@@ -109,10 +112,18 @@ class ProfileViewModel(
         viewModelScope.launch {
             userRepository.observeUser(userRepository.currentUserId)
                 .catch { e ->
-                    uiState = ProfileUiState.Error(
-                        e.localizedMessage
-                            ?: "User profile not found. Please try logging out and in again."
-                    )
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
+                        )
+
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.DynamicString(
+                            e.localizedMessage
+                                ?: "User profile not found. Please try logging out and in again."
+                        )
+                    }
+                    uiState = ProfileUiState.Error(errorText)
                 }
                 .collect { user ->
                     val currentState = uiState
@@ -153,17 +164,19 @@ class ProfileViewModel(
     fun updateProfile() {
         val currentState = uiState as? ProfileUiState.Success ?: return
         if (!isPhoneValid) {
-            uiState = ProfileUiState.Error("Please enter a valid phone number")
+            uiState =
+                ProfileUiState.Error(UiText.DynamicString("Please enter a valid phone number"))
             return
         }
 
         if (!isBirthdayValid) {
-            uiState = ProfileUiState.Error("Please enter a valid date")
+            uiState = ProfileUiState.Error(UiText.DynamicString("Please enter a valid date"))
             return
         }
 
         if (!isWhatsappValid) {
-            uiState = ProfileUiState.Error("Please enter a valid WhatsApp number")
+            uiState =
+                ProfileUiState.Error(UiText.DynamicString("Please enter a valid WhatsApp number"))
             return
         }
 
@@ -202,7 +215,7 @@ class ProfileViewModel(
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
                     _uiEvent.emit(
                         ProfileUiEvent.ShowToast(
-                            "Profile updated successfully!",
+                            UiText.DynamicString("Profile updated successfully!"),
                             navigateBack = true
                         )
                     )
@@ -210,7 +223,15 @@ class ProfileViewModel(
                 .onFailure { e ->
                     uiState =
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
-                    _uiEvent.emit(ProfileUiEvent.ShowToast("Error: ${e.localizedMessage}"))
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
+                        )
+
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Error updating profile")
+                    }
+                    _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
                 }
         }
     }
@@ -228,26 +249,42 @@ class ProfileViewModel(
                             uiState =
                                 (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                                     ?: uiState
-                            _uiEvent.emit(ProfileUiEvent.ShowToast("Profile picture updated!"))
+                            _uiEvent.emit(ProfileUiEvent.ShowToast(UiText.DynamicString("Profile picture updated!")))
                         }
                         .onFailure { e ->
                             uiState =
                                 (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                                     ?: uiState
-                            _uiEvent.emit(
-                                ProfileUiEvent.ShowToast(
-                                    "Error updating profile with new image: ${e.localizedMessage}"
+                            val errorText = when (e) {
+                                is InfrastructureException if e.messageRes != null -> UiText.StringResource(
+                                    e.messageRes
                                 )
+
+                                is SocialException if e.messageRes != null -> UiText.StringResource(
+                                    e.messageRes
+                                )
+
+                                else -> UiText.DynamicString(
+                                    e.localizedMessage ?: "Error updating profile with new image"
+                                )
+                            }
+                            _uiEvent.emit(
+                                ProfileUiEvent.ShowToast(errorText)
                             )
                         }
                 }
                 .onFailure { e ->
                     uiState = (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                         ?: uiState
-                    _uiEvent.emit(
-                        ProfileUiEvent.ShowToast(
-                            "Error uploading image: ${e.localizedMessage}"
+                    val errorText = when {
+                        e is InfrastructureException && e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
                         )
+
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Error uploading image")
+                    }
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(errorText)
                     )
                 }
         }

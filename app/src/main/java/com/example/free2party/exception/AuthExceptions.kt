@@ -1,23 +1,37 @@
 package com.example.free2party.exception
 
-sealed class AuthException(message: String) : Exception(message)
+import androidx.annotation.StringRes
+import com.example.free2party.R
 
-class EmailAlreadyInUseException(message: String = "This email is already in use") :
-    AuthException(message)
+sealed class AuthException(
+    message: String,
+    @get:StringRes val messageRes: Int? = null
+) : Exception(message)
 
-class WeakPasswordException(message: String = "The password is too weak") : AuthException(message)
+class EmailAlreadyInUseException(
+    message: String? = null
+) : AuthException(message ?: "EmailAlreadyInUseException", R.string.error_email_already_in_use)
 
-class InvalidCredentialsException(message: String = "Invalid email or password") :
-    AuthException(message)
+class WeakPasswordException(
+    message: String? = null
+) : AuthException(message ?: "WeakPasswordException", R.string.error_weak_password)
 
-class UserDisabledException(message: String = "This user account has been disabled") :
-    AuthException(message)
+class InvalidCredentialsException(
+    message: String? = null
+) : AuthException(message ?: "InvalidCredentialsException", R.string.error_invalid_credentials)
 
-class AuthNetworkException(message: String = "A network error occurred. Please try again.") :
-    AuthException(message)
+class UserDisabledException(
+    message: String? = null
+) : AuthException(message ?: "UserDisabledException", R.string.error_user_disabled)
 
-class UnknownAuthException(message: String = "An unexpected authentication error occurred") :
-    AuthException(message)
+class AuthNetworkException(
+    message: String? = null
+) : AuthException(message ?: "AuthNetworkException", R.string.error_auth_network)
 
-class UserNullException(message: String = "Authentication failed: User is null") :
-    AuthException(message)
+class UnknownAuthException(
+    message: String? = null
+) : AuthException(message ?: "UnknownAuthException", R.string.error_unknown_auth)
+
+class UserNullException(
+    message: String? = null
+) : AuthException(message ?: "UserNullException", R.string.error_auth_failed_user_null)

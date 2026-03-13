@@ -62,6 +62,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -71,7 +72,7 @@ import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
-import com.example.free2party.ui.components.dialogs.SearchableCountryPickerDialog
+import com.example.free2party.ui.components.dialogs.CountryPickerDialog
 import com.example.free2party.util.DateVisualTransformation
 import com.example.free2party.util.PhoneVisualTransformation
 import com.example.free2party.util.isValidDateDigits
@@ -191,7 +192,7 @@ fun ProfileContent(
                 if (hasImage) {
                     AsyncImage(
                         model = profilePicture,
-                        contentDescription = "Profile Picture",
+                        contentDescription = stringResource(R.string.profile_picture_content_description),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -213,17 +214,18 @@ fun ProfileContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
-                    contentDescription = "Edit Photo",
+                    contentDescription = stringResource(R.string.edit_photo_content_description),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
 
+        // TODO: Trim blank spaces in the beginning or end of first name
         InputTextField(
             value = firstName,
             onValueChange = onFirstNameChange,
-            label = "First Name *",
+            label = stringResource(R.string.first_name_required),
             icon = Icons.Default.AccountCircle,
             modifier = Modifier.testTag("first_name_field"),
             enabled = !isLoading,
@@ -236,10 +238,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of last name
         InputTextField(
             value = lastName,
             onValueChange = onLastNameChange,
-            label = "Last Name *",
+            label = stringResource(R.string.last_name_required),
             icon = Icons.Default.AccountCircle,
             modifier = Modifier.testTag("last_name_field"),
             enabled = !isLoading,
@@ -252,10 +255,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of email
         InputTextField(
             value = email,
             onValueChange = onEmailChange,
-            label = "Email *",
+            label = stringResource(R.string.email_required),
             icon = Icons.Default.Email,
             modifier = Modifier.testTag("email_field"),
             enabled = !isLoading && isEmailEnabled,
@@ -287,11 +291,11 @@ fun ProfileContent(
                     }
                 }
             },
-            label = "Phone Number",
+            label = stringResource(R.string.phone_number),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedLabelColor = phoneLabelColor
             ),
-            placeholder = selectedCountry?.phoneMask ?: "Please select a country first",
+            placeholder = selectedCountry?.phoneMask ?: stringResource(R.string.phone_mask_placeholder),
             placeholderColor =
                 if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -320,7 +324,7 @@ fun ProfileContent(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Public,
-                                contentDescription = "Select Country",
+                                contentDescription = stringResource(R.string.select_country),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -356,20 +360,20 @@ fun ProfileContent(
                     onBirthdayChange(newValue)
                 }
             },
-            label = "Birthday",
+            label = stringResource(R.string.birthday),
             placeholder = datePattern.label,
             icon = Icons.Default.Cake,
             modifier = Modifier.testTag("birthday_field"),
             isError = isBirthdayError,
             supportingText = if (isBirthdayError) {
-                { Text("Invalid date", color = MaterialTheme.colorScheme.error) }
+                { Text(stringResource(R.string.invalid_date), color = MaterialTheme.colorScheme.error) }
             } else null,
             visualTransformation = DateVisualTransformation(datePattern),
             trailingIcon = {
                 IconButton(onClick = { setShowDatePicker(true) }) {
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
-                        contentDescription = "Select Birthday"
+                        contentDescription = stringResource(R.string.select_birthday)
                     )
                 }
             },
@@ -383,11 +387,12 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of first name
         InputTextField(
             value = bio,
             onValueChange = onBioChange,
-            label = "Bio",
-            placeholder = "Write about yourself...",
+            label = stringResource(R.string.bio),
+            placeholder = stringResource(R.string.bio_placeholder),
             icon = Icons.AutoMirrored.Filled.Notes,
             modifier = Modifier.testTag("bio_field"),
             minLines = 1,
@@ -408,7 +413,7 @@ fun ProfileContent(
                 .padding(top = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(text = "Socials", style = MaterialTheme.typography.titleSmall)
+            Text(text = stringResource(R.string.socials), style = MaterialTheme.typography.titleSmall)
         }
 
         val whatsappLabelColor =
@@ -418,6 +423,7 @@ fun ProfileContent(
                 Color.Unspecified
             }
 
+        // TODO: Add a checkbox to mark whatsapp number "Same as phone number"
         InputTextField(
             value = whatsappNumber,
             onValueChange = { newValue ->
@@ -427,11 +433,11 @@ fun ProfileContent(
                     }
                 }
             },
-            label = "WhatsApp Number",
+            label = stringResource(R.string.whatsapp_number),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedLabelColor = whatsappLabelColor
             ),
-            placeholder = selectedWhatsappCountry?.phoneMask ?: "Please select a country first",
+            placeholder = selectedWhatsappCountry?.phoneMask ?: stringResource(R.string.phone_mask_placeholder),
             placeholderColor =
                 if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -460,7 +466,7 @@ fun ProfileContent(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Public,
-                                contentDescription = "Select Country",
+                                contentDescription = stringResource(R.string.select_country),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -491,10 +497,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of Telegram username
         InputTextField(
             value = telegramUsername,
             onValueChange = onTelegramUsernameChange,
-            label = "Telegram Username",
+            label = stringResource(R.string.telegram_username),
             painter = painterResource(id = R.drawable.telegram),
             modifier = Modifier.testTag("telegram_field"),
             prefix = { Text("@") },
@@ -505,10 +512,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of Facebook username
         InputTextField(
             value = facebookUsername,
             onValueChange = onFacebookUsernameChange,
-            label = "Facebook Username",
+            label = stringResource(R.string.facebook_username),
             icon = Icons.Default.Facebook,
             modifier = Modifier.testTag("facebook_field"),
             prefix = { Text("@") },
@@ -519,10 +527,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of Instagram username
         InputTextField(
             value = instagramUsername,
             onValueChange = onInstagramUsernameChange,
-            label = "Instagram Username",
+            label = stringResource(R.string.instagram_username),
             painter = painterResource(id = R.drawable.instagram),
             modifier = Modifier.testTag("instagram_field"),
             prefix = { Text("@") },
@@ -533,10 +542,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of TikTok username
         InputTextField(
             value = tiktokUsername,
             onValueChange = onTiktokUsernameChange,
-            label = "TikTok Username",
+            label = stringResource(R.string.tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
             modifier = Modifier.testTag("tiktok_field"),
             prefix = { Text("@") },
@@ -547,10 +557,11 @@ fun ProfileContent(
             )
         )
 
+        // TODO: Trim blank spaces in the beginning or end of X username
         InputTextField(
             value = xUsername,
             onValueChange = onXUsernameChange,
-            label = "X Username",
+            label = stringResource(R.string.x_username),
             painter = painterResource(id = R.drawable.x),
             modifier = Modifier.testTag("x_field"),
             prefix = { Text("@") },
@@ -576,7 +587,7 @@ fun ProfileContent(
     }
 
     if (showCountryDialog) {
-        SearchableCountryPickerDialog(
+        CountryPickerDialog(
             onDismissRequest = { setShowCountryDialog(false) },
             onCountrySelected = { country ->
                 onCountryCodeChange(country.code)
@@ -588,7 +599,7 @@ fun ProfileContent(
     }
 
     if (showWhatsappCountryDialog) {
-        SearchableCountryPickerDialog(
+        CountryPickerDialog(
             onDismissRequest = { setShowWhatsappCountryDialog(false) },
             onCountrySelected = { country ->
                 onWhatsappCountryCodeChange(country.code)
@@ -624,12 +635,12 @@ fun ProfileContent(
                     }
                     setShowDatePicker(false)
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { setShowDatePicker(false) }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         ) {
@@ -639,7 +650,7 @@ fun ProfileContent(
                 colors = DatePickerDefaults.colors(containerColor = dialogColor),
                 title = {
                     Text(
-                        text = "Select birthday",
+                        text = stringResource(R.string.select_birthday),
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )

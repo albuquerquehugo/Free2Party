@@ -18,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 import kotlinx.coroutines.delay
@@ -43,7 +45,7 @@ fun PlanResults(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Results for: $selectedDateText",
+            text = stringResource(R.string.results_for, selectedDateText),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -99,8 +101,8 @@ private fun EmptyStateMessage(isDateSelected: Boolean) {
     ) {
         Text(
             text =
-                if (isDateSelected) "No plans for this day"
-                else "Select a day on the calendar to see plans",
+                if (isDateSelected) stringResource(R.string.no_plans_for_day)
+                else stringResource(R.string.select_day_on_calendar),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error
         )

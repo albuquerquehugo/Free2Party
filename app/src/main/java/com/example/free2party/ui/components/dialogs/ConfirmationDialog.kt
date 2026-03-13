@@ -15,16 +15,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.free2party.R
 
 @Composable
 fun ConfirmationDialog(
     title: String,
     text: String,
-    confirmButtonText: String = "Confirm",
+    confirmButtonText: String = stringResource(R.string.confirm),
     onConfirm: () -> Unit,
-    dismissButtonText: String = "Cancel",
+    dismissButtonText: String = stringResource(R.string.cancel),
     onDismiss: () -> Unit,
     isDestructive: Boolean = false
 ) {

@@ -25,10 +25,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.free2party.R
 import com.example.free2party.ui.components.InputTextField
 
 @Composable
@@ -54,9 +56,10 @@ fun EmailDialog(
         }
     }
 
-    val finalErrorMessage = remember(errorMessage, isEmailValid, inputValue) {
+    val invalidEmailMessage = stringResource(R.string.invalid_email_error)
+    val finalErrorMessage = remember(errorMessage, isEmailValid, inputValue, invalidEmailMessage) {
         errorMessage ?: if (inputValue.isNotEmpty() && !isEmailValid) {
-            "Please enter a valid email address."
+            invalidEmailMessage
         } else {
             null
         }
@@ -79,10 +82,11 @@ fun EmailDialog(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // TODO: Trim blank spaces in the beginning or end of email
             InputTextField(
                 value = inputValue,
                 onValueChange = onValueChange,
-                label = "Email",
+                label = stringResource(R.string.email_label),
                 icon = Icons.Default.Email,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading,
@@ -105,7 +109,7 @@ fun EmailDialog(
                     onClick = onDismiss,
                     enabled = !isLoading
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(

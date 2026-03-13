@@ -65,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,13 +102,15 @@ fun HomeRoute(
     val context = LocalContext.current
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
 
+    val inviteSentTemplate = stringResource(R.string.invitation_sent_successfully)
+
     LaunchedEffect(Unit) {
         homeViewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.ShowToast -> {
                     Toast.makeText(
                         context,
-                        event.message,
+                        event.message.asString(context),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -123,7 +126,7 @@ fun HomeRoute(
                 is FriendUiEvent.InviteSentSuccessfully -> {
                     Toast.makeText(
                         context,
-                        "Invite sent to ${event.email}!",
+                        inviteSentTemplate.format(event.email),
                         Toast.LENGTH_SHORT
                     ).show()
                     setShowInviteFriendDialog(false)
@@ -220,7 +223,7 @@ fun HomeScreen(
                         if (!profilePicUrl.isNullOrBlank()) {
                             AsyncImage(
                                 model = profilePicUrl,
-                                contentDescription = "User Menu",
+                                contentDescription = stringResource(R.string.user_menu_content_description),
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape),
@@ -229,7 +232,7 @@ fun HomeScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.AccountCircle,
-                                contentDescription = "User Menu",
+                                contentDescription = stringResource(R.string.user_menu_content_description),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(64.dp)
                             )
@@ -241,7 +244,7 @@ fun HomeScreen(
                             tonalElevation = 3.dp
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Profile") },
+                                text = { Text(stringResource(R.string.profile)) },
                                 onClick = {
                                     showUserMenu = false
                                     onNavigateToProfile()
@@ -254,7 +257,7 @@ fun HomeScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Settings") },
+                                text = { Text(stringResource(R.string.settings)) },
                                 onClick = {
                                     showUserMenu = false
                                     onNavigateToSettings()
@@ -267,7 +270,7 @@ fun HomeScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("About") },
+                                text = { Text(stringResource(R.string.about)) },
                                 onClick = {
                                     showUserMenu = false
                                     showAboutDialog = true
@@ -281,7 +284,7 @@ fun HomeScreen(
                             )
                             HorizontalDivider()
                             DropdownMenuItem(
-                                text = { Text("Logout") },
+                                text = { Text(stringResource(R.string.logout)) },
                                 onClick = {
                                     showUserMenu = false
                                     showLogoutDialog = true
@@ -309,7 +312,7 @@ fun HomeScreen(
                 is HomeUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = homeUiState.message,
+                            text = homeUiState.message.asString(),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -336,14 +339,14 @@ fun HomeScreen(
 
         if (showLogoutDialog) {
             ConfirmationDialog(
-                title = "Logout",
-                text = "Are you sure you want to logout?",
-                confirmButtonText = "Logout",
+                title = stringResource(R.string.logout),
+                text = stringResource(R.string.logout_confirmation_text),
+                confirmButtonText = stringResource(R.string.logout),
                 onConfirm = {
                     showLogoutDialog = false
                     onLogoutClick()
                 },
-                dismissButtonText = "Cancel",
+                dismissButtonText = stringResource(R.string.cancel),
                 onDismiss = { showLogoutDialog = false },
                 isDestructive = true
             )
@@ -351,15 +354,15 @@ fun HomeScreen(
 
         if (showRemoveFriendDialog) {
             ConfirmationDialog(
-                title = "Remove Friend",
-                text = "Are you sure you want to remove this friend?",
-                confirmButtonText = "Remove",
+                title = stringResource(R.string.remove_friend),
+                text = stringResource(R.string.remove_friend_confirmation_text),
+                confirmButtonText = stringResource(R.string.remove),
                 onConfirm = {
                     showRemoveFriendDialog = false
                     friendIdToRemove?.let { onRemoveFriend(it) }
                     friendIdToRemove = null
                 },
-                dismissButtonText = "Cancel",
+                dismissButtonText = stringResource(R.string.cancel),
                 onDismiss = {
                     showRemoveFriendDialog = false
                     friendIdToRemove = null
@@ -375,8 +378,8 @@ fun HomeScreen(
         if (showInviteFriendDialog) {
             var inviteEmail by remember { mutableStateOf("") }
             EmailDialog(
-                title = "Invite Friend",
-                description = "Enter your friend's email to send an invite.",
+                title = stringResource(R.string.invite_friend),
+                description = stringResource(R.string.invite_friend_description),
                 inputValue = inviteEmail,
                 onValueChange = {
                     inviteEmail = it
@@ -385,8 +388,11 @@ fun HomeScreen(
                 onDismiss = onInviteFriendDismiss,
                 onConfirm = { onInviteFriendConfirm(inviteEmail) },
                 isLoading = inviteFriendUiState is InviteFriendUiState.Searching,
-                errorMessage = if (inviteFriendUiState is InviteFriendUiState.Error) inviteFriendUiState.message else null,
-                confirmButtonLabel = "Send invite"
+                errorMessage =
+                    if (inviteFriendUiState is InviteFriendUiState.Error) {
+                        inviteFriendUiState.message.asString()
+                    } else null,
+                confirmButtonLabel = stringResource(R.string.send_invitation)
             )
         }
 
@@ -427,14 +433,16 @@ fun HomeContent(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_transparent_light),
-                contentDescription = "Free2Party Logo",
+                contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier.height(32.dp),
                 contentScale = ContentScale.Fit
             )
         }
 
         Text(
-            text = if (isUserFree) "You are Free2Party" else "You are currently busy",
+            text =
+                if (isUserFree) stringResource(R.string.you_are_free)
+                else stringResource(R.string.you_are_busy),
             modifier = Modifier
                 .clip(CircleShape)
                 .background(
@@ -467,7 +475,9 @@ fun HomeContent(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
             } else {
                 Text(
-                    text = if (isUserFree) "Make Me Busy" else "Make Me Free",
+                    text =
+                        if (isUserFree) stringResource(R.string.make_me_busy)
+                        else stringResource(R.string.make_me_free),
                     style = MaterialTheme.typography.titleMedium,
                     color =
                         if (isUserFree) MaterialTheme.colorScheme.onBusyContainer
@@ -498,7 +508,7 @@ fun FriendsListSection(
 ) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
-            text = "Your Friends",
+            text = stringResource(R.string.your_friends),
             style = MaterialTheme.typography.titleLarge
         )
 
@@ -509,7 +519,7 @@ fun FriendsListSection(
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = "Invite Friend",
+                contentDescription = stringResource(R.string.invite_friend),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -517,7 +527,7 @@ fun FriendsListSection(
 
     if (friends.isEmpty()) {
         Text(
-            text = "You don't have any friends yet!",
+            text = stringResource(R.string.no_friends_yet),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 16.dp)
@@ -535,7 +545,7 @@ fun FriendsListSection(
         ) {
             item {
                 ExpandableFriendSection(
-                    title = "Free2Party",
+                    title = stringResource(R.string.free_section_title),
                     friends = freeFriends,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
@@ -544,7 +554,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = "Busy",
+                    title = stringResource(R.string.busy_section_title),
                     friends = busyFriends,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
@@ -553,7 +563,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = "Invited",
+                    title = stringResource(R.string.invited_section_title),
                     friends = invitedFriends,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
@@ -597,7 +607,9 @@ fun ExpandableFriendSection(
             )
             Icon(
                 imageVector = Icons.Default.ExpandMore,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                contentDescription =
+                    if (isExpanded) stringResource(R.string.collapse)
+                    else stringResource(R.string.expand),
                 modifier = Modifier.rotate(rotation)
             )
         }
@@ -606,7 +618,7 @@ fun ExpandableFriendSection(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (friends.isEmpty()) {
                     Text(
-                        text = "No friends in this section",
+                        text = stringResource(R.string.no_friends_in_section),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
@@ -638,6 +650,8 @@ fun FriendItem(
     val isInvited = friend.inviteStatus == InviteStatus.INVITED
     val context = LocalContext.current
 
+    val waMessage = stringResource(R.string.whatsapp_message_template)
+
     Box {
         Card(
             modifier = Modifier
@@ -668,7 +682,7 @@ fun FriendItem(
                     if (isInvited) {
                         Icon(
                             imageVector = Icons.Default.HourglassEmpty,
-                            contentDescription = "Pending",
+                            contentDescription = stringResource(R.string.pending),
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onInactiveContainer
                         )
@@ -703,7 +717,7 @@ fun FriendItem(
                         IconButton(onClick = { showContactMenu = true }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = "Contact Options",
+                                contentDescription = stringResource(R.string.contact_options),
                                 tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
                                 else MaterialTheme.colorScheme.onBusyContainer
                             )
@@ -718,7 +732,7 @@ fun FriendItem(
                             val smsNumber = "${friend.phoneCode}${friend.phoneNumber}"
                             if (smsNumber.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("SMS") },
+                                    text = { Text(stringResource(R.string.sms)) },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Sms,
@@ -736,7 +750,7 @@ fun FriendItem(
 
                             if (friend.socials.facebookUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("Facebook") },
+                                    text = { Text(stringResource(R.string.facebook)) },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Facebook,
@@ -757,7 +771,7 @@ fun FriendItem(
 
                             if (friend.socials.instagramUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("Instagram") },
+                                    text = { Text(stringResource(R.string.instagram)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.instagram_color),
@@ -778,7 +792,7 @@ fun FriendItem(
 
                             if (friend.socials.telegramUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("Telegram") },
+                                    text = { Text(stringResource(R.string.telegram)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.telegram),
@@ -799,7 +813,7 @@ fun FriendItem(
 
                             if (friend.socials.tiktokUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("TikTok") },
+                                    text = { Text(stringResource(R.string.tiktok)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.tiktok_color),
@@ -824,7 +838,7 @@ fun FriendItem(
                             }
                             if (waNumber.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("WhatsApp") },
+                                    text = { Text(stringResource(R.string.whatsapp)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.whatsapp),
@@ -837,7 +851,7 @@ fun FriendItem(
                                         showContactMenu = false
                                         openThirdPartyApp(
                                             context,
-                                            "https://wa.me/$waNumber?text=${Uri.encode("Hey! Saw you're Free2Party, want to hang out?")}"
+                                            "https://wa.me/$waNumber?text=${Uri.encode(waMessage)}"
                                         )
                                     }
                                 )
@@ -845,7 +859,7 @@ fun FriendItem(
 
                             if (friend.socials.xUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text("X") },
+                                    text = { Text(stringResource(R.string.x)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.x),
@@ -871,7 +885,7 @@ fun FriendItem(
                     IconButton(onClick = { showFriendMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Friend Options",
+                            contentDescription = stringResource(R.string.friend_options),
                             tint = when {
                                 isInvited -> MaterialTheme.colorScheme.onInactiveContainer
                                 friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
@@ -889,7 +903,9 @@ fun FriendItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    if (isInvited) "Cancel Invite" else "Remove Friend",
+                                    if (isInvited) stringResource(R.string.cancel_invitation) else stringResource(
+                                        R.string.remove_friend
+                                    ),
                                     color = MaterialTheme.colorScheme.error
                                 )
                             },

@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.BuildConfig
@@ -94,6 +95,10 @@ fun CalendarRoute(
         }
     }
 
+    val planAddedMessage = stringResource(R.string.plan_added_successfully)
+    val planUpdatedMessage = stringResource(R.string.plan_updated_successfully)
+    val planDeletedMessage = stringResource(R.string.plan_deleted)
+
     CalendarScreen(
         viewModel = viewModel,
         plannedDays = plannedDays,
@@ -119,7 +124,7 @@ fun CalendarRoute(
                     visibility = visibility,
                     friendsSelection = friendsSelection,
                     onValidationError = onError,
-                    onSuccess = { onSuccess("Plan successfully added!") }
+                    onSuccess = { onSuccess(planAddedMessage) }
                 )
             } else {
                 viewModel.updatePlan(
@@ -132,7 +137,7 @@ fun CalendarRoute(
                     visibility = visibility,
                     friendsSelection = friendsSelection,
                     onError = onError,
-                    onSuccess = { onSuccess("Plan successfully updated!") }
+                    onSuccess = { onSuccess(planUpdatedMessage) }
                 )
             }
         },
@@ -143,7 +148,7 @@ fun CalendarRoute(
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 },
                 onSuccess = {
-                    Toast.makeText(context, "Plan deleted!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, planDeletedMessage, Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -200,7 +205,7 @@ fun CalendarScreen(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_transparent_light),
-                contentDescription = "Free2Party Logo",
+                contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier.height(20.dp),
                 contentScale = ContentScale.Fit
             )
@@ -224,7 +229,7 @@ fun CalendarScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = "Add Plan",
+                contentDescription = stringResource(R.string.add_plan),
                 tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
                     alpha = 0.38f
                 )
@@ -278,14 +283,14 @@ fun CalendarScreen(
 
     if (showDeleteDialog && planToDelete != null) {
         ConfirmationDialog(
-            title = "Delete Plan",
-            text = "Are you sure you want to delete this plan?",
-            confirmButtonText = "Delete",
+            title = stringResource(R.string.delete_plan),
+            text = stringResource(R.string.delete_plan_confirmation_text),
+            confirmButtonText = stringResource(R.string.delete),
             onConfirm = {
                 onDeletePlan(planToDelete!!.id)
                 setShowDeleteDialog(false)
             },
-            dismissButtonText = "Cancel",
+            dismissButtonText = stringResource(R.string.cancel),
             onDismiss = { setShowDeleteDialog(false) },
             isDestructive = true
         )

@@ -34,9 +34,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.free2party.R
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
@@ -82,7 +84,7 @@ fun SettingsScreen(
 ) {
     Scaffold(
         topBar = {
-            TopBar("Your Settings", onBack = onBack, enabled = uiState !is SettingsUiState.Loading)
+            TopBar(stringResource(R.string.your_settings), onBack = onBack, enabled = uiState !is SettingsUiState.Loading)
         }
     ) { paddingValues ->
         when (uiState) {
@@ -155,7 +157,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "App Theme:",
+                    text = stringResource(R.string.app_theme_label),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 12.dp)
@@ -187,7 +189,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Time Format:",
+                    text = stringResource(R.string.time_format_label),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 12.dp)
@@ -201,13 +203,13 @@ fun SettingsScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     SettingsOption(
-                        label = "24-hour",
+                        label = stringResource(R.string.twenty_four_hour),
                         selected = use24HourFormat,
                         onClick = { use24HourFormat = true },
                         enabled = !isSaving
                     )
                     SettingsOption(
-                        label = "AM/PM",
+                        label = stringResource(R.string.am_pm),
                         selected = !use24HourFormat,
                         onClick = { use24HourFormat = false },
                         enabled = !isSaving
@@ -223,7 +225,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Date Format:",
+                    text = stringResource(R.string.date_format_label),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 12.dp)
@@ -294,7 +296,7 @@ fun SettingsScreenContent(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Save Settings", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.save_settings), style = MaterialTheme.typography.titleMedium)
             }
         }
     }

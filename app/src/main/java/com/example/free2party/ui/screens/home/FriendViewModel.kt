@@ -9,6 +9,9 @@ import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.InfrastructureException
+import com.example.free2party.exception.SocialException
+import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -20,7 +23,7 @@ import kotlinx.coroutines.launch
 sealed interface InviteFriendUiState {
     object Idle : InviteFriendUiState
     object Searching : InviteFriendUiState
-    data class Error(val message: String) : InviteFriendUiState
+    data class Error(val message: UiText) : InviteFriendUiState
     object Success : InviteFriendUiState
 }
 
@@ -54,7 +57,8 @@ class FriendViewModel(
 
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
-            uiState = InviteFriendUiState.Error("Please enter a valid email address.")
+            uiState =
+                InviteFriendUiState.Error(UiText.DynamicString("Please enter a valid email address."))
             return
         }
 
@@ -66,8 +70,12 @@ class FriendViewModel(
                     _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully(normalizedEmail))
                 }
                 .onFailure { e ->
-                    uiState =
-                        InviteFriendUiState.Error(e.localizedMessage ?: "Error sending invite.")
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Error sending invite.")
+                    }
+                    uiState = InviteFriendUiState.Error(errorText)
                 }
         }
     }

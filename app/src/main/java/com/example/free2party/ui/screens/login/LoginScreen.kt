@@ -40,6 +40,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -64,7 +65,11 @@ fun LoginRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is LoginUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        event.message.asString(context),
+                        Toast.LENGTH_SHORT
+                    ).show()
                     setShowForgotPasswordDialog(false)
                 }
             }
@@ -137,7 +142,7 @@ fun LoginScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Contrast,
-                contentDescription = "Appearance"
+                contentDescription = stringResource(R.string.appearance)
             )
 
             DropdownMenu(
@@ -147,7 +152,7 @@ fun LoginScreen(
                 tonalElevation = 3.dp
             ) {
                 Text(
-                    text = "Appearance",
+                    text = stringResource(R.string.appearance),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp, bottom = 16.dp),
@@ -188,7 +193,7 @@ fun LoginScreen(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_transparent_light),
-                contentDescription = "Free2Party Logo",
+                contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
@@ -201,7 +206,7 @@ fun LoginScreen(
             InputTextField(
                 value = email,
                 onValueChange = onEmailChange,
-                label = "Email",
+                label = stringResource(R.string.email_label),
                 icon = Icons.Default.Email,
                 enabled = uiState !is LoginUiState.Loading,
                 keyboardOptions = KeyboardOptions(
@@ -218,7 +223,7 @@ fun LoginScreen(
             InputTextField(
                 value = password,
                 onValueChange = onPasswordChange,
-                label = "Password",
+                label = stringResource(R.string.password_label),
                 isPassword = true,
                 passwordVisible = passwordVisible,
                 changeVisibility = { passwordVisible = !passwordVisible },
@@ -239,7 +244,7 @@ fun LoginScreen(
                 enabled = uiState !is LoginUiState.Loading
             ) {
                 Text(
-                    text = "Forgot Password?",
+                    text = stringResource(R.string.forgot_password),
                     style = MaterialTheme.typography.labelMedium,
                     color =
                         if (uiState is LoginUiState.Loading) MaterialTheme.colorScheme.outline
@@ -249,7 +254,7 @@ fun LoginScreen(
 
             if (uiState is LoginUiState.Error) {
                 Text(
-                    text = uiState.message,
+                    text = uiState.message.asString(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -266,24 +271,26 @@ fun LoginScreen(
                         .height(50.dp),
                     enabled = isFormValid && uiState !is LoginUiState.Loading
                 ) {
-                    Text("Login")
+                    Text(stringResource(R.string.login))
                 }
 
                 TextButton(
                     onClick = onNavigateToRegister,
                     enabled = uiState !is LoginUiState.Loading
                 ) {
-                    Text("Don't have an account? Register")
+                    Text(stringResource(R.string.dont_have_account_register))
                 }
             }
         }
     }
 
+    // TODO: Add a notice to check SPAM folder in email
+    // TODO: Personalize forgot password email
     if (showForgotPasswordDialog) {
         val (forgotPasswordEmail, setForgotPasswordEmail) = remember { mutableStateOf("") }
         EmailDialog(
-            title = "Reset Password",
-            description = "Enter your email address and we'll send you a link to reset your password.",
+            title = stringResource(R.string.reset_password),
+            description = stringResource(R.string.reset_password_description),
             inputValue = forgotPasswordEmail,
             onValueChange = {
                 setForgotPasswordEmail(it)
@@ -292,8 +299,8 @@ fun LoginScreen(
             onDismiss = { onDismissForgotPassword() },
             onConfirm = { onForgotPasswordConfirm(forgotPasswordEmail) },
             isLoading = uiState is LoginUiState.Loading,
-            errorMessage = if (uiState is LoginUiState.Error) uiState.message else null,
-            confirmButtonLabel = "Send link"
+            errorMessage = if (uiState is LoginUiState.Error) uiState.message.asString() else null,
+            confirmButtonLabel = stringResource(R.string.send_link)
         )
     }
 }

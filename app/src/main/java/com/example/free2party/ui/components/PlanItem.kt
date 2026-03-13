@@ -42,10 +42,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.PlanVisibility
@@ -119,22 +121,22 @@ fun PlanItem(
         calculateDuration(plan.startDate, plan.endDate, plan.startTime, plan.endTime)
     }
 
-    val friendsSelection = remember(plan.visibility, plan.friendsSelection, friends) {
-        when (plan.visibility) {
-            PlanVisibility.EVERYONE -> "Everyone"
-            PlanVisibility.EXCEPT -> {
-                val names = plan.friendsSelection.mapNotNull { uid ->
-                    friends.find { it.uid == uid }?.name
-                }
-                if (names.isEmpty()) "Everyone" else "Everyone except: ${names.joinToString(", ")}"
+    val friendsSelection = when (plan.visibility) {
+        PlanVisibility.EVERYONE -> stringResource(R.string.everyone)
+        PlanVisibility.EXCEPT -> {
+            val names = plan.friendsSelection.mapNotNull { uid ->
+                friends.find { it.uid == uid }?.name
             }
+            if (names.isEmpty()) stringResource(R.string.everyone)
+            else stringResource(R.string.everyone_except, names.joinToString(", "))
+        }
 
-            PlanVisibility.ONLY -> {
-                val names = plan.friendsSelection.mapNotNull { uid ->
-                    friends.find { it.uid == uid }?.name
-                }
-                if (names.isEmpty()) "Only you" else "Only: ${names.joinToString(", ")}"
+        PlanVisibility.ONLY -> {
+            val names = plan.friendsSelection.mapNotNull { uid ->
+                friends.find { it.uid == uid }?.name
             }
+            if (names.isEmpty()) stringResource(R.string.only_you)
+            else stringResource(R.string.only_selected_people, names.joinToString(", "))
         }
     }
 
@@ -268,7 +270,7 @@ fun PlanItem(
                         IconButton(onClick = { showMenu = true }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = "Plan Actions",
+                                contentDescription = stringResource(R.string.plan_actions_content_description),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         }
@@ -361,7 +363,7 @@ fun PlanActionsMenu(
     ) {
         onEdit?.let {
             DropdownMenuItem(
-                text = { Text("Edit") },
+                text = { Text(stringResource(R.string.edit)) },
                 enabled = editEnabled,
                 onClick = {
                     onDismissRequest()
@@ -372,7 +374,7 @@ fun PlanActionsMenu(
         }
         onDelete?.let {
             DropdownMenuItem(
-                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
                 onClick = {
                     onDismissRequest()
                     it()

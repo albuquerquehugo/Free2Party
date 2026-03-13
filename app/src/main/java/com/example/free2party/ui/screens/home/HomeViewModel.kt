@@ -15,7 +15,10 @@ import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.InfrastructureException
+import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UserNotFoundException
+import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -39,11 +42,11 @@ sealed interface HomeUiState {
         val isActionLoading: Boolean = false
     ) : HomeUiState
 
-    data class Error(val message: String) : HomeUiState
+    data class Error(val message: UiText) : HomeUiState
 }
 
 sealed class HomeUiEvent {
-    data class ShowToast(val message: String) : HomeUiEvent()
+    data class ShowToast(val message: UiText) : HomeUiEvent()
     object Logout : HomeUiEvent()
 }
 
@@ -103,7 +106,17 @@ class HomeViewModel(
                 authRepository.logout()
                 _uiEvent.emit(HomeUiEvent.Logout)
             } else {
-                uiState = HomeUiState.Error(e.localizedMessage ?: "An error occurred")
+                val errorText = when (e) {
+                    is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                    is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                    else -> UiText.DynamicString(e.localizedMessage ?: "An error occurred")
+                }
+
+                if (errorText is UiText.DynamicString && errorText.value.contains("permission", ignoreCase = true)) {
+                    Log.w("HomeViewModel", "Permission error handled: ${errorText.value}")
+                } else {
+                    uiState = HomeUiState.Error(errorText)
+                }
             }
         }.launchIn(viewModelScope)
     }
@@ -124,7 +137,11 @@ class HomeViewModel(
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error updating availability", e)
-                    _uiEvent.emit(HomeUiEvent.ShowToast("Error: ${e.localizedMessage}"))
+                    val errorText = when {
+                        e is InfrastructureException && e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Error updating availability")
+                    }
+                    _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
         }
     }
@@ -134,11 +151,16 @@ class HomeViewModel(
             socialRepository.removeFriend(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Friend removed successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast("Friend removed successfully"))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.DynamicString("Friend removed successfully")))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error removing friend", e)
-                    _uiEvent.emit(HomeUiEvent.ShowToast("Error removing friend: ${e.localizedMessage}"))
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Error removing friend")
+                    }
+                    _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
         }
     }
@@ -148,11 +170,16 @@ class HomeViewModel(
             socialRepository.cancelFriendRequest(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Invite cancelled successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast("Invite cancelled successfully"))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.DynamicString("Invite cancelled successfully")))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error cancelling invite", e)
-                    _uiEvent.emit(HomeUiEvent.ShowToast("Error cancelling invite: ${e.localizedMessage}"))
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Error cancelling invite")
+                    }
+                    _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
         }
     }

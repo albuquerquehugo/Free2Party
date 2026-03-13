@@ -27,10 +27,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.R
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.components.ProfileContent
 import com.example.free2party.ui.components.TopBar
@@ -44,11 +46,14 @@ fun RegisterRoute(
     val context = LocalContext.current
     val uiState = viewModel.uiState
 
+    val accountCreatedTemplate = stringResource(R.string.account_created_successfully)
+
+
     LaunchedEffect(uiState) {
         if (uiState is RegisterUiState.Success) {
             Toast.makeText(
                 context,
-                "Account created successfully for user ${viewModel.email}!",
+                accountCreatedTemplate.format(viewModel.email),
                 Toast.LENGTH_SHORT
             ).show()
             onRegisterSuccess()
@@ -142,13 +147,16 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             TopBar(
-                title = "Create Account",
+                title = stringResource(R.string.create_account),
                 onBack = onBackToLogin,
                 enabled = uiState !is RegisterUiState.Loading
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding())) {
+            // TODO: Add password confirmation field to confirm password
             ProfileContent(
                 isLoading = uiState is RegisterUiState.Loading,
                 profilePicture = profilePicUri,
@@ -163,7 +171,7 @@ fun RegisterScreen(
                     InputTextField(
                         value = password,
                         onValueChange = onPasswordChange,
-                        label = "Password *",
+                        label = stringResource(R.string.password_required),
                         isPassword = true,
                         passwordVisible = passwordVisible,
                         changeVisibility = { passwordVisible = !passwordVisible },
@@ -205,7 +213,7 @@ fun RegisterScreen(
                     ) {
                         if (uiState is RegisterUiState.Error) {
                             Text(
-                                text = uiState.message,
+                                text = uiState.message.asString(),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(bottom = 8.dp)
@@ -222,11 +230,14 @@ fun RegisterScreen(
                                     .height(56.dp),
                                 enabled = isFormValid
                             ) {
-                                Text("Register", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.register),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             }
 
                             TextButton(onClick = onBackToLogin) {
-                                Text("Already have an account? Login")
+                                Text(stringResource(R.string.already_have_account_login))
                             }
                         }
                     }

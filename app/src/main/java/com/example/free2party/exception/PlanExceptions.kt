@@ -1,18 +1,25 @@
 package com.example.free2party.exception
 
-sealed class PlanException(message: String) : Exception(message)
+import androidx.annotation.StringRes
+import com.example.free2party.R
 
-class PlanNotFoundException(message: String = "The plan you are looking for does not exist") :
-    PlanException(message)
+sealed class PlanException(
+    message: String,
+    @get:StringRes val messageRes: Int? = null
+) : Exception(message)
+
+class PlanNotFoundException(
+    message: String? = null
+) : PlanException(message ?: "PlanNotFoundException", R.string.error_plan_not_found)
 
 class OverlappingPlanException(
-    message: String =
-        "This time slot overlaps with an existing plan. Please select a different time slot."
-) :
-    PlanException(message)
+    message: String? = null
+) : PlanException(message ?: "OverlappingPlanException", R.string.error_overlapping_plan)
 
-class InvalidPlanDataException(message: String = "The plan details are invalid") :
-    PlanException(message)
+class InvalidPlanDataException(
+    message: String? = null
+) : PlanException(message ?: "InvalidPlanDataException", R.string.error_invalid_plan_data)
 
-class PastDateTimeException(message: String = "Cannot schedule plans for a past date or time") :
-    PlanException(message)
+class PastDateTimeException(
+    message: String? = null
+) : PlanException(message ?: "PastDateTimeException", R.string.error_past_date_time)

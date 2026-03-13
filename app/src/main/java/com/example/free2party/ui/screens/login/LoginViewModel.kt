@@ -7,11 +7,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.AuthException
+import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -24,12 +27,12 @@ import kotlinx.coroutines.launch
 sealed interface LoginUiState {
     object Idle : LoginUiState
     object Loading : LoginUiState
-    data class Error(val message: String) : LoginUiState
+    data class Error(val message: UiText) : LoginUiState
     object Success : LoginUiState
 }
 
 sealed class LoginUiEvent {
-    data class ShowToast(val message: String) : LoginUiEvent()
+    data class ShowToast(val message: UiText) : LoginUiEvent()
 }
 
 class LoginViewModel(
@@ -76,7 +79,7 @@ class LoginViewModel(
 
         val normalizedEmail = email.trim().lowercase()
         if (normalizedEmail.isBlank() || password.isBlank()) {
-            uiState = LoginUiState.Error("Email and password cannot be empty")
+            uiState = LoginUiState.Error(UiText.DynamicString("Email and password cannot be empty"))
             return
         }
 
@@ -88,7 +91,12 @@ class LoginViewModel(
                     onSuccess()
                 }
                 .onFailure { e ->
-                    uiState = LoginUiState.Error(e.localizedMessage ?: "Login failed")
+                    val errorText = if (e is AuthException && e.messageRes != null) {
+                        UiText.StringResource(e.messageRes)
+                    } else {
+                        UiText.DynamicString(e.localizedMessage ?: "Login failed")
+                    }
+                    uiState = LoginUiState.Error(errorText)
                 }
         }
     }
@@ -99,7 +107,7 @@ class LoginViewModel(
         val normalizedEmail = email.trim().lowercase()
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
-            uiState = LoginUiState.Error("Please enter a valid email address.")
+            uiState = LoginUiState.Error(UiText.StringResource(R.string.invalid_email_error))
             return
         }
 
@@ -108,10 +116,15 @@ class LoginViewModel(
             authRepository.sendPasswordResetEmail(normalizedEmail)
                 .onSuccess {
                     uiState = LoginUiState.Idle
-                    _uiEvent.emit(LoginUiEvent.ShowToast("Password reset email sent! Please check your inbox."))
+                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.DynamicString("Password reset email sent! Please check your inbox.")))
                 }
                 .onFailure { e ->
-                    uiState = LoginUiState.Error(e.localizedMessage ?: "Failed to send reset email")
+                    val errorText = if (e is AuthException && e.messageRes != null) {
+                        UiText.StringResource(e.messageRes)
+                    } else {
+                        UiText.DynamicString(e.localizedMessage ?: "Failed to send reset email")
+                    }
+                    uiState = LoginUiState.Error(errorText)
                 }
         }
     }

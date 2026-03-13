@@ -23,8 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.free2party.R
 import com.example.free2party.ui.components.ProfileContent
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
@@ -40,7 +42,8 @@ fun ProfileRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is ProfileUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT)
+                        .show()
                     if (event.navigateBack) {
                         onBack()
                     }
@@ -125,7 +128,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopBar(
-                title = "Your Profile",
+                title = stringResource(R.string.your_profile),
                 onBack = onBack,
                 enabled = uiState !is ProfileUiState.Loading
             )
@@ -140,7 +143,7 @@ fun ProfileScreen(
 
             is ProfileUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
+                    Text(text = uiState.message.asString(), color = MaterialTheme.colorScheme.error)
                 }
             }
 
@@ -225,7 +228,11 @@ fun ProfileScreenContent(
     val isSaving = uiState.isSaving
     val isUploadingImage = uiState.isUploadingImage
 
-    Box(modifier = Modifier.fillMaxSize().padding(top = paddingValues.calculateTopPadding())) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = paddingValues.calculateTopPadding())
+    ) {
         ProfileContent(
             isLoading = isSaving || isUploadingImage,
             profilePicture = user.profilePicUrl,
@@ -275,7 +282,7 @@ fun ProfileScreenContent(
                             enabled = !isSaving
                         ) {
                             Text(
-                                text = "Discard Changes",
+                                text = stringResource(R.string.discard_changes),
                                 color = MaterialTheme.colorScheme.outline
                             )
                         }
@@ -296,7 +303,10 @@ fun ProfileScreenContent(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Save Changes", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                stringResource(R.string.save_changes),
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     }
                 }

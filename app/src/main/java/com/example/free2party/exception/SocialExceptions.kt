@@ -1,14 +1,31 @@
 package com.example.free2party.exception
 
-sealed class SocialException(message: String) : Exception(message)
+import androidx.annotation.StringRes
+import com.example.free2party.R
 
-class UserNotFoundException(message: String = "User not found") : SocialException(message)
+sealed class SocialException(
+    message: String,
+    @get:StringRes val messageRes: Int? = null
+) : Exception(message)
 
-class FriendRequestAlreadySentException(message: String = "An invite has already been sent to this user") :
-    SocialException(message)
+class UserNotFoundException(
+    message: String? = null
+) : SocialException(message ?: "UserNotFoundException", R.string.error_user_not_found)
 
-class FriendRequestAlreadyAcceptedException(message: String = "This user is already your friend") :
-    SocialException(message)
+class FriendRequestAlreadySentException(
+    message: String? = null
+) : SocialException(
+    message ?: "FriendRequestAlreadySentException",
+    R.string.error_friend_request_already_sent
+)
 
-class CannotAddSelfException(message: String = "You cannot add yourself as a friend") :
-    SocialException(message)
+class FriendRequestAlreadyAcceptedException(
+    message: String? = null
+) : SocialException(
+    message ?: "FriendRequestAlreadyAcceptedException",
+    R.string.error_friend_request_already_accepted
+)
+
+class CannotAddSelfException(
+    message: String? = null
+) : SocialException(message ?: "CannotAddSelfException", R.string.error_cannot_add_self)

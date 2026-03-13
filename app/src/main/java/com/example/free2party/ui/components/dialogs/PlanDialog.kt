@@ -45,9 +45,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.InviteStatus
@@ -111,9 +113,10 @@ fun PlanDialog(
     }
     val startDateText =
         startDatePickerState.selectedDateMillis?.let { format.format(Date(it)) }
-            ?: "Select start date"
+            ?: stringResource(R.string.select_start_date)
     val endDateText =
-        endDatePickerState.selectedDateMillis?.let { format.format(Date(it)) } ?: "Select end date"
+        endDatePickerState.selectedDateMillis?.let { format.format(Date(it)) }
+            ?: stringResource(R.string.select_end_date)
 
     val isDateTimeValid = remember(
         startDatePickerState.selectedDateMillis,
@@ -275,7 +278,9 @@ fun PlanDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = if (editingPlan == null) "Schedule your plan" else "Edit your plan",
+                text =
+                    if (editingPlan == null) stringResource(R.string.schedule_plan)
+                    else stringResource(R.string.edit_plan),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
@@ -291,7 +296,7 @@ fun PlanDialog(
                 // Start Section
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Start:",
+                        text = stringResource(R.string.start_label),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -335,7 +340,7 @@ fun PlanDialog(
                 // End Section
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "End:",
+                        text = stringResource(R.string.end_label),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -378,7 +383,7 @@ fun PlanDialog(
 
                 if (isStartDateInPast || isStartTimeInPast) {
                     Text(
-                        text = "Cannot schedule plans in the past",
+                        text = stringResource(R.string.error_past_plan),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.fillMaxWidth(),
@@ -387,7 +392,7 @@ fun PlanDialog(
                 }
                 if (!isDateTimeValid) {
                     Text(
-                        text = "End must be after start",
+                        text = stringResource(R.string.error_invalid_datetime),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.fillMaxWidth(),
@@ -400,13 +405,13 @@ fun PlanDialog(
                     onValueChange = { note = it },
                     label = {
                         Text(
-                            "What are you planning?",
+                            stringResource(R.string.plan_note_label),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     },
                     placeholder = {
                         Text(
-                            "Enter a brief note...",
+                            stringResource(R.string.plan_note_placeholder),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     },
@@ -417,18 +422,18 @@ fun PlanDialog(
 
                 // Visibility Section
                 Text(
-                    text = "Who can see this plan?",
+                    text = stringResource(R.string.visibility_label),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
 
                 Column {
                     VisibilityOption(
-                        "Everyone",
+                        stringResource(R.string.everyone),
                         visibility == PlanVisibility.EVERYONE
                     ) { visibility = PlanVisibility.EVERYONE }
                     VisibilityOption(
-                        "Everyone except...",
+                        stringResource(R.string.everyone_except_label),
                         visibility == PlanVisibility.EXCEPT
                     ) { visibility = PlanVisibility.EXCEPT }
                     AnimatedVisibility(visible = visibility == PlanVisibility.EXCEPT) {
@@ -443,7 +448,7 @@ fun PlanDialog(
                             { exceptFriendIds = emptyList() })
                     }
                     VisibilityOption(
-                        "Only selected people...",
+                        stringResource(R.string.only_selected_people_label),
                         visibility == PlanVisibility.ONLY
                     ) { visibility = PlanVisibility.ONLY }
                     AnimatedVisibility(visible = visibility == PlanVisibility.ONLY) {
@@ -465,7 +470,7 @@ fun PlanDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) { Text("Cancel") }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -489,7 +494,10 @@ fun PlanDialog(
                     },
                     enabled = isConfirmEnabled
                 ) {
-                    Text(if (editingPlan == null) "Add" else "Update")
+                    Text(
+                        if (editingPlan == null) stringResource(R.string.add)
+                        else stringResource(R.string.update)
+                    )
                 }
             }
         }
@@ -499,13 +507,17 @@ fun PlanDialog(
         DatePickerDialog(
             onDismissRequest = { setShowStartDatePicker(false) },
             colors = DatePickerDefaults.colors(containerColor = dialogColor),
-            confirmButton = { TextButton(onClick = { setShowStartDatePicker(false) }) { Text("OK") } }) {
+            confirmButton = {
+                TextButton(onClick = { setShowStartDatePicker(false) }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }) {
             DatePicker(
                 state = startDatePickerState,
                 colors = DatePickerDefaults.colors(containerColor = dialogColor),
                 title = {
                     Text(
-                        text = "Select start date",
+                        text = stringResource(R.string.select_start_date),
                         modifier = Modifier.padding(start = 24.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )
@@ -518,13 +530,17 @@ fun PlanDialog(
         DatePickerDialog(
             onDismissRequest = { setShowEndDatePicker(false) },
             colors = DatePickerDefaults.colors(containerColor = dialogColor),
-            confirmButton = { TextButton(onClick = { setShowEndDatePicker(false) }) { Text("OK") } }) {
+            confirmButton = {
+                TextButton(onClick = { setShowEndDatePicker(false) }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }) {
             DatePicker(
                 state = endDatePickerState,
                 colors = DatePickerDefaults.colors(containerColor = dialogColor),
                 title = {
                     Text(
-                        text = "Select end date",
+                        text = stringResource(R.string.select_end_date),
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )
@@ -546,7 +562,9 @@ fun PlanDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (showStartTimePicker) "Select start time" else "Select end time",
+                    text =
+                        if (showStartTimePicker) stringResource(R.string.select_start_time)
+                        else stringResource(R.string.select_end_time),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -577,7 +595,7 @@ fun PlanDialog(
                         }
                         setShowStartTimePicker(false)
                         setShowEndTimePicker(false)
-                    }) { Text("OK") }
+                    }) { Text(stringResource(R.string.ok)) }
                 }
             }
         }
@@ -625,7 +643,7 @@ fun FriendSelector(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "No friends to select",
+                        stringResource(R.string.no_friends_to_select),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -648,14 +666,14 @@ fun FriendSelector(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = "Unselect all",
+                text = stringResource(R.string.unselect_all),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { onUnselectAll() }
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Select all",
+                text = stringResource(R.string.select_all),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { onSelectAll() }

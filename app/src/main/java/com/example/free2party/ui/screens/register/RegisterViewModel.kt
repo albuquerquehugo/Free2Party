@@ -13,6 +13,9 @@ import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.AuthException
+import com.example.free2party.exception.InfrastructureException
+import com.example.free2party.util.UiText
 import com.example.free2party.util.isValidDateDigits
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -23,7 +26,7 @@ import kotlinx.coroutines.launch
 sealed interface RegisterUiState {
     object Idle : RegisterUiState
     object Loading : RegisterUiState
-    data class Error(val message: String) : RegisterUiState
+    data class Error(val message: UiText) : RegisterUiState
     object Success : RegisterUiState
 }
 
@@ -81,28 +84,32 @@ class RegisterViewModel(
     fun onRegisterClick() {
         val normalizedEmail = email.trim().lowercase()
         if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() || password.isBlank()) {
-            uiState = RegisterUiState.Error("Required fields (*) must be filled")
+            uiState =
+                RegisterUiState.Error(UiText.DynamicString("Required fields (*) must be filled"))
             return
         }
 
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
-            uiState = RegisterUiState.Error("Please enter a valid email address")
+            uiState =
+                RegisterUiState.Error(UiText.DynamicString("Please enter a valid email address"))
             return
         }
 
         if (!isPhoneValid) {
-            uiState = RegisterUiState.Error("Please enter a valid phone number")
+            uiState =
+                RegisterUiState.Error(UiText.DynamicString("Please enter a valid phone number"))
             return
         }
 
         if (!isBirthdayValid) {
-            uiState = RegisterUiState.Error("Please enter a valid date")
+            uiState = RegisterUiState.Error(UiText.DynamicString("Please enter a valid date"))
             return
         }
 
         if (!isWhatsappValid) {
-            uiState = RegisterUiState.Error("Please enter a valid WhatsApp number")
+            uiState =
+                RegisterUiState.Error(UiText.DynamicString("Please enter a valid WhatsApp number"))
             return
         }
 
@@ -136,9 +143,15 @@ class RegisterViewModel(
                 )
             ).onSuccess { uiState = RegisterUiState.Success }
                 .onFailure { e ->
-                    uiState = RegisterUiState.Error(
-                        e.localizedMessage ?: "Registration failed"
-                    )
+                    val errorText = when (e) {
+                        is AuthException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
+                        )
+
+                        else -> UiText.DynamicString(e.localizedMessage ?: "Registration failed")
+                    }
+                    uiState = RegisterUiState.Error(errorText)
                 }
         }
     }

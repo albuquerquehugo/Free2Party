@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -46,7 +47,7 @@ fun AboutDialog(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_transparent_light),
-                contentDescription = "Free2Party Logo",
+                contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier.height(24.dp),
                 contentScale = ContentScale.Fit
             )
@@ -58,7 +59,7 @@ fun AboutDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "About",
+                    text = stringResource(R.string.about),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -69,14 +70,14 @@ fun AboutDialog(
             }
 
             Text(
-                text = "Free2Party",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.padding(top = 24.dp)
             )
 
             Text(
-                text = "Version $versionName",
+                text = stringResource(R.string.version_label, versionName),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
@@ -85,7 +86,7 @@ fun AboutDialog(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "A simple way to sync availability with your friends and never miss a meeting again.",
+                text = stringResource(R.string.app_description),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -94,12 +95,12 @@ fun AboutDialog(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Developed by",
+                text = stringResource(R.string.developed_by),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
             Text(
-                text = "Hugo Albuquerque",
+                text = stringResource(R.string.developer_name),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
@@ -116,9 +117,10 @@ fun AboutDialog(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "© ${
+                text = stringResource(
+                    R.string.copyright_template,
                     java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-                } All Rights Reserved",
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline
             )
@@ -130,7 +132,7 @@ fun AboutDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text("Close")
+                    Text(stringResource(R.string.close))
                 }
             }
         }

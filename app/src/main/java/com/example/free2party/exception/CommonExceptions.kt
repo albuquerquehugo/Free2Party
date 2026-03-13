@@ -1,12 +1,27 @@
 package com.example.free2party.exception
 
-sealed class InfrastructureException(message: String) : Exception(message)
+import androidx.annotation.StringRes
+import com.example.free2party.R
 
-class UnauthorizedException(message: String = "You must be logged in to perform this action") :
-    InfrastructureException(message)
+sealed class InfrastructureException(
+    message: String,
+    @get:StringRes val messageRes: Int? = null
+) : Exception(message)
 
-class NetworkUnavailableException(message: String = "No internet connection available") :
-    InfrastructureException(message)
+class UnauthorizedException(
+    message: String? = null
+) : InfrastructureException(message ?: "UnauthorizedException", R.string.error_unauthorized)
 
-class DatabaseOperationException(message: String = "An error occurred while saving data. Please try again.") :
-    InfrastructureException(message)
+class NetworkUnavailableException(
+    message: String? = null
+) : InfrastructureException(
+    message ?: "NetworkUnavailableException",
+    R.string.error_network_unavailable
+)
+
+class DatabaseOperationException(
+    message: String? = null
+) : InfrastructureException(
+    message ?: "DatabaseOperationException",
+    R.string.error_database_operation
+)

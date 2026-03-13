@@ -39,7 +39,7 @@ import com.example.free2party.data.model.Countries
 import java.util.Locale
 
 @Composable
-fun SearchableCountryPickerDialog(
+fun CountryPickerDialog(
     onDismissRequest: () -> Unit,
     onCountrySelected: (Country) -> Unit
 ) {
@@ -88,6 +88,7 @@ fun SearchableCountryPickerDialog(
                 modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 8.dp)
             )
 
+            // TODO: Trim blank spaces in the beginning or end of search
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
