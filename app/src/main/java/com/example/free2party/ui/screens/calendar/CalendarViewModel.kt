@@ -283,8 +283,7 @@ class CalendarViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository,
-                planRepository = planRepository
+                userRepository = userRepository
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

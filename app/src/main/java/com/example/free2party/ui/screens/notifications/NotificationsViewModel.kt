@@ -7,19 +7,21 @@ import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
-import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -47,6 +49,10 @@ sealed class NotificationItem {
         }
 }
 
+sealed class NotificationsUiEvent {
+    data class ShowToast(val message: UiText) : NotificationsUiEvent()
+}
+
 class NotificationsViewModel(
     private val socialRepository: SocialRepository,
     private val userRepository: UserRepository
@@ -58,6 +64,9 @@ class NotificationsViewModel(
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
 
+    private val _uiEvent = MutableSharedFlow<NotificationsUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
     val itemsUnreadCount: StateFlow<Int> = _notifications
         .onEach { notificationList ->
             Log.d(
@@ -68,7 +77,7 @@ class NotificationsViewModel(
         .combine(_friendRequests) { notifications, requests ->
             notifications.count { !it.isRead } + requests.size
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-    
+
     val notificationsUnreadCount: StateFlow<Int> = _notifications
         .map { notifications -> notifications.count { !it.isRead } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -109,12 +118,9 @@ class NotificationsViewModel(
         }.launchIn(viewModelScope)
     }
 
-    fun acceptFriendRequest(request: FriendRequest) {
+    fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
-            socialRepository.updateFriendRequestStatus(
-                request.id,
-                FriendRequestStatus.ACCEPTED
-            )
+            socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.ACCEPTED)
         }
     }
 
@@ -161,11 +167,7 @@ class NotificationsViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository,
-                planRepository = PlanRepositoryImpl(
-                    auth = Firebase.auth,
-                    db = Firebase.firestore
-                )
+                userRepository = userRepository
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

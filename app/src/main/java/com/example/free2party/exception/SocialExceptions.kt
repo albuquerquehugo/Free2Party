@@ -29,3 +29,7 @@ class FriendRequestAlreadyAcceptedException(
 class CannotAddSelfException(
     message: String? = null
 ) : SocialException(message ?: "CannotAddSelfException", R.string.error_cannot_add_self)
+
+class FriendRequestNotFoundException(
+    message: String? = null
+) : SocialException(message ?: "FriendRequestNotFoundException", R.string.error_friend_request_not_found)

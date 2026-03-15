@@ -3,10 +3,12 @@
 /local.properties
 /.idea/caches
 /.idea/dictionaries
+/.idea/easycode
 /.idea/libraries
 /.idea/androidTestResultsUserPreferences.xml
 /.idea/assetWizardSettings.xml
 /.idea/deploymentTargetSelector.xml
+/.idea/easycode.ignore
 /.idea/modules.xml
 /.idea/navEditor.xml
 /.idea/workspace.xml

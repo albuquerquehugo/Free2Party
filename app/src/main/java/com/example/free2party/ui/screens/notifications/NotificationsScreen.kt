@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.notifications
 
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -55,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,18 +68,34 @@ import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.Notification
 import com.example.free2party.ui.theme.inactive
 import com.example.free2party.util.formatTimeAgo
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel()) {
+fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel(factory = NotificationsViewModel.provideFactory())) {
+    val context = LocalContext.current
     val items by viewModel.notificationItems.collectAsState()
     val itemsUnreadCount by viewModel.itemsUnreadCount.collectAsState()
     val notificationsUnreadCount by viewModel.notificationsUnreadCount.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is NotificationsUiEvent.ShowToast -> {
+                    Toast.makeText(
+                        context,
+                        event.message.asString(context),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
     NotificationsScreen(
         items = items,
         itemsUnreadCount = itemsUnreadCount,
         notificationsUnreadCount = notificationsUnreadCount,
-        onAcceptRequest = { viewModel.acceptFriendRequest(it) },
+        onAcceptRequest = { viewModel.acceptFriendRequest(it.id) },
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
         onToggleRead = { viewModel.toggleReadStatus(it) },
         onDelete = { viewModel.deleteNotification(it) },
@@ -278,12 +297,12 @@ fun FriendRequestItem(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Decline",
                     tint = MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
-
+            
             Spacer(modifier = Modifier.width(16.dp))
-
+            
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -296,7 +315,7 @@ fun FriendRequestItem(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Accept",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }

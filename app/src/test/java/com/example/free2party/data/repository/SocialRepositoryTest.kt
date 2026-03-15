@@ -28,7 +28,6 @@ class SocialRepositoryTest {
     private lateinit var repository: SocialRepositoryImpl
     private val db: FirebaseFirestore = mockk()
     private val userRepository: UserRepository = mockk()
-    private val planRepository: PlanRepository = mockk()
     private val usersCollection: CollectionReference = mockk()
     private val userDoc: DocumentReference = mockk()
     private val friendsCollection: CollectionReference = mockk()
@@ -41,7 +40,7 @@ class SocialRepositoryTest {
         every { usersCollection.document("me123") } returns userDoc
         every { userDoc.collection("friends") } returns friendsCollection
         
-        repository = SocialRepositoryImpl(db, userRepository, planRepository)
+        repository = SocialRepositoryImpl(db, userRepository)
         
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
     }

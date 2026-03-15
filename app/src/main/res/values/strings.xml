@@ -163,6 +163,7 @@
     <string name="error_email_already_in_use">This email is already in use</string>
     <string name="error_friend_request_already_accepted">This user is already your friend</string>
     <string name="error_friend_request_already_sent">An invite has already been sent to this user</string>
+    <string name="error_friend_request_not_found">The friend request was not found</string>
     <string name="error_invalid_credentials">Invalid email or password</string>
     <string name="error_invalid_plan_data">The plan details are invalid</string>
     <string name="error_network_unavailable">No internet connection available</string>

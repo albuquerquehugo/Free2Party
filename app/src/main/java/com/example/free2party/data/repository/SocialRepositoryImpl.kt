@@ -1,8 +1,6 @@
 package com.example.free2party.data.repository
 
 import android.util.Log
-import com.example.free2party.BuildConfig
-import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -13,11 +11,11 @@ import com.example.free2party.exception.CannotAddSelfException
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.FriendRequestAlreadyAcceptedException
 import com.example.free2party.exception.FriendRequestAlreadySentException
+import com.example.free2party.exception.FriendRequestNotFoundException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
-import com.example.free2party.util.isPlanActive
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -25,20 +23,15 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 class SocialRepositoryImpl(
     private val db: FirebaseFirestore,
-    private val userRepository: UserRepository,
-    private val planRepository: PlanRepository
+    private val userRepository: UserRepository
 ) : SocialRepository {
 
     private val currentUserId: String
@@ -58,112 +51,56 @@ class SocialRepositoryImpl(
                     close(mapToSocialException(error))
                     return@addSnapshotListener
                 }
+
                 val requests = snapshot?.toObjects(FriendRequest::class.java) ?: emptyList()
                 trySend(requests)
             }
+
         awaitClose { listener.remove() }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getFriendsList(): Flow<List<FriendInfo>> {
-        if (currentUserId.isBlank()) return flowOf(emptyList())
-
-        val tickerFlow = flow {
-            while (true) {
-                emit(System.currentTimeMillis())
-                delay(BuildConfig.updateFrequency)
-            }
-        }
-
-        return callbackFlow {
-            val collectionListener = db.collection("users").document(currentUserId)
-                .collection("friends")
-                .addSnapshotListener { snapshot, error ->
-                    if (error != null) {
-                        close(mapToSocialException(error))
-                        return@addSnapshotListener
-                    }
-                    val friendIds = snapshot?.documents?.map { it.id } ?: emptyList()
-                    val inviteStatuses = snapshot?.documents?.associate {
-                        it.id to (it.getString("inviteStatus")?.let { status ->
-                            try {
-                                InviteStatus.valueOf(status)
-                            } catch (e: Exception) {
-                                Log.e("SocialRepositoryImpl", "Error parsing invite status", e)
-                                InviteStatus.ACCEPTED
-                            }
-                        } ?: InviteStatus.ACCEPTED)
-                    } ?: emptyMap()
-
-                    trySend(friendIds to inviteStatuses)
-                }
-            awaitClose { collectionListener.remove() }
-        }.flatMapLatest { (friendIds, inviteStatuses) ->
-            if (friendIds.isEmpty()) return@flatMapLatest flowOf(emptyList())
-
-            val friendFlows = friendIds.map { friendId ->
-                combine(
-                    userRepository.observeUser(friendId)
-                        .catch { e -> Log.e("SocialRepository", "Error observing user $friendId", e) },
-                    planRepository.getPublicPlans(friendId)
-                        .catch { e -> 
-                            Log.e("SocialRepository", "Error fetching public plans for $friendId", e)
-                            emit(emptyList())
-                        },
-                    planRepository.getAllPlans(friendId)
-                        .catch { e -> 
-                            Log.e("SocialRepository", "Error fetching all plans for $friendId", e)
-                            emit(emptyList())
-                        },
-                    tickerFlow
-                ) { user, publicPlans, allPlans, currentTime ->
-                    val hasActiveSharedPlan = publicPlans.any { isPlanActive(it, currentTime) }
-                    val hasAnyActivePlan = allPlans.any { isPlanActive(it, currentTime) }
-
-                    val phoneCode = Countries.find { it.code == user.countryCode }?.phoneCode ?: ""
-
-                    FriendInfo(
-                        uid = friendId,
-                        name = user.fullName.ifBlank { "Unknown" },
-                        isFreeNow = hasActiveSharedPlan || (user.isFreeNow && !hasAnyActivePlan),
-                        inviteStatus = inviteStatuses[friendId] ?: InviteStatus.ACCEPTED,
-                        phoneCode = phoneCode,
-                        phoneNumber = user.phoneNumber,
-                        socials = user.socials
-                    )
-                }.catch { e ->
-                    Log.e("SocialRepository", "Critical error in friend flow for $friendId", e)
-                    // Emit a basic FriendInfo so the list doesn't break
-                    emit(FriendInfo(
-                        uid = friendId,
-                        name = "Friend",
-                        inviteStatus = inviteStatuses[friendId] ?: InviteStatus.ACCEPTED
-                    ))
-                }
-            }
-            combine(friendFlows) { it.toList().sortedBy { friend -> friend.name } }
-        }
-    }
-
-    override fun getNotifications(): Flow<List<Notification>> = callbackFlow {
+    override fun getFriendsList(): Flow<List<FriendInfo>> = callbackFlow {
         if (currentUserId.isBlank()) {
             trySend(emptyList())
             return@callbackFlow
         }
 
         val listener = db.collection("users").document(currentUserId)
-            .collection("notifications")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .collection("friends")
+            .whereEqualTo("inviteStatus", InviteStatus.ACCEPTED.name)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(mapToSocialException(error))
                     return@addSnapshotListener
                 }
-                val notifications = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Notification::class.java)?.copy(id = doc.id)
-                } ?: emptyList()
-                trySend(notifications)
+
+                val friends = snapshot?.toObjects(FriendInfo::class.java) ?: emptyList()
+                trySend(friends)
             }
+
+        awaitClose { listener.remove() }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getNotifications(): Flow<List<Notification>> {
+        if (currentUserId.isBlank()) return flowOf(emptyList())
+
+        return db.collection("users").document(currentUserId)
+            .collection("notifications")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListenerFlow()
+            .catch { emit(emptyList()) }
+    }
+
+    private fun Query.addSnapshotListenerFlow(): Flow<List<Notification>> = callbackFlow {
+        val listener = addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(mapToSocialException(error))
+                return@addSnapshotListener
+            }
+            val notifications = snapshot?.toObjects(Notification::class.java) ?: emptyList()
+            trySend(notifications)
+        }
         awaitClose { listener.remove() }
     }
 
@@ -236,40 +173,44 @@ class SocialRepositoryImpl(
         db.runTransaction { transaction ->
             val requestRef = db.collection("friendRequests").document(requestId)
             val requestDoc = transaction.get(requestRef)
+            if (!requestDoc.exists()) {
+                Log.e("SocialRepositoryImpl", "Friend request doc not found: $requestId")
+                throw FriendRequestNotFoundException()
+            }
+            val request = requestDoc.toObject(FriendRequest::class.java)
+                ?: throw FriendRequestNotFoundException()
 
-            val senderId = requestDoc.getString("senderId") ?: return@runTransaction
-            val senderName = requestDoc.getString("senderName") ?: "Unknown"
-            val senderEmail = requestDoc.getString("senderEmail") ?: "Unknown"
+            val senderFriendRef = db.collection("users").document(request.senderId)
+                .collection("friends").document(request.receiverId)
 
-            val receiverId = requestDoc.getString("receiverId") ?: return@runTransaction
-            val receiverRef = db.collection("users").document(receiverId)
+            val receiverRef = db.collection("users").document(request.receiverId)
             val receiverDoc = transaction.get(receiverRef)
-            val receiverName = receiverDoc.getString("fullName") ?: "Someone"
+            val receiverFirstName = receiverDoc.getString("firstName") ?: ""
+            val receiverLastName = receiverDoc.getString("lastName") ?: ""
+            val receiverName = "$receiverFirstName $receiverLastName".trim().ifBlank { "Someone" }
             val receiverEmail = receiverDoc.getString("email") ?: ""
 
             if (friendRequestStatus == FriendRequestStatus.ACCEPTED) {
-                transaction.update(
-                    requestRef,
-                    "friendRequestStatus",
-                    FriendRequestStatus.ACCEPTED.name
-                )
+                // Update sender's friend document to ACCEPTED
+                transaction.update(senderFriendRef, "inviteStatus", InviteStatus.ACCEPTED.name)
+
+                // Create a friend document for the receiver (current user)
+                val receiverFriendRef = db.collection("users").document(request.receiverId)
+                    .collection("friends").document(request.senderId)
                 transaction.set(
-                    db.collection("users").document(currentUserId).collection("friends")
-                        .document(senderId),
-                    mapOf(
-                        "uid" to senderId,
-                        "name" to senderName,
+                    receiverFriendRef, mapOf(
+                        "uid" to request.senderId,
+                        "name" to request.senderName,
                         "inviteStatus" to InviteStatus.ACCEPTED.name,
                         "addedAt" to FieldValue.serverTimestamp()
                     )
                 )
-                transaction.update(
-                    db.collection("users").document(senderId).collection("friends")
-                        .document(currentUserId), "inviteStatus", InviteStatus.ACCEPTED.name
-                )
+
+                // Delete the friend request document
+                transaction.delete(requestRef)
 
                 // Create notification for sender
-                val senderNotifRef = db.collection("users").document(senderId)
+                val senderNotifRef = db.collection("users").document(request.senderId)
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
@@ -279,43 +220,17 @@ class SocialRepositoryImpl(
                         "type" to NotificationType.FRIEND_ADDED.name
                     )
                 )
-
-                // Create notification for receiver
-                val receiverNotifRef = db.collection("users").document(currentUserId)
-                    .collection("notifications").document()
-                transaction.set(
-                    receiverNotifRef, mapOf(
-                        "message" to "$senderName ($senderEmail) was added as a friend",
-                        "isRead" to false,
-                        "timestamp" to FieldValue.serverTimestamp(),
-                        "type" to NotificationType.FRIEND_ADDED.name
-                    )
-                )
             } else {
+                // If declined, remove the sender's invited status and the request
                 transaction.delete(requestRef)
-                transaction.delete(
-                    db.collection("users").document(senderId).collection("friends")
-                        .document(currentUserId)
-                )
+                transaction.delete(senderFriendRef)
 
                 // Create notification for sender
-                val senderNotifRef = db.collection("users").document(senderId)
+                val senderNotifRef = db.collection("users").document(request.senderId)
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
                         "message" to "Your friend request to $receiverName ($receiverEmail) was declined",
-                        "isRead" to false,
-                        "timestamp" to FieldValue.serverTimestamp(),
-                        "type" to NotificationType.FRIEND_DECLINED.name
-                    )
-                )
-
-                // Create notification for receiver
-                val receiverNotifRef = db.collection("users").document(currentUserId)
-                    .collection("notifications").document()
-                transaction.set(
-                    receiverNotifRef, mapOf(
-                        "message" to "$senderName ($senderEmail) friend request was declined",
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "type" to NotificationType.FRIEND_DECLINED.name

@@ -1,6 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     // Basic user info is readable by any authenticated user
     match /users/{userId} {
       allow read: if request.auth != null;
@@ -13,22 +14,40 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Private subcollections (notifications, friends) only accessible by the owner
-      match /notifications/{id} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Notifications subcollection: owner can do everything.
+      // Others can create if they are logged in (e.g., for sending/accepting requests)
+      match /notifications/{notificationId} {
+        allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null;
       }
-      match /friends/{id} {
-        allow read, write: if request.auth != null && (request.auth.uid == userId || exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId)));
+
+      // Friends subcollection
+      match /friends/{friendId} {
+        allow read: if request.auth != null;
+        // The owner of the profile can manage their friends list
+        allow write: if request.auth != null && request.auth.uid == userId;
+        // The person whose UID is friendId can update or delete their own entry in this user's friends list
+        // (Used for accepting/declining friend requests or un-friending)
+        allow update, delete: if request.auth != null &&
+          (request.auth.uid == userId || request.auth.uid == friendId);
       }
     }
 
-    // Rules for plans, notifications, and friend requests
-    match /plans/{planId} {
-      allow read, write: if request.auth != null;
-    }
-
+    // Rules for friend requests
     match /friendRequests/{requestId} {
-      allow read, write: if request.auth != null;
+      // Allow reading or deleting a request if the user is the sender or receiver.
+      // We check document data (resource.data) to support collection-wide queries (list),
+      // and we fallback to regex on requestId for cases where the document might not exist (get/delete).
+      allow read, delete: if request.auth != null && (
+        (resource != null && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid)) ||
+        (resource == null && (requestId.matches('^' + request.auth.uid + '_.*') || requestId.matches('.*_' + request.auth.uid + '$')))
+      );
+
+      // Only the sender can create a request.
+      // The requestId must match the format 'senderId_receiverId'.
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.senderId &&
+        requestId == request.resource.data.senderId + '_' + request.resource.data.receiverId;
     }
   }
 }
