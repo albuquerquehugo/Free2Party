@@ -221,9 +221,8 @@ fun ProfileContent(
             }
         }
 
-        // TODO: Trim blank spaces in the beginning or end of first name
         InputTextField(
-            value = firstName,
+            value = firstName.trim(),
             onValueChange = onFirstNameChange,
             label = stringResource(R.string.first_name_required),
             icon = Icons.Default.AccountCircle,
@@ -238,9 +237,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of last name
         InputTextField(
-            value = lastName,
+            value = lastName.trim(),
             onValueChange = onLastNameChange,
             label = stringResource(R.string.last_name_required),
             icon = Icons.Default.AccountCircle,
@@ -255,9 +253,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of email
         InputTextField(
-            value = email,
+            value = email.trim(),
             onValueChange = onEmailChange,
             label = stringResource(R.string.email_required),
             icon = Icons.Default.Email,
@@ -387,7 +384,6 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of first name
         InputTextField(
             value = bio,
             onValueChange = onBioChange,
@@ -497,9 +493,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of Telegram username
         InputTextField(
-            value = telegramUsername,
+            value = telegramUsername.trim(),
             onValueChange = onTelegramUsernameChange,
             label = stringResource(R.string.telegram_username),
             painter = painterResource(id = R.drawable.telegram),
@@ -512,9 +507,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of Facebook username
         InputTextField(
-            value = facebookUsername,
+            value = facebookUsername.trim(),
             onValueChange = onFacebookUsernameChange,
             label = stringResource(R.string.facebook_username),
             icon = Icons.Default.Facebook,
@@ -527,9 +521,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of Instagram username
         InputTextField(
-            value = instagramUsername,
+            value = instagramUsername.trim(),
             onValueChange = onInstagramUsernameChange,
             label = stringResource(R.string.instagram_username),
             painter = painterResource(id = R.drawable.instagram),
@@ -542,9 +535,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of TikTok username
         InputTextField(
-            value = tiktokUsername,
+            value = tiktokUsername.trim(),
             onValueChange = onTiktokUsernameChange,
             label = stringResource(R.string.tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
@@ -557,9 +549,8 @@ fun ProfileContent(
             )
         )
 
-        // TODO: Trim blank spaces in the beginning or end of X username
         InputTextField(
-            value = xUsername,
+            value = xUsername.trim(),
             onValueChange = onXUsernameChange,
             label = stringResource(R.string.x_username),
             painter = painterResource(id = R.drawable.x),

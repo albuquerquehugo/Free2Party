@@ -37,7 +37,7 @@ import com.example.free2party.ui.components.InputTextField
 fun EmailDialog(
     title: String,
     description: String,
-    inputValue: String,
+    email: String,
     onValueChange: (String) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
@@ -50,22 +50,22 @@ fun EmailDialog(
     ),
     keyboardActions: KeyboardActions? = null
 ) {
-    val isEmailValid by remember(inputValue) {
+    val isEmailValid by remember(email) {
         derivedStateOf {
-            Patterns.EMAIL_ADDRESS.matcher(inputValue).matches()
+            Patterns.EMAIL_ADDRESS.matcher(email).matches()
         }
     }
 
     val invalidEmailMessage = stringResource(R.string.invalid_email_error)
-    val finalErrorMessage = remember(errorMessage, isEmailValid, inputValue, invalidEmailMessage) {
-        errorMessage ?: if (inputValue.isNotEmpty() && !isEmailValid) {
+    val finalErrorMessage = remember(errorMessage, isEmailValid, email, invalidEmailMessage) {
+        errorMessage ?: if (email.isNotEmpty() && !isEmailValid) {
             invalidEmailMessage
         } else {
             null
         }
     }
 
-    val canConfirm = inputValue.isNotBlank() && !isLoading && isEmailValid
+    val canConfirm = email.isNotBlank() && !isLoading && isEmailValid
 
     val finalKeyboardActions = keyboardActions ?: KeyboardActions(
         onDone = {
@@ -92,9 +92,8 @@ fun EmailDialog(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // TODO: Trim blank spaces in the beginning or end of email
             InputTextField(
-                value = inputValue,
+                value = email.trim(),
                 onValueChange = onValueChange,
                 label = stringResource(R.string.email_label),
                 icon = Icons.Default.Email,

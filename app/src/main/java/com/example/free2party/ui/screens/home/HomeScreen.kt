@@ -380,7 +380,7 @@ fun HomeScreen(
             EmailDialog(
                 title = stringResource(R.string.invite_friend),
                 description = stringResource(R.string.invite_friend_description),
-                inputValue = inviteEmail,
+                email = inviteEmail,
                 onValueChange = {
                     inviteEmail = it
                     if (inviteFriendUiState is InviteFriendUiState.Error) onInviteFriendResetState()

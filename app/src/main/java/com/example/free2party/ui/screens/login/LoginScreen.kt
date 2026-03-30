@@ -291,7 +291,7 @@ fun LoginScreen(
         EmailDialog(
             title = stringResource(R.string.reset_password),
             description = stringResource(R.string.reset_password_description),
-            inputValue = forgotPasswordEmail,
+            email = forgotPasswordEmail,
             onValueChange = {
                 setForgotPasswordEmail(it)
                 if (uiState is LoginUiState.Error) onResetState()

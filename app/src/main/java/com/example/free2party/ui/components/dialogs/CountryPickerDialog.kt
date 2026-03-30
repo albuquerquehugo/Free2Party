@@ -88,9 +88,8 @@ fun CountryPickerDialog(
                 modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 8.dp)
             )
 
-            // TODO: Trim blank spaces in the beginning or end of search
             OutlinedTextField(
-                value = searchQuery,
+                value = searchQuery.trim(),
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
