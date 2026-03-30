@@ -61,7 +61,8 @@
     <string name="login">Login</string>
     <string name="password_label">Password</string>
     <string name="reset_password">Reset Password</string>
-    <string name="reset_password_description">Enter your email address and we\'ll send you a link to reset your password.</string>
+    <string name="reset_password_description">Enter your email address and we\'ll send you a link to
+        reset your password.\n\n(Remember to check the SPAM folder in your email)</string>
     <string name="send_link">Send link</string>
 
     <!-- Register Screen -->

@@ -284,7 +284,6 @@ fun LoginScreen(
         }
     }
 
-    // TODO: Add a notice to check SPAM folder in email
     // TODO: Personalize forgot password email
     if (showForgotPasswordDialog) {
         val (forgotPasswordEmail, setForgotPasswordEmail) = remember { mutableStateOf("") }
