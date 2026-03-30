@@ -51,6 +51,7 @@ class RegisterViewModel(
     var bio by mutableStateOf("")
     var whatsappCountryCode by mutableStateOf("")
     var whatsappNumber by mutableStateOf("")
+    var isWhatsappSameAsPhone by mutableStateOf(false)
     var telegramUsername by mutableStateOf("")
     var facebookUsername by mutableStateOf("")
     var instagramUsername by mutableStateOf("")
@@ -168,6 +169,7 @@ class RegisterViewModel(
         bio = ""
         whatsappNumber = ""
         whatsappCountryCode = ""
+        isWhatsappSameAsPhone = false
         telegramUsername = ""
         facebookUsername = ""
         instagramUsername = ""

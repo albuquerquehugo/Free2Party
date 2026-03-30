@@ -66,10 +66,20 @@ fun InputTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     focusRequester: FocusRequester = remember { FocusRequester() },
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors()
+    colors: TextFieldColors? = null
 ) {
     val isFocused by interactionSource.collectIsFocusedAsState()
     val isMultiLine = maxLines > 1
+
+    val labelColor = if (value.isEmpty() && !isFocused) {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    } else {
+        Color.Unspecified
+    }
+
+    val defaultColors = OutlinedTextFieldDefaults.colors(
+        unfocusedLabelColor = labelColor
+    )
 
     OutlinedTextField(
         value = value,
@@ -99,7 +109,7 @@ fun InputTextField(
             visualTransformation
         },
         prefix = prefix,
-        colors = colors,
+        colors = colors ?: defaultColors,
         leadingIcon = {
             Row(
                 modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,

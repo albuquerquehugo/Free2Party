@@ -66,18 +66,20 @@ class ProfileViewModel(
     var tiktokUsername by mutableStateOf("")
     var xUsername by mutableStateOf("")
 
-    val isPhoneValid by derivedStateOf {
+    var isWhatsappSameAsPhone by mutableStateOf(false)
+
+    private val isPhoneValid by derivedStateOf {
         if (phoneNumber.isEmpty()) return@derivedStateOf countryCode.isEmpty()
         val country = Countries.find { it.code == countryCode }
         country == null || phoneNumber.length == country.digitsCount
     }
 
-    val isBirthdayValid by derivedStateOf {
+    private val isBirthdayValid by derivedStateOf {
         val pattern = (uiState as? ProfileUiState.Success)?.user?.settings?.datePattern
         birthday.isEmpty() || (pattern != null && isValidDateDigits(birthday, pattern))
     }
 
-    val isWhatsappValid by derivedStateOf {
+    private val isWhatsappValid by derivedStateOf {
         if (whatsappNumber.isEmpty()) return@derivedStateOf whatsappCountryCode.isEmpty()
         val country = Countries.find { it.code == whatsappCountryCode }
         country == null || whatsappNumber.length == country.digitsCount
@@ -154,6 +156,18 @@ class ProfileViewModel(
         instagramUsername = user.socials.instagramUsername
         tiktokUsername = user.socials.tiktokUsername
         xUsername = user.socials.xUsername
+        
+        isWhatsappSameAsPhone = whatsappNumber == phoneNumber && 
+                whatsappCountryCode == countryCode && 
+                phoneNumber.isNotEmpty()
+    }
+
+    fun onWhatsappSameAsPhoneChange(checked: Boolean) {
+        isWhatsappSameAsPhone = checked
+        if (checked) {
+            whatsappNumber = phoneNumber
+            whatsappCountryCode = countryCode
+        }
     }
 
     fun discardChanges() {

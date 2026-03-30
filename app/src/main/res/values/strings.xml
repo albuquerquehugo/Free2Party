@@ -93,6 +93,7 @@
     <string name="telegram_username">Telegram Username</string>
     <string name="tiktok_username">TikTok Username</string>
     <string name="whatsapp_number">WhatsApp Number</string>
+    <string name="whatsapp_same_as_phone_number">Same as phone number</string>
     <string name="x_username">X Username</string>
     <string name="your_profile">Your Profile</string>
 
