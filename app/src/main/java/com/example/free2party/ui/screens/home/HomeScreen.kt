@@ -102,7 +102,7 @@ fun HomeRoute(
     val context = LocalContext.current
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
 
-    val inviteSentTemplate = stringResource(R.string.invitation_sent_successfully)
+    val inviteSentTemplate = stringResource(R.string.invite_sent_successfully)
 
     LaunchedEffect(Unit) {
         homeViewModel.uiEvent.collectLatest { event ->
@@ -234,7 +234,7 @@ fun HomeScreen(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = stringResource(R.string.user_menu_content_description),
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(64.dp)
+                                modifier = Modifier.size(40.dp)
                             )
                         }
                         DropdownMenu(
@@ -392,7 +392,7 @@ fun HomeScreen(
                     if (inviteFriendUiState is InviteFriendUiState.Error) {
                         inviteFriendUiState.message.asString()
                     } else null,
-                confirmButtonLabel = stringResource(R.string.send_invitation)
+                confirmButtonLabel = stringResource(R.string.send_invite)
             )
         }
 
@@ -432,9 +432,9 @@ fun HomeContent(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent_light),
+                painter = painterResource(id = R.drawable.free2party_full_transparent),
                 contentDescription = stringResource(R.string.logo_content_description),
-                modifier = Modifier.height(32.dp),
+                modifier = Modifier.height(24.dp),
                 contentScale = ContentScale.Fit
             )
         }
@@ -450,7 +450,7 @@ fun HomeContent(
                     else MaterialTheme.colorScheme.busyContainer
                 )
                 .padding(horizontal = 24.dp, vertical = 16.dp),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             color =
                 if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
                 else MaterialTheme.colorScheme.onBusyContainer
@@ -903,7 +903,7 @@ fun FriendItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    if (isInvited) stringResource(R.string.cancel_invitation) else stringResource(
+                                    if (isInvited) stringResource(R.string.cancel_invite) else stringResource(
                                         R.string.remove_friend
                                     ),
                                     color = MaterialTheme.colorScheme.error

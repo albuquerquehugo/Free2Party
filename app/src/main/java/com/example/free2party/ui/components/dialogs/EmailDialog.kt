@@ -48,7 +48,7 @@ fun EmailDialog(
         keyboardType = KeyboardType.Email,
         imeAction = ImeAction.Done
     ),
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions? = null
 ) {
     val isEmailValid by remember(inputValue) {
         derivedStateOf {
@@ -64,6 +64,16 @@ fun EmailDialog(
             null
         }
     }
+
+    val canConfirm = inputValue.isNotBlank() && !isLoading && isEmailValid
+
+    val finalKeyboardActions = keyboardActions ?: KeyboardActions(
+        onDone = {
+            if (canConfirm) {
+                onConfirm()
+            }
+        }
+    )
 
     BaseDialog(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(24.dp)) {
@@ -95,7 +105,7 @@ fun EmailDialog(
                     { Text(text = it) }
                 },
                 keyboardOptions = keyboardOptions,
-                keyboardActions = keyboardActions
+                keyboardActions = finalKeyboardActions
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -114,7 +124,7 @@ fun EmailDialog(
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = onConfirm,
-                    enabled = inputValue.isNotBlank() && !isLoading && isEmailValid
+                    enabled = canConfirm
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(

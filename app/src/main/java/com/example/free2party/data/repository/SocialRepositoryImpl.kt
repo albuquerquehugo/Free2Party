@@ -26,7 +26,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class SocialRepositoryImpl(
@@ -59,6 +62,7 @@ class SocialRepositoryImpl(
         awaitClose { listener.remove() }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getFriendsList(): Flow<List<FriendInfo>> = callbackFlow {
         if (currentUserId.isBlank()) {
             trySend(emptyList())
@@ -67,18 +71,33 @@ class SocialRepositoryImpl(
 
         val listener = db.collection("users").document(currentUserId)
             .collection("friends")
-            .whereEqualTo("inviteStatus", InviteStatus.ACCEPTED.name)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(mapToSocialException(error))
                     return@addSnapshotListener
                 }
 
-                val friends = snapshot?.toObjects(FriendInfo::class.java) ?: emptyList()
-                trySend(friends)
+                val friendStubs = snapshot?.toObjects(FriendInfo::class.java) ?: emptyList()
+                trySend(friendStubs)
             }
 
         awaitClose { listener.remove() }
+    }.flatMapLatest { friendStubs ->
+        if (friendStubs.isEmpty()) return@flatMapLatest flowOf(emptyList())
+
+        // For each friend, observe their actual user document to get real-time status
+        val friendFlows = friendStubs.map { stub ->
+            userRepository.observeUser(stub.uid).map { user ->
+                stub.copy(
+                    name = user.fullName,
+                    isFreeNow = user.isFreeNow,
+                    socials = user.socials,
+                    phoneNumber = user.phoneNumber
+                )
+            }.catch { emit(stub) } // Fallback to stub if user doc can't be read
+        }
+
+        combine(friendFlows) { it.toList() }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -98,9 +117,33 @@ class SocialRepositoryImpl(
                 close(mapToSocialException(error))
                 return@addSnapshotListener
             }
-            val notifications = snapshot?.toObjects(Notification::class.java) ?: emptyList()
+            val notifications = snapshot?.documents?.mapNotNull { doc ->
+                doc.toObject(Notification::class.java)?.copy(id = doc.id)
+            } ?: emptyList()
             trySend(notifications)
         }
+        awaitClose { listener.remove() }
+    }
+
+    override fun getOutgoingFriendRequests(): Flow<List<FriendRequest>> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            trySend(emptyList())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("friendRequests")
+            .whereEqualTo("senderId", currentUserId)
+            .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToSocialException(error))
+                    return@addSnapshotListener
+                }
+
+                val requests = snapshot?.toObjects(FriendRequest::class.java) ?: emptyList()
+                trySend(requests)
+            }
+
         awaitClose { listener.remove() }
     }
 
@@ -123,14 +166,16 @@ class SocialRepositoryImpl(
         db.runTransaction { transaction ->
             val requestRef = db.collection("friendRequests").document(requestId)
             transaction.set(
-                requestRef, FriendRequest(
-                    id = requestId,
-                    senderId = currentUserId,
-                    senderName = sender.fullName,
-                    senderEmail = sender.email,
-                    senderProfilePicUrl = sender.profilePicUrl,
-                    receiverId = receiver.uid,
-                    friendRequestStatus = FriendRequestStatus.PENDING
+                requestRef, mapOf(
+                    "id" to requestId,
+                    "senderId" to currentUserId,
+                    "senderName" to sender.fullName,
+                    "senderEmail" to sender.email,
+                    "senderProfilePicUrl" to sender.profilePicUrl,
+                    "receiverId" to receiver.uid,
+                    "receiverName" to receiver.fullName,
+                    "friendRequestStatus" to FriendRequestStatus.PENDING.name,
+                    "timestamp" to FieldValue.serverTimestamp()
                 )
             )
 
@@ -214,6 +259,7 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
+                        "title" to "Friend Request Accepted",
                         "message" to "$receiverName ($receiverEmail) was added as a friend",
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
@@ -230,6 +276,7 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
+                        "title" to "Friend Request Declined",
                         "message" to "Your friend request to $receiverName ($receiverEmail) was declined",
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
@@ -245,6 +292,9 @@ class SocialRepositoryImpl(
 
     override suspend fun removeFriend(friendId: String): Result<Unit> = try {
         validateSession()
+        
+        val sender = userRepository.getUserById(currentUserId).getOrThrow()
+
         db.runTransaction { transaction ->
             transaction.delete(
                 db.collection("users").document(currentUserId).collection("friends")
@@ -259,6 +309,18 @@ class SocialRepositoryImpl(
             )
             transaction.delete(
                 db.collection("friendRequests").document("${friendId}_${currentUserId}")
+            )
+
+            val receiverNotifRef = db.collection("users").document(friendId)
+                .collection("notifications").document()
+            transaction.set(
+                receiverNotifRef, mapOf(
+                    "title" to "Friend Removed",
+                    "message" to "${sender.fullName} (${sender.email}) is no longer your friend",
+                    "isRead" to false,
+                    "timestamp" to FieldValue.serverTimestamp(),
+                    "type" to NotificationType.FRIEND_REMOVED.name
+                )
             )
         }.await()
         Result.success(Unit)

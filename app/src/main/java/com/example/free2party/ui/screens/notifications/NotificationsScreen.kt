@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -129,15 +130,19 @@ fun NotificationsScreen(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent_light),
-                contentDescription = "Free2Party Logo",
+                painter = painterResource(id = R.drawable.free2party_full_transparent),
+                contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier.height(20.dp),
                 contentScale = ContentScale.Fit
             )
         }
 
-        val titleText =
-            if (itemsUnreadCount > 0) "Notifications ($itemsUnreadCount)" else "Notifications"
+        val titleText = if (itemsUnreadCount > 0) {
+            stringResource(R.string.notifications_with_count, itemsUnreadCount)
+        } else {
+            stringResource(R.string.notifications)
+        }
+
         Text(
             text = titleText,
             style = MaterialTheme.typography.headlineMedium,
@@ -156,7 +161,10 @@ fun NotificationsScreen(
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.inactive
                 )
-                Text("All caught up!", color = MaterialTheme.colorScheme.inactive)
+                Text(
+                    text = stringResource(R.string.notification_all_caught_up),
+                    color = MaterialTheme.colorScheme.inactive
+                )
             }
         } else {
             val requests = items.filterIsInstance<NotificationItem.Request>()
@@ -192,7 +200,7 @@ fun NotificationsScreen(
                             shape = MaterialTheme.shapes.small,
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
-                            Text("Mark all as read")
+                            Text(stringResource(R.string.notification_mark_all_as_read))
                         }
                     }
                     item {
@@ -237,7 +245,7 @@ fun FriendRequestItem(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = "Friend Request",
+                text = stringResource(R.string.notification_friend_request_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 4.dp)
@@ -246,7 +254,7 @@ fun FriendRequestItem(
                 if (request.senderProfilePicUrl.isNotBlank()) {
                     AsyncImage(
                         model = request.senderProfilePicUrl,
-                        contentDescription = "Friend's Picture",
+                        contentDescription = stringResource(R.string.notification_friends_picture),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -260,9 +268,9 @@ fun FriendRequestItem(
                         modifier = Modifier.size(40.dp)
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.width(12.dp))
-                
+
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = request.senderName,
@@ -284,7 +292,12 @@ fun FriendRequestItem(
             }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // TODO: Open a dialog to confirm the request decline with an option to block the sender
+        //  (they won't be able to invite you again)
+        Row(
+            modifier = Modifier.padding(start = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -295,14 +308,14 @@ fun FriendRequestItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Decline",
+                    contentDescription = stringResource(R.string.notification_decline),
                     tint = MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(20.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -313,7 +326,7 @@ fun FriendRequestItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Accept",
+                    contentDescription = stringResource(R.string.notification_accept),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -339,12 +352,12 @@ fun DismissibleNotificationItem(
                 when (value) {
                     SwipeToDismissBoxValue.StartToEnd -> {
                         currentOnToggleRead()
-                        false // Snap back to center after release
+                        false
                     }
 
                     SwipeToDismissBoxValue.EndToStart -> {
                         currentOnDelete()
-                        true // Perform dismissal
+                        true
                     }
 
                     else -> false
@@ -459,7 +472,7 @@ fun NotificationBox(
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Options",
+                    contentDescription = stringResource(R.string.notification_options_content_description),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -472,7 +485,10 @@ fun NotificationBox(
             ) {
                 DropdownMenuItem(
                     text = {
-                        Text(if (notification.isRead) "Mark as unread" else "Mark as read")
+                        Text(
+                            if (notification.isRead) stringResource(R.string.notification_mark_as_unread)
+                            else stringResource(R.string.notification_mark_as_read)
+                        )
                     },
                     leadingIcon = {
                         Icon(
@@ -491,7 +507,7 @@ fun NotificationBox(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Delete") },
+                    text = { Text(stringResource(R.string.delete)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Delete,

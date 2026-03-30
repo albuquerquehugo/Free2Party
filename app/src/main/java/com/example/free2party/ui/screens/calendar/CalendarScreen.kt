@@ -204,7 +204,7 @@ fun CalendarScreen(
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent_light),
+                painter = painterResource(id = R.drawable.free2party_full_transparent),
                 contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier.height(20.dp),
                 contentScale = ContentScale.Fit

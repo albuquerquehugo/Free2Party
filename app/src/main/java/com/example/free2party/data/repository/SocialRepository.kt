@@ -10,6 +10,7 @@ interface SocialRepository {
     fun getIncomingFriendRequests(): Flow<List<FriendRequest>>
     fun getFriendsList(): Flow<List<FriendInfo>>
     fun getNotifications(): Flow<List<Notification>>
+    fun getOutgoingFriendRequests(): Flow<List<FriendRequest>>
 
     suspend fun sendFriendRequest(friendEmail: String): Result<Unit>
     suspend fun cancelFriendRequest(friendId: String): Result<Unit>

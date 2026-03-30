@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.free2party.data.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class SettingsRepository(private val context: Context) {
     private object PreferencesKeys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val SHOWN_NOTIFICATION_IDS = stringSetPreferencesKey("shown_notification_ids")
     }
 
     val themeModeFlow: Flow<ThemeMode> = context.dataStore.data
@@ -26,6 +28,31 @@ class SettingsRepository(private val context: Context) {
     suspend fun setThemeMode(themeMode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.THEME_MODE] = themeMode.name
+        }
+    }
+
+    val shownNotificationIdsFlow: Flow<Set<String>> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] ?: emptySet()
+        }
+
+    suspend fun markNotificationAsShown(id: String) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] ?: emptySet()
+            preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] = current + id
+        }
+    }
+
+    suspend fun clearShownNotification(id: String) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] ?: emptySet()
+            preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] = current - id
+        }
+    }
+
+    suspend fun clearAllShownNotifications() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.SHOWN_NOTIFICATION_IDS)
         }
     }
 }

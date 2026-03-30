@@ -22,6 +22,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,10 +38,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.free2party.MainViewModel
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.screens.calendar.CalendarRoute
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import com.example.free2party.ui.screens.home.HomeRoute
+import com.example.free2party.ui.screens.home.HomeViewModel
 import com.example.free2party.ui.screens.login.LoginRoute
 import com.example.free2party.ui.screens.login.LoginViewModel
 import com.example.free2party.ui.screens.notifications.NotificationsRoute
@@ -51,6 +54,7 @@ import com.example.free2party.ui.screens.settings.SettingsRoute
 import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.flow.collectLatest
 
 sealed class Screen(
     val route: String,
@@ -94,15 +98,29 @@ val BottomNavItems = listOf(
 @Composable
 fun AppNavigation(
     settingsRepository: SettingsRepository,
+    mainViewModel: MainViewModel,
     notificationsViewModel: NotificationsViewModel = viewModel(
         factory = NotificationsViewModel.provideFactory()
-    )
+    ),
+    startDestination: String? = null
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
+
+    LaunchedEffect(mainViewModel) {
+        mainViewModel.navigateToRoute.collectLatest { route ->
+            navController.navigate(route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -115,7 +133,8 @@ fun AppNavigation(
             navController = navController,
             settingsRepository = settingsRepository,
             notificationsViewModel = notificationsViewModel,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            startDestinationOverride = startDestination
         )
     }
 }
@@ -199,10 +218,11 @@ fun Free2PartyNavGraph(
     navController: NavHostController,
     settingsRepository: SettingsRepository,
     notificationsViewModel: NotificationsViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startDestinationOverride: String? = null
 ) {
-    val startDest = remember {
-        if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
+    val startDest = remember(startDestinationOverride) {
+        startDestinationOverride ?: if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
     }
 
     NavHost(
@@ -243,6 +263,9 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Home.route) {
             HomeRoute(
+                homeViewModel = viewModel(
+                    factory = HomeViewModel.provideFactory(settingsRepository)
+                ),
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }

@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.common)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
     implementation(libs.firebase.storage)
     implementation(libs.play.integrity)
 

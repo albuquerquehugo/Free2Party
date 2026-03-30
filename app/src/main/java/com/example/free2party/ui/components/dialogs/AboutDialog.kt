@@ -46,7 +46,7 @@ fun AboutDialog(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent_light),
+                painter = painterResource(id = R.drawable.free2party_full_transparent),
                 contentDescription = stringResource(R.string.logo_content_description),
                 modifier = Modifier.height(24.dp),
                 contentScale = ContentScale.Fit

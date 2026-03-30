@@ -134,6 +134,18 @@ class UserRepositoryImpl(
         Result.failure(mapToUserException(e))
     }
 
+    override suspend fun updateFcmToken(token: String): Result<Unit> = try {
+        val uid = currentUserId
+        if (uid.isNotBlank()) {
+            db.collection("users").document(uid)
+                .set(mapOf("fcmToken" to token), SetOptions.merge())
+                .await()
+        }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToUserException(e))
+    }
+
     private fun validateSession(): String {
         val uid = currentUserId
         if (uid.isBlank()) throw UnauthorizedException()

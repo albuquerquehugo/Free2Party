@@ -15,4 +15,5 @@ interface UserRepository {
     suspend fun updateUser(user: User): Result<Unit>
     suspend fun toggleAvailability(isFree: Boolean): Result<Unit>
     suspend fun uploadProfilePicture(uri: Uri): Result<String>
+    suspend fun updateFcmToken(token: String): Result<Unit>
 }

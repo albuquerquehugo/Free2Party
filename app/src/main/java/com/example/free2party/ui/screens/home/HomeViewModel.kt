@@ -5,11 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
@@ -50,19 +52,10 @@ sealed class HomeUiEvent {
 }
 
 class HomeViewModel(
-    private val userRepository: UserRepository = UserRepositoryImpl(
-        auth = Firebase.auth,
-        db = Firebase.firestore,
-        storage = Firebase.storage
-    ),
-    private val socialRepository: SocialRepository = SocialRepositoryImpl(
-        db = Firebase.firestore,
-        userRepository = userRepository
-    ),
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        auth = Firebase.auth,
-        userRepository = userRepository
-    )
+    private val userRepository: UserRepository,
+    private val socialRepository: SocialRepository,
+    private val authRepository: AuthRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
@@ -78,10 +71,29 @@ class HomeViewModel(
     private fun observeData() {
         combine(
             userRepository.observeUser(userRepository.currentUserId),
-            socialRepository.getFriendsList()
-        ) { user, friends ->
+            socialRepository.getFriendsList(),
+            socialRepository.getOutgoingFriendRequests()
+        ) { user, friends, outgoingRequests ->
+            val currentUserId = userRepository.currentUserId
+
+            // Map outgoing requests to FriendInfo with INVITED status
+            val invitedFriends = outgoingRequests
+                .filter { it.receiverName.isNotBlank() }
+                .map { request ->
+                    FriendInfo(
+                        uid = request.receiverId,
+                        name = request.receiverName,
+                        inviteStatus = InviteStatus.INVITED
+                    )
+                }
+
+            // Combine confirmed friends and invited ones, filtering out the current user
+            val allFriends = (friends + invitedFriends)
+                .filter { it.uid != currentUserId }
+                .distinctBy { it.uid }
+
             // Sort: Invited at the bottom, then by availability, then alphabetically
-            val sortedFriends = friends.sortedWith(
+            val sortedFriends = allFriends.sortedWith(
                 compareBy<FriendInfo> { it.inviteStatus == InviteStatus.INVITED }
                     .thenByDescending { it.isFreeNow }
                     .thenBy { it.name }
@@ -98,16 +110,23 @@ class HomeViewModel(
         }.catch { e ->
             Log.e("HomeViewModel", "Error observing data", e)
             if (e is UserNotFoundException) {
-                authRepository.logout()
-                _uiEvent.emit(HomeUiEvent.Logout)
+                logout {}
             } else {
                 val errorText = when (e) {
-                    is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                    is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                    is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                        e.localizedMessage ?: "Infrastructure error"
+                    )
+
+                    is SocialException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                        e.localizedMessage ?: "Social error"
+                    )
+
                     else -> UiText.DynamicString(e.localizedMessage ?: "An error occurred")
                 }
 
-                if (errorText is UiText.DynamicString && errorText.value.contains("permission", ignoreCase = true)) {
+                if (errorText is UiText.DynamicString &&
+                    errorText.value.contains("permission", ignoreCase = true)
+                ) {
                     Log.w("HomeViewModel", "Permission error handled: ${errorText.value}")
                 } else {
                     uiState = HomeUiState.Error(errorText)
@@ -117,8 +136,12 @@ class HomeViewModel(
     }
 
     fun logout(onLogoutSuccess: () -> Unit) {
-        authRepository.logout()
-        onLogoutSuccess()
+        viewModelScope.launch {
+            settingsRepository.clearAllShownNotifications()
+            authRepository.logout()
+            onLogoutSuccess()
+            _uiEvent.emit(HomeUiEvent.Logout)
+        }
     }
 
     fun toggleAvailability() {
@@ -133,8 +156,12 @@ class HomeViewModel(
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error updating availability", e)
                     val errorText = when {
-                        e is InfrastructureException && e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Error updating availability")
+                        e is InfrastructureException &&
+                                e.messageRes != null -> UiText.StringResource(e.messageRes)
+
+                        else -> UiText.DynamicString(
+                            e.localizedMessage ?: "Error updating availability"
+                        )
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
@@ -151,8 +178,14 @@ class HomeViewModel(
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error removing friend", e)
                     val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        is InfrastructureException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.DynamicString(e.localizedMessage ?: "Infrastructure error")
+
+                        is SocialException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.DynamicString(e.localizedMessage ?: "Social error")
+
                         else -> UiText.DynamicString(e.localizedMessage ?: "Error removing friend")
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
@@ -170,12 +203,49 @@ class HomeViewModel(
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error cancelling invite", e)
                     val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Error cancelling invite")
+                        is InfrastructureException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.DynamicString(e.localizedMessage ?: "Infrastructure error")
+
+                        is SocialException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.DynamicString(e.localizedMessage ?: "Social error")
+
+                        else -> UiText.DynamicString(
+                            e.localizedMessage ?: "Error cancelling invite"
+                        )
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
+        }
+    }
+
+    companion object {
+        fun provideFactory(
+            settingsRepository: SettingsRepository,
+            userRepository: UserRepository = UserRepositoryImpl(
+                auth = Firebase.auth,
+                db = Firebase.firestore,
+                storage = Firebase.storage
+            ),
+            socialRepository: SocialRepository = SocialRepositoryImpl(
+                db = Firebase.firestore,
+                userRepository = userRepository
+            ),
+            authRepository: AuthRepository = AuthRepositoryImpl(
+                auth = Firebase.auth,
+                userRepository = userRepository
+            )
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return HomeViewModel(
+                    userRepository,
+                    socialRepository,
+                    authRepository,
+                    settingsRepository
+                ) as T
+            }
         }
     }
 }

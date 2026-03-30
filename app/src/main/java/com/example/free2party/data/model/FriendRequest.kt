@@ -10,6 +10,7 @@ data class FriendRequest(
     val senderName: String = "",
     val senderEmail: String = "",
     val receiverId: String = "",
+    val receiverName: String = "",
     @ServerTimestamp
     val timestamp: Date? = null,
     val friendRequestStatus: FriendRequestStatus = FriendRequestStatus.PENDING

@@ -2,12 +2,15 @@ package com.example.free2party
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.util.NotificationHelper
 import com.example.free2party.util.isPlanActive
 import com.google.firebase.Firebase
 import com.google.firebase.appcheck.FirebaseAppCheck
@@ -15,11 +18,13 @@ import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.google.firebase.messaging.messaging
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class Free2PartyApp : Application() {
 
@@ -27,6 +32,11 @@ class Free2PartyApp : Application() {
     private lateinit var planRepository: PlanRepository
     private var automationJob: Job? = null
     private var currentAutomationUid: String? = null
+
+    companion object {
+        var isAppInForeground: Boolean = false
+            private set
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -53,6 +63,8 @@ class Free2PartyApp : Application() {
             )
         }
 
+        NotificationHelper.createNotificationChannel(this)
+
         userRepository = UserRepositoryImpl(
             auth = Firebase.auth,
             db = Firebase.firestore,
@@ -64,6 +76,22 @@ class Free2PartyApp : Application() {
         )
 
         setupUserStatusAutomation()
+        setupForegroundTracking()
+        setupFcmTokenSync()
+    }
+
+    private fun setupForegroundTracking() {
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                isAppInForeground = true
+                Log.d("Free2PartyApp", "App in foreground")
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                isAppInForeground = false
+                Log.d("Free2PartyApp", "App in background")
+            }
+        })
     }
 
     private fun setupUserStatusAutomation() {
@@ -74,6 +102,25 @@ class Free2PartyApp : Application() {
                     startUserStatusAutomation(uid)
                 } else {
                     stopUserStatusAutomation()
+                }
+            }
+        }
+    }
+
+    private fun setupFcmTokenSync() {
+        ProcessLifecycleOwner.get().lifecycleScope.launch {
+            Firebase.auth.addAuthStateListener { auth ->
+                val uid = auth.currentUser?.uid
+                if (uid != null) {
+                    launch {
+                        try {
+                            val token = Firebase.messaging.token.await()
+                            userRepository.updateFcmToken(token)
+                            Log.d("Free2PartyApp", "FCM Token synced for user $uid")
+                        } catch (e: Exception) {
+                            Log.e("Free2PartyApp", "Failed to sync FCM token", e)
+                        }
+                    }
                 }
             }
         }

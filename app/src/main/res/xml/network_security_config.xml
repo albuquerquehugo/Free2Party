@@ -5,4 +5,20 @@
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+
+    <!-- Specific config for Google/Firebase domains to ensure they use system trust -->
+    <domain-config>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">firebaseapp.com</domain>
+        <domain includeSubdomains="true">google.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
 </network-security-config>

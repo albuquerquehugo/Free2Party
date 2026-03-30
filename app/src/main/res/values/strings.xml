@@ -20,7 +20,7 @@
 
     <!-- Home Screen -->
     <string name="busy_section_title">Busy</string>
-    <string name="cancel_invitation">Cancel Invitation</string>
+    <string name="cancel_invite">Cancel Invite</string>
     <string name="collapse">Collapse</string>
     <string name="contact_options">Contact Options</string>
     <string name="expand">Expand</string>
@@ -28,9 +28,9 @@
     <string name="free_section_title">Free2Party</string>
     <string name="friend_options">Friend Options</string>
     <string name="instagram">Instagram</string>
-    <string name="invitation_sent_successfully">Invitation sent to %1$s!</string>
+    <string name="invite_sent_successfully">Invite sent to %1$s!</string>
     <string name="invite_friend">Invite Friend</string>
-    <string name="invite_friend_description">Enter your friend\'s email to send an invitation.</string>
+    <string name="invite_friend_description">Enter your friend\'s email to send an invite.</string>
     <string name="invited_section_title">Invited</string>
     <string name="logo_content_description">Free2Party Logo</string>
     <string name="logout_confirmation_text">Are you sure you want to log out?</string>
@@ -41,7 +41,7 @@
     <string name="pending">Pending</string>
     <string name="remove_friend">Remove Friend</string>
     <string name="remove_friend_confirmation_text">Are you sure you want to remove this friend?</string>
-    <string name="send_invitation">Send invitation</string>
+    <string name="send_invite">Send invite</string>
     <string name="sms">SMS</string>
     <string name="telegram">Telegram</string>
     <string name="tiktok">TikTok</string>
@@ -154,6 +154,23 @@
     <string name="no_plans_for_day">No plans for this day</string>
     <string name="results_for">Results for: %1$s</string>
     <string name="select_day_on_calendar">Select a day on the calendar to see plans</string>
+
+    <!-- Notifications -->
+    <string name="notifications">Notifications</string>
+    <string name="notifications_with_count">Notifications (%1$d)</string>
+    <string name="notification_accept">Accept</string>
+    <string name="notification_all_caught_up">You\'re all caught up!</string>
+    <string name="notification_decline">Decline</string>
+    <string name="notification_friend_request_title">Friend Request</string>
+    <string name="notification_friends_picture">Friend\'s Picture</string>
+    <string name="notification_mark_all_as_read">Mark all as read</string>
+    <string name="notification_mark_as_read">Mark as read</string>
+    <string name="notification_mark_as_unread">Mark as unread</string>
+    <string name="notification_options_content_description">Options</string>
+    <string name="notification_system_friend_request_title">New Friend Request</string>
+    <string name="notification_system_friend_request_body">%1$s (%2$s) sent you a friend request!</string>
+    <string name="notification_system_friend_accepted_title">Friend Request Accepted</string>
+    <string name="notification_system_friend_accepted_body">%1$s (%2$s) was added as a friend</string>
 
     <!-- Exceptions -->
     <string name="error_auth_failed_user_null">Authentication failed: User is null</string>
