@@ -68,6 +68,7 @@
     <!-- Register Screen -->
     <string name="account_created_successfully">Account created successfully for user %1$s!</string>
     <string name="already_have_account_login">Already have an account? Login</string>
+    <string name="confirm_password_required">Confirm Password *</string>
     <string name="create_account">Create Account</string>
     <string name="password_required">Password *</string>
     <string name="register">Register</string>
@@ -82,11 +83,12 @@
     <string name="facebook_username">Facebook Username</string>
     <string name="first_name_required">First Name *</string>
     <string name="instagram_username">Instagram Username</string>
-    <string name="invalid_date">Invalid date</string>
     <string name="last_name_required">Last Name *</string>
     <string name="phone_mask_placeholder">Please select a country first</string>
     <string name="phone_number">Phone Number</string>
     <string name="profile_picture_content_description">Profile Picture</string>
+    <string name="profile_picture_updated">Profile picture updated!</string>
+    <string name="profile_updated_successfully">Profile updated successfully!</string>
     <string name="save_changes">Save Changes</string>
     <string name="select_birthday">Select birthday</string>
     <string name="select_country">Select Country</string>
@@ -127,8 +129,6 @@
     <!-- Plan Dialog -->
     <string name="edit_plan">Edit your plan</string>
     <string name="end_label">End:</string>
-    <string name="error_invalid_datetime">End must be after start</string>
-    <string name="error_past_plan">Cannot schedule plans in the past</string>
     <string name="everyone">Everyone</string>
     <string name="everyone_except">Everyone except: %1$s</string>
     <string name="everyone_except_label">Everyone except…</string>
@@ -145,9 +145,6 @@
     <string name="start_label">Start:</string>
     <string name="unselect_all">Unselect all</string>
     <string name="visibility_label">Who can see this plan?</string>
-
-    <!-- Email Dialog -->
-    <string name="invalid_email_error">Please enter a valid email address.</string>
 
     <!-- Plan Item -->
     <string name="plan_actions_content_description">Plan Actions</string>
@@ -174,7 +171,7 @@
     <string name="notification_system_friend_accepted_title">Friend Request Accepted</string>
     <string name="notification_system_friend_accepted_body">%1$s (%2$s) was added as a friend</string>
 
-    <!-- Exceptions -->
+    <!-- Errors & Exceptions -->
     <string name="error_auth_failed_user_null">Authentication failed: User is null</string>
     <string name="error_auth_network">A network error occurred. Please try again.</string>
     <string name="error_cannot_add_self">You cannot add yourself as a friend</string>
@@ -184,13 +181,25 @@
     <string name="error_friend_request_already_sent">An invite has already been sent to this user</string>
     <string name="error_friend_request_not_found">The friend request was not found</string>
     <string name="error_invalid_credentials">Invalid email or password</string>
+    <string name="error_invalid_date">Invalid date</string>
+    <string name="error_invalid_datetime">End must be after start</string>
+    <string name="error_invalid_email">Please enter a valid email address.</string>
+    <string name="error_invalid_phone">Please enter a valid phone number</string>
     <string name="error_invalid_plan_data">The plan details are invalid</string>
+    <string name="error_invalid_whatsapp">Please enter a valid WhatsApp number</string>
     <string name="error_network_unavailable">No internet connection available</string>
     <string name="error_overlapping_plan">This time slot overlaps with an existing plan. Please select a different time slot.</string>
+    <string name="error_passwords_not_match">Passwords do not match</string>
     <string name="error_past_date_time">Cannot schedule plans for a past date or time</string>
+    <string name="error_past_plan">Cannot schedule plans in the past</string>
     <string name="error_plan_not_found">The plan you are looking for does not exist</string>
+    <string name="error_profile_not_found">User profile not found. Please try logging out and in again.</string>
+    <string name="error_registration_failed">Registration failed</string>
+    <string name="error_required_fields">Required fields (*) must be filled</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
     <string name="error_unknown_auth">An unexpected authentication error occurred</string>
+    <string name="error_updating_profile">Error updating profile</string>
+    <string name="error_uploading_image">Error uploading image</string>
     <string name="error_user_disabled">This user account has been disabled</string>
     <string name="error_user_not_found">User not found</string>
     <string name="error_weak_password">The password is too weak</string>

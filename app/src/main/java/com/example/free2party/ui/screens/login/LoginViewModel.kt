@@ -107,7 +107,7 @@ class LoginViewModel(
         val normalizedEmail = email.trim().lowercase()
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
-            uiState = LoginUiState.Error(UiText.StringResource(R.string.invalid_email_error))
+            uiState = LoginUiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
 

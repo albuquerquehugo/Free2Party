@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.UserSocials
@@ -86,31 +87,31 @@ class RegisterViewModel(
         val normalizedEmail = email.trim().lowercase()
         if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() || password.isBlank()) {
             uiState =
-                RegisterUiState.Error(UiText.DynamicString("Required fields (*) must be filled"))
+                RegisterUiState.Error(UiText.StringResource(R.string.error_required_fields))
             return
         }
 
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
             uiState =
-                RegisterUiState.Error(UiText.DynamicString("Please enter a valid email address"))
+                RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
 
         if (!isPhoneValid) {
             uiState =
-                RegisterUiState.Error(UiText.DynamicString("Please enter a valid phone number"))
+                RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
             return
         }
 
         if (!isBirthdayValid) {
-            uiState = RegisterUiState.Error(UiText.DynamicString("Please enter a valid date"))
+            uiState = RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_date))
             return
         }
 
         if (!isWhatsappValid) {
             uiState =
-                RegisterUiState.Error(UiText.DynamicString("Please enter a valid WhatsApp number"))
+                RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_whatsapp))
             return
         }
 
@@ -150,7 +151,7 @@ class RegisterViewModel(
                             e.messageRes
                         )
 
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Registration failed")
+                        else -> UiText.StringResource(R.string.error_registration_failed)
                     }
                     uiState = RegisterUiState.Error(errorText)
                 }

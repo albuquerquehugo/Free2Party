@@ -56,7 +56,7 @@ fun EmailDialog(
         }
     }
 
-    val invalidEmailMessage = stringResource(R.string.invalid_email_error)
+    val invalidEmailMessage = stringResource(R.string.error_invalid_email)
     val finalErrorMessage = remember(errorMessage, isEmailValid, email, invalidEmailMessage) {
         errorMessage ?: if (email.isNotEmpty() && !isEmailValid) {
             invalidEmailMessage

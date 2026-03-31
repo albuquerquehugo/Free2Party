@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
@@ -120,10 +121,7 @@ class ProfileViewModel(
                         )
 
                         is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.DynamicString(
-                            e.localizedMessage
-                                ?: "User profile not found. Please try logging out and in again."
-                        )
+                        else -> UiText.StringResource(R.string.error_profile_not_found)
                     }
                     uiState = ProfileUiState.Error(errorText)
                 }
@@ -179,18 +177,18 @@ class ProfileViewModel(
         val currentState = uiState as? ProfileUiState.Success ?: return
         if (!isPhoneValid) {
             uiState =
-                ProfileUiState.Error(UiText.DynamicString("Please enter a valid phone number"))
+                ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
             return
         }
 
         if (!isBirthdayValid) {
-            uiState = ProfileUiState.Error(UiText.DynamicString("Please enter a valid date"))
+            uiState = ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_date))
             return
         }
 
         if (!isWhatsappValid) {
             uiState =
-                ProfileUiState.Error(UiText.DynamicString("Please enter a valid WhatsApp number"))
+                ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_whatsapp))
             return
         }
 
@@ -229,7 +227,7 @@ class ProfileViewModel(
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
                     _uiEvent.emit(
                         ProfileUiEvent.ShowToast(
-                            UiText.DynamicString("Profile updated successfully!"),
+                            UiText.StringResource(R.string.profile_updated_successfully),
                             navigateBack = true
                         )
                     )
@@ -243,7 +241,7 @@ class ProfileViewModel(
                         )
 
                         is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Error updating profile")
+                        else -> UiText.StringResource(R.string.error_updating_profile)
                     }
                     _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
                 }
@@ -263,7 +261,7 @@ class ProfileViewModel(
                             uiState =
                                 (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                                     ?: uiState
-                            _uiEvent.emit(ProfileUiEvent.ShowToast(UiText.DynamicString("Profile picture updated!")))
+                            _uiEvent.emit(ProfileUiEvent.ShowToast(UiText.StringResource(R.string.profile_picture_updated)))
                         }
                         .onFailure { e ->
                             uiState =
@@ -278,9 +276,7 @@ class ProfileViewModel(
                                     e.messageRes
                                 )
 
-                                else -> UiText.DynamicString(
-                                    e.localizedMessage ?: "Error updating profile with new image"
-                                )
+                                else -> UiText.StringResource(R.string.error_updating_profile)
                             }
                             _uiEvent.emit(
                                 ProfileUiEvent.ShowToast(errorText)
@@ -295,7 +291,7 @@ class ProfileViewModel(
                             e.messageRes
                         )
 
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Error uploading image")
+                        else -> UiText.StringResource(R.string.error_uploading_image)
                     }
                     _uiEvent.emit(
                         ProfileUiEvent.ShowToast(errorText)
