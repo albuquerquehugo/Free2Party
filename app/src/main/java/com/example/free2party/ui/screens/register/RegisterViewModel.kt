@@ -45,6 +45,7 @@ class RegisterViewModel(
     var lastName by mutableStateOf("")
     var email by mutableStateOf("")
     var password by mutableStateOf("")
+    var confirmPassword by mutableStateOf("")
     var profilePicUri by mutableStateOf<Uri?>(null)
     var countryCode by mutableStateOf("")
     var phoneNumber by mutableStateOf("")
@@ -75,9 +76,13 @@ class RegisterViewModel(
         country == null || whatsappNumber.length == country.digitsCount
     }
 
+    private val isPasswordConfirmed by derivedStateOf {
+        password == confirmPassword
+    }
+
     val isFormValid by derivedStateOf {
         firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank()
-                && isPhoneValid && isBirthdayValid && isWhatsappValid
+                && isPhoneValid && isBirthdayValid && isWhatsappValid && isPasswordConfirmed
     }
 
     var uiState by mutableStateOf<RegisterUiState>(RegisterUiState.Idle)
@@ -95,6 +100,12 @@ class RegisterViewModel(
         if (!emailPattern.matches(normalizedEmail)) {
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_email))
+            return
+        }
+
+        if (password != confirmPassword) {
+            uiState =
+                RegisterUiState.Error(UiText.StringResource(R.string.error_passwords_not_match))
             return
         }
 
@@ -163,6 +174,7 @@ class RegisterViewModel(
         lastName = ""
         email = ""
         password = ""
+        confirmPassword = ""
         profilePicUri = null
         phoneNumber = ""
         countryCode = ""

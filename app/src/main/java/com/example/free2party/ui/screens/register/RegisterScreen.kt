@@ -66,6 +66,7 @@ fun RegisterRoute(
         lastName = viewModel.lastName,
         email = viewModel.email,
         password = viewModel.password,
+        confirmPassword = viewModel.confirmPassword,
         countryCode = viewModel.countryCode,
         phoneNumber = viewModel.phoneNumber,
         birthday = viewModel.birthday,
@@ -84,6 +85,7 @@ fun RegisterRoute(
         onLastNameChange = { viewModel.lastName = it },
         onEmailChange = { viewModel.email = it },
         onPasswordChange = { viewModel.password = it },
+        onConfirmPasswordChange = { viewModel.confirmPassword = it },
         onCountryCodeChange = { viewModel.countryCode = it },
         onPhoneNumberChange = { viewModel.phoneNumber = it },
         onBirthdayChange = { viewModel.birthday = it },
@@ -112,6 +114,7 @@ fun RegisterScreen(
     lastName: String,
     email: String,
     password: String,
+    confirmPassword: String,
     countryCode: String,
     phoneNumber: String,
     birthday: String,
@@ -130,6 +133,7 @@ fun RegisterScreen(
     onLastNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
     onCountryCodeChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
     onBirthdayChange: (String) -> Unit,
@@ -147,6 +151,19 @@ fun RegisterScreen(
     onBackToLogin: () -> Unit
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    val confirmPasswordInteractionSource = remember { MutableInteractionSource() }
+    val isConfirmPasswordFocused by confirmPasswordInteractionSource.collectIsFocusedAsState()
+    var wasConfirmPasswordFocused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isConfirmPasswordFocused) {
+        if (isConfirmPasswordFocused) wasConfirmPasswordFocused = true
+    }
+
+    val isConfirmPasswordError = remember(password, confirmPassword, isConfirmPasswordFocused, wasConfirmPasswordFocused) {
+        !isConfirmPasswordFocused && wasConfirmPasswordFocused && password != confirmPassword && confirmPassword.isNotEmpty()
+    }
 
     Scaffold(
         topBar = {
@@ -172,20 +189,41 @@ fun RegisterScreen(
                 email = email,
                 onEmailChange = onEmailChange,
                 passwordField = {
-                    InputTextField(
-                        value = password,
-                        onValueChange = onPasswordChange,
-                        label = stringResource(R.string.password_required),
-                        isPassword = true,
-                        passwordVisible = passwordVisible,
-                        changeVisibility = { passwordVisible = !passwordVisible },
-                        icon = Icons.Default.Lock,
-                        enabled = uiState !is RegisterUiState.Loading,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Next
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        InputTextField(
+                            value = password,
+                            onValueChange = onPasswordChange,
+                            label = stringResource(R.string.password_required),
+                            isPassword = true,
+                            passwordVisible = passwordVisible,
+                            changeVisibility = { passwordVisible = !passwordVisible },
+                            icon = Icons.Default.Lock,
+                            enabled = uiState !is RegisterUiState.Loading,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Next
+                            )
                         )
-                    )
+                        InputTextField(
+                            value = confirmPassword,
+                            onValueChange = onConfirmPasswordChange,
+                            label = stringResource(R.string.confirm_password_required),
+                            isPassword = true,
+                            isError = isConfirmPasswordError,
+                            passwordVisible = confirmPasswordVisible,
+                            changeVisibility = { confirmPasswordVisible = !confirmPasswordVisible },
+                            icon = Icons.Default.Lock,
+                            interactionSource = confirmPasswordInteractionSource,
+                            enabled = uiState !is RegisterUiState.Loading,
+                            supportingText = if (isConfirmPasswordError) {
+                                { Text(stringResource(R.string.error_passwords_not_match), color = MaterialTheme.colorScheme.error) }
+                            } else null,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Next
+                            )
+                        )
+                    }
                 },
                 countryCode = countryCode,
                 onCountryCodeChange = onCountryCodeChange,

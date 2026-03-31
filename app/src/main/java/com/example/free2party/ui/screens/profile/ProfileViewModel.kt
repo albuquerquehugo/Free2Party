@@ -154,9 +154,9 @@ class ProfileViewModel(
         instagramUsername = user.socials.instagramUsername
         tiktokUsername = user.socials.tiktokUsername
         xUsername = user.socials.xUsername
-        
-        isWhatsappSameAsPhone = whatsappNumber == phoneNumber && 
-                whatsappCountryCode == countryCode && 
+
+        isWhatsappSameAsPhone = whatsappNumber == phoneNumber &&
+                whatsappCountryCode == countryCode &&
                 phoneNumber.isNotEmpty()
     }
 
