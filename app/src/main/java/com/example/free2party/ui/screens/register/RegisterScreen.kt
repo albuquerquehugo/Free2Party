@@ -2,6 +2,8 @@ package com.example.free2party.ui.screens.register
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
