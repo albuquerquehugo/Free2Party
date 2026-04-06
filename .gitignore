@@ -1,6 +1,8 @@
 *.iml
 .gradle
 /local.properties
+/.gemini
+/.github
 /.idea/caches
 /.idea/dictionaries
 /.idea/easycode
@@ -13,6 +15,7 @@
 /.idea/modules.xml
 /.idea/navEditor.xml
 /.idea/workspace.xml
+/.windsurf
 .DS_Store
 /build
 /captures

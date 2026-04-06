@@ -448,7 +448,7 @@ fun ProfileContent(
             modifier = Modifier.testTag("birthday_field"),
             isError = isBirthdayError,
             supportingText = if (isBirthdayError) {
-                { Text(stringResource(R.string.invalid_date), color = MaterialTheme.colorScheme.error) }
+                { Text(stringResource(R.string.error_invalid_date), color = MaterialTheme.colorScheme.error) }
             } else null,
             visualTransformation = DateVisualTransformation(datePattern),
             trailingIcon = {
