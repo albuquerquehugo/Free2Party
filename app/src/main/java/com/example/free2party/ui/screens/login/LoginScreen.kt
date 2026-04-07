@@ -1,15 +1,18 @@
 package com.example.free2party.ui.screens.login
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -18,6 +21,7 @@ import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -25,6 +29,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,11 +52,22 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import com.example.free2party.R
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.components.dialogs.EmailDialog
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginRoute(
@@ -59,7 +76,9 @@ fun LoginRoute(
     onNavigateToRegister: () -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val (showForgotPasswordDialog, setShowForgotPasswordDialog) = remember { mutableStateOf(false) }
+    val serverClientId = stringResource(R.string.default_web_client_id)
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -68,9 +87,62 @@ fun LoginRoute(
                     Toast.makeText(
                         context,
                         event.message.asString(context),
-                        Toast.LENGTH_SHORT
+                        Toast.LENGTH_LONG
                     ).show()
                     setShowForgotPasswordDialog(false)
+                }
+            }
+        }
+    }
+
+    val onGoogleSignInClick: () -> Unit = {
+        // Modern Google Sign-In with Credential Manager
+        if (serverClientId.isEmpty()) {
+            Toast.makeText(
+                context,
+                "Google Sign-In configuration error. Please try again later.",
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            val credentialManager = CredentialManager.create(context)
+            
+            val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(serverClientId).build()
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(signInWithGoogleOption)
+                .build()
+
+            coroutineScope.launch {
+                try {
+                    val result = credentialManager.getCredential(
+                        context = context,
+                        request = request
+                    )
+
+                    val credential = result.credential
+                    if (credential is CustomCredential &&
+                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                        try {
+                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                            val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+                            viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
+                        } catch (e: GoogleIdTokenParsingException) {
+                            Log.e("LoginScreen", "Received an invalid google id token response", e)
+                            Toast.makeText(context, "Google Sign-In failed: Invalid token", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Log.e("LoginScreen", "Unexpected credential type: ${credential.type}")
+                        Toast.makeText(context, "Google Sign-In failed: Unexpected response", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (_: GetCredentialCancellationException) {
+                    Log.d("LoginScreen", "Google Sign-In was cancelled by the user")
+                } catch (e: NoCredentialException) {
+                    Log.e("LoginScreen", "No Google accounts available", e)
+                    Toast.makeText(context, "No Google accounts found on this device", Toast.LENGTH_SHORT).show()
+                } catch (e: GetCredentialException) {
+                    Log.e("LoginScreen", "Google Sign-In failed", e)
+                    Toast.makeText(context, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Log.e("LoginScreen", "An unexpected error occurred during Google Sign-In", e)
                 }
             }
         }
@@ -93,6 +165,7 @@ fun LoginRoute(
         },
         onSetThemeMode = { viewModel.updateThemeMode(it) },
         onLoginClick = { viewModel.onLoginClick(onLoginSuccess) },
+        onGoogleSignInClick = onGoogleSignInClick,
         onForgotPasswordClick = {
             viewModel.resetFields()
             setShowForgotPasswordDialog(true)
@@ -122,6 +195,7 @@ fun LoginScreen(
     onPasswordChange: (String) -> Unit,
     onSetThemeMode: (ThemeMode) -> Unit,
     onLoginClick: () -> Unit,
+    onGoogleSignInClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onForgotPasswordConfirm: (String) -> Unit,
     onDismissForgotPassword: () -> Unit,
@@ -274,19 +348,60 @@ fun LoginScreen(
                     Text(stringResource(R.string.login))
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                    Text(
+                        text = " OR ",
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedButton(
+                    onClick = onGoogleSignInClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    enabled = uiState !is LoginUiState.Loading,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.google_color),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.sign_in_with_google))
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(2.dp))
 
                 TextButton(
                     onClick = onNavigateToRegister,
                     enabled = uiState !is LoginUiState.Loading
                 ) {
-                    Text(stringResource(R.string.dont_have_account_register))
+                    Text(stringResource(R.string.dont_have_account_sign_up))
                 }
             }
         }
     }
 
-    // TODO: Personalize forgot password email
     if (showForgotPasswordDialog) {
         val (forgotPasswordEmail, setForgotPasswordEmail) = remember { mutableStateOf("") }
         EmailDialog(

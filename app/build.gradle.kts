@@ -88,6 +88,11 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.play.integrity)
 
+    // --- Google Authentication & Credentials Manager ---
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
     // --- Image Loading ---
     implementation(libs.coil.compose)
 

@@ -55,7 +55,7 @@
 
     <!-- Login Screen -->
     <string name="appearance">Appearance</string>
-    <string name="dont_have_account_register">Don\'t have an account? Register</string>
+    <string name="dont_have_account_sign_up">Don\'t have an account? Sign up</string>
     <string name="email_label">Email</string>
     <string name="forgot_password">Forgot Password?</string>
     <string name="login">Login</string>
@@ -64,10 +64,11 @@
     <string name="reset_password_description">Enter your email address and we\'ll send you a link to
         reset your password.\n\n(Remember to check the SPAM folder in your email)</string>
     <string name="send_link">Send link</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
 
     <!-- Register Screen -->
     <string name="account_created_successfully">Account created successfully for user %1$s!</string>
-    <string name="already_have_account_login">Already have an account? Login</string>
+    <string name="already_have_account_log_in">Already have an account? Log in</string>
     <string name="confirm_password_required">Confirm Password *</string>
     <string name="create_account">Create Account</string>
     <string name="password_required">Password *</string>

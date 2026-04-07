@@ -2,6 +2,7 @@ package com.example.free2party.data.repository
 
 import android.net.Uri
 import com.example.free2party.data.model.UserSocials
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseUser
 
 interface AuthRepository {
@@ -20,6 +21,7 @@ interface AuthRepository {
     ): Result<FirebaseUser>
 
     suspend fun login(email: String, password: String): Result<FirebaseUser>
+    suspend fun signInWithGoogle(credential: AuthCredential): Result<FirebaseUser>
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
     fun logout()
 }

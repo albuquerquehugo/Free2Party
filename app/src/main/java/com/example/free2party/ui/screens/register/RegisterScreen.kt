@@ -283,7 +283,7 @@ fun RegisterScreen(
                             }
 
                             TextButton(onClick = onBackToLogin) {
-                                Text(stringResource(R.string.already_have_account_login))
+                                Text(stringResource(R.string.already_have_account_log_in))
                             }
 
                             Spacer(modifier = Modifier.height(2.dp))

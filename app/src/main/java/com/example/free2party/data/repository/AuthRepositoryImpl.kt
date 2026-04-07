@@ -5,6 +5,7 @@ import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.exception.*
 import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -66,6 +67,30 @@ class AuthRepositoryImpl(
         val result = auth.signInWithEmailAndPassword(email, password).await()
         val user = result.user ?: throw UserNullException()
         Result.success(user)
+    } catch (e: Exception) {
+        Result.failure(mapToAuthException(e))
+    }
+
+    override suspend fun signInWithGoogle(credential: AuthCredential): Result<FirebaseUser> = try {
+        val result = auth.signInWithCredential(credential).await()
+        val firebaseUser = result.user ?: throw UserNullException()
+
+        // Check if user profile already exists
+        val userProfileResult = userRepository.getUserById(firebaseUser.uid)
+        if (userProfileResult.isFailure) {
+            // If user profile doesn't exist, create a basic one from Google data
+            val newUser = User(
+                uid = firebaseUser.uid,
+                profilePicUrl = firebaseUser.photoUrl?.toString() ?: "",
+                firstName = firebaseUser.displayName?.split(" ")?.getOrNull(0) ?: "",
+                lastName = firebaseUser.displayName?.split(" ")?.getOrNull(1) ?: "",
+                email = firebaseUser.email ?: "",
+                isFreeNow = false
+            )
+            userRepository.createUserProfile(newUser).getOrThrow()
+        }
+
+        Result.success(firebaseUser)
     } catch (e: Exception) {
         Result.failure(mapToAuthException(e))
     }

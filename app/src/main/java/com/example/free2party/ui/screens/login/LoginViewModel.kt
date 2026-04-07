@@ -16,6 +16,7 @@ import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.AuthException
 import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
@@ -95,6 +96,26 @@ class LoginViewModel(
                         UiText.StringResource(e.messageRes)
                     } else {
                         UiText.DynamicString(e.localizedMessage ?: "Login failed")
+                    }
+                    uiState = LoginUiState.Error(errorText)
+                }
+        }
+    }
+
+    fun onGoogleSignIn(credential: AuthCredential, onSuccess: () -> Unit) {
+        if (uiState is LoginUiState.Loading) return
+        uiState = LoginUiState.Loading
+        viewModelScope.launch {
+            authRepository.signInWithGoogle(credential)
+                .onSuccess {
+                    uiState = LoginUiState.Success
+                    onSuccess()
+                }
+                .onFailure { e ->
+                    val errorText = if (e is AuthException && e.messageRes != null) {
+                        UiText.StringResource(e.messageRes)
+                    } else {
+                        UiText.DynamicString(e.localizedMessage ?: "Google Sign-In failed")
                     }
                     uiState = LoginUiState.Error(errorText)
                 }

@@ -132,6 +132,7 @@ class RegisterViewModel(
             code + whatsappNumber
         } else ""
 
+        // TODO: Implement an email validation to ensure the user has access to the email provided
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
             authRepository.register(
