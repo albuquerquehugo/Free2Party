@@ -2,10 +2,10 @@ package com.example.free2party.ui.screens.profile
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -280,7 +280,6 @@ fun ProfileScreenContent(
             confirmButtons = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (hasChanges) {
@@ -288,6 +287,7 @@ fun ProfileScreenContent(
                             onClick = onDiscardChanges,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(56.dp)
                                 .testTag("discard_button"),
                             enabled = !isSaving
                         ) {
@@ -297,6 +297,8 @@ fun ProfileScreenContent(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = onUpdateProfile,
@@ -319,6 +321,8 @@ fun ProfileScreenContent(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         )

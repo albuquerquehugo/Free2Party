@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -179,7 +180,6 @@ fun RegisterScreen(
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(top = paddingValues.calculateTopPadding())) {
-            // TODO: Add password confirmation field to confirm password
             ProfileContent(
                 isLoading = uiState is RegisterUiState.Loading,
                 profilePicture = profilePicUri,
@@ -253,7 +253,7 @@ fun RegisterScreen(
                 onXUsernameChange = onXUsernameChange,
                 confirmButtons = {
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -285,6 +285,8 @@ fun RegisterScreen(
                             TextButton(onClick = onBackToLogin) {
                                 Text(stringResource(R.string.already_have_account_login))
                             }
+
+                            Spacer(modifier = Modifier.height(2.dp))
                         }
                     }
                 }

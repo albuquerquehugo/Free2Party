@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,18 +27,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 @Composable
 fun InputTextField(
@@ -70,6 +75,14 @@ fun InputTextField(
 ) {
     val isFocused by interactionSource.collectIsFocusedAsState()
     val isMultiLine = maxLines > 1
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            delay(200)
+            bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
+        }
+    }
 
     val labelColor = if (value.isEmpty() && !isFocused) {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -98,6 +111,7 @@ fun InputTextField(
         modifier = modifier
             .fillMaxWidth()
             .focusRequester(focusRequester)
+            .bringIntoViewRequester(bringIntoViewRequester)
             .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier),
         enabled = enabled,
         isError = isError,
@@ -153,7 +167,8 @@ fun InputTextField(
                 }
 
                 if (isPassword) {
-                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    val image =
+                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     val description = if (passwordVisible) "Hide password" else "Show password"
                     IconButton(onClick = changeVisibility) {
                         Icon(imageVector = image, contentDescription = description)

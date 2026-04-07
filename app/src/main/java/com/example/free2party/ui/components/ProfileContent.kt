@@ -207,7 +207,7 @@ fun ProfileContent(
         if (isSame && !isWhatsappSameAsPhone) {
             onWhatsappSameAsPhoneChange(true)
         }
-        
+
         if (phoneNumber.isEmpty() && countryCode.isEmpty() && isWhatsappSameAsPhone) {
             onWhatsappSameAsPhoneChange(false)
         }
@@ -225,7 +225,13 @@ fun ProfileContent(
         }
     }
 
-    val isWhatsappError = remember(whatsappNumber, whatsappCountryCode, isWhatsappFocused, wasWhatsappFocused, isWhatsappSameAsPhone) {
+    val isWhatsappError = remember(
+        whatsappNumber,
+        whatsappCountryCode,
+        isWhatsappFocused,
+        wasWhatsappFocused,
+        isWhatsappSameAsPhone
+    ) {
         if (isWhatsappSameAsPhone || isWhatsappFocused || !wasWhatsappFocused || whatsappNumber.isEmpty()) false
         else {
             val country = Countries.find { it.code == whatsappCountryCode }
@@ -237,6 +243,7 @@ fun ProfileContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .imePadding()
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -372,7 +379,8 @@ fun ProfileContent(
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedLabelColor = phoneLabelColor
             ),
-            placeholder = selectedCountry?.phoneMask ?: stringResource(R.string.phone_mask_placeholder),
+            placeholder = selectedCountry?.phoneMask
+                ?: stringResource(R.string.phone_mask_placeholder),
             placeholderColor =
                 if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -448,7 +456,12 @@ fun ProfileContent(
             modifier = Modifier.testTag("birthday_field"),
             isError = isBirthdayError,
             supportingText = if (isBirthdayError) {
-                { Text(stringResource(R.string.error_invalid_date), color = MaterialTheme.colorScheme.error) }
+                {
+                    Text(
+                        stringResource(R.string.error_invalid_date),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             } else null,
             visualTransformation = DateVisualTransformation(datePattern),
             trailingIcon = {
@@ -494,7 +507,10 @@ fun ProfileContent(
                 .padding(top = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(text = stringResource(R.string.socials), style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = stringResource(R.string.socials),
+                style = MaterialTheme.typography.titleSmall
+            )
         }
 
         val whatsappLabelColor = if (whatsappNumber.isEmpty() && !isWhatsappFocused) {
@@ -521,7 +537,8 @@ fun ProfileContent(
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedLabelColor = whatsappLabelColor
             ),
-            placeholder = selectedWhatsappCountry?.phoneMask ?: stringResource(R.string.phone_mask_placeholder),
+            placeholder = selectedWhatsappCountry?.phoneMask
+                ?: stringResource(R.string.phone_mask_placeholder),
             placeholderColor =
                 if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -532,7 +549,9 @@ fun ProfileContent(
             leadingIconExtra = {
                 Box(modifier = Modifier.padding(start = 16.dp)) {
                     Row(
-                        modifier = Modifier.clickable(enabled = !isWhatsappSameAsPhone) { setShowWhatsappCountryDialog(true) },
+                        modifier = Modifier.clickable(enabled = !isWhatsappSameAsPhone) {
+                            setShowWhatsappCountryDialog(true)
+                        },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (selectedWhatsappCountry != null) {
@@ -595,7 +614,9 @@ fun ProfileContent(
                     Text(
                         text = stringResource(R.string.whatsapp_same_as_phone_number),
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (phoneNumber.isNotEmpty()) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        color = if (phoneNumber.isNotEmpty()) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.38f
+                        )
                     )
                 }
             },
@@ -689,17 +710,10 @@ fun ProfileContent(
         )
 
         if (confirmButtons != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 confirmButtons()
             }
         }
-
-        Spacer(modifier = Modifier.imePadding())
     }
 
     if (showCountryDialog) {

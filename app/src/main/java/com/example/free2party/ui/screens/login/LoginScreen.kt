@@ -274,6 +274,8 @@ fun LoginScreen(
                     Text(stringResource(R.string.login))
                 }
 
+                Spacer(modifier = Modifier.height(2.dp))
+
                 TextButton(
                     onClick = onNavigateToRegister,
                     enabled = uiState !is LoginUiState.Loading
