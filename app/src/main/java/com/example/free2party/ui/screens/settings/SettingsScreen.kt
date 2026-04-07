@@ -138,7 +138,7 @@ fun SettingsScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
+            .padding(top = paddingValues.calculateTopPadding())
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -299,6 +299,8 @@ fun SettingsScreenContent(
                 Text(stringResource(R.string.save_settings), style = MaterialTheme.typography.titleMedium)
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
