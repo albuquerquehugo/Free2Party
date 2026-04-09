@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import android.net.Uri
+import android.util.Log
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.exception.*
@@ -36,6 +37,8 @@ class AuthRepositoryImpl(
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val firebaseUser = result.user ?: throw UserNullException()
 
+        firebaseUser.sendEmailVerification().await()
+
         var profilePicUrl = ""
         if (profilePicUri != null) {
             profilePicUrl = userRepository.uploadProfilePicture(profilePicUri).getOrDefault("")
@@ -58,16 +61,25 @@ class AuthRepositoryImpl(
 
         userRepository.createUserProfile(newUser).getOrThrow()
 
+        // Sign out the user immediately after registration so they have to log in and verify
+        auth.signOut()
+
         Result.success(firebaseUser)
     } catch (e: Exception) {
+        Log.e("AuthRepository", "Registration failed", e)
         Result.failure(mapToAuthException(e))
     }
 
     override suspend fun login(email: String, password: String): Result<FirebaseUser> = try {
         val result = auth.signInWithEmailAndPassword(email, password).await()
         val user = result.user ?: throw UserNullException()
+        if (!user.isEmailVerified) {
+            auth.signOut()
+            throw EmailNotVerifiedException()
+        }
         Result.success(user)
     } catch (e: Exception) {
+        Log.e("AuthRepository", "Login failed", e)
         Result.failure(mapToAuthException(e))
     }
 
@@ -92,6 +104,7 @@ class AuthRepositoryImpl(
 
         Result.success(firebaseUser)
     } catch (e: Exception) {
+        Log.e("AuthRepository", "Google Sign-In failed", e)
         Result.failure(mapToAuthException(e))
     }
 
@@ -99,8 +112,26 @@ class AuthRepositoryImpl(
         auth.sendPasswordResetEmail(email).await()
         Result.success(Unit)
     } catch (e: Exception) {
+        Log.e("AuthRepository", "Password reset failed", e)
         Result.failure(mapToAuthException(e))
     }
+
+    override suspend fun resendVerificationEmail(email: String, password: String): Result<Unit> =
+        try {
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val user = result.user ?: throw UserNullException()
+            if (!user.isEmailVerified) {
+                user.sendEmailVerification().await()
+                auth.signOut()
+                Result.success(Unit)
+            } else {
+                auth.signOut()
+                Result.failure(Exception("Email already verified"))
+            }
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Resend verification failed", e)
+            Result.failure(mapToAuthException(e))
+        }
 
     override fun logout() {
         auth.signOut()

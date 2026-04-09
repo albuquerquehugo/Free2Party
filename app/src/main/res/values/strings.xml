@@ -60,6 +60,7 @@
     <string name="forgot_password">Forgot Password?</string>
     <string name="login">Login</string>
     <string name="password_label">Password</string>
+    <string name="resend_verification_success">Verification email resent! Please check your inbox.</string>
     <string name="reset_password">Reset Password</string>
     <string name="reset_password_description">Enter your email address and we\'ll send you a link to
         reset your password.\n\n(Remember to check the SPAM folder in your email)</string>
@@ -67,7 +68,7 @@
     <string name="sign_in_with_google">Sign in with Google</string>
 
     <!-- Register Screen -->
-    <string name="account_created_successfully">Account created successfully for user %1$s!</string>
+    <string name="account_created_successfully">Account created successfully! Check your email to verify your account.</string>
     <string name="already_have_account_log_in">Already have an account? Log in</string>
     <string name="confirm_password_required">Confirm Password *</string>
     <string name="create_account">Create Account</string>
@@ -178,6 +179,10 @@
     <string name="error_cannot_add_self">You cannot add yourself as a friend</string>
     <string name="error_database_operation">An error occurred while saving data. Please try again.</string>
     <string name="error_email_already_in_use">This email is already in use</string>
+    <string name="error_email_not_verified">Please verify your email address before logging in. Check your inbox
+        (including SPAM folder) for the verification link.</string>
+    <string name="error_email_not_verified_resend">Didn\'t receive the verification link?</string>
+    <string name="error_email_not_verified_resend_clickable">Resend it.</string>
     <string name="error_friend_request_already_accepted">This user is already your friend</string>
     <string name="error_friend_request_already_sent">An invite has already been sent to this user</string>
     <string name="error_friend_request_not_found">The friend request was not found</string>
@@ -197,6 +202,7 @@
     <string name="error_profile_not_found">User profile not found. Please try logging out and in again.</string>
     <string name="error_registration_failed">Registration failed</string>
     <string name="error_required_fields">Required fields (*) must be filled</string>
+    <string name="error_resend_verification_empty_fields">Please enter your email and password to resend verification</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
     <string name="error_unknown_auth">An unexpected authentication error occurred</string>
     <string name="error_updating_profile">Error updating profile</string>

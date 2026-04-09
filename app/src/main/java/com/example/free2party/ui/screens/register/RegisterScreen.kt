@@ -57,7 +57,7 @@ fun RegisterRoute(
             Toast.makeText(
                 context,
                 accountCreatedTemplate.format(viewModel.email),
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_LONG
             ).show()
             onRegisterSuccess()
         }
@@ -164,9 +164,10 @@ fun RegisterScreen(
         if (isConfirmPasswordFocused) wasConfirmPasswordFocused = true
     }
 
-    val isConfirmPasswordError = remember(password, confirmPassword, isConfirmPasswordFocused, wasConfirmPasswordFocused) {
-        !isConfirmPasswordFocused && wasConfirmPasswordFocused && password != confirmPassword && confirmPassword.isNotEmpty()
-    }
+    val isConfirmPasswordError =
+        remember(password, confirmPassword, isConfirmPasswordFocused, wasConfirmPasswordFocused) {
+            !isConfirmPasswordFocused && wasConfirmPasswordFocused && password != confirmPassword && confirmPassword.isNotEmpty()
+        }
 
     Scaffold(
         topBar = {
@@ -177,9 +178,11 @@ fun RegisterScreen(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(top = paddingValues.calculateTopPadding())) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingValues.calculateTopPadding())
+        ) {
             ProfileContent(
                 isLoading = uiState is RegisterUiState.Loading,
                 profilePicture = profilePicUri,
@@ -218,7 +221,12 @@ fun RegisterScreen(
                             interactionSource = confirmPasswordInteractionSource,
                             enabled = uiState !is RegisterUiState.Loading,
                             supportingText = if (isConfirmPasswordError) {
-                                { Text(stringResource(R.string.error_passwords_not_match), color = MaterialTheme.colorScheme.error) }
+                                {
+                                    Text(
+                                        stringResource(R.string.error_passwords_not_match),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
                             } else null,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Password,
@@ -253,7 +261,9 @@ fun RegisterScreen(
                 onXUsernameChange = onXUsernameChange,
                 confirmButtons = {
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

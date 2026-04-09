@@ -23,5 +23,6 @@ interface AuthRepository {
     suspend fun login(email: String, password: String): Result<FirebaseUser>
     suspend fun signInWithGoogle(credential: AuthCredential): Result<FirebaseUser>
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
+    suspend fun resendVerificationEmail(email: String, password: String): Result<Unit>
     fun logout()
 }

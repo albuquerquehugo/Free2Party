@@ -14,6 +14,7 @@ import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.AuthException
+import com.example.free2party.exception.EmailNotVerifiedException
 import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthCredential
@@ -28,7 +29,7 @@ import kotlinx.coroutines.launch
 sealed interface LoginUiState {
     object Idle : LoginUiState
     object Loading : LoginUiState
-    data class Error(val message: UiText) : LoginUiState
+    data class Error(val message: UiText, val isEmailNotVerified: Boolean = false) : LoginUiState
     object Success : LoginUiState
 }
 
@@ -92,10 +93,41 @@ class LoginViewModel(
                     onSuccess()
                 }
                 .onFailure { e ->
+                    val isEmailNotVerified = e is EmailNotVerifiedException
                     val errorText = if (e is AuthException && e.messageRes != null) {
                         UiText.StringResource(e.messageRes)
                     } else {
                         UiText.DynamicString(e.localizedMessage ?: "Login failed")
+                    }
+                    uiState = LoginUiState.Error(errorText, isEmailNotVerified)
+                }
+        }
+    }
+
+    fun onResendVerificationClick() {
+        if (uiState is LoginUiState.Loading) return
+
+        val normalizedEmail = email.trim().lowercase()
+        if (normalizedEmail.isBlank() || password.isBlank()) {
+            uiState =
+                LoginUiState.Error(UiText.StringResource(R.string.error_resend_verification_empty_fields))
+            return
+        }
+
+        uiState = LoginUiState.Loading
+        viewModelScope.launch {
+            authRepository.resendVerificationEmail(normalizedEmail, password)
+                .onSuccess {
+                    uiState = LoginUiState.Idle
+                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.resend_verification_success)))
+                }
+                .onFailure { e ->
+                    val errorText = if (e is AuthException && e.messageRes != null) {
+                        UiText.StringResource(e.messageRes)
+                    } else {
+                        UiText.DynamicString(
+                            e.localizedMessage ?: "Failed to resend verification email"
+                        )
                     }
                     uiState = LoginUiState.Error(errorText)
                 }

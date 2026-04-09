@@ -3,6 +3,7 @@ package com.example.free2party.ui.screens.login
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Contrast
@@ -51,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -105,7 +109,7 @@ fun LoginRoute(
             ).show()
         } else {
             val credentialManager = CredentialManager.create(context)
-            
+
             val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(serverClientId).build()
             val request = GetCredentialRequest.Builder()
                 .addCredentialOption(signInWithGoogleOption)
@@ -120,24 +124,41 @@ fun LoginRoute(
 
                     val credential = result.credential
                     if (credential is CustomCredential &&
-                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                    ) {
                         try {
-                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                            val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+                            val googleIdTokenCredential =
+                                GoogleIdTokenCredential.createFrom(credential.data)
+                            val firebaseCredential = GoogleAuthProvider.getCredential(
+                                googleIdTokenCredential.idToken,
+                                null
+                            )
                             viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
                         } catch (e: GoogleIdTokenParsingException) {
                             Log.e("LoginScreen", "Received an invalid google id token response", e)
-                            Toast.makeText(context, "Google Sign-In failed: Invalid token", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Google Sign-In failed: Invalid token",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else {
                         Log.e("LoginScreen", "Unexpected credential type: ${credential.type}")
-                        Toast.makeText(context, "Google Sign-In failed: Unexpected response", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Google Sign-In failed: Unexpected response",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } catch (_: GetCredentialCancellationException) {
                     Log.d("LoginScreen", "Google Sign-In was cancelled by the user")
                 } catch (e: NoCredentialException) {
                     Log.e("LoginScreen", "No Google accounts available", e)
-                    Toast.makeText(context, "No Google accounts found on this device", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "No Google accounts found on this device",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } catch (e: GetCredentialException) {
                     Log.e("LoginScreen", "Google Sign-In failed", e)
                     Toast.makeText(context, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
@@ -165,6 +186,7 @@ fun LoginRoute(
         },
         onSetThemeMode = { viewModel.updateThemeMode(it) },
         onLoginClick = { viewModel.onLoginClick(onLoginSuccess) },
+        onResendVerificationClick = { viewModel.onResendVerificationClick() },
         onGoogleSignInClick = onGoogleSignInClick,
         onForgotPasswordClick = {
             viewModel.resetFields()
@@ -195,6 +217,7 @@ fun LoginScreen(
     onPasswordChange: (String) -> Unit,
     onSetThemeMode: (ThemeMode) -> Unit,
     onLoginClick: () -> Unit,
+    onResendVerificationClick: () -> Unit,
     onGoogleSignInClick: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onForgotPasswordConfirm: (String) -> Unit,
@@ -205,8 +228,13 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var showThemeMenu by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
         IconButton(
             onClick = { showThemeMenu = true },
             enabled = uiState !is LoginUiState.Loading,
@@ -327,12 +355,41 @@ fun LoginScreen(
             }
 
             if (uiState is LoginUiState.Error) {
-                Text(
-                    text = uiState.message.asString(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = uiState.message.asString(),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
+
+                    if (uiState.isEmailNotVerified) {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = stringResource(R.string.error_email_not_verified_resend),
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Text(
+                            text = stringResource(R.string.error_email_not_verified_resend_clickable),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.clickable { onResendVerificationClick() }
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
             }
 
             if (uiState is LoginUiState.Loading && !showForgotPasswordDialog) {

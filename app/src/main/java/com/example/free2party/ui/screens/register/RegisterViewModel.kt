@@ -132,7 +132,6 @@ class RegisterViewModel(
             code + whatsappNumber
         } else ""
 
-        // TODO: Implement an email validation to ensure the user has access to the email provided
         uiState = RegisterUiState.Loading
         viewModelScope.launch {
             authRepository.register(
@@ -155,18 +154,22 @@ class RegisterViewModel(
                     tiktokUsername = tiktokUsername,
                     xUsername = xUsername
                 )
-            ).onSuccess { uiState = RegisterUiState.Success }
-                .onFailure { e ->
-                    val errorText = when (e) {
-                        is AuthException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
-                            e.messageRes
-                        )
+            ).onSuccess {
+                uiState = RegisterUiState.Success
+            }.onFailure { e ->
+                val errorText = when (e) {
+                    is AuthException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                        e.localizedMessage ?: "Registration failed"
+                    )
 
-                        else -> UiText.StringResource(R.string.error_registration_failed)
-                    }
-                    uiState = RegisterUiState.Error(errorText)
+                    is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                        e.localizedMessage ?: "Infrastructure error"
+                    )
+
+                    else -> UiText.StringResource(R.string.error_registration_failed)
                 }
+                uiState = RegisterUiState.Error(errorText)
+            }
         }
     }
 

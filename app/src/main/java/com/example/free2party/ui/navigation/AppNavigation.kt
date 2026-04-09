@@ -222,7 +222,8 @@ fun Free2PartyNavGraph(
     startDestinationOverride: String? = null
 ) {
     val startDest = remember(startDestinationOverride) {
-        startDestinationOverride ?: if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
+        startDestinationOverride
+            ?: if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
     }
 
     NavHost(
@@ -251,7 +252,7 @@ fun Free2PartyNavGraph(
         composable(Screen.Register.route) {
             RegisterRoute(
                 onRegisterSuccess = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },

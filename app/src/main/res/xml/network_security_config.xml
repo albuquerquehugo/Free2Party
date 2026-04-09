@@ -6,18 +6,28 @@
         </trust-anchors>
     </base-config>
 
-    <!-- Specific config for Google/Firebase domains to ensure they use system trust -->
+    <!-- Essential domains for Firebase, Google Auth, and reCAPTCHA -->
     <domain-config>
         <domain includeSubdomains="true">googleapis.com</domain>
         <domain includeSubdomains="true">firebaseapp.com</domain>
         <domain includeSubdomains="true">google.com</domain>
+        <domain includeSubdomains="true">gstatic.com</domain>
+        <domain includeSubdomains="true">recaptcha.net</domain>
+        <domain includeSubdomains="true">firebase.io</domain>
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </domain-config>
 
+    <!-- Allow cleartext for local emulator and host testing -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+
     <debug-overrides>
         <trust-anchors>
+            <certificates src="system" />
             <certificates src="user" />
         </trust-anchors>
     </debug-overrides>
