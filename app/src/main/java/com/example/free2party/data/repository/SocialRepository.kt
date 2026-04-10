@@ -19,8 +19,10 @@ interface SocialRepository {
         friendRequestStatus: FriendRequestStatus
     ): Result<Unit>
 
+    suspend fun declineAndBlockFriendRequest(requestId: String): Result<Unit>
+
     suspend fun removeFriend(friendId: String): Result<Unit>
-    
+
     suspend fun markNotificationAsRead(notificationId: String): Result<Unit>
     suspend fun markNotificationAsUnread(notificationId: String): Result<Unit>
     suspend fun markNotificationsAsRead(notificationIds: List<String>): Result<Unit>

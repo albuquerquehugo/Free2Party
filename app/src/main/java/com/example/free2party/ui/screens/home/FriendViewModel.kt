@@ -66,8 +66,14 @@ class FriendViewModel(
                 }
                 .onFailure { e ->
                     val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(
+                            e.messageRes
+                        ) else UiText.DynamicString(e.localizedMessage ?: "Error sending invite.")
+
+                        is SocialException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                            e.localizedMessage ?: "Error sending invite."
+                        )
+
                         else -> UiText.DynamicString(e.localizedMessage ?: "Error sending invite.")
                     }
                     uiState = InviteFriendUiState.Error(errorText)

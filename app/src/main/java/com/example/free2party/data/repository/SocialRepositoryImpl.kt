@@ -11,6 +11,7 @@ import com.example.free2party.exception.CannotAddSelfException
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.FriendRequestAlreadyAcceptedException
 import com.example.free2party.exception.FriendRequestAlreadySentException
+import com.example.free2party.exception.FriendRequestBlockedException
 import com.example.free2party.exception.FriendRequestNotFoundException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.NetworkUnavailableException
@@ -40,26 +41,40 @@ class SocialRepositoryImpl(
     private val currentUserId: String
         get() = userRepository.currentUserId
 
-    override fun getIncomingFriendRequests(): Flow<List<FriendRequest>> = callbackFlow {
-        if (currentUserId.isBlank()) {
-            trySend(emptyList())
-            return@callbackFlow
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getIncomingFriendRequests(): Flow<List<FriendRequest>> {
+        if (currentUserId.isBlank()) return flowOf(emptyList())
+
+        val blockedUsersFlow = callbackFlow {
+            val listener = db.collection("users").document(currentUserId)
+                .collection("blocked")
+                .addSnapshotListener { snapshot, _ ->
+                    val blockedIds = snapshot?.documents?.map { it.id } ?: emptyList()
+                    trySend(blockedIds)
+                }
+            awaitClose { listener.remove() }
         }
 
-        val listener = db.collection("friendRequests")
-            .whereEqualTo("receiverId", currentUserId)
-            .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(mapToSocialException(error))
-                    return@addSnapshotListener
+        val requestsFlow = callbackFlow {
+            val listener = db.collection("friendRequests")
+                .whereEqualTo("receiverId", currentUserId)
+                .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(mapToSocialException(error))
+                        return@addSnapshotListener
+                    }
+
+                    val requests = snapshot?.toObjects(FriendRequest::class.java) ?: emptyList()
+                    trySend(requests)
                 }
 
-                val requests = snapshot?.toObjects(FriendRequest::class.java) ?: emptyList()
-                trySend(requests)
-            }
+            awaitClose { listener.remove() }
+        }
 
-        awaitClose { listener.remove() }
+        return combine(requestsFlow, blockedUsersFlow) { requests, blockedIds ->
+            requests.filter { it.senderId !in blockedIds }
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -149,21 +164,47 @@ class SocialRepositoryImpl(
 
     override suspend fun sendFriendRequest(friendEmail: String): Result<Unit> = try {
         validateSession()
-        val receiver = userRepository.getUserByEmail(friendEmail).getOrThrow()
+        val receiverResult = userRepository.getUserByEmail(friendEmail)
+        if (receiverResult.isFailure) return Result.failure(receiverResult.exceptionOrNull()!!)
+        val receiver = receiverResult.getOrThrow()
         if (receiver.uid == currentUserId) throw CannotAddSelfException()
 
-        val existingFriendDoc = db.collection("users").document(currentUserId)
-            .collection("friends").document(receiver.uid).get().await()
-        if (existingFriendDoc.exists()) {
-            val inviteStatus = existingFriendDoc.getString("inviteStatus")
-            if (inviteStatus == InviteStatus.ACCEPTED.name) throw FriendRequestAlreadyAcceptedException()
-            else if (inviteStatus == InviteStatus.INVITED.name) throw FriendRequestAlreadySentException()
-        }
-
-        val sender = userRepository.getUserById(currentUserId).getOrThrow()
+        val senderResult = userRepository.getUserById(currentUserId)
+        if (senderResult.isFailure) return Result.failure(senderResult.exceptionOrNull()!!)
+        val sender = senderResult.getOrThrow()
         val requestId = "${currentUserId}_${receiver.uid}"
 
         db.runTransaction { transaction ->
+            // Check if receiver has blocked current user
+            val blockedByReceiverRef = db.collection("users").document(receiver.uid)
+                .collection("blocked").document(currentUserId)
+            val blockedByReceiverDoc = transaction.get(blockedByReceiverRef)
+
+            // If current user has blocked receiver, unblock them first
+            val blockedByCurrentUserRef = db.collection("users").document(currentUserId)
+                .collection("blocked").document(receiver.uid)
+            val blockedByCurrentUserDoc = transaction.get(blockedByCurrentUserRef)
+
+            val existingFriendRef = db.collection("users").document(currentUserId)
+                .collection("friends").document(receiver.uid)
+            val existingFriendDoc = transaction.get(existingFriendRef)
+
+            // Check if receiver has blocked current user
+            if (blockedByReceiverDoc.exists()) {
+                throw FriendRequestBlockedException()
+            }
+
+            // If current user has blocked receiver, unblock them first
+            if (blockedByCurrentUserDoc.exists()) {
+                transaction.delete(blockedByCurrentUserRef)
+            }
+
+            if (existingFriendDoc.exists()) {
+                val inviteStatus = existingFriendDoc.getString("inviteStatus")
+                if (inviteStatus == InviteStatus.ACCEPTED.name) throw FriendRequestAlreadyAcceptedException()
+                else if (inviteStatus == InviteStatus.INVITED.name) throw FriendRequestAlreadySentException()
+            }
+
             val requestRef = db.collection("friendRequests").document(requestId)
             transaction.set(
                 requestRef, mapOf(
@@ -290,9 +331,64 @@ class SocialRepositoryImpl(
         Result.failure(mapToSocialException(e))
     }
 
+    override suspend fun declineAndBlockFriendRequest(requestId: String): Result<Unit> = try {
+        validateSession()
+        db.runTransaction { transaction ->
+            val requestRef = db.collection("friendRequests").document(requestId)
+            val requestDoc = transaction.get(requestRef)
+            if (!requestDoc.exists()) throw FriendRequestNotFoundException()
+
+            val request = requestDoc.toObject(FriendRequest::class.java)
+                ?: throw FriendRequestNotFoundException()
+
+            val receiverRef = db.collection("users").document(request.receiverId)
+            val receiverDoc = transaction.get(receiverRef)
+
+            // Delete the friend request
+            transaction.delete(requestRef)
+
+            // Remove the sender's "invited" status for the current user
+            val senderFriendRef = db.collection("users").document(request.senderId)
+                .collection("friends").document(request.receiverId)
+            transaction.delete(senderFriendRef)
+
+            // Add sender to the receiver's (current user) blocked list
+            val blockedRef = db.collection("users").document(request.receiverId)
+                .collection("blocked").document(request.senderId)
+            transaction.set(
+                blockedRef, mapOf(
+                    "uid" to request.senderId,
+                    "name" to request.senderName,
+                    "blockedAt" to FieldValue.serverTimestamp()
+                )
+            )
+
+            // Create notification for sender
+            val receiverFirstName = receiverDoc.getString("firstName") ?: ""
+            val receiverLastName = receiverDoc.getString("lastName") ?: ""
+            val receiverName = "$receiverFirstName $receiverLastName".trim().ifBlank { "Someone" }
+            val receiverEmail = receiverDoc.getString("email") ?: ""
+
+            val senderNotifRef = db.collection("users").document(request.senderId)
+                .collection("notifications").document()
+            transaction.set(
+                senderNotifRef, mapOf(
+                    "title" to "Friend Request Declined",
+                    "message" to "Your friend request to $receiverName ($receiverEmail) was declined",
+                    "isRead" to false,
+                    "timestamp" to FieldValue.serverTimestamp(),
+                    "type" to NotificationType.FRIEND_DECLINED.name
+                )
+            )
+        }.await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
     override suspend fun removeFriend(friendId: String): Result<Unit> = try {
         validateSession()
-        
+
         val sender = userRepository.getUserById(currentUserId).getOrThrow()
 
         db.runTransaction { transaction ->

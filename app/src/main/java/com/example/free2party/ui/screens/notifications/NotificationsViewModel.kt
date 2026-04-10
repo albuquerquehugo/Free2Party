@@ -128,15 +128,18 @@ class NotificationsViewModel(
     fun declineFriendRequest(requestId: String) {
         viewModelScope.launch {
             socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
+                .onSuccess {
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.notification_decline_message)))
+                }
         }
     }
 
     fun declineAndBlockFriendRequest(requestId: String) {
         viewModelScope.launch {
-            // TODO: Implement blocking logic in SocialRepository
-            // For now, just decline the request as "Decline Only" does
-            socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
-            _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.notification_decline_and_block)))
+            socialRepository.declineAndBlockFriendRequest(requestId)
+                .onSuccess {
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.notification_decline_and_block_message)))
+                }
         }
     }
 

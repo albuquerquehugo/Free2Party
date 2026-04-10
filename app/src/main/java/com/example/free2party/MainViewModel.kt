@@ -100,8 +100,8 @@ class MainViewModel(
 
                         // Dismiss if read or deleted
                         val toDismiss = suppressedIds.filter { id ->
-                            val notif = notifications.find { it.id == id }
-                            !currentIds.contains(id) || notif?.isRead == true
+                            !id.contains("_") &&
+                                    (!currentIds.contains(id) || notifications.find { it.id == id }?.isRead == true)
                         }
 
                         toDismiss.forEach { id ->

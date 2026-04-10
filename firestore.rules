@@ -31,6 +31,13 @@ service cloud.firestore {
         allow update, delete: if request.auth != null &&
           (request.auth.uid == userId || request.auth.uid == friendId);
       }
+
+      // Blocked subcollection: owner can do everything.
+      // A user can also check if they are blocked by this user.
+      match /blocked/{blockedId} {
+        allow write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && (request.auth.uid == userId || request.auth.uid == blockedId);
+      }
     }
 
     // Rules for friend requests
@@ -45,9 +52,11 @@ service cloud.firestore {
 
       // Only the sender can create a request.
       // The requestId must match the format 'senderId_receiverId'.
+      // Check if the sender is blocked by the receiver before allowing creation.
       allow create: if request.auth != null &&
         request.auth.uid == request.resource.data.senderId &&
-        requestId == request.resource.data.senderId + '_' + request.resource.data.receiverId;
+        requestId == request.resource.data.senderId + '_' + request.resource.data.receiverId &&
+        !exists(/databases/$(database)/documents/users/$(request.resource.data.receiverId)/blocked/$(request.auth.uid));
     }
   }
 }

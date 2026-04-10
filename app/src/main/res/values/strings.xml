@@ -162,7 +162,9 @@
     <string name="notification_accept">Accept</string>
     <string name="notification_all_caught_up">You\'re all caught up!</string>
     <string name="notification_decline">Decline</string>
+    <string name="notification_decline_message">The friend request was declined.</string>
     <string name="notification_decline_and_block">Decline and Block</string>
+    <string name="notification_decline_and_block_message">The friend request was declined and the user blocked.</string>
     <string name="notification_decline_dialog_message">Choose how you want to decline this request.</string>
     <string name="notification_decline_dialog_title">Decline Friend Request</string>
     <string name="notification_decline_only">Decline Only</string>
@@ -180,15 +182,16 @@
     <!-- Errors & Exceptions -->
     <string name="error_auth_failed_user_null">Authentication failed: User is null</string>
     <string name="error_auth_network">A network error occurred. Please try again.</string>
-    <string name="error_cannot_add_self">You cannot add yourself as a friend</string>
+    <string name="error_cannot_add_self">You cannot add yourself as a friend.</string>
     <string name="error_database_operation">An error occurred while saving data. Please try again.</string>
-    <string name="error_email_already_in_use">This email is already in use</string>
+    <string name="error_email_already_in_use">This email is already in use.</string>
     <string name="error_email_not_verified">Please verify your email address before logging in. Check your inbox
         (including SPAM folder) for the verification link.</string>
     <string name="error_email_not_verified_resend">Didn\'t receive the verification link?</string>
     <string name="error_email_not_verified_resend_clickable">Resend it.</string>
-    <string name="error_friend_request_already_accepted">This user is already your friend</string>
-    <string name="error_friend_request_already_sent">An invite has already been sent to this user</string>
+    <string name="error_friend_request_already_accepted">This user is already your friend.</string>
+    <string name="error_friend_request_already_sent">An invite has already been sent to this user.</string>
+    <string name="error_friend_request_blocked">You cannot send a friend request to this user.</string>
     <string name="error_friend_request_not_found">The friend request was not found</string>
     <string name="error_invalid_credentials">Invalid email or password</string>
     <string name="error_invalid_date">Invalid date</string>

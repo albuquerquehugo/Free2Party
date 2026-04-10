@@ -19,6 +19,13 @@ class FriendRequestAlreadySentException(
     R.string.error_friend_request_already_sent
 )
 
+class FriendRequestBlockedException(
+    message: String? = null
+) : SocialException(
+    message ?: "FriendRequestBlockedException",
+    R.string.error_friend_request_blocked
+)
+
 class FriendRequestAlreadyAcceptedException(
     message: String? = null
 ) : SocialException(
