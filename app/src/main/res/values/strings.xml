@@ -162,6 +162,10 @@
     <string name="notification_accept">Accept</string>
     <string name="notification_all_caught_up">You\'re all caught up!</string>
     <string name="notification_decline">Decline</string>
+    <string name="notification_decline_and_block">Decline and Block</string>
+    <string name="notification_decline_dialog_message">Choose how you want to decline this request.</string>
+    <string name="notification_decline_dialog_title">Decline Friend Request</string>
+    <string name="notification_decline_only">Decline Only</string>
     <string name="notification_friend_request_title">Friend Request</string>
     <string name="notification_friends_picture">Friend\'s Picture</string>
     <string name="notification_mark_all_as_read">Mark all as read</string>

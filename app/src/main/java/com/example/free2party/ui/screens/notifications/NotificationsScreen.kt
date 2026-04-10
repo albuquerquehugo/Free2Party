@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -98,6 +99,7 @@ fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel(factory = N
         notificationsUnreadCount = notificationsUnreadCount,
         onAcceptRequest = { viewModel.acceptFriendRequest(it.id) },
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
+        onDeclineAndBlockRequest = { viewModel.declineAndBlockFriendRequest(it.id) },
         onToggleRead = { viewModel.toggleReadStatus(it) },
         onDelete = { viewModel.deleteNotification(it) },
         onMarkAllAsRead = { viewModel.markAllAsRead() }
@@ -111,6 +113,7 @@ fun NotificationsScreen(
     notificationsUnreadCount: Int,
     onAcceptRequest: (FriendRequest) -> Unit,
     onDeclineRequest: (FriendRequest) -> Unit,
+    onDeclineAndBlockRequest: (FriendRequest) -> Unit,
     onToggleRead: (Notification) -> Unit,
     onDelete: (String) -> Unit,
     onMarkAllAsRead: () -> Unit
@@ -183,7 +186,8 @@ fun NotificationsScreen(
                         FriendRequestItem(
                             request = item.friendRequest,
                             onAccept = { onAcceptRequest(item.friendRequest) },
-                            onDecline = { onDeclineRequest(item.friendRequest) }
+                            onDecline = { onDeclineRequest(item.friendRequest) },
+                            onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
                         )
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outlineVariant,
@@ -230,8 +234,25 @@ fun NotificationsScreen(
 fun FriendRequestItem(
     request: FriendRequest,
     onAccept: () -> Unit,
-    onDecline: () -> Unit
+    onDecline: () -> Unit,
+    onDeclineAndBlock: () -> Unit
 ) {
+    val (showDeclineDialog, setShowDeclineDialog) = remember { mutableStateOf(false) }
+
+    if (showDeclineDialog) {
+        DeclineFriendRequestDialog(
+            onDismiss = { setShowDeclineDialog(false) },
+            onDeclineOnly = {
+                onDecline()
+                setShowDeclineDialog(false)
+            },
+            onDeclineAndBlock = {
+                onDeclineAndBlock()
+                setShowDeclineDialog(false)
+            }
+        )
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -292,8 +313,6 @@ fun FriendRequestItem(
             }
         }
 
-        // TODO: Open a dialog to confirm the request decline with an option to block the sender
-        //  (they won't be able to invite you again)
         Row(
             modifier = Modifier.padding(start = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -303,7 +322,7 @@ fun FriendRequestItem(
                     .size(32.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.error)
-                    .clickable { onDecline() },
+                    .clickable { setShowDeclineDialog(true) },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -333,6 +352,52 @@ fun FriendRequestItem(
             }
         }
     }
+}
+
+@Composable
+fun DeclineFriendRequestDialog(
+    onDismiss: () -> Unit,
+    onDeclineOnly: () -> Unit,
+    onDeclineAndBlock: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = stringResource(R.string.notification_decline_dialog_title))
+        },
+        text = {
+            Text(text = stringResource(R.string.notification_decline_dialog_message))
+        },
+        confirmButton = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(
+                    onClick = onDeclineOnly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.notification_decline_only))
+                }
+                TextButton(
+                    onClick = onDeclineAndBlock,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.notification_decline_and_block),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.cancel),
+                        color = MaterialTheme.colorScheme.outline)
+                }
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
@@ -127,6 +128,15 @@ class NotificationsViewModel(
     fun declineFriendRequest(requestId: String) {
         viewModelScope.launch {
             socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
+        }
+    }
+
+    fun declineAndBlockFriendRequest(requestId: String) {
+        viewModelScope.launch {
+            // TODO: Implement blocking logic in SocialRepository
+            // For now, just decline the request as "Decline Only" does
+            socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
+            _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.notification_decline_and_block)))
         }
     }
 
