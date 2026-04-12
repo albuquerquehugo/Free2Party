@@ -9,9 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
+import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
+import com.example.free2party.data.repository.SocialRepository
+import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.InfrastructureException
@@ -31,6 +34,7 @@ sealed interface ProfileUiState {
     object Loading : ProfileUiState
     data class Success(
         val user: User,
+        val blockedUsers: List<BlockedUser> = emptyList(),
         val isSaving: Boolean = false,
         val isUploadingImage: Boolean = false
     ) : ProfileUiState
@@ -43,7 +47,8 @@ sealed class ProfileUiEvent {
 }
 
 class ProfileViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val socialRepository: SocialRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<ProfileUiState>(ProfileUiState.Loading)
@@ -107,8 +112,11 @@ class ProfileViewModel(
                 xUsername != user.socials.xUsername
     }
 
+    private var blockedUsersList = emptyList<BlockedUser>()
+
     init {
         loadProfile()
+        loadBlockedUsers()
     }
 
     private fun loadProfile() {
@@ -130,11 +138,9 @@ class ProfileViewModel(
                     if (currentState !is ProfileUiState.Success) {
                         // Initial load, populate edited fields
                         initializeFields(user)
-                    }
-                    uiState = if (currentState is ProfileUiState.Success) {
-                        currentState.copy(user = user)
+                        uiState = ProfileUiState.Success(user = user, blockedUsers = blockedUsersList)
                     } else {
-                        ProfileUiState.Success(user = user)
+                        uiState = currentState.copy(user = user, blockedUsers = blockedUsersList)
                     }
                 }
         }
@@ -175,6 +181,16 @@ class ProfileViewModel(
 
     fun updateProfile() {
         val currentState = uiState as? ProfileUiState.Success ?: return
+
+        firstName = firstName.trim()
+        lastName = lastName.trim()
+        bio = bio.trim()
+        telegramUsername = telegramUsername.trim()
+        facebookUsername = facebookUsername.trim()
+        instagramUsername = instagramUsername.trim()
+        tiktokUsername = tiktokUsername.trim()
+        xUsername = xUsername.trim()
+
         if (!isPhoneValid) {
             uiState =
                 ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
@@ -300,17 +316,61 @@ class ProfileViewModel(
         }
     }
 
+    private fun loadBlockedUsers() {
+        viewModelScope.launch {
+            socialRepository.getBlockedUsers()
+                .catch { e ->
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
+                        )
+
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.StringResource(R.string.error_database_operation)
+                    }
+                    _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
+                }
+                .collect { blockedUsers ->
+                    blockedUsersList = blockedUsers
+                    (uiState as? ProfileUiState.Success)?.let {
+                        uiState = it.copy(blockedUsers = blockedUsers)
+                    }
+                }
+        }
+    }
+
+    fun unblockUser(userId: String) {
+        viewModelScope.launch {
+            socialRepository.unblockUser(userId)
+                .onFailure { e ->
+                    val errorText = when (e) {
+                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
+                        )
+
+                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
+                        else -> UiText.StringResource(R.string.error_unblocking_user)
+                    }
+                    _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
+                }
+        }
+    }
+
     companion object {
         fun provideFactory(
             userRepository: UserRepository = UserRepositoryImpl(
                 auth = Firebase.auth,
                 db = Firebase.firestore,
                 storage = Firebase.storage
+            ),
+            socialRepository: SocialRepository = SocialRepositoryImpl(
+                db = Firebase.firestore,
+                userRepository = userRepository
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProfileViewModel(userRepository) as T
+                return ProfileViewModel(userRepository, socialRepository) as T
             }
         }
     }

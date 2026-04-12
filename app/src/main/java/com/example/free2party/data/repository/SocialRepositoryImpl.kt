@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import android.util.Log
+import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -160,6 +161,42 @@ class SocialRepositoryImpl(
             }
 
         awaitClose { listener.remove() }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getBlockedUsers(): Flow<List<BlockedUser>> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            trySend(emptyList())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("users").document(currentUserId)
+            .collection("blocked")
+            .orderBy("blockedAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToSocialException(error))
+                    return@addSnapshotListener
+                }
+
+                val blockedStubs = snapshot?.toObjects(BlockedUser::class.java) ?: emptyList()
+                trySend(blockedStubs)
+            }
+
+        awaitClose { listener.remove() }
+    }.flatMapLatest { blockedStubs ->
+        if (blockedStubs.isEmpty()) return@flatMapLatest flowOf(emptyList())
+
+        val blockedFlows = blockedStubs.map { stub ->
+            userRepository.observeUser(stub.uid).map { user ->
+                stub.copy(
+                    name = user.fullName,
+                    profilePicUrl = user.profilePicUrl
+                )
+            }.catch { emit(stub) }
+        }
+
+        combine(blockedFlows) { it.toList() }
     }
 
     override suspend fun sendFriendRequest(friendEmail: String): Result<Unit> = try {
@@ -381,6 +418,16 @@ class SocialRepositoryImpl(
                 )
             )
         }.await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun unblockUser(userId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("blocked").document(userId)
+            .delete().await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToSocialException(e))

@@ -79,6 +79,7 @@
     <string name="bio">Bio</string>
     <string name="bio_placeholder">Write about yourself…</string>
     <string name="birthday">Birthday</string>
+    <string name="blocked_users">Blocked Users</string>
     <string name="discard_changes">Discard Changes</string>
     <string name="edit_photo_content_description">Edit Photo</string>
     <string name="email_required">Email *</string>
@@ -86,6 +87,7 @@
     <string name="first_name_required">First Name *</string>
     <string name="instagram_username">Instagram Username</string>
     <string name="last_name_required">Last Name *</string>
+    <string name="more_options">More options</string>
     <string name="phone_mask_placeholder">Please select a country first</string>
     <string name="phone_number">Phone Number</string>
     <string name="profile_picture_content_description">Profile Picture</string>
@@ -97,6 +99,7 @@
     <string name="socials">Socials</string>
     <string name="telegram_username">Telegram Username</string>
     <string name="tiktok_username">TikTok Username</string>
+    <string name="unblock">Unblock</string>
     <string name="whatsapp_number">WhatsApp Number</string>
     <string name="whatsapp_same_as_phone_number">Same as phone number</string>
     <string name="x_username">X Username</string>
@@ -211,6 +214,7 @@
     <string name="error_required_fields">Required fields (*) must be filled</string>
     <string name="error_resend_verification_empty_fields">Please enter your email and password to resend verification</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
+    <string name="error_unblocking_user">Error unblocking user</string>
     <string name="error_unknown_auth">An unexpected authentication error occurred</string>
     <string name="error_updating_profile">Error updating profile</string>
     <string name="error_uploading_image">Error uploading image</string>

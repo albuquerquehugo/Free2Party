@@ -1,5 +1,6 @@
 package com.example.free2party.data.repository
 
+import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -11,6 +12,7 @@ interface SocialRepository {
     fun getFriendsList(): Flow<List<FriendInfo>>
     fun getNotifications(): Flow<List<Notification>>
     fun getOutgoingFriendRequests(): Flow<List<FriendRequest>>
+    fun getBlockedUsers(): Flow<List<BlockedUser>>
 
     suspend fun sendFriendRequest(friendEmail: String): Result<Unit>
     suspend fun cancelFriendRequest(friendId: String): Result<Unit>
@@ -20,6 +22,7 @@ interface SocialRepository {
     ): Result<Unit>
 
     suspend fun declineAndBlockFriendRequest(requestId: String): Result<Unit>
+    suspend fun unblockUser(userId: String): Result<Unit>
 
     suspend fun removeFriend(friendId: String): Result<Unit>
 

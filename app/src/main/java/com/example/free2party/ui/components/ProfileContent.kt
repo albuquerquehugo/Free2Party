@@ -34,13 +34,17 @@ import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Facebook
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.free2party.R
+import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.ui.components.dialogs.CountryPickerDialog
@@ -124,6 +129,8 @@ fun ProfileContent(
     onXUsernameChange: (String) -> Unit,
     telegramUsername: String,
     onTelegramUsernameChange: (String) -> Unit,
+    blockedUsers: List<BlockedUser> = emptyList(),
+    onUnblockUser: (String) -> Unit = {},
     confirmButtons: @Composable (() -> Unit)? = null
 ) {
     val launcher = rememberLauncherForActivityResult(
@@ -301,7 +308,7 @@ fun ProfileContent(
         }
 
         InputTextField(
-            value = firstName.trim(),
+            value = firstName,
             onValueChange = onFirstNameChange,
             label = stringResource(R.string.first_name_required),
             icon = Icons.Default.AccountCircle,
@@ -317,7 +324,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = lastName.trim(),
+            value = lastName,
             onValueChange = onLastNameChange,
             label = stringResource(R.string.last_name_required),
             icon = Icons.Default.AccountCircle,
@@ -333,7 +340,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = email.trim(),
+            value = email,
             onValueChange = onEmailChange,
             label = stringResource(R.string.email_required),
             icon = Icons.Default.Email,
@@ -640,7 +647,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = telegramUsername.trim(),
+            value = telegramUsername,
             onValueChange = onTelegramUsernameChange,
             label = stringResource(R.string.telegram_username),
             painter = painterResource(id = R.drawable.telegram),
@@ -654,7 +661,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = facebookUsername.trim(),
+            value = facebookUsername,
             onValueChange = onFacebookUsernameChange,
             label = stringResource(R.string.facebook_username),
             icon = Icons.Default.Facebook,
@@ -668,7 +675,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = instagramUsername.trim(),
+            value = instagramUsername,
             onValueChange = onInstagramUsernameChange,
             label = stringResource(R.string.instagram_username),
             painter = painterResource(id = R.drawable.instagram),
@@ -682,7 +689,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = tiktokUsername.trim(),
+            value = tiktokUsername,
             onValueChange = onTiktokUsernameChange,
             label = stringResource(R.string.tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
@@ -696,7 +703,7 @@ fun ProfileContent(
         )
 
         InputTextField(
-            value = xUsername.trim(),
+            value = xUsername,
             onValueChange = onXUsernameChange,
             label = stringResource(R.string.x_username),
             painter = painterResource(id = R.drawable.x),
@@ -713,6 +720,13 @@ fun ProfileContent(
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 confirmButtons()
             }
+        }
+
+        if (blockedUsers.isNotEmpty()) {
+            BlockedUsersSection(
+                blockedUsers = blockedUsers,
+                onUnblockUser = onUnblockUser
+            )
         }
     }
 
@@ -790,6 +804,110 @@ fun ProfileContent(
                     )
                 }
             )
+        }
+    }
+}
+
+@Composable
+private fun BlockedUsersSection(
+    blockedUsers: List<BlockedUser>,
+    onUnblockUser: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 24.dp, bottom = 32.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.blocked_users),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
+
+        blockedUsers.forEach { user ->
+            BlockedUserItem(
+                user = user,
+                onUnblock = { onUnblockUser(user.uid) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun BlockedUserItem(
+    user: BlockedUser,
+    onUnblock: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                if (user.profilePicUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = user.profilePicUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Text(
+                text = user.name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1
+            )
+        }
+
+        Box {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.more_options)
+                )
+            }
+
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.unblock)) },
+                    onClick = {
+                        onUnblock()
+                        showMenu = false
+                    }
+                )
+            }
         }
     }
 }
