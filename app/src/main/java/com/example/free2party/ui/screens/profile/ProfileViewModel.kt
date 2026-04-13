@@ -17,8 +17,11 @@ import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.AuthException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
+import com.example.free2party.exception.UnauthorizedException
+import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.UiText
 import com.example.free2party.util.isValidDateDigits
 import com.google.firebase.Firebase
@@ -44,6 +47,7 @@ sealed interface ProfileUiState {
 
 sealed class ProfileUiEvent {
     data class ShowToast(val message: UiText, val navigateBack: Boolean = false) : ProfileUiEvent()
+    object AccountDeleted : ProfileUiEvent()
 }
 
 class ProfileViewModel(
@@ -123,22 +127,17 @@ class ProfileViewModel(
         viewModelScope.launch {
             userRepository.observeUser(userRepository.currentUserId)
                 .catch { e ->
-                    val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
-                            e.messageRes
-                        )
-
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.StringResource(R.string.error_profile_not_found)
+                    if (e is UserNotFoundException || e is UnauthorizedException) {
+                        return@catch
                     }
-                    uiState = ProfileUiState.Error(errorText)
+                    uiState = ProfileUiState.Error(mapToUiText(e, R.string.error_profile_not_found))
                 }
                 .collect { user ->
                     val currentState = uiState
                     if (currentState !is ProfileUiState.Success) {
-                        // Initial load, populate edited fields
                         initializeFields(user)
-                        uiState = ProfileUiState.Success(user = user, blockedUsers = blockedUsersList)
+                        uiState =
+                            ProfileUiState.Success(user = user, blockedUsers = blockedUsersList)
                     } else {
                         uiState = currentState.copy(user = user, blockedUsers = blockedUsersList)
                     }
@@ -251,15 +250,11 @@ class ProfileViewModel(
                 .onFailure { e ->
                     uiState =
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
-                    val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
-                            e.messageRes
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_updating_profile)
                         )
-
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.StringResource(R.string.error_updating_profile)
-                    }
-                    _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
+                    )
                 }
         }
     }
@@ -283,19 +278,10 @@ class ProfileViewModel(
                             uiState =
                                 (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                                     ?: uiState
-                            val errorText = when (e) {
-                                is InfrastructureException if e.messageRes != null -> UiText.StringResource(
-                                    e.messageRes
-                                )
-
-                                is SocialException if e.messageRes != null -> UiText.StringResource(
-                                    e.messageRes
-                                )
-
-                                else -> UiText.StringResource(R.string.error_updating_profile)
-                            }
                             _uiEvent.emit(
-                                ProfileUiEvent.ShowToast(errorText)
+                                ProfileUiEvent.ShowToast(
+                                    mapToUiText(e, R.string.error_updating_profile)
+                                )
                             )
                         }
                 }
@@ -320,15 +306,14 @@ class ProfileViewModel(
         viewModelScope.launch {
             socialRepository.getBlockedUsers()
                 .catch { e ->
-                    val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
-                            e.messageRes
-                        )
-
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.StringResource(R.string.error_database_operation)
+                    if (e is UserNotFoundException || e is UnauthorizedException) {
+                        return@catch
                     }
-                    _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_database_operation)
+                        )
+                    )
                 }
                 .collect { blockedUsers ->
                     blockedUsersList = blockedUsers
@@ -343,16 +328,47 @@ class ProfileViewModel(
         viewModelScope.launch {
             socialRepository.unblockUser(userId)
                 .onFailure { e ->
-                    val errorText = when (e) {
-                        is InfrastructureException if e.messageRes != null -> UiText.StringResource(
-                            e.messageRes
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_unblocking_user)
                         )
-
-                        is SocialException if e.messageRes != null -> UiText.StringResource(e.messageRes)
-                        else -> UiText.StringResource(R.string.error_unblocking_user)
-                    }
-                    _uiEvent.emit(ProfileUiEvent.ShowToast(errorText))
+                    )
                 }
+        }
+    }
+
+    fun deleteAccount() {
+        val currentState = uiState as? ProfileUiState.Success ?: return
+        uiState = currentState.copy(isSaving = true)
+        viewModelScope.launch {
+            userRepository.deleteAccount()
+                .onSuccess {
+                    _uiEvent.emit(ProfileUiEvent.AccountDeleted)
+                }
+                .onFailure { e ->
+                    uiState =
+                        (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_database_operation)
+                        )
+                    )
+                }
+        }
+    }
+
+    private fun mapToUiText(e: Throwable, defaultRes: Int): UiText {
+        return when (e) {
+            is InfrastructureException -> e.messageRes?.let { UiText.StringResource(it) }
+                ?: UiText.DynamicString(e.localizedMessage ?: "Infrastructure error")
+
+            is SocialException -> e.messageRes?.let { UiText.StringResource(it) }
+                ?: UiText.DynamicString(e.localizedMessage ?: "Social error")
+
+            is AuthException -> e.messageRes?.let { UiText.StringResource(it) }
+                ?: UiText.DynamicString(e.localizedMessage ?: "Auth error")
+
+            else -> UiText.StringResource(defaultRes)
         }
     }
 

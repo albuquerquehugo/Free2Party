@@ -292,7 +292,14 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Profile.route) {
-            ProfileRoute(onBack = { navController.popBackStack() })
+            ProfileRoute(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(Screen.Settings.route) {

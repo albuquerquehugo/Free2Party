@@ -19,6 +19,7 @@
     <string name="update">Update</string>
 
     <!-- Home Screen -->
+    <string name="add_friends_message">Add friends to see their availability and share your plans!</string>
     <string name="busy_section_title">Busy</string>
     <string name="cancel_invite">Cancel Invite</string>
     <string name="collapse">Collapse</string>
@@ -76,10 +77,14 @@
     <string name="register">Register</string>
 
     <!-- Profile Screen -->
+    <string name="account_deleted">Account deleted!</string>
     <string name="bio">Bio</string>
     <string name="bio_placeholder">Write about yourself…</string>
     <string name="birthday">Birthday</string>
     <string name="blocked_users">Blocked Users</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_account_confirmation_message">Are you sure you want to delete your account?
+        This action is permanent and all your data (profile, plans, and friends) will be lost forever.</string>
     <string name="discard_changes">Discard Changes</string>
     <string name="edit_photo_content_description">Edit Photo</string>
     <string name="email_required">Email *</string>
@@ -211,6 +216,7 @@
     <string name="error_past_plan">Cannot schedule plans in the past</string>
     <string name="error_plan_not_found">The plan you are looking for does not exist</string>
     <string name="error_profile_not_found">User profile not found. Please try logging out and in again.</string>
+    <string name="error_recent_login_required">For security reasons, you must have logged in recently to delete your account. Please log out, log in, then try again.</string>
     <string name="error_registration_failed">Registration failed</string>
     <string name="error_required_fields">Required fields (*) must be filled</string>
     <string name="error_resend_verification_empty_fields">Please enter your email and password to resend verification</string>

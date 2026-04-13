@@ -36,6 +36,10 @@ class UserNullException(
     message: String? = null
 ) : AuthException(message ?: "UserNullException", R.string.error_auth_failed_user_null)
 
+class RecentLoginRequiredException(
+    message: String? = null
+) : AuthException(message ?: "RecentLoginRequiredException", R.string.error_recent_login_required)
+
 class WeakPasswordException(
     message: String? = null
 ) : AuthException(message ?: "WeakPasswordException", R.string.error_weak_password)

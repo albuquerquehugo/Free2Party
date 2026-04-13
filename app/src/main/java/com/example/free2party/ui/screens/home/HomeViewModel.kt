@@ -18,6 +18,7 @@ import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
+import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
@@ -108,29 +109,31 @@ class HomeViewModel(
         }.onEach { newState ->
             uiState = newState
         }.catch { e ->
+            // Suppress errors during account deletion/logout transition
+            if (e is UserNotFoundException || e is UnauthorizedException) {
+                Log.d("HomeViewModel", "Ignoring error during transition: ${e.javaClass.simpleName}")
+                return@catch
+            }
+
             Log.e("HomeViewModel", "Error observing data", e)
-            if (e is UserNotFoundException) {
-                logout {}
+            val errorText = when (e) {
+                is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                    e.localizedMessage ?: "Infrastructure error"
+                )
+
+                is SocialException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
+                    e.localizedMessage ?: "Social error"
+                )
+
+                else -> UiText.DynamicString(e.localizedMessage ?: "An error occurred")
+            }
+
+            if (errorText is UiText.DynamicString &&
+                errorText.value.contains("permission", ignoreCase = true)
+            ) {
+                Log.w("HomeViewModel", "Permission error handled: ${errorText.value}")
             } else {
-                val errorText = when (e) {
-                    is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                        e.localizedMessage ?: "Infrastructure error"
-                    )
-
-                    is SocialException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                        e.localizedMessage ?: "Social error"
-                    )
-
-                    else -> UiText.DynamicString(e.localizedMessage ?: "An error occurred")
-                }
-
-                if (errorText is UiText.DynamicString &&
-                    errorText.value.contains("permission", ignoreCase = true)
-                ) {
-                    Log.w("HomeViewModel", "Permission error handled: ${errorText.value}")
-                } else {
-                    uiState = HomeUiState.Error(errorText)
-                }
+                uiState = HomeUiState.Error(errorText)
             }
         }.launchIn(viewModelScope)
     }

@@ -10,6 +10,8 @@ import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.UnauthorizedException
+import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.NotificationHelper
 import com.example.free2party.util.isPlanActive
 import com.google.firebase.Firebase
@@ -128,30 +130,52 @@ class Free2PartyApp : Application() {
 
     private fun startUserStatusAutomation(uid: String) {
         if (currentAutomationUid == uid && automationJob?.isActive == true) return
-        
+
         stopUserStatusAutomation()
         currentAutomationUid = uid
-        
+
         automationJob = ProcessLifecycleOwner.get().lifecycleScope.launch {
             var lastAutomatedStatus: Boolean? = null
 
-            planRepository.getOwnPlans().collectLatest { plans ->
-                Log.d("Automation", "Plans updated, count: ${plans.size}")
-                while (true) {
-                    val shouldBeFree = plans.any { isPlanActive(it) }
-                    
-                    if (lastAutomatedStatus != shouldBeFree) {
-                        Log.d("Automation", "Status transition detected: $lastAutomatedStatus -> $shouldBeFree")
-                        
-                        if (lastAutomatedStatus != null || shouldBeFree) {
-                            userRepository.toggleAvailability(shouldBeFree)
-                        }
-                        
-                        lastAutomatedStatus = shouldBeFree
-                    }
+            try {
+                planRepository.getOwnPlans().collectLatest { plans ->
+                    Log.d("Automation", "Plans updated, count: ${plans.size}")
+                    while (true) {
+                        val shouldBeFree = plans.any { isPlanActive(it) }
 
-                    delay(BuildConfig.updateFrequency)
+                        if (lastAutomatedStatus != shouldBeFree) {
+                            Log.d(
+                                "Automation",
+                                "Status transition detected: $lastAutomatedStatus -> $shouldBeFree"
+                            )
+
+                            if (lastAutomatedStatus != null || shouldBeFree) {
+                                userRepository.toggleAvailability(shouldBeFree)
+                                    .onFailure { e ->
+                                        if (e is UnauthorizedException || e is UserNotFoundException) {
+                                            Log.d("Automation", "User no longer valid, stopping.")
+                                            stopUserStatusAutomation()
+                                            return@collectLatest
+                                        }
+                                    }
+                            }
+
+                            lastAutomatedStatus = shouldBeFree
+                        }
+
+                        delay(BuildConfig.updateFrequency)
+                    }
                 }
+            } catch (e: Exception) {
+                if (e is UnauthorizedException || e is UserNotFoundException) {
+                    Log.d(
+                        "Automation",
+                        "Unauthorized access or user not found, stopping automation"
+                    )
+                } else {
+                    Log.e("Automation", "Error in automation loop", e)
+                }
+                stopUserStatusAutomation()
             }
         }
     }

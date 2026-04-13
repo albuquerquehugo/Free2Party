@@ -1,13 +1,16 @@
 package com.example.free2party.data.repository
 
 import android.net.Uri
+import android.util.Log
 import com.example.free2party.data.model.User
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
+import com.example.free2party.exception.RecentLoginRequiredException
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
@@ -146,6 +149,74 @@ class UserRepositoryImpl(
         Result.failure(mapToUserException(e))
     }
 
+    override suspend fun deleteAccount(): Result<Unit> = try {
+        val uid = validateSession()
+        val user = auth.currentUser ?: throw UnauthorizedException()
+
+        // Collect all documents to delete (including sub-collections)
+        val userRef = db.collection("users").document(uid)
+        val collections = listOf("friends", "blocked", "notifications", "plans")
+        
+        val allDocsToDelete = mutableListOf(userRef)
+        for (coll in collections) {
+            val snapshot = userRef.collection(coll).get().await()
+            allDocsToDelete.addAll(snapshot.documents.map { it.reference })
+        }
+
+        // Find and delete friend requests involving this user
+        val sentRequests = db.collection("friendRequests")
+            .whereEqualTo("senderId", uid).get().await()
+        val receivedRequests = db.collection("friendRequests")
+            .whereEqualTo("receiverId", uid).get().await()
+        
+        allDocsToDelete.addAll(sentRequests.documents.map { it.reference })
+        allDocsToDelete.addAll(receivedRequests.documents.map { it.reference })
+
+        // Clean up stubs that other users have for this user in their "friends" collections
+        val relatedUserIds = mutableSetOf<String>()
+        sentRequests.documents.forEach { doc -> doc.getString("receiverId")?.let { relatedUserIds.add(it) } }
+        receivedRequests.documents.forEach { doc -> doc.getString("senderId")?.let { relatedUserIds.add(it) } }
+        
+        // Also check current established friends to be thorough
+        val friendsSnapshot = userRef.collection("friends").get().await()
+        friendsSnapshot.documents.forEach { doc -> relatedUserIds.add(doc.id) }
+        
+        relatedUserIds.forEach { otherId ->
+            allDocsToDelete.add(
+                db.collection("users").document(otherId)
+                    .collection("friends").document(uid)
+            )
+        }
+
+        // Get profile picture URL to check if we should even try to delete it
+        val userDoc = userRef.get().await()
+        val profilePicUrl = userDoc.getString("profilePicUrl")
+
+        // Delete from Storage if it exists
+        if (!profilePicUrl.isNullOrBlank()) {
+            try {
+                storage.reference.child("profile_pictures/$uid.jpg").delete().await()
+            } catch (_: Exception) {
+                // Ignore cleanup errors for storage, especially 404s
+                Log.d("UserRepository", "Note: Profile picture cleanup skipped or not found.")
+            }
+        }
+
+        // Perform Firestore deletion in batches
+        allDocsToDelete.chunked(500).forEach { chunk ->
+            db.runBatch { batch ->
+                chunk.forEach { batch.delete(it) }
+            }.await()
+        }
+
+        // Delete the Auth user last.
+        user.delete().await()
+
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToUserException(e))
+    }
+
     private fun validateSession(): String {
         val uid = currentUserId
         if (uid.isBlank()) throw UnauthorizedException()
@@ -154,6 +225,7 @@ class UserRepositoryImpl(
 
     private fun mapToUserException(e: Exception): Exception {
         return when (e) {
+            is FirebaseAuthRecentLoginRequiredException -> RecentLoginRequiredException()
             is FirebaseNetworkException -> NetworkUnavailableException()
             is FirebaseFirestoreException -> {
                 when (e.code) {
