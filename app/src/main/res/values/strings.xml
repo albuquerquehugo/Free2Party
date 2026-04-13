@@ -150,6 +150,7 @@
     <string name="start_label">Start:</string>
     <string name="unselect_all">Unselect all</string>
     <string name="visibility_label">Who can see this plan?</string>
+    <string name="visibility_label_discretion">(This is not visible to others)</string>
 
     <!-- Plan Item -->
     <string name="plan_actions_content_description">Plan Actions</string>

@@ -53,6 +53,7 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.PlanVisibility
+import com.example.free2party.ui.theme.inactive
 import com.example.free2party.util.formatTime
 import com.example.free2party.util.formatTimeForDisplay
 import com.example.free2party.util.isDateTimeInPast
@@ -419,13 +420,20 @@ fun PlanDialog(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 // Visibility Section
-                Text(
-                    text = stringResource(R.string.visibility_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
                 Column {
+                    Text(
+                        text = stringResource(R.string.visibility_label),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.visibility_label_discretion),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.inactive
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     VisibilityOption(
                         stringResource(R.string.everyone),
                         visibility == PlanVisibility.EVERYONE
