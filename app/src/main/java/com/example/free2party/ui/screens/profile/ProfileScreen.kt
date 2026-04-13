@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.R
 import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.ui.components.ProfileContent
+import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
@@ -262,27 +262,16 @@ fun ProfileScreenContent(
     val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { setShowDeleteDialog(false) },
-            title = { Text(stringResource(R.string.delete_account)) },
-            text = { Text(stringResource(R.string.delete_account_confirmation_message)) },
-            containerColor = MaterialTheme.colorScheme.surface,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        setShowDeleteDialog(false)
-                        onDeleteAccount()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(stringResource(R.string.delete))
-                }
+        ConfirmationDialog(
+            title = stringResource(R.string.delete_account),
+            text = stringResource(R.string.delete_account_confirmation_message),
+            confirmButtonText = stringResource(R.string.delete),
+            onConfirm = {
+                setShowDeleteDialog(false)
+                onDeleteAccount()
             },
-            dismissButton = {
-                TextButton(onClick = { setShowDeleteDialog(false) }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
+            onDismiss = { setShowDeleteDialog(false) },
+            isDestructive = true
         )
     }
 
