@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -368,32 +370,42 @@ fun DeclineFriendRequestDialog(
         text = {
             Text(text = stringResource(R.string.notification_decline_dialog_message))
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         confirmButton = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                TextButton(
+                Button(
                     onClick = onDeclineOnly,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.width(160.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     Text(text = stringResource(R.string.notification_decline_only))
                 }
-                TextButton(
+                Button(
                     onClick = onDeclineAndBlock,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.notification_decline_and_block),
-                        color = MaterialTheme.colorScheme.error
+                    modifier = Modifier.width(160.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
                     )
-                }
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(R.string.cancel),
-                        color = MaterialTheme.colorScheme.outline)
+                    Text(text = stringResource(R.string.notification_decline_and_block))
+                }
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.width(160.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    Text(text = stringResource(R.string.cancel))
                 }
             }
         }

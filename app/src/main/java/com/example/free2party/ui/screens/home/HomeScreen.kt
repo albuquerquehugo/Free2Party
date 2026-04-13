@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -460,9 +461,8 @@ fun HomeContent(
 
         Box(
             modifier = Modifier
-                .width(176.dp)
+                .wrapContentWidth()
                 .height(48.dp)
-                .padding(horizontal = 16.dp)
                 .clip(CircleShape)
                 .background(
                     if (isUserFree) MaterialTheme.colorScheme.busyContainer
@@ -475,6 +475,7 @@ fun HomeContent(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
             } else {
                 Text(
+                    modifier = Modifier.padding(horizontal = 24.dp),
                     text =
                         if (isUserFree) stringResource(R.string.make_me_busy)
                         else stringResource(R.string.make_me_free),
@@ -535,7 +536,7 @@ fun FriendsListSection(
         ) {
             Text(
                 text = stringResource(R.string.no_friends_yet),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
