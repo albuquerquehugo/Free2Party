@@ -56,26 +56,24 @@ fun FriendCalendarDialog(
         }
     }
 
-    BaseDialog(
-        onDismissRequest = handleDismiss,
-        modifier = Modifier.fillMaxWidth(0.9f)
-    ) {
+    BaseDialog(onDismissRequest = handleDismiss, modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
-                .fillMaxHeight(0.90f),
+                .fillMaxHeight(0.9f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(start = 8.dp, bottom = 8.dp, end = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val apostrophe = if (friend.name.endsWith("s")) "'" else "'s"
                 Text(
-                    text = "${friend.name}'s Calendar",
-                    style = MaterialTheme.typography.headlineSmall,
+                    text = "${friend.name}$apostrophe Calendar",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
             }

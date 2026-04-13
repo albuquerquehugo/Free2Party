@@ -111,7 +111,7 @@ val ColorScheme.onBusyContainer: Color
 
 val ColorScheme.inactive: Color
     @Composable
-    get() = if (isDark) Gray40 else Gray70
+    get() = if (isDark) Gray50 else Gray70
 
 val ColorScheme.inactiveContainer: Color
     @Composable

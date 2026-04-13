@@ -52,7 +52,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -768,11 +767,9 @@ fun ProfileContent(
         } else null
 
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
-        val dialogColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-
         DatePickerDialog(
             onDismissRequest = { setShowDatePicker(false) },
-            colors = DatePickerDefaults.colors(containerColor = dialogColor),
+            colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
@@ -795,7 +792,7 @@ fun ProfileContent(
             DatePicker(
                 state = datePickerState,
                 showModeToggle = false,
-                colors = DatePickerDefaults.colors(containerColor = dialogColor),
+                colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
                         text = stringResource(R.string.select_birthday),
@@ -897,8 +894,7 @@ private fun BlockedUserItem(
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.unblock)) },

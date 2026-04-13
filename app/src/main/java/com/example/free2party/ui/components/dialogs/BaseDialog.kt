@@ -17,15 +17,8 @@ fun BaseDialog(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    BasicAlertDialog(
-        onDismissRequest = onDismissRequest,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 3.dp
-        ) {
+    BasicAlertDialog(onDismissRequest = onDismissRequest, modifier = modifier.fillMaxWidth()) {
+        Surface(shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surface) {
             content()
         }
     }

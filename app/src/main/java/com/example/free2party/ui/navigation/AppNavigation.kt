@@ -29,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -150,10 +149,7 @@ fun BottomNavigationBar(
     val unreadCountState = notificationsViewModel.itemsUnreadCount.collectAsState(initial = 0)
     val totalUnread = unreadCountState.value
 
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
-    ) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
         BottomNavItems.forEach { screen ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
             NavigationBarItem(

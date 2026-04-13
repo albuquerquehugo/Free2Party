@@ -545,8 +545,7 @@ fun NotificationBox(
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 DropdownMenuItem(
                     text = {

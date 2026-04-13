@@ -359,8 +359,7 @@ fun PlanActionsMenu(
 ) {
     DropdownMenu(
         expanded = expanded, onDismissRequest = onDismissRequest,
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         onEdit?.let {
             DropdownMenuItem(

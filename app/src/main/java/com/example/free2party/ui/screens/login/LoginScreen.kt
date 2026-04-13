@@ -250,8 +250,7 @@ fun LoginScreen(
             DropdownMenu(
                 expanded = showThemeMenu,
                 onDismissRequest = { showThemeMenu = false },
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Text(
                     text = stringResource(R.string.appearance),

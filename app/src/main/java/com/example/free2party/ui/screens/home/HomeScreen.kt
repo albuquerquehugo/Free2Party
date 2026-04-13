@@ -240,8 +240,7 @@ fun HomeScreen(
                         DropdownMenu(
                             expanded = showUserMenu,
                             onDismissRequest = { showUserMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 3.dp
+                            containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.profile)) },
@@ -444,7 +443,7 @@ fun HomeContent(
                 if (isUserFree) stringResource(R.string.you_are_free)
                 else stringResource(R.string.you_are_busy),
             modifier = Modifier
-                .clip(CircleShape)
+                .clip(MaterialTheme.shapes.medium)
                 .background(
                     if (isUserFree) MaterialTheme.colorScheme.availableContainer
                     else MaterialTheme.colorScheme.busyContainer
@@ -463,7 +462,7 @@ fun HomeContent(
                 .width(176.dp)
                 .height(48.dp)
                 .padding(horizontal = 16.dp)
-                .clip(MaterialTheme.shapes.medium)
+                .clip(CircleShape)
                 .background(
                     if (isUserFree) MaterialTheme.colorScheme.busyContainer
                     else MaterialTheme.colorScheme.availableContainer
@@ -726,8 +725,7 @@ fun FriendItem(
                         DropdownMenu(
                             expanded = showContactMenu,
                             onDismissRequest = { showContactMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 3.dp
+                            containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             val smsNumber = "${friend.phoneCode}${friend.phoneNumber}"
                             if (smsNumber.isNotBlank()) {
@@ -897,8 +895,7 @@ fun FriendItem(
                     DropdownMenu(
                         expanded = showFriendMenu,
                         onDismissRequest = { showFriendMenu = false },
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 3.dp
+                        containerColor = MaterialTheme.colorScheme.surface
                     ) {
                         DropdownMenuItem(
                             text = {

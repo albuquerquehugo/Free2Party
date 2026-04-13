@@ -35,7 +35,6 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -267,8 +266,6 @@ fun PlanDialog(
     val isConfirmEnabled = isDateTimeValid && !isStartDateInPast && !isStartTimeInPast &&
             (visibility == PlanVisibility.EVERYONE || currentSelectedIds.isNotEmpty()) &&
             hasChanges
-
-    val dialogColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
 
     BaseDialog(onDismissRequest = onDismiss) {
         Column(
@@ -507,7 +504,7 @@ fun PlanDialog(
     if (showStartDatePicker) {
         DatePickerDialog(
             onDismissRequest = { setShowStartDatePicker(false) },
-            colors = DatePickerDefaults.colors(containerColor = dialogColor),
+            colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = { setShowStartDatePicker(false) }) {
                     Text(stringResource(R.string.ok))
@@ -515,7 +512,7 @@ fun PlanDialog(
             }) {
             DatePicker(
                 state = startDatePickerState,
-                colors = DatePickerDefaults.colors(containerColor = dialogColor),
+                colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
                         text = stringResource(R.string.select_start_date),
@@ -530,7 +527,7 @@ fun PlanDialog(
     if (showEndDatePicker) {
         DatePickerDialog(
             onDismissRequest = { setShowEndDatePicker(false) },
-            colors = DatePickerDefaults.colors(containerColor = dialogColor),
+            colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = { setShowEndDatePicker(false) }) {
                     Text(stringResource(R.string.ok))
@@ -538,7 +535,7 @@ fun PlanDialog(
             }) {
             DatePicker(
                 state = endDatePickerState,
-                colors = DatePickerDefaults.colors(containerColor = dialogColor),
+                colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
                         text = stringResource(R.string.select_end_date),
@@ -572,12 +569,12 @@ fun PlanDialog(
                 TimePicker(
                     state = pickerState,
                     colors = TimePickerDefaults.colors(
-                        clockDialColor = dialogColor,
-                        containerColor = dialogColor,
-                        periodSelectorUnselectedContainerColor = dialogColor,
+                        clockDialColor = MaterialTheme.colorScheme.surface,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
                         periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        timeSelectorUnselectedContainerColor = dialogColor
+                        timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface
                     )
                 )
                 Row(
