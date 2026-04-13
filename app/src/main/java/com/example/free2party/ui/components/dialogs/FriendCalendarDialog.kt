@@ -64,7 +64,7 @@ fun FriendCalendarDialog(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
-                .fillMaxHeight(0.75f),
+                .fillMaxHeight(0.90f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(

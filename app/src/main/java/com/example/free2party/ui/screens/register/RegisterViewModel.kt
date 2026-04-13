@@ -90,6 +90,15 @@ class RegisterViewModel(
 
     fun onRegisterClick() {
         val normalizedEmail = email.trim().lowercase()
+        firstName = firstName.trim()
+        lastName = lastName.trim()
+        bio = bio.trim()
+        telegramUsername = telegramUsername.trim()
+        facebookUsername = facebookUsername.trim()
+        instagramUsername = instagramUsername.trim()
+        tiktokUsername = tiktokUsername.trim()
+        xUsername = xUsername.trim()
+
         if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() || password.isBlank()) {
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_required_fields))

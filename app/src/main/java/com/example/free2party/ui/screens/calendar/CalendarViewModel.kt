@@ -140,7 +140,7 @@ class CalendarViewModel(
             endDate = endDate,
             startTime = startTime,
             endTime = endTime,
-            note = note,
+            note = note.trim(),
             visibility = visibility,
             friendsSelection = friendsSelection
         )
@@ -174,7 +174,7 @@ class CalendarViewModel(
             endDate = endDate,
             startTime = startTime,
             endTime = endTime,
-            note = note,
+            note = note.trim(),
             visibility = visibility,
             friendsSelection = friendsSelection
         )

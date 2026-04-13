@@ -212,25 +212,27 @@ fun PlanItem(
                     }
                 }
 
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-                Row(
-                    modifier = Modifier.height(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.People,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                    Text(
-                        text = friendsSelection,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        modifier = Modifier.padding(start = 8.dp),
-                        maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                if (isOwnPlan) {
+                    Spacer(modifier = Modifier.padding(top = 8.dp))
+                    Row(
+                        modifier = Modifier.height(24.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.People,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = friendsSelection,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(start = 8.dp),
+                            maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
                 if (plan.note.isNotBlank()) {
@@ -262,11 +264,8 @@ fun PlanItem(
                 horizontalAlignment = Alignment.End
             ) {
                 // Action Menu Section (Only for own plans)
-                Box(
-                    modifier = Modifier
-                        .size(width = 48.dp, height = 48.dp)
-                ) {
-                    if (isOwnPlan && !isReadOnly) {
+                if (isOwnPlan && !isReadOnly) {
+                    Box(modifier = Modifier.size(width = 48.dp, height = 60.dp)) {
                         IconButton(onClick = { showMenu = true }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
@@ -282,13 +281,15 @@ fun PlanItem(
                             editEnabled = !planStatus.isEditDisabled
                         )
                     }
+                } else {
+                    Spacer(modifier = Modifier.height(28.dp))
                 }
 
                 if (hasOverflow || isExpandedExternally) {
                     Box(
                         modifier = Modifier
                             .size(width = 48.dp, height = 24.dp)
-                            .padding(end = 12.dp),
+                            .padding(end = 14.dp),
                         contentAlignment = Alignment.CenterEnd
                     ) {
                         Icon(
@@ -374,7 +375,12 @@ fun PlanActionsMenu(
         }
         onDelete?.let {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
+                text = {
+                    Text(
+                        stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                },
                 onClick = {
                     onDismissRequest()
                     it()

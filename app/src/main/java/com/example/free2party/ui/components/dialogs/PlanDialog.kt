@@ -403,16 +403,17 @@ fun PlanDialog(
                 OutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
+                    textStyle = MaterialTheme.typography.bodySmall,
                     label = {
                         Text(
                             stringResource(R.string.plan_note_label),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodySmall
                         )
                     },
                     placeholder = {
                         Text(
                             stringResource(R.string.plan_note_placeholder),
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodySmall
                         )
                     },
                     modifier = Modifier.fillMaxWidth()
