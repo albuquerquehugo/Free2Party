@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -69,6 +69,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -222,6 +224,8 @@ fun HomeScreen(
 
                     Box {
                         val profilePicUrl = (homeUiState as? HomeUiState.Success)?.profilePicUrl
+                        val isUserFree = (homeUiState as? HomeUiState.Success)?.isUserFree ?: false
+
                         if (!profilePicUrl.isNullOrBlank()) {
                             AsyncImage(
                                 model = profilePicUrl,
@@ -239,11 +243,52 @@ fun HomeScreen(
                                 modifier = Modifier.size(40.dp)
                             )
                         }
+
+                        // Status Circle Badge
+                        if (homeUiState is HomeUiState.Success) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .background(
+                                        color =
+                                            if (isUserFree) MaterialTheme.colorScheme.available
+                                            else MaterialTheme.colorScheme.busy,
+                                        CircleShape
+                                    )
+                                    .border(1.dp, MaterialTheme.colorScheme.background, CircleShape)
+                            )
+                        }
+
                         DropdownMenu(
                             expanded = showUserMenu,
                             onDismissRequest = { showUserMenu = false },
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
+                            if (homeUiState is HomeUiState.Success) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text =
+                                                    if (isUserFree) stringResource(R.string.state_available)
+                                                    else stringResource(R.string.state_busy),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                color =
+                                                    if (isUserFree) MaterialTheme.colorScheme.available
+                                                    else MaterialTheme.colorScheme.busy,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    },
+                                    onClick = { },
+                                    enabled = false
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            }
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.profile)) },
                                 onClick = {
@@ -426,68 +471,62 @@ fun HomeContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent),
-                contentDescription = stringResource(R.string.logo_content_description),
-                modifier = Modifier.height(24.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
+        val logoScale by animateFloatAsState(targetValue = if (!isUserFree) 1.0f else 0.9f)
+        val glowColor =
+            if (!isUserFree) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
 
-        Text(
-            text =
-                if (isUserFree) stringResource(R.string.you_are_free)
-                else stringResource(R.string.you_are_busy),
+        Card(
             modifier = Modifier
-                .clip(MaterialTheme.shapes.medium)
-                .background(
-                    if (isUserFree) MaterialTheme.colorScheme.availableContainer
-                    else MaterialTheme.colorScheme.busyContainer
+                .padding(bottom = 24.dp)
+                .shadow(
+                    elevation = if (!isUserFree) 20.dp else 10.dp,
+                    spotColor = glowColor,
+                    shape = CircleShape,
+                    ambientColor = glowColor,
+                    clip = false
                 )
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            style = MaterialTheme.typography.titleMedium,
-            color =
-                if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
-                else MaterialTheme.colorScheme.onBusyContainer
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier
-                .wrapContentWidth()
-                .height(48.dp)
                 .clip(CircleShape)
-                .background(
-                    if (isUserFree) MaterialTheme.colorScheme.busyContainer
-                    else MaterialTheme.colorScheme.availableContainer
-                )
-                .clickable(enabled = !isActionLoading) { onToggleAvailability() },
-            contentAlignment = Alignment.Center
+                .clickable(
+                    enabled = !isActionLoading,
+                    onClick = onToggleAvailability
+                ),
+            shape = CircleShape,
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (!isUserFree) 8.dp else 4.dp
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor =
+                    if (!isUserFree) MaterialTheme.colorScheme.availableContainer
+                    else MaterialTheme.colorScheme.busyContainer
+            )
         ) {
-            if (isActionLoading) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text =
-                        if (isUserFree) stringResource(R.string.make_me_busy)
-                        else stringResource(R.string.make_me_free),
-                    style = MaterialTheme.typography.titleMedium,
-                    color =
-                        if (isUserFree) MaterialTheme.colorScheme.onBusyContainer
-                        else MaterialTheme.colorScheme.onAvailableContainer
+            Box(
+                modifier = Modifier.padding(horizontal = 32.dp, vertical = 18.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.free2party_full_transparent),
+                    contentDescription = stringResource(R.string.logo_content_description),
+                    modifier = Modifier
+                        .height(32.dp)
+                        .graphicsLayer(
+                            scaleX = logoScale,
+                            scaleY = logoScale
+                        ),
+                    contentScale = ContentScale.Fit
                 )
+
+                if (isActionLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color =
+                            if (!isUserFree) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.busy
+                    )
+                }
             }
         }
-
-        HorizontalDivider(modifier = Modifier.padding(top = 32.dp, bottom = 16.dp))
 
         FriendsListSection(
             friends = friendsList,

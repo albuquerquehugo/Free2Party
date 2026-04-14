@@ -87,7 +87,7 @@ private val ColorScheme.isDark: Boolean
 // Custom Extension properties for your app-specific logic
 val ColorScheme.available: Color
     @Composable
-    get() = if (isDark) Green65 else Green60
+    get() = if (isDark) Green60 else Green50
 
 val ColorScheme.availableContainer: Color
     @Composable
@@ -99,7 +99,7 @@ val ColorScheme.onAvailableContainer: Color
 
 val ColorScheme.busy: Color
     @Composable
-    get() = if (isDark) Red65 else Red60
+    get() = if (isDark) Red65 else Red50
 
 val ColorScheme.busyContainer: Color
     @Composable

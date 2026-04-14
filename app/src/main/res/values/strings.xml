@@ -44,14 +44,14 @@
     <string name="remove_friend_confirmation_text">Are you sure you want to remove this friend?</string>
     <string name="send_invite">Send invite</string>
     <string name="sms">SMS</string>
+    <string name="state_busy">Busy</string>
+    <string name="state_available">Available</string>
     <string name="telegram">Telegram</string>
     <string name="tiktok">TikTok</string>
     <string name="user_menu_content_description">User Menu</string>
     <string name="whatsapp">WhatsApp</string>
     <string name="whatsapp_message_template">Hey! Saw you\'re Free2Party, want to hang out?</string>
     <string name="x">X</string>
-    <string name="you_are_busy">You are currently busy</string>
-    <string name="you_are_free">You are Free2Party</string>
     <string name="your_friends">Your Friends</string>
 
     <!-- Login Screen -->
