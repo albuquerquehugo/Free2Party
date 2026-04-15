@@ -248,7 +248,7 @@ fun HomeScreen(
                         if (homeUiState is HomeUiState.Success) {
                             Box(
                                 modifier = Modifier
-                                    .size(16.dp)
+                                    .size(12.dp)
                                     .align(Alignment.BottomEnd)
                                     .background(
                                         color =
@@ -272,16 +272,21 @@ fun HomeScreen(
                                             modifier = Modifier.fillMaxWidth(),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(
-                                                text =
-                                                    if (isUserFree) stringResource(R.string.state_available)
-                                                    else stringResource(R.string.state_busy),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color =
-                                                    if (isUserFree) MaterialTheme.colorScheme.available
-                                                    else MaterialTheme.colorScheme.busy,
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                            Row {
+                                                Text(
+                                                    text = stringResource(R.string.status),
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text =
+                                                        if (isUserFree) stringResource(R.string.status_available)
+                                                        else stringResource(R.string.status_busy),
+                                                    color =
+                                                        if (isUserFree) MaterialTheme.colorScheme.available
+                                                        else MaterialTheme.colorScheme.busy
+                                                )
+                                            }
                                         }
                                     },
                                     onClick = { },
