@@ -3,6 +3,7 @@ package com.example.free2party.data.repository
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.exception.EmailAlreadyInUseException
 import com.example.free2party.exception.WeakPasswordException
+import com.example.free2party.exception.UnknownAuthException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -34,10 +35,18 @@ class AuthRepositoryTest {
     fun setup() {
         repository = AuthRepositoryImpl(auth, userRepository)
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
+        every { auth.currentUser } returns null
+    }
+
+    private fun mockLogError() {
+        mockkStatic(android.util.Log::class)
+        every { android.util.Log.e(any(), any(), any()) } returns 0
+        every { android.util.Log.e(any(), any()) } returns 0
     }
 
     @Test
     fun `register success`() = runTest {
+        mockLogError()
         val email = "test@test.com"
         val password = "password123"
         val phoneNumber = "123456789"
@@ -47,15 +56,20 @@ class AuthRepositoryTest {
         every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forResult(authResult)
         every { authResult.user } returns firebaseUser
         every { firebaseUser.uid } returns "user123"
+        every { firebaseUser.sendEmailVerification() } returns Tasks.forResult(null)
+        every { auth.signOut() } returns Unit
         coEvery { userRepository.createUserProfile(any()) } returns Result.success(Unit)
 
         val result = repository.register(
+            profilePicUri = null,
             firstName = "First",
             lastName = "Last",
             email = email,
             password = password,
+            countryCode = "",
             phoneNumber = phoneNumber,
             birthday = birthday,
+            bio = "",
             socials = socials
         )
         
@@ -77,6 +91,7 @@ class AuthRepositoryTest {
 
     @Test
     fun `register fails with weak password`() = runTest {
+        mockLogError()
         val email = "test@test.com"
         val password = "123"
         val exception = mockk<FirebaseAuthWeakPasswordException>()
@@ -84,10 +99,16 @@ class AuthRepositoryTest {
         every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(exception)
 
         val result = repository.register(
+            profilePicUri = null,
             firstName = "First",
             lastName = "Last",
             email = email,
-            password = password
+            password = password,
+            countryCode = "",
+            phoneNumber = "",
+            birthday = "",
+            bio = "",
+            socials = UserSocials()
         )
         
         assertTrue(result.isFailure)
@@ -96,6 +117,7 @@ class AuthRepositoryTest {
 
     @Test
     fun `register fails with email collision`() = runTest {
+        mockLogError()
         val email = "existing@test.com"
         val password = "password123"
         val exception = mockk<FirebaseAuthUserCollisionException>()
@@ -103,10 +125,16 @@ class AuthRepositoryTest {
         every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(exception)
 
         val result = repository.register(
+            profilePicUri = null,
             firstName = "First",
             lastName = "Last",
             email = email,
-            password = password
+            password = password,
+            countryCode = "",
+            phoneNumber = "",
+            birthday = "",
+            bio = "",
+            socials = UserSocials()
         )
         
         assertTrue(result.isFailure)
@@ -120,6 +148,7 @@ class AuthRepositoryTest {
         
         every { auth.signInWithEmailAndPassword(email, password) } returns Tasks.forResult(authResult)
         every { authResult.user } returns firebaseUser
+        every { firebaseUser.isEmailVerified } returns true
 
         val result = repository.login(email, password)
         
@@ -129,6 +158,7 @@ class AuthRepositoryTest {
 
     @Test
     fun `login fails with invalid credentials`() = runTest {
+        mockLogError()
         val email = "test@test.com"
         val password = "wrong"
         
@@ -137,6 +167,7 @@ class AuthRepositoryTest {
         val result = repository.login(email, password)
         
         assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is UnknownAuthException)
     }
 
     @Test

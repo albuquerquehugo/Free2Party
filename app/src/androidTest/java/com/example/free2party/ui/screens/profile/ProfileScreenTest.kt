@@ -2,10 +2,8 @@ package com.example.free2party.ui.screens.profile
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -35,38 +33,42 @@ class ProfileScreenTest {
         initialUser: User,
         onUpdateProfileClicked: (User) -> Unit = {}
     ) {
-        var firstName by remember { mutableStateOf(initialUser.firstName) }
-        var lastName by remember { mutableStateOf(initialUser.lastName) }
-        var bio by remember { mutableStateOf(initialUser.bio) }
+        val firstName = remember { mutableStateOf(initialUser.firstName) }
+        val lastName = remember { mutableStateOf(initialUser.lastName) }
+        val bio = remember { mutableStateOf(initialUser.bio) }
+        val isWhatsappSameAsPhone = remember { mutableStateOf(false) }
 
         val uiState = ProfileUiState.Success(user = initialUser)
 
-        val hasChanges = firstName != initialUser.firstName ||
-                lastName != initialUser.lastName ||
-                bio != initialUser.bio
+        val hasChanges = firstName.value != initialUser.firstName ||
+                lastName.value != initialUser.lastName ||
+                bio.value != initialUser.bio ||
+                isWhatsappSameAsPhone.value
 
-        val isFormValid = firstName.isNotBlank() && lastName.isNotBlank()
+        val isFormValid = firstName.value.isNotBlank() && lastName.value.isNotBlank()
 
         ProfileScreenContent(
             paddingValues = PaddingValues(0.dp),
             uiState = uiState,
             onUploadImage = {},
-            firstName = firstName,
-            onFirstNameChange = { firstName = it },
-            lastName = lastName,
-            onLastNameChange = { lastName = it },
+            firstName = firstName.value,
+            onFirstNameChange = { firstName.value = it },
+            lastName = lastName.value,
+            onLastNameChange = { lastName.value = it },
             countryCode = initialUser.countryCode,
             onCountryCodeChange = {},
             phoneNumber = initialUser.phoneNumber,
             onPhoneNumberChange = {},
             birthday = initialUser.birthday,
             onBirthdayChange = {},
-            bio = bio,
-            onBioChange = { bio = it },
+            bio = bio.value,
+            onBioChange = { bio.value = it },
             whatsappCountryCode = initialUser.socials.whatsappCountryCode,
             onWhatsappCountryCodeChange = {},
             whatsappNumber = initialUser.socials.whatsappNumber,
             onWhatsappNumberChange = {},
+            isWhatsappSameAsPhone = isWhatsappSameAsPhone.value,
+            onWhatsappSameAsPhoneChange = { isWhatsappSameAsPhone.value = it },
             telegramUsername = initialUser.socials.telegramUsername,
             onTelegramUsernameChange = {},
             facebookUsername = initialUser.socials.facebookUsername,
@@ -77,22 +79,26 @@ class ProfileScreenTest {
             onTiktokUsernameChange = {},
             xUsername = initialUser.socials.xUsername,
             onXUsernameChange = {},
+            onUnblockUser = {},
+            blockedUsers = emptyList(),
             hasChanges = hasChanges,
             isFormValid = isFormValid,
             onDiscardChanges = {
-                firstName = initialUser.firstName
-                lastName = initialUser.lastName
-                bio = initialUser.bio
+                firstName.value = initialUser.firstName
+                lastName.value = initialUser.lastName
+                bio.value = initialUser.bio
+                isWhatsappSameAsPhone.value = false
             },
             onUpdateProfile = {
                 onUpdateProfileClicked(
                     initialUser.copy(
-                        firstName = firstName,
-                        lastName = lastName,
-                        bio = bio
+                        firstName = firstName.value,
+                        lastName = lastName.value,
+                        bio = bio.value
                     )
                 )
-            }
+            },
+            onDeleteAccount = {}
         )
     }
 

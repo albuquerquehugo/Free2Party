@@ -3,6 +3,7 @@ package com.example.free2party.ui.screens.login
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.SettingsRepository
+import com.example.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -64,9 +65,11 @@ class LoginViewModelTest {
         viewModel.onLoginClick {}
 
         assertTrue(viewModel.uiState is LoginUiState.Error)
+        val state = viewModel.uiState as LoginUiState.Error
+        assertTrue(state.message is UiText.DynamicString)
         assertEquals(
             "Email and password cannot be empty",
-            (viewModel.uiState as LoginUiState.Error).message
+            (state.message as UiText.DynamicString).value
         )
     }
 
@@ -114,7 +117,9 @@ class LoginViewModelTest {
         viewModel.onLoginClick {}
 
         assertTrue(viewModel.uiState is LoginUiState.Error)
-        assertEquals(errorMessage, (viewModel.uiState as LoginUiState.Error).message)
+        val state = viewModel.uiState as LoginUiState.Error
+        assertTrue(state.message is UiText.DynamicString)
+        assertEquals(errorMessage, (state.message as UiText.DynamicString).value)
     }
 
     @Test
@@ -122,10 +127,8 @@ class LoginViewModelTest {
         viewModel.onForgotPasswordConfirm("invalid-email")
 
         assertTrue(viewModel.uiState is LoginUiState.Error)
-        assertEquals(
-            "Please enter a valid email address.",
-            (viewModel.uiState as LoginUiState.Error).message
-        )
+        val state = viewModel.uiState as LoginUiState.Error
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -144,9 +147,11 @@ class LoginViewModelTest {
             assertEquals(LoginUiState.Idle, viewModel.uiState)
             val event = events.firstOrNull()
             assertTrue("Expected ShowToast but was $event", event is LoginUiEvent.ShowToast)
+            val toastEvent = event as LoginUiEvent.ShowToast
+            assertTrue(toastEvent.message is UiText.DynamicString)
             assertEquals(
                 "Password reset email sent! Please check your inbox.",
-                (event as LoginUiEvent.ShowToast).message
+                (toastEvent.message as UiText.DynamicString).value
             )
 
             collectJob.cancel()

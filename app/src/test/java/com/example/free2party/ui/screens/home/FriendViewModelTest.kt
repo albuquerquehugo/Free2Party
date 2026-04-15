@@ -1,6 +1,7 @@
 package com.example.free2party.ui.screens.home
 
 import com.example.free2party.data.repository.SocialRepository
+import com.example.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +41,11 @@ class FriendViewModelTest {
         viewModel.inviteFriend("invalid-email")
 
         assertTrue(viewModel.uiState is InviteFriendUiState.Error)
+        val state = viewModel.uiState as InviteFriendUiState.Error
+        assertTrue(state.message is UiText.DynamicString)
         assertEquals(
             "Please enter a valid email address.",
-            (viewModel.uiState as InviteFriendUiState.Error).message
+            (state.message as UiText.DynamicString).value
         )
     }
 
@@ -80,7 +83,9 @@ class FriendViewModelTest {
         runCurrent()
 
         assertTrue(viewModel.uiState is InviteFriendUiState.Error)
-        assertEquals(errorMessage, (viewModel.uiState as InviteFriendUiState.Error).message)
+        val state = viewModel.uiState as InviteFriendUiState.Error
+        assertTrue(state.message is UiText.DynamicString)
+        assertEquals(errorMessage, (state.message as UiText.DynamicString).value)
     }
 
     @Test

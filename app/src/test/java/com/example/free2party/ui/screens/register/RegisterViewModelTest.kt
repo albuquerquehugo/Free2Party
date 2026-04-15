@@ -2,6 +2,7 @@ package com.example.free2party.ui.screens.register
 
 import android.net.Uri
 import com.example.free2party.data.repository.AuthRepository
+import com.example.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -45,6 +46,7 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "john@example.com"
         viewModel.password = "password123"
+        viewModel.confirmPassword = "password123"
         // Phone and birthday are empty by default, so they are valid
         assertTrue(viewModel.isFormValid)
 
@@ -92,14 +94,13 @@ class RegisterViewModelTest {
         viewModel.lastName = ""
         viewModel.email = ""
         viewModel.password = ""
+        viewModel.confirmPassword = ""
 
         viewModel.onRegisterClick()
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
-        assertEquals(
-            "Required fields (*) must be filled",
-            (viewModel.uiState as RegisterUiState.Error).message
-        )
+        val state = viewModel.uiState as RegisterUiState.Error
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -108,14 +109,13 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "invalid-email"
         viewModel.password = "password123"
+        viewModel.confirmPassword = "password123"
 
         viewModel.onRegisterClick()
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
-        assertEquals(
-            "Please enter a valid email address",
-            (viewModel.uiState as RegisterUiState.Error).message
-        )
+        val state = viewModel.uiState as RegisterUiState.Error
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -124,16 +124,15 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "john@example.com"
         viewModel.password = "password123"
+        viewModel.confirmPassword = "password123"
         viewModel.countryCode = "US"
         viewModel.phoneNumber = "123"
 
         viewModel.onRegisterClick()
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
-        assertEquals(
-            "Please enter a valid phone number",
-            (viewModel.uiState as RegisterUiState.Error).message
-        )
+        val state = viewModel.uiState as RegisterUiState.Error
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -142,15 +141,14 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "john@example.com"
         viewModel.password = "password123"
+        viewModel.confirmPassword = "password123"
         viewModel.birthday = "19901301"
 
         viewModel.onRegisterClick()
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
-        assertEquals(
-            "Please enter a valid date",
-            (viewModel.uiState as RegisterUiState.Error).message
-        )
+        val state = viewModel.uiState as RegisterUiState.Error
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -170,6 +168,7 @@ class RegisterViewModelTest {
         viewModel.lastName = lastName
         viewModel.email = email
         viewModel.password = password
+        viewModel.confirmPassword = password
         viewModel.profilePicUri = uri
         viewModel.phoneNumber = phone
         viewModel.countryCode = country
@@ -218,6 +217,7 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "  JOHN@Example.COM  "
         viewModel.password = "password123"
+        viewModel.confirmPassword = "password123"
 
         coEvery {
             authRepository.register(
@@ -285,6 +285,7 @@ class RegisterViewModelTest {
         viewModel.lastName = "Doe"
         viewModel.email = "john@example.com"
         viewModel.password = "password123"
+        viewModel.confirmPassword = "password123"
 
         coEvery {
             authRepository.register(

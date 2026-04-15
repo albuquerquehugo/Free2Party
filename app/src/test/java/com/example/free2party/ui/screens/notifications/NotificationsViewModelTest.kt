@@ -6,6 +6,7 @@ import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -46,6 +47,9 @@ class NotificationsViewModelTest {
         every { socialRepository.getIncomingFriendRequests() } returns requestsFlow
         every { socialRepository.getNotifications() } returns notificationsFlow
         every { userRepository.userIdFlow } returns flowOf("test-uid")
+        
+        coEvery { socialRepository.updateFriendRequestStatus(any(), any()) } returns Result.success(Unit)
+        coEvery { socialRepository.declineAndBlockFriendRequest(any()) } returns Result.success(Unit)
     }
 
     @After
@@ -134,10 +138,9 @@ class NotificationsViewModelTest {
 
     @Test
     fun `acceptFriendRequest calls repository`() = runTest {
-        val request = FriendRequest(id = "req123")
         viewModel = NotificationsViewModel(socialRepository, userRepository)
         
-        viewModel.acceptFriendRequest(request)
+        viewModel.acceptFriendRequest("req123")
         runCurrent()
 
         coVerify { socialRepository.updateFriendRequestStatus("req123", FriendRequestStatus.ACCEPTED) }
@@ -151,5 +154,15 @@ class NotificationsViewModelTest {
         runCurrent()
 
         coVerify { socialRepository.updateFriendRequestStatus("req456", FriendRequestStatus.DECLINED) }
+    }
+
+    @Test
+    fun `declineAndBlockFriendRequest calls repository`() = runTest {
+        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        
+        viewModel.declineAndBlockFriendRequest("req789")
+        runCurrent()
+
+        coVerify { socialRepository.declineAndBlockFriendRequest("req789") }
     }
 }
