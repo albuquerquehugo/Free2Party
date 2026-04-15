@@ -48,6 +48,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -228,6 +229,7 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var showThemeMenu by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -335,7 +337,7 @@ fun LoginScreen(
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = { if (isFormValid) onLoginClick() }
+                    onDone = { keyboardController?.hide() }
                 )
             )
 

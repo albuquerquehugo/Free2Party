@@ -38,6 +38,8 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -73,16 +75,10 @@ fun InputTextField(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     colors: TextFieldColors? = null
 ) {
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val isMultiLine = maxLines > 1
-    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(isFocused) {
-        if (isFocused) {
-            delay(200)
-            bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
-        }
-    }
+    val isMultiLine = maxLines > 1
+    val isFocused by interactionSource.collectIsFocusedAsState()
 
     val labelColor = if (value.isEmpty() && !isFocused) {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -93,6 +89,23 @@ fun InputTextField(
     val defaultColors = OutlinedTextFieldDefaults.colors(
         unfocusedLabelColor = labelColor
     )
+
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    val finalKeyboardActions = if (keyboardOptions.imeAction == ImeAction.Done) {
+        KeyboardActions(onDone = {
+            keyboardController?.hide()
+        })
+    } else {
+        keyboardActions
+    }
+
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            delay(200)
+            bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
+        }
+    }
 
     OutlinedTextField(
         value = value,
@@ -182,6 +195,6 @@ fun InputTextField(
         minLines = minLines,
         maxLines = maxLines,
         keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions
+        keyboardActions = finalKeyboardActions
     )
 }

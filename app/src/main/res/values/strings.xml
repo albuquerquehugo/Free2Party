@@ -44,8 +44,8 @@
     <string name="remove_friend_confirmation_text">Are you sure you want to remove this friend?</string>
     <string name="send_invite">Send invite</string>
     <string name="sms">SMS</string>
-    <string name="state_busy">Busy</string>
     <string name="state_available">Available</string>
+    <string name="state_busy">Busy</string>
     <string name="telegram">Telegram</string>
     <string name="tiktok">TikTok</string>
     <string name="user_menu_content_description">User Menu</string>
