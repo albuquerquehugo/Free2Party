@@ -40,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.BuildConfig
 import com.example.free2party.R
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.ui.components.AdBanner
 import com.example.free2party.ui.components.MonthCalendar
 import com.example.free2party.ui.components.dialogs.PlanDialog
 import com.example.free2party.ui.components.PlanResults
@@ -192,67 +193,74 @@ fun CalendarScreen(
     val isSelectedDateInPast = viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent),
-                contentDescription = stringResource(R.string.logo_content_description),
-                modifier = Modifier.height(20.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
-
-        IconButton(
-            onClick = {
-                editingPlan = null
-                setShowPlanDialog(true)
-            },
-            enabled = !isSelectedDateInPast,
-            modifier = Modifier
-                .padding(top = 8.dp, bottom = 16.dp)
-                .background(
-                    if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
-                    else MaterialTheme.colorScheme.primary,
-                    CircleShape
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.free2party_full_transparent),
+                    contentDescription = stringResource(R.string.logo_content_description),
+                    modifier = Modifier.height(20.dp),
+                    contentScale = ContentScale.Fit
                 )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.add_plan),
-                tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                    alpha = 0.38f
-                )
-                else MaterialTheme.colorScheme.onPrimary
-            )
-        }
-
-        PlanResults(
-            plans = viewModel.filteredPlans,
-            isDateSelected = viewModel.selectedDateMillis != null,
-            selectedDateText = selectedDateText,
-            currentTimeMillis = currentTimeMillis,
-            use24HourFormat = use24HourFormat,
-            friends = friends,
-            onEdit = { plan ->
-                editingPlan = plan
-                setShowPlanDialog(true)
-            },
-            onDelete = { plan ->
-                planToDelete = plan
-                setShowDeleteDialog(true)
             }
-        )
+
+            MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+
+            IconButton(
+                onClick = {
+                    editingPlan = null
+                    setShowPlanDialog(true)
+                },
+                enabled = !isSelectedDateInPast,
+                modifier = Modifier
+                    .padding(top = 8.dp, bottom = 16.dp)
+                    .background(
+                        if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
+                        else MaterialTheme.colorScheme.primary,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_plan),
+                    tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.38f
+                    )
+                    else MaterialTheme.colorScheme.onPrimary
+                )
+            }
+
+            PlanResults(
+                plans = viewModel.filteredPlans,
+                isDateSelected = viewModel.selectedDateMillis != null,
+                selectedDateText = selectedDateText,
+                currentTimeMillis = currentTimeMillis,
+                use24HourFormat = use24HourFormat,
+                friends = friends,
+                onEdit = { plan ->
+                    editingPlan = plan
+                    setShowPlanDialog(true)
+                },
+                onDelete = { plan ->
+                    planToDelete = plan
+                    setShowDeleteDialog(true)
+                }
+            )
+        }
+
+        AdBanner()
     }
 
     if (showPlanDialog) {

@@ -77,6 +77,7 @@ import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.ui.components.AdBanner
 import com.example.free2party.ui.components.dialogs.AboutDialog
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.dialogs.EmailDialog
@@ -469,77 +470,84 @@ fun HomeContent(
     onFriendItemClick: (FriendInfo) -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = paddingValues.calculateTopPadding())
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val logoScale by animateFloatAsState(targetValue = if (!isUserFree) 1.0f else 0.9f)
-        val glowColor =
-            if (!isUserFree) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-
-        Card(
+        Column(
             modifier = Modifier
-                .padding(bottom = 24.dp)
-                .shadow(
-                    elevation = if (!isUserFree) 20.dp else 10.dp,
-                    spotColor = glowColor,
-                    shape = CircleShape,
-                    ambientColor = glowColor,
-                    clip = false
-                )
-                .clip(CircleShape)
-                .clickable(
-                    enabled = !isActionLoading,
-                    onClick = onToggleAvailability
-                ),
-            shape = CircleShape,
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = if (!isUserFree) 8.dp else 4.dp
-            ),
-            colors = CardDefaults.cardColors(
-                containerColor =
-                    if (!isUserFree) MaterialTheme.colorScheme.availableContainer
-                    else MaterialTheme.colorScheme.busyContainer
-            )
+                .weight(1f)
+                .padding(top = paddingValues.calculateTopPadding())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Box(
-                modifier = Modifier.padding(horizontal = 32.dp, vertical = 18.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.free2party_full_transparent),
-                    contentDescription = stringResource(R.string.logo_content_description),
-                    modifier = Modifier
-                        .height(32.dp)
-                        .graphicsLayer(
-                            scaleX = logoScale,
-                            scaleY = logoScale
-                        ),
-                    contentScale = ContentScale.Fit
-                )
+            val logoScale by animateFloatAsState(targetValue = if (!isUserFree) 1.0f else 0.9f)
+            val glowColor =
+                if (!isUserFree) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
 
-                if (isActionLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
-                        color =
-                            if (!isUserFree) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.busy
+            Card(
+                modifier = Modifier
+                    .padding(bottom = 24.dp)
+                    .shadow(
+                        elevation = if (!isUserFree) 20.dp else 10.dp,
+                        spotColor = glowColor,
+                        shape = CircleShape,
+                        ambientColor = glowColor,
+                        clip = false
                     )
+                    .clip(CircleShape)
+                    .clickable(
+                        enabled = !isActionLoading,
+                        onClick = onToggleAvailability
+                    ),
+                shape = CircleShape,
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = if (!isUserFree) 8.dp else 4.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor =
+                        if (!isUserFree) MaterialTheme.colorScheme.availableContainer
+                        else MaterialTheme.colorScheme.busyContainer
+                )
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.free2party_full_transparent),
+                        contentDescription = stringResource(R.string.logo_content_description),
+                        modifier = Modifier
+                            .height(32.dp)
+                            .graphicsLayer(
+                                scaleX = logoScale,
+                                scaleY = logoScale
+                            ),
+                        contentScale = ContentScale.Fit
+                    )
+
+                    if (isActionLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
+                            color =
+                                if (!isUserFree) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.busy
+                        )
+                    }
                 }
             }
+
+            FriendsListSection(
+                friends = friendsList,
+                onRemoveFriend = onRemoveFriend,
+                onCancelInvite = onCancelInvite,
+                onInviteFriendClick = onInviteFriendClick,
+                onFriendItemClick = onFriendItemClick
+            )
         }
 
-        FriendsListSection(
-            friends = friendsList,
-            onRemoveFriend = onRemoveFriend,
-            onCancelInvite = onCancelInvite,
-            onInviteFriendClick = onInviteFriendClick,
-            onFriendItemClick = onFriendItemClick
-        )
+        AdBanner()
     }
 }
 
@@ -554,7 +562,8 @@ fun FriendsListSection(
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
             text = stringResource(R.string.your_friends),
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
         )
 
         IconButton(
