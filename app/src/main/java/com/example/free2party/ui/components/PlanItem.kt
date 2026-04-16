@@ -8,10 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -162,16 +161,17 @@ fun PlanItem(
             }
         )
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(start = 24.dp, top = 16.dp, bottom = 16.dp)
             ) {
                 // Time and Duration Section
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 48.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     FlowRow(
@@ -215,7 +215,10 @@ fun PlanItem(
                 if (isOwnPlan) {
                     Spacer(modifier = Modifier.padding(top = 8.dp))
                     Row(
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 48.dp)
+                            .height(24.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -239,7 +242,7 @@ fun PlanItem(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp, end = 8.dp),
+                            .padding(top = 8.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         Text(
@@ -253,53 +256,53 @@ fun PlanItem(
                             },
                             modifier = Modifier.weight(1f)
                         )
+
+                        Box(
+                            modifier = Modifier
+                                .width(48.dp)
+                                .height(16.dp),
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            if (hasOverflow || isExpandedExternally) {
+                                Icon(
+                                    imageVector =
+                                        if (isExpandedExternally) Icons.Default.KeyboardArrowUp
+                                        else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .offset(y = (-4).dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(top = 4.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                // Action Menu Section (Only for own plans)
-                if (isOwnPlan && !isReadOnly) {
-                    Box(modifier = Modifier.size(width = 48.dp, height = 60.dp)) {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.plan_actions_content_description),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                        PlanActionsMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            onEdit = onEdit,
-                            onDelete = onDelete,
-                            editEnabled = !planStatus.isEditDisabled
-                        )
-                    }
-                } else {
-                    Spacer(modifier = Modifier.height(28.dp))
-                }
-
-                if (hasOverflow || isExpandedExternally) {
-                    Box(
-                        modifier = Modifier
-                            .size(width = 48.dp, height = 24.dp)
-                            .padding(end = 14.dp),
-                        contentAlignment = Alignment.CenterEnd
-                    ) {
+            // Action Menu Section (Only for own plans)
+            if (isOwnPlan && !isReadOnly) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 4.dp)
+                        .size(width = 48.dp, height = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(onClick = { showMenu = true }) {
                         Icon(
-                            imageVector =
-                                if (isExpandedExternally) Icons.Default.KeyboardArrowUp
-                                else Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.plan_actions_content_description),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     }
+                    PlanActionsMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        onEdit = onEdit,
+                        onDelete = onDelete,
+                        editEnabled = !planStatus.isEditDisabled
+                    )
                 }
             }
         }

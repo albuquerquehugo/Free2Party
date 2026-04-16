@@ -20,19 +20,16 @@
 
     <!-- Home Screen -->
     <string name="add_friends_message">Add friends to see their availability and share your plans!</string>
-    <string name="busy_section_title">Busy</string>
     <string name="cancel_invite">Cancel Invite</string>
     <string name="collapse">Collapse</string>
     <string name="contact_options">Contact Options</string>
     <string name="expand">Expand</string>
     <string name="facebook">Facebook</string>
-    <string name="free_section_title">Free2Party</string>
     <string name="friend_options">Friend Options</string>
     <string name="instagram">Instagram</string>
     <string name="invite_sent_successfully">Invite sent to %1$s!</string>
     <string name="invite_friend">Invite Friend</string>
     <string name="invite_friend_description">Enter your friend\'s email to send an invite.</string>
-    <string name="invited_section_title">Invited</string>
     <string name="logo_content_description">Free2Party Logo</string>
     <string name="logout_confirmation_text">Are you sure you want to log out?</string>
     <string name="make_me_busy">Make Me Busy</string>
@@ -42,11 +39,14 @@
     <string name="pending">Pending</string>
     <string name="remove_friend">Remove Friend</string>
     <string name="remove_friend_confirmation_text">Are you sure you want to remove this friend?</string>
+    <string name="section_title_busy">Busy</string>
+    <string name="section_title_free">Free</string>
+    <string name="section_title_invited">Invited</string>
     <string name="send_invite">Send invite</string>
     <string name="sms">SMS</string>
     <string name="status">Status:</string>
-    <string name="status_available">Available</string>
     <string name="status_busy">Busy</string>
+    <string name="status_free">Free</string>
     <string name="telegram">Telegram</string>
     <string name="tiktok">TikTok</string>
     <string name="user_menu_content_description">User Menu</string>

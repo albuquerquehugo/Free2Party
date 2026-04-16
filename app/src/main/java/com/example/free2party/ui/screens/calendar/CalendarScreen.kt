@@ -235,10 +235,10 @@ fun CalendarScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.add_plan),
-                    tint = if (isSelectedDateInPast) MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = 0.38f
-                    )
-                    else MaterialTheme.colorScheme.onPrimary
+                    tint =
+                        if (isSelectedDateInPast) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                        } else MaterialTheme.colorScheme.onPrimary
                 )
             }
 

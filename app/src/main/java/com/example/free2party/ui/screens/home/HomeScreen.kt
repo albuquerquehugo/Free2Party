@@ -281,7 +281,7 @@ fun HomeScreen(
                                                 Spacer(modifier = Modifier.width(4.dp))
                                                 Text(
                                                     text =
-                                                        if (isUserFree) stringResource(R.string.status_available)
+                                                        if (isUserFree) stringResource(R.string.status_free)
                                                         else stringResource(R.string.status_busy),
                                                     color =
                                                         if (isUserFree) MaterialTheme.colorScheme.available
@@ -614,7 +614,7 @@ fun FriendsListSection(
         ) {
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.free_section_title),
+                    title = stringResource(R.string.section_title_free),
                     friends = freeFriends,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
@@ -623,7 +623,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.busy_section_title),
+                    title = stringResource(R.string.section_title_busy),
                     friends = busyFriends,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
@@ -632,7 +632,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.invited_section_title),
+                    title = stringResource(R.string.section_title_invited),
                     friends = invitedFriends,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
