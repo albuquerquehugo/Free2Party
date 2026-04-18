@@ -65,7 +65,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
@@ -75,11 +74,12 @@ import com.example.free2party.util.formatTimeAgo
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel(factory = NotificationsViewModel.provideFactory())) {
+fun NotificationsRoute(viewModel: NotificationsViewModel) {
     val context = LocalContext.current
     val items by viewModel.notificationItems.collectAsState()
     val itemsUnreadCount by viewModel.itemsUnreadCount.collectAsState()
     val notificationsUnreadCount by viewModel.notificationsUnreadCount.collectAsState()
+    val gradientBackground by viewModel.gradientBackground.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -99,6 +99,7 @@ fun NotificationsRoute(viewModel: NotificationsViewModel = viewModel(factory = N
         items = items,
         itemsUnreadCount = itemsUnreadCount,
         notificationsUnreadCount = notificationsUnreadCount,
+        gradientBackground = gradientBackground,
         onAcceptRequest = { viewModel.acceptFriendRequest(it.id) },
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
         onDeclineAndBlockRequest = { viewModel.declineAndBlockFriendRequest(it.id) },
@@ -113,6 +114,7 @@ fun NotificationsScreen(
     items: List<NotificationItem>,
     itemsUnreadCount: Int,
     notificationsUnreadCount: Int,
+    gradientBackground: Boolean,
     onAcceptRequest: (FriendRequest) -> Unit,
     onDeclineRequest: (FriendRequest) -> Unit,
     onDeclineAndBlockRequest: (FriendRequest) -> Unit,
@@ -125,6 +127,7 @@ fun NotificationsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface)
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -150,6 +153,7 @@ fun NotificationsScreen(
 
         Text(
             text = titleText,
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -187,6 +191,7 @@ fun NotificationsScreen(
                     items(requests, key = { it.id }) { item ->
                         FriendRequestItem(
                             request = item.friendRequest,
+                            gradientBackground = gradientBackground,
                             onAccept = { onAcceptRequest(item.friendRequest) },
                             onDecline = { onDeclineRequest(item.friendRequest) },
                             onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
@@ -218,6 +223,7 @@ fun NotificationsScreen(
                     items(notifications, key = { it.id }) { item ->
                         DismissibleNotificationItem(
                             notification = item.notification,
+                            gradientBackground = gradientBackground,
                             onToggleRead = { onToggleRead(item.notification) },
                             onDelete = { onDelete(item.notification.id) }
                         )
@@ -235,6 +241,7 @@ fun NotificationsScreen(
 @Composable
 fun FriendRequestItem(
     request: FriendRequest,
+    gradientBackground: Boolean,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onDeclineAndBlock: () -> Unit
@@ -258,7 +265,10 @@ fun FriendRequestItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(
+                if (gradientBackground) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                else MaterialTheme.colorScheme.primaryContainer
+            )
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -269,6 +279,7 @@ fun FriendRequestItem(
         ) {
             Text(
                 text = stringResource(R.string.notification_friend_request_title),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 4.dp)
@@ -297,6 +308,7 @@ fun FriendRequestItem(
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = request.senderName,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -416,6 +428,7 @@ fun DeclineFriendRequestDialog(
 @Composable
 fun DismissibleNotificationItem(
     notification: Notification,
+    gradientBackground: Boolean,
     onToggleRead: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -449,6 +462,7 @@ fun DismissibleNotificationItem(
             content = {
                 NotificationBox(
                     notification = notification,
+                    gradientBackground = gradientBackground,
                     onToggleRead = currentOnToggleRead,
                     onDelete = currentOnDelete
                 )
@@ -512,14 +526,18 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
 @Composable
 fun NotificationBox(
     notification: Notification,
+    gradientBackground: Boolean,
     onToggleRead: () -> Unit,
     onDelete: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    val backgroundColor =
-        if (notification.isRead) MaterialTheme.colorScheme.background
-        else MaterialTheme.colorScheme.primaryContainer
+    val backgroundColor = when {
+        notification.isRead && gradientBackground -> Color.Transparent
+        notification.isRead -> MaterialTheme.colorScheme.background
+        gradientBackground -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        else -> MaterialTheme.colorScheme.primaryContainer
+    }
 
     Row(
         modifier = Modifier
@@ -534,6 +552,7 @@ fun NotificationBox(
         ) {
             Text(
                 text = notification.message,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold
             )

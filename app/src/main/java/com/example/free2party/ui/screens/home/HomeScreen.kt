@@ -140,10 +140,14 @@ fun HomeRoute(
         }
     }
 
+    val gradientBackground =
+        (homeViewModel.uiState as? HomeUiState.Success)?.gradientBackground ?: true
+
     HomeScreen(
         homeUiState = homeViewModel.uiState,
         inviteFriendUiState = friendViewModel.uiState,
         showInviteFriendDialog = showInviteFriendDialog,
+        gradientBackground = gradientBackground,
         onLogoutClick = { homeViewModel.logout(onLogout) },
         onNavigateToProfile = onNavigateToProfile,
         onNavigateToSettings = onNavigateToSettings,
@@ -166,6 +170,7 @@ fun HomeScreen(
     homeUiState: HomeUiState,
     inviteFriendUiState: InviteFriendUiState,
     showInviteFriendDialog: Boolean,
+    gradientBackground: Boolean,
     onLogoutClick: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -190,7 +195,9 @@ fun HomeScreen(
         rootFocusRequester.requestFocus()
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -217,6 +224,7 @@ fun HomeScreen(
                         Text(
                             text = successState.userName,
                             style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
@@ -376,6 +384,7 @@ fun HomeScreen(
                         isUserFree = homeUiState.isUserFree,
                         friendsList = homeUiState.friendsList,
                         isActionLoading = homeUiState.isActionLoading,
+                        gradientBackground = gradientBackground,
                         onToggleAvailability = onToggleAvailability,
                         onRemoveFriend = { uid ->
                             friendIdToRemove = uid
@@ -463,6 +472,7 @@ fun HomeContent(
     isUserFree: Boolean,
     friendsList: List<FriendInfo>,
     isActionLoading: Boolean,
+    gradientBackground: Boolean,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
@@ -540,6 +550,7 @@ fun HomeContent(
 
             FriendsListSection(
                 friends = friendsList,
+                gradientBackground = gradientBackground,
                 onRemoveFriend = onRemoveFriend,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
@@ -554,6 +565,7 @@ fun HomeContent(
 @Composable
 fun FriendsListSection(
     friends: List<FriendInfo>,
+    gradientBackground: Boolean,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
@@ -562,6 +574,7 @@ fun FriendsListSection(
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
             text = stringResource(R.string.your_friends),
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -616,6 +629,7 @@ fun FriendsListSection(
                 ExpandableFriendSection(
                     title = stringResource(R.string.section_title_free),
                     friends = freeFriends,
+                    gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
                     onClick = onFriendItemClick
@@ -625,6 +639,7 @@ fun FriendsListSection(
                 ExpandableFriendSection(
                     title = stringResource(R.string.section_title_busy),
                     friends = busyFriends,
+                    gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
                     onClick = onFriendItemClick
@@ -634,6 +649,7 @@ fun FriendsListSection(
                 ExpandableFriendSection(
                     title = stringResource(R.string.section_title_invited),
                     friends = invitedFriends,
+                    gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
                     onCancelInvite = onCancelInvite,
                     onClick = onFriendItemClick
@@ -650,6 +666,7 @@ fun FriendsListSection(
 fun ExpandableFriendSection(
     title: String,
     friends: List<FriendInfo>,
+    gradientBackground: Boolean,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onClick: (FriendInfo) -> Unit
@@ -672,10 +689,12 @@ fun ExpandableFriendSection(
             Text(
                 text = "$title (${friends.size})",
                 style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
             Icon(
                 imageVector = Icons.Default.ExpandMore,
+                tint = MaterialTheme.colorScheme.onSurface,
                 contentDescription =
                     if (isExpanded) stringResource(R.string.collapse)
                     else stringResource(R.string.expand),
@@ -696,6 +715,7 @@ fun ExpandableFriendSection(
                     friends.forEach { friend ->
                         FriendItem(
                             friend = friend,
+                            gradientBackground = gradientBackground,
                             onRemoveFriend = { onRemoveFriend(friend.uid) },
                             onCancelInvite = { onCancelInvite(friend.uid) },
                             onClick = { onClick(friend) }
@@ -710,6 +730,7 @@ fun ExpandableFriendSection(
 @Composable
 fun FriendItem(
     friend: FriendInfo,
+    gradientBackground: Boolean,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onClick: () -> Unit
@@ -731,11 +752,11 @@ fun FriendItem(
                     onLongClick = { showFriendMenu = true }
                 ),
             colors = CardDefaults.cardColors(
-                containerColor = when {
+                containerColor = (when {
                     isInvited -> MaterialTheme.colorScheme.inactiveContainer
                     friend.isFreeNow -> MaterialTheme.colorScheme.availableContainer
                     else -> MaterialTheme.colorScheme.busyContainer
-                }
+                }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it }
             )
         ) {
             Row(

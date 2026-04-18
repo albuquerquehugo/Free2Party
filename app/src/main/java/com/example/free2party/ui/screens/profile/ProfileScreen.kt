@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -67,6 +68,7 @@ fun ProfileRoute(
 
     ProfileScreen(
         uiState = viewModel.uiState,
+        gradientBackground = viewModel.gradientBackground,
         onBack = onBack,
         onUploadImage = { viewModel.uploadProfilePicture(it) },
         firstName = viewModel.firstName,
@@ -110,6 +112,7 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     uiState: ProfileUiState,
+    gradientBackground: Boolean,
     onBack: () -> Unit,
     onUploadImage: (Uri) -> Unit,
     firstName: String,
@@ -149,9 +152,11 @@ fun ProfileScreen(
     onDeleteAccount: () -> Unit
 ) {
     Scaffold(
+        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.your_profile),
+                title = stringResource(R.string.title_your_profile),
+                color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack,
                 enabled = uiState !is ProfileUiState.Loading
             )

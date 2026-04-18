@@ -8,6 +8,7 @@ import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
@@ -56,9 +57,13 @@ sealed class NotificationsUiEvent {
 
 class NotificationsViewModel(
     private val socialRepository: SocialRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
     private var observationJob: Job? = null
+
+    val gradientBackground: StateFlow<Boolean> = settingsRepository.gradientBackgroundFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     private val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
     val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests.asStateFlow()
@@ -173,6 +178,7 @@ class NotificationsViewModel(
 
     companion object {
         fun provideFactory(
+            settingsRepository: SettingsRepository,
             userRepository: UserRepository = UserRepositoryImpl(
                 auth = Firebase.auth,
                 db = Firebase.firestore,
@@ -185,7 +191,7 @@ class NotificationsViewModel(
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NotificationsViewModel(socialRepository, userRepository) as T
+                return NotificationsViewModel(socialRepository, userRepository, settingsRepository) as T
             }
         }
     }

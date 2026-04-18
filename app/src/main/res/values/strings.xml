@@ -70,12 +70,12 @@
     <string name="sign_in_with_google">Sign in with Google</string>
 
     <!-- Register Screen -->
-    <string name="account_created_successfully">Account created successfully! Check your email to verify your account.</string>
     <string name="already_have_account_log_in">Already have an account? Log in</string>
+    <string name="button_register">Register</string>
     <string name="confirm_password_required">Confirm Password *</string>
-    <string name="create_account">Create Account</string>
     <string name="password_required">Password *</string>
-    <string name="register">Register</string>
+    <string name="success_account_created">Account created successfully! Check your email to verify your account.</string>
+    <string name="title_create_account">Create Account</string>
 
     <!-- Profile Screen -->
     <string name="account_deleted">Account deleted!</string>
@@ -100,25 +100,28 @@
     <string name="profile_picture_updated">Profile picture updated!</string>
     <string name="profile_updated_successfully">Profile updated successfully!</string>
     <string name="save_changes">Save Changes</string>
+    <string name="section_socials">Socials</string>
     <string name="select_birthday">Select birthday</string>
     <string name="select_country">Select Country</string>
-    <string name="socials">Socials</string>
     <string name="telegram_username">Telegram Username</string>
     <string name="tiktok_username">TikTok Username</string>
+    <string name="title_your_profile">Your Profile</string>
     <string name="unblock">Unblock</string>
     <string name="whatsapp_number">WhatsApp Number</string>
     <string name="whatsapp_same_as_phone_number">Same as phone number</string>
     <string name="x_username">X Username</string>
-    <string name="your_profile">Your Profile</string>
 
     <!-- Settings Screen -->
-    <string name="am_pm">AM/PM</string>
-    <string name="app_theme_label">App Theme:</string>
-    <string name="date_format_label">Date Format:</string>
-    <string name="save_settings">Save Settings</string>
-    <string name="time_format_label">Time Format:</string>
-    <string name="twenty_four_hour">24-hour</string>
-    <string name="your_settings">Your Settings</string>
+    <string name="button_save_settings">Save Settings</string>
+    <string name="label_app_theme">App Theme:</string>
+    <string name="label_background">Background:</string>
+    <string name="label_date_format">Date Format:</string>
+    <string name="label_time_format">Time Format:</string>
+    <string name="option_am_pm">AM/PM</string>
+    <string name="option_mesh_gradient">Mesh Gradient</string>
+    <string name="option_solid">Solid</string>
+    <string name="option_twenty_four_hour">24-hour</string>
+    <string name="title_your_settings">Your Settings</string>
 
     <!-- Calendar Screen -->
     <string name="add_plan">Add Plan</string>

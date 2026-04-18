@@ -514,8 +514,9 @@ fun ProfileContent(
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                text = stringResource(R.string.socials),
-                style = MaterialTheme.typography.titleSmall
+                text = stringResource(R.string.section_socials),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

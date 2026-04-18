@@ -3,6 +3,7 @@ package com.example.free2party.data.repository
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -16,6 +17,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class SettingsRepository(private val context: Context) {
     private object PreferencesKeys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val GRADIENT_BACKGROUND = booleanPreferencesKey("gradient_background")
         val SHOWN_NOTIFICATION_IDS = stringSetPreferencesKey("shown_notification_ids")
     }
 
@@ -25,9 +27,20 @@ class SettingsRepository(private val context: Context) {
             ThemeMode.valueOf(themeName)
         }
 
+    val gradientBackgroundFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.GRADIENT_BACKGROUND] ?: true
+        }
+
     suspend fun setThemeMode(themeMode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.THEME_MODE] = themeMode.name
+        }
+    }
+
+    suspend fun setGradientBackground(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GRADIENT_BACKGROUND] = enabled
         }
     }
 

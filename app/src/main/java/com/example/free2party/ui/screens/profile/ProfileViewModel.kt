@@ -78,6 +78,9 @@ class ProfileViewModel(
 
     var isWhatsappSameAsPhone by mutableStateOf(false)
 
+    var gradientBackground by mutableStateOf(true)
+        private set
+
     private val isPhoneValid by derivedStateOf {
         if (phoneNumber.isEmpty()) return@derivedStateOf countryCode.isEmpty()
         val country = Countries.find { it.code == countryCode }
@@ -134,6 +137,7 @@ class ProfileViewModel(
                 }
                 .collect { user ->
                     val currentState = uiState
+                    gradientBackground = user.settings.gradientBackground
                     if (currentState !is ProfileUiState.Success) {
                         initializeFields(user)
                         uiState =

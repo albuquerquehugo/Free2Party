@@ -73,6 +73,7 @@ fun PlanItem(
     use24HourFormat: Boolean,
     currentTimeMillis: Long,
     friends: List<FriendInfo>,
+    gradientBackground: Boolean = false,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
     isExpandedExternally: Boolean = false,
@@ -149,11 +150,11 @@ fun PlanItem(
                 }
             },
         colors = CardDefaults.cardColors(
-            containerColor = when {
+            containerColor = (when {
                 planStatus.isCurrent -> MaterialTheme.colorScheme.tertiaryContainer
                 planStatus.isPast -> MaterialTheme.colorScheme.surfaceVariant
                 else -> MaterialTheme.colorScheme.primaryContainer
-            },
+            }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it },
             contentColor = when {
                 planStatus.isCurrent -> MaterialTheme.colorScheme.onTertiaryContainer
                 planStatus.isPast -> MaterialTheme.colorScheme.onSurfaceVariant

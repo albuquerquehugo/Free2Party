@@ -72,6 +72,9 @@ class CalendarViewModel(
     var use24HourFormat by mutableStateOf(true)
         private set
 
+    var gradientBackground by mutableStateOf(true)
+        private set
+
     var datePattern by mutableStateOf(DatePattern.YYYY_MM_DD)
         private set
 
@@ -94,6 +97,7 @@ class CalendarViewModel(
         
         userRepository.observeUser(uid)
             .onEach { user ->
+                gradientBackground = user.settings.gradientBackground
                 use24HourFormat = user.settings.use24HourFormat
                 datePattern = user.settings.datePattern
             }

@@ -30,12 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.R
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.components.ProfileContent
@@ -43,14 +43,14 @@ import com.example.free2party.ui.components.TopBar
 
 @Composable
 fun RegisterRoute(
-    viewModel: RegisterViewModel = viewModel(),
+    viewModel: RegisterViewModel,
     onRegisterSuccess: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState = viewModel.uiState
 
-    val accountCreatedTemplate = stringResource(R.string.account_created_successfully)
+    val accountCreatedTemplate = stringResource(R.string.success_account_created)
 
 
     LaunchedEffect(uiState) {
@@ -107,7 +107,8 @@ fun RegisterRoute(
         onBackToLogin = {
             viewModel.resetFields()
             onBackToLogin()
-        }
+        },
+        gradientBackground = viewModel.gradientBackground
     )
 }
 
@@ -152,7 +153,8 @@ fun RegisterScreen(
     onXUsernameChange: (String) -> Unit,
     onProfilePicChange: (Uri) -> Unit,
     onRegisterClick: () -> Unit,
-    onBackToLogin: () -> Unit
+    onBackToLogin: () -> Unit,
+    gradientBackground: Boolean
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
@@ -171,9 +173,11 @@ fun RegisterScreen(
         }
 
     Scaffold(
+        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.create_account),
+                title = stringResource(R.string.title_create_account),
+                color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBackToLogin,
                 enabled = uiState !is RegisterUiState.Loading
             )
@@ -286,16 +290,26 @@ fun RegisterScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(56.dp),
-                                enabled = isFormValid
+                                enabled = isFormValid,
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor =
+                                        if (gradientBackground) MaterialTheme.colorScheme.primary.copy(
+                                            alpha = 0.7f
+                                        )
+                                        else MaterialTheme.colorScheme.primary
+                                )
                             ) {
                                 Text(
-                                    stringResource(R.string.register),
+                                    stringResource(R.string.button_register),
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             }
 
                             TextButton(onClick = onBackToLogin) {
-                                Text(stringResource(R.string.already_have_account_log_in))
+                                Text(
+                                    stringResource(R.string.already_have_account_log_in),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
 
                             Spacer(modifier = Modifier.height(2.dp))

@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -202,7 +203,8 @@ fun LoginRoute(
         onNavigateToRegister = {
             viewModel.resetFields()
             onNavigateToRegister()
-        }
+        },
+        gradientBackground = viewModel.gradientBackground
     )
 }
 
@@ -224,7 +226,8 @@ fun LoginScreen(
     onForgotPasswordConfirm: (String) -> Unit,
     onDismissForgotPassword: () -> Unit,
     onResetState: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    gradientBackground: Boolean
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     var showThemeMenu by remember { mutableStateOf(false) }
@@ -246,6 +249,7 @@ fun LoginScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Contrast,
+                tint = MaterialTheme.colorScheme.onSurface,
                 contentDescription = stringResource(R.string.appearance)
             )
 
@@ -401,7 +405,12 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    enabled = isFormValid && uiState !is LoginUiState.Loading
+                    enabled = isFormValid && uiState !is LoginUiState.Loading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (gradientBackground) MaterialTheme.colorScheme.primary.copy(
+                            alpha = 0.7f
+                        ) else MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Text(stringResource(R.string.login))
                 }
@@ -412,14 +421,20 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    HorizontalDivider(modifier = Modifier.weight(1f))
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
+                    )
                     Text(
                         text = " OR ",
                         modifier = Modifier.padding(horizontal = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
+                        color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
                     )
-                    HorizontalDivider(modifier = Modifier.weight(1f))
+                    HorizontalDivider(
+                        modifier = Modifier.weight(1f),
+                        color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -431,7 +446,10 @@ fun LoginScreen(
                         .height(50.dp),
                     enabled = uiState !is LoginUiState.Loading,
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        containerColor = if (gradientBackground) MaterialTheme.colorScheme.surface.copy(
+                            alpha = 0.7f
+                        ) else Color.Transparent
                     )
                 ) {
                     Row(
@@ -444,7 +462,10 @@ fun LoginScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.sign_in_with_google))
+                        Text(
+                            stringResource(R.string.sign_in_with_google),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
 
@@ -454,7 +475,10 @@ fun LoginScreen(
                     onClick = onNavigateToRegister,
                     enabled = uiState !is LoginUiState.Loading
                 ) {
-                    Text(stringResource(R.string.dont_have_account_sign_up))
+                    Text(
+                        stringResource(R.string.dont_have_account_sign_up),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }

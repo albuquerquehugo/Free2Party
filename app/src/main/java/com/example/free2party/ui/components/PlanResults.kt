@@ -34,6 +34,7 @@ fun PlanResults(
     use24HourFormat: Boolean,
     friends: List<FriendInfo>,
     modifier: Modifier = Modifier,
+    gradientBackground: Boolean = false,
     onEdit: ((FuturePlan) -> Unit)? = null,
     onDelete: ((FuturePlan) -> Unit)? = null
 ) {
@@ -46,7 +47,8 @@ fun PlanResults(
     ) {
         Text(
             text = stringResource(R.string.results_for, selectedDateText),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         LazyColumn(
@@ -62,12 +64,13 @@ fun PlanResults(
             } else {
                 items(plans, key = { it.id }) { plan ->
                     val isExpanded = expandedPlanId == plan.id
-                    
+
                     PlanItem(
                         plan = plan,
                         use24HourFormat = use24HourFormat,
                         currentTimeMillis = currentTimeMillis,
                         friends = friends,
+                        gradientBackground = gradientBackground,
                         onEdit = onEdit?.let { { it(plan) } },
                         onDelete = onDelete?.let { { it(plan) } },
                         isExpandedExternally = isExpanded,

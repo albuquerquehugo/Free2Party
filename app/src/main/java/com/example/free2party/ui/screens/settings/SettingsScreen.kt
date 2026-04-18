@@ -1,6 +1,7 @@
 package com.example.free2party.ui.screens.settings
 
 import android.widget.Toast
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -68,8 +70,10 @@ fun SettingsRoute(
     SettingsScreen(
         uiState = viewModel.uiState,
         currentThemeMode = viewModel.themeMode,
+        gradientBackground = viewModel.gradientBackground,
         onBack = onBack,
         onSetThemeMode = { viewModel.updateThemeMode(it) },
+        onSetGradientBackground = { viewModel.updateGradientBackground(it) },
         onUpdateSettings = { viewModel.updateSettings(it) }
     )
 }
@@ -78,13 +82,21 @@ fun SettingsRoute(
 fun SettingsScreen(
     uiState: SettingsUiState,
     currentThemeMode: ThemeMode,
+    gradientBackground: Boolean,
     onBack: () -> Unit,
     onSetThemeMode: (ThemeMode) -> Unit,
+    onSetGradientBackground: (Boolean) -> Unit,
     onUpdateSettings: (User) -> Unit
 ) {
     Scaffold(
+        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
-            TopBar(stringResource(R.string.your_settings), onBack = onBack, enabled = uiState !is SettingsUiState.Loading)
+            TopBar(
+                title = stringResource(R.string.title_your_settings),
+                color = MaterialTheme.colorScheme.onSurface,
+                onBack = onBack,
+                enabled = uiState !is SettingsUiState.Loading
+            )
         }
     ) { paddingValues ->
         when (uiState) {
@@ -107,6 +119,7 @@ fun SettingsScreen(
                     currentThemeMode = currentThemeMode,
                     isSaving = uiState.isSaving,
                     onSetThemeMode = onSetThemeMode,
+                    onSetGradientBackground = onSetGradientBackground,
                     onUpdateSettings = onUpdateSettings
                 )
             }
@@ -121,6 +134,7 @@ fun SettingsScreenContent(
     currentThemeMode: ThemeMode,
     isSaving: Boolean,
     onSetThemeMode: (ThemeMode) -> Unit,
+    onSetGradientBackground: (Boolean) -> Unit,
     onUpdateSettings: (User) -> Unit
 ) {
     var use24HourFormat by remember(user.settings.use24HourFormat) {
@@ -148,7 +162,9 @@ fun SettingsScreenContent(
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                containerColor = if (isSystemInDarkTheme()) {
+                    MaterialTheme.colorScheme.surface.copy(alpha = 0.1f)
+                } else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
             )
         ) {
             Row(
@@ -157,9 +173,10 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.app_theme_label),
+                    text = stringResource(R.string.label_app_theme),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
@@ -189,9 +206,10 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.time_format_label),
+                    text = stringResource(R.string.label_background),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
@@ -203,13 +221,50 @@ fun SettingsScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     SettingsOption(
-                        label = stringResource(R.string.twenty_four_hour),
+                        label = stringResource(R.string.option_mesh_gradient),
+                        selected = user.settings.gradientBackground,
+                        onClick = { onSetGradientBackground(true) },
+                        enabled = !isSaving
+                    )
+                    SettingsOption(
+                        label = stringResource(R.string.option_solid),
+                        selected = !user.settings.gradientBackground,
+                        onClick = { onSetGradientBackground(false) },
+                        enabled = !isSaving
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.label_time_format),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .selectableGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SettingsOption(
+                        label = stringResource(R.string.option_twenty_four_hour),
                         selected = use24HourFormat,
                         onClick = { use24HourFormat = true },
                         enabled = !isSaving
                     )
                     SettingsOption(
-                        label = stringResource(R.string.am_pm),
+                        label = stringResource(R.string.option_am_pm),
                         selected = !use24HourFormat,
                         onClick = { use24HourFormat = false },
                         enabled = !isSaving
@@ -225,9 +280,10 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.date_format_label),
+                    text = stringResource(R.string.label_date_format),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 12.dp)
                 )
 
@@ -256,16 +312,22 @@ fun SettingsScreenContent(
             onClick = {
                 val oldPattern = user.settings.datePattern
                 val newPattern = datePattern
-                
+
                 val updatedBirthday = if (oldPattern != newPattern && user.birthday.length == 8) {
                     // Convert birthday from old pattern digits to new pattern digits
-                    val oldSdf = SimpleDateFormat(oldPattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+                    val oldSdf = SimpleDateFormat(
+                        oldPattern.pattern.replace("-", ""),
+                        Locale.getDefault()
+                    ).apply {
                         timeZone = TimeZone.getTimeZone("UTC")
                     }
-                    val newSdf = SimpleDateFormat(newPattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+                    val newSdf = SimpleDateFormat(
+                        newPattern.pattern.replace("-", ""),
+                        Locale.getDefault()
+                    ).apply {
                         timeZone = TimeZone.getTimeZone("UTC")
                     }
-                    
+
                     runCatching {
                         val date = oldSdf.parse(user.birthday)
                         if (date != null) newSdf.format(date) else user.birthday
@@ -296,7 +358,10 @@ fun SettingsScreenContent(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text(stringResource(R.string.save_settings), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.button_save_settings),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
 
@@ -330,6 +395,7 @@ fun SettingsOption(
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = 8.dp)
         )
     }

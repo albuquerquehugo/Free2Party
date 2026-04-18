@@ -42,6 +42,11 @@ class MainViewModel(
     var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
         private set
 
+    var gradientBackground by mutableStateOf(true)
+        private set
+
+    val gradientBackgroundFlow = settingsRepository.gradientBackgroundFlow
+
     private val _navigateToRoute = MutableSharedFlow<String>()
     val navigateToRoute = _navigateToRoute.asSharedFlow()
 
@@ -57,6 +62,7 @@ class MainViewModel(
 
     init {
         observeThemeMode()
+        observeGradientBackground()
 
         // Immediate suppression for startup
         initialHandledNotificationId?.let { id ->
@@ -74,6 +80,14 @@ class MainViewModel(
         viewModelScope.launch {
             settingsRepository.themeModeFlow.collectLatest { mode ->
                 themeMode = mode
+            }
+        }
+    }
+
+    private fun observeGradientBackground() {
+        viewModelScope.launch {
+            settingsRepository.gradientBackgroundFlow.collectLatest { enabled ->
+                gradientBackground = enabled
             }
         }
     }

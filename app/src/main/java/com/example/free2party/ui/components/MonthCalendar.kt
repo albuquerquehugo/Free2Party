@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -79,6 +78,7 @@ fun MonthCalendar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "Previous"
                 )
             }
@@ -87,7 +87,11 @@ fun MonthCalendar(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy((-8).dp)
             ) {
-                Text(text = monthName, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = monthName,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium
+                )
                 TextButton(
                     onClick = { viewModel.goToToday() },
                     contentPadding = PaddingValues(0.dp)
@@ -108,6 +112,7 @@ fun MonthCalendar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "Next"
                 )
             }
@@ -213,7 +218,7 @@ fun MonthCalendar(
                             isDateTimeInPast(dateMillis) && !isToday ->
                                 MaterialTheme.colorScheme.inactive
 
-                            else -> Color.Unspecified
+                            else -> MaterialTheme.colorScheme.onSurface
                         }
                     )
                 }

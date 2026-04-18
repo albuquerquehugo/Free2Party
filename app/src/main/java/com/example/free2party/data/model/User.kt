@@ -19,6 +19,7 @@ enum class ThemeMode(val label: String) {
 }
 
 data class UserSettings(
+    val gradientBackground: Boolean = true,
     val use24HourFormat: Boolean = true,
     val datePattern: DatePattern = DatePattern.YYYY_MM_DD
 )

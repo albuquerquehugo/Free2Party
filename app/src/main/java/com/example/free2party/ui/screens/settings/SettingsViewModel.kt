@@ -42,12 +42,16 @@ class SettingsViewModel(
     var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
         private set
 
+    var gradientBackground by mutableStateOf(true)
+        private set
+
     private val _uiEvent = MutableSharedFlow<SettingsUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
     init {
         loadSettings()
         observeThemeMode()
+        observeGradientBackground()
     }
 
     private fun loadSettings() {
@@ -78,9 +82,31 @@ class SettingsViewModel(
         }
     }
 
+    private fun observeGradientBackground() {
+        viewModelScope.launch {
+            settingsRepository.gradientBackgroundFlow.collectLatest { enabled ->
+                gradientBackground = enabled
+            }
+        }
+    }
+
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             settingsRepository.setThemeMode(mode)
+        }
+    }
+
+    fun updateGradientBackground(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setGradientBackground(enabled)
+            
+            // Also update the Firestore user settings if we are in Success state
+            (uiState as? SettingsUiState.Success)?.let { state ->
+                val updatedUser = state.user.copy(
+                    settings = state.user.settings.copy(gradientBackground = enabled)
+                )
+                updateSettings(updatedUser)
+            }
         }
     }
 

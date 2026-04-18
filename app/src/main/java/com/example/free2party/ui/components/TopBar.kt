@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -25,6 +26,7 @@ import com.example.free2party.R
 @Composable
 fun TopBar(
     title: String,
+    color: Color = Color.Unspecified,
     onBack: () -> Unit,
     showBackButton: Boolean = true,
     enabled: Boolean = true
@@ -44,6 +46,7 @@ fun TopBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        tint = color,
                         contentDescription = stringResource(R.string.back)
                     )
                 }
@@ -65,6 +68,7 @@ fun TopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
+                color = color,
                 fontWeight = FontWeight.Bold
             )
         }

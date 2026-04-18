@@ -14,6 +14,7 @@ import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.exception.AuthException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.util.UiText
@@ -22,6 +23,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 sealed interface RegisterUiState {
@@ -32,6 +34,7 @@ sealed interface RegisterUiState {
 }
 
 class RegisterViewModel(
+    private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository = AuthRepositoryImpl(
         auth = Firebase.auth,
         userRepository = UserRepositoryImpl(
@@ -59,6 +62,21 @@ class RegisterViewModel(
     var instagramUsername by mutableStateOf("")
     var tiktokUsername by mutableStateOf("")
     var xUsername by mutableStateOf("")
+
+    var gradientBackground by mutableStateOf(true)
+        private set
+
+    init {
+        observeGradientBackground()
+    }
+
+    private fun observeGradientBackground() {
+        viewModelScope.launch {
+            settingsRepository.gradientBackgroundFlow.collectLatest { enabled ->
+                gradientBackground = enabled
+            }
+        }
+    }
 
     private val isPhoneValid by derivedStateOf {
         if (phoneNumber.isEmpty()) return@derivedStateOf countryCode.isEmpty()
@@ -202,5 +220,25 @@ class RegisterViewModel(
         tiktokUsername = ""
         xUsername = ""
         uiState = RegisterUiState.Idle
+    }
+
+    companion object {
+        fun provideFactory(
+            settingsRepository: SettingsRepository,
+            authRepository: AuthRepository = AuthRepositoryImpl(
+                auth = Firebase.auth,
+                userRepository = UserRepositoryImpl(
+                    auth = Firebase.auth,
+                    db = Firebase.firestore,
+                    storage = Firebase.storage
+                )
+            )
+        ): androidx.lifecycle.ViewModelProvider.Factory =
+            object : androidx.lifecycle.ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return RegisterViewModel(settingsRepository, authRepository) as T
+                }
+            }
     }
 }

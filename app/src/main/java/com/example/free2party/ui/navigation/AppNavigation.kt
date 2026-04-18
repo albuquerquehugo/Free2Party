@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -39,6 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.free2party.MainViewModel
 import com.example.free2party.data.repository.SettingsRepository
+import com.example.free2party.ui.components.AppBackground
 import com.example.free2party.ui.screens.calendar.CalendarRoute
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import com.example.free2party.ui.screens.home.HomeRoute
@@ -49,6 +51,7 @@ import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
+import com.example.free2party.ui.screens.register.RegisterViewModel
 import com.example.free2party.ui.screens.settings.SettingsRoute
 import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
@@ -99,15 +102,15 @@ fun AppNavigation(
     settingsRepository: SettingsRepository,
     mainViewModel: MainViewModel,
     notificationsViewModel: NotificationsViewModel = viewModel(
-        factory = NotificationsViewModel.provideFactory()
+        factory = NotificationsViewModel.provideFactory(settingsRepository)
     ),
     startDestination: String? = null
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
+    val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
 
     LaunchedEffect(mainViewModel) {
         mainViewModel.navigateToRoute.collectLatest { route ->
@@ -121,20 +124,23 @@ fun AppNavigation(
         }
     }
 
-    Scaffold(
-        bottomBar = {
-            if (showBottomBar) {
-                BottomNavigationBar(navController, notificationsViewModel)
+    AppBackground(enabled = gradientBackground) {
+        Scaffold(
+            containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
+            bottomBar = {
+                if (showBottomBar) {
+                    BottomNavigationBar(navController, notificationsViewModel)
+                }
             }
+        ) { innerPadding ->
+            Free2PartyNavGraph(
+                navController = navController,
+                settingsRepository = settingsRepository,
+                notificationsViewModel = notificationsViewModel,
+                modifier = Modifier.padding(innerPadding),
+                startDestinationOverride = startDestination
+            )
         }
-    ) { innerPadding ->
-        Free2PartyNavGraph(
-            navController = navController,
-            settingsRepository = settingsRepository,
-            notificationsViewModel = notificationsViewModel,
-            modifier = Modifier.padding(innerPadding),
-            startDestinationOverride = startDestination
-        )
     }
 }
 
@@ -149,7 +155,7 @@ fun BottomNavigationBar(
     val unreadCountState = notificationsViewModel.itemsUnreadCount.collectAsState(initial = 0)
     val totalUnread = unreadCountState.value
 
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)) {
         BottomNavItems.forEach { screen ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
             NavigationBarItem(
@@ -247,6 +253,9 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Register.route) {
             RegisterRoute(
+                viewModel = viewModel(
+                    factory = RegisterViewModel.provideFactory(settingsRepository)
+                ),
                 onRegisterSuccess = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }

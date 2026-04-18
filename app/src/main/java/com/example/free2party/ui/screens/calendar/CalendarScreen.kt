@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -85,6 +86,8 @@ fun CalendarRoute(
     val plannedDays =
         viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
 
+    val gradientBackground = viewModel.gradientBackground
+
     LaunchedEffect(viewModel.selectedDateMillis) {
         if (viewModel.selectedDateMillis != startDatePickerState.selectedDateMillis) {
             startDatePickerState.selectedDateMillis = viewModel.selectedDateMillis
@@ -103,6 +106,7 @@ fun CalendarRoute(
     CalendarScreen(
         viewModel = viewModel,
         plannedDays = plannedDays,
+        gradientBackground = gradientBackground,
         startDatePickerState = startDatePickerState,
         endDatePickerState = endDatePickerState,
         startTimeState = startTimeState,
@@ -161,6 +165,7 @@ fun CalendarRoute(
 fun CalendarScreen(
     viewModel: CalendarViewModel,
     plannedDays: Set<Int>,
+    gradientBackground: Boolean,
     startDatePickerState: DatePickerState,
     endDatePickerState: DatePickerState,
     startTimeState: TimePickerState,
@@ -193,7 +198,9 @@ fun CalendarScreen(
     val isSelectedDateInPast = viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(
@@ -235,10 +242,9 @@ fun CalendarScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.add_plan),
-                    tint =
-                        if (isSelectedDateInPast) {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                        } else MaterialTheme.colorScheme.onPrimary
+                    tint = if (isSelectedDateInPast) {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    } else MaterialTheme.colorScheme.onPrimary
                 )
             }
 
@@ -249,6 +255,7 @@ fun CalendarScreen(
                 currentTimeMillis = currentTimeMillis,
                 use24HourFormat = use24HourFormat,
                 friends = friends,
+                gradientBackground = gradientBackground,
                 onEdit = { plan ->
                     editingPlan = plan
                     setShowPlanDialog(true)

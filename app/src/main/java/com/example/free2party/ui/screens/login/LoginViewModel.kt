@@ -55,6 +55,9 @@ class LoginViewModel(
     var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
         private set
 
+    var gradientBackground by mutableStateOf(true)
+        private set
+
     private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
@@ -66,6 +69,11 @@ class LoginViewModel(
         viewModelScope.launch {
             settingsRepository.themeModeFlow.collectLatest { mode ->
                 themeMode = mode
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.gradientBackgroundFlow.collectLatest { enabled ->
+                gradientBackground = enabled
             }
         }
     }
