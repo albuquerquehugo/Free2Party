@@ -72,6 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -817,7 +818,8 @@ fun FriendItem(
                         DropdownMenu(
                             expanded = showContactMenu,
                             onDismissRequest = { showContactMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            offset = DpOffset(x = (-16).dp, y = 0.dp)
                         ) {
                             if (friend.email.isNotBlank()) {
                                 DropdownMenuItem(

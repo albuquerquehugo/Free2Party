@@ -72,8 +72,11 @@ class ProfileViewModel(
         set(value) {
             _phoneNumber = value
             if (value.length >= 3) {
-                com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
-                    countryCode = it
+                val isNanp = Countries.find { it.code == countryCode }?.phoneCode == "+1"
+                if (countryCode.isEmpty() || isNanp) {
+                    com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
+                        countryCode = it
+                    }
                 }
             }
         }
@@ -86,8 +89,11 @@ class ProfileViewModel(
         set(value) {
             _whatsappNumber = value
             if (value.length >= 3) {
-                com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
-                    whatsappCountryCode = it
+                val isNanp = Countries.find { it.code == whatsappCountryCode }?.phoneCode == "+1"
+                if (whatsappCountryCode.isEmpty() || isNanp) {
+                    com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
+                        whatsappCountryCode = it
+                    }
                 }
             }
         }
