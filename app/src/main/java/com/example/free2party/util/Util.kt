@@ -268,6 +268,42 @@ fun isValidDateDigits(digits: String, pattern: String): Boolean {
     }.getOrDefault(false)
 }
 
+/**
+ * Validates if the given birthday string and its corresponding format pattern represent a valid date.
+ * @param birthday The birthday string to validate.
+ * @param context The context used to retrieve resources and start the activity.
+ * @param patternResId The date pattern (e.g., "MM/dd/yyyy") used to parse the birthday string.
+ * @return `true` if the birthday matches the pattern and represents a real date, `false` otherwise.
+ */
+fun isBirthdayFieldValid(birthday: String, context: Context, patternResId: Int?): Boolean {
+    if (birthday.isNotEmpty() && birthday.length != 8) return false
+
+    if (birthday.isEmpty()) return true
+    if (patternResId == null) return true
+
+    val pattern = context.getString(patternResId).filter { it.isLetter() }
+    return isValidDateDigits(birthday, pattern)
+}
+
+/**
+ * Validates whether the given string is a valid phone number.
+ * @param number The phone number string to validate.
+ * @param countryCode The phone country code string to validate.
+ * @return `true` if the phone number is valid; `false` otherwise.
+ */
+fun isPhoneValid(number: String, countryCode: String): Boolean {
+    if (number.isEmpty()) return countryCode.isEmpty()
+    val country = com.example.free2party.data.model.Countries.find { it.code == countryCode }
+    return country == null || number.length == country.digitsCount
+}
+
+/**
+ * Opens the default email client with a pre-filled recipient, subject, and body.
+ * @param context The context used to retrieve resources and start the activity.
+ * @param email The recipient's email address.
+ * @param subject The subject line of the email. Defaults to the app name.
+ * @param body The message body of the email. Defaults to a standard hang-out message.
+ */
 fun openEmail(
     context: Context,
     email: String,
@@ -283,6 +319,12 @@ fun openEmail(
     context.startActivity(intent)
 }
 
+/**
+ * Opens the device's default SMS application with a pre-filled phone number and message.
+ * @param context The context used to start the activity and retrieve string resources.
+ * @param phoneNumber The recipient's phone number.
+ * @param message The body text of the SMS. Defaults to a standard hang-out message from resources.
+ */
 fun openSMS(
     context: Context,
     phoneNumber: String,
@@ -296,6 +338,11 @@ fun openSMS(
     context.startActivity(intent)
 }
 
+/**
+ * Opens a third-party application or web browser to handle the provided URL.
+ * @param context The context used to start the activity.
+ * @param url The URI string to be opened (e.g., a website URL or a deep link).
+ */
 fun openThirdPartyApp(
     context: Context,
     url: String
@@ -307,8 +354,13 @@ fun openThirdPartyApp(
 }
 
 /**
- * Detects the country code from a 3-digit NANP area code.
- * Returns the 2-letter ISO country code or null if it's not a recognized NANP area code.
+ * Detects the country code from a 3-digit North American Numbering Plan (NANP) area code.
+ * This function maps specific area codes to their respective ISO 3166-1 alpha-2 country codes.
+ * If the area code is not found in the specific mapping but starts with a digit between 2 and 9,
+ * it defaults to "US".
+ * @param areaCode A string containing at least 3 digits representing the area code.
+ * @return The 2-letter ISO country code (e.g., "CA", "PR", "US") or `null` if the
+ * input is invalid or not a recognized NANP area code.
  */
 fun getCountryFromNanpAreaCode(areaCode: String): String? {
     if (areaCode.length < 3) return null

@@ -24,7 +24,8 @@ import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.UiText
-import com.example.free2party.util.isValidDateDigits
+import com.example.free2party.util.isBirthdayFieldValid
+import com.example.free2party.util.isPhoneValid
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -108,30 +109,25 @@ class ProfileViewModel(
     var gradientBackground by mutableStateOf(true)
         private set
 
-    private val isPhoneValid by derivedStateOf {
-        if (phoneNumber.isEmpty()) return@derivedStateOf countryCode.isEmpty()
-        val country = Countries.find { it.code == countryCode }
-        country == null || phoneNumber.length == country.digitsCount
+    private val isPhoneNumberValid by derivedStateOf {
+        isPhoneValid(phoneNumber, countryCode)
     }
 
     fun isBirthdayValid(context: Context): Boolean {
         val pattern = (uiState as? ProfileUiState.Success)?.user?.settings?.datePattern
-        return birthday.isEmpty() || (pattern != null && isValidDateDigits(
-            birthday,
-            context.getString(pattern.patternResId)
-        ))
+        return isBirthdayFieldValid(birthday, context, pattern?.patternResId)
     }
 
-    private val isWhatsappValid by derivedStateOf {
-        if (whatsappNumber.isEmpty()) return@derivedStateOf whatsappCountryCode.isEmpty()
-        val country = Countries.find { it.code == whatsappCountryCode }
-        country == null || whatsappNumber.length == country.digitsCount
+    private val isWhatsappNumberValid by derivedStateOf {
+        isPhoneValid(whatsappNumber, whatsappCountryCode)
     }
 
     fun isFormValid(context: Context): Boolean {
-        return firstName.isNotBlank() && lastName.isNotBlank() && isPhoneValid && isBirthdayValid(
-            context
-        ) && isWhatsappValid
+        return firstName.isNotBlank() &&
+                lastName.isNotBlank() &&
+                isPhoneNumberValid &&
+                isBirthdayValid(context) &&
+                isWhatsappNumberValid
     }
 
     val hasChanges by derivedStateOf {
@@ -226,7 +222,12 @@ class ProfileViewModel(
         tiktokUsername = tiktokUsername.trim()
         xUsername = xUsername.trim()
 
-        if (!isPhoneValid) {
+        if (firstName.isBlank() || lastName.isBlank()) {
+            uiState = ProfileUiState.Error(UiText.StringResource(R.string.error_required_fields))
+            return
+        }
+
+        if (!isPhoneNumberValid) {
             uiState =
                 ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
             return
@@ -237,13 +238,11 @@ class ProfileViewModel(
             return
         }
 
-        if (!isWhatsappValid) {
+        if (!isWhatsappNumberValid) {
             uiState =
                 ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_whatsapp))
             return
         }
-
-        if (!isFormValid(context)) return
 
         val whatsappFullNumber = if (whatsappNumber.isNotBlank()) {
             val country = Countries.find { it.code == whatsappCountryCode }

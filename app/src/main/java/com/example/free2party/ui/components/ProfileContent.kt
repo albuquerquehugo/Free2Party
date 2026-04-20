@@ -157,8 +157,12 @@ fun ProfileContent(
     val whatsappInteractionSource = remember { MutableInteractionSource() }
     val isWhatsappFocused by whatsappInteractionSource.collectIsFocusedAsState()
 
+    val emailInteractionSource = remember { MutableInteractionSource() }
+    val isEmailFocused by emailInteractionSource.collectIsFocusedAsState()
+
     var wasPhoneFocused by remember { mutableStateOf(false) }
     var wasWhatsappFocused by remember { mutableStateOf(false) }
+    var wasEmailFocused by remember { mutableStateOf(false) }
 
     val isPhoneValidInternal = remember(phoneNumber, countryCode) {
         val country = Countries.find { it.code == countryCode }
@@ -168,6 +172,11 @@ fun ProfileContent(
     val isWhatsappValidInternal = remember(whatsappNumber, whatsappCountryCode) {
         val country = Countries.find { it.code == whatsappCountryCode }
         whatsappNumber.isEmpty() || (country != null && whatsappNumber.length == country.digitsCount)
+    }
+
+    val isEmailValidInternal = remember(email) {
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+        email.isEmpty() || emailPattern.matches(email)
     }
 
     LaunchedEffect(isPhoneFocused, isPhoneValidInternal) {
@@ -183,6 +192,14 @@ fun ProfileContent(
             wasWhatsappFocused = true
         } else if (isWhatsappValidInternal) {
             wasWhatsappFocused = false
+        }
+    }
+
+    LaunchedEffect(isEmailFocused, isEmailValidInternal) {
+        if (isEmailFocused) {
+            wasEmailFocused = true
+        } else if (isEmailValidInternal) {
+            wasEmailFocused = false
         }
     }
 
@@ -221,11 +238,35 @@ fun ProfileContent(
         }
     }
 
-    val isBirthdayError = remember(birthday, birthdayPattern) {
-        birthday.isNotEmpty() && birthday.length == 8 && isValidDateDigits(
-            birthday,
-            birthdayPattern
-        ).let { !it }
+    val birthdayInteractionSource = remember { MutableInteractionSource() }
+    val isBirthdayFocused by birthdayInteractionSource.collectIsFocusedAsState()
+    var wasBirthdayFocused by remember { mutableStateOf(false) }
+
+    val isBirthdayValidInternal = remember(birthday, birthdayPattern) {
+        birthday.isEmpty() || (birthday.length == 8 && isValidDateDigits(birthday, birthdayPattern))
+    }
+
+    LaunchedEffect(isBirthdayFocused, isBirthdayValidInternal) {
+        if (isBirthdayFocused) {
+            wasBirthdayFocused = true
+        } else if (isBirthdayValidInternal) {
+            wasBirthdayFocused = false
+        }
+    }
+
+    val isBirthdayError = remember(birthday, isBirthdayFocused, wasBirthdayFocused, birthdayPattern) {
+        if (isBirthdayFocused || !wasBirthdayFocused || birthday.isEmpty()) false
+        else {
+            birthday.length != 8 || !isValidDateDigits(birthday, birthdayPattern)
+        }
+    }
+
+    val isEmailError = remember(email, isEmailFocused, wasEmailFocused) {
+        if (isEmailFocused || !wasEmailFocused || email.isEmpty()) false
+        else {
+            val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+            !emailPattern.matches(email)
+        }
     }
 
     val isPhoneError = remember(phoneNumber, countryCode, isPhoneFocused, wasPhoneFocused) {
@@ -350,6 +391,16 @@ fun ProfileContent(
             icon = Icons.Default.Email,
             modifier = Modifier.testTag("email_field"),
             enabled = !isLoading && isEmailEnabled,
+            isError = isEmailError,
+            supportingText = if (isEmailError) {
+                {
+                    Text(
+                        stringResource(R.string.error_invalid_email),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            } else null,
+            interactionSource = emailInteractionSource,
             showClearIcon = isEmailEnabled,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -465,6 +516,7 @@ fun ProfileContent(
             placeholder = stringResource(datePattern.labelResId),
             icon = Icons.Default.Cake,
             modifier = Modifier.testTag("birthday_field"),
+            interactionSource = birthdayInteractionSource,
             isError = isBirthdayError,
             supportingText = if (isBirthdayError) {
                 {

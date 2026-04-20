@@ -19,7 +19,8 @@ import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.exception.AuthException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.util.UiText
-import com.example.free2party.util.isValidDateDigits
+import com.example.free2party.util.isBirthdayFieldValid
+import com.example.free2party.util.isPhoneValid
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -105,23 +106,21 @@ class RegisterViewModel(
         }
     }
 
-    private val isPhoneValid by derivedStateOf {
-        if (phoneNumber.isEmpty()) return@derivedStateOf countryCode.isEmpty()
-        val country = Countries.find { it.code == countryCode }
-        country == null || phoneNumber.length == country.digitsCount
+    private val isEmailValid by derivedStateOf {
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+        emailPattern.matches(email)
+    }
+
+    private val isPhoneNumberValid by derivedStateOf {
+        isPhoneValid(phoneNumber, countryCode)
     }
 
     private fun isBirthdayValid(context: Context): Boolean {
-        return birthday.isEmpty() || isValidDateDigits(
-            birthday,
-            context.getString(DatePattern.YYYY_MM_DD.patternResId)
-        )
+        return isBirthdayFieldValid(birthday, context, DatePattern.YYYY_MM_DD.patternResId)
     }
 
-    private val isWhatsappValid by derivedStateOf {
-        if (whatsappNumber.isEmpty()) return@derivedStateOf whatsappCountryCode.isEmpty()
-        val country = Countries.find { it.code == whatsappCountryCode }
-        country == null || whatsappNumber.length == country.digitsCount
+    private val isWhatsappNumberValid by derivedStateOf {
+        isPhoneValid(whatsappNumber, whatsappCountryCode)
     }
 
     private val isPasswordConfirmed by derivedStateOf {
@@ -129,8 +128,14 @@ class RegisterViewModel(
     }
 
     fun isFormValid(context: Context): Boolean {
-        return firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank()
-                && isPhoneValid && isBirthdayValid(context) && isWhatsappValid && isPasswordConfirmed
+        return firstName.isNotBlank() &&
+                lastName.isNotBlank() &&
+                isEmailValid &&
+                password.isNotBlank() &&
+                isPhoneNumberValid &&
+                isBirthdayValid(context) &&
+                isWhatsappNumberValid &&
+                isPasswordConfirmed
     }
 
     var uiState by mutableStateOf<RegisterUiState>(RegisterUiState.Idle)
@@ -147,7 +152,9 @@ class RegisterViewModel(
         tiktokUsername = tiktokUsername.trim()
         xUsername = xUsername.trim()
 
-        if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() || password.isBlank()) {
+        if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() ||
+            password.isBlank() || confirmPassword.isBlank()
+        ) {
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_required_fields))
             return
@@ -166,7 +173,7 @@ class RegisterViewModel(
             return
         }
 
-        if (!isPhoneValid) {
+        if (!isPhoneNumberValid) {
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
             return
@@ -177,7 +184,7 @@ class RegisterViewModel(
             return
         }
 
-        if (!isWhatsappValid) {
+        if (!isWhatsappNumberValid) {
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_whatsapp))
             return
