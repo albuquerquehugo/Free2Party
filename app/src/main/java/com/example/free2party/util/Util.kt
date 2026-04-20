@@ -3,6 +3,7 @@ package com.example.free2party.util
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.core.net.toUri
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.R
@@ -339,6 +340,41 @@ fun openSMS(
 }
 
 /**
+ * Opens the Facebook Messenger app to a specific user's chat.
+ * Fallbacks to the web version if the app is not installed.
+ * @param context The context used to start the activity.
+ * @param username The Facebook username to message.
+ */
+fun openFacebookMessenger(
+    context: Context,
+    username: String
+) {
+    // If Messenger is installed and configured to open these links, it will open directly.
+    // If not, it will open the browser.
+    val uri = "https://m.me/$username".toUri()
+    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    try {
+        // Try to specifically target Messenger if possible, but don't fail if we can't
+        val messengerIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            `package` = "com.facebook.orca"
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(messengerIntent)
+    } catch (_: Exception) {
+        // Fallback to the generic intent which will open in browser or ask the user
+        try {
+            context.startActivity(intent)
+        } catch (_: Exception) {
+            // Last resort: Inform the user if no app can handle the request
+            Toast.makeText(context, "No app available to handle this request", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+/**
  * Opens a third-party application or web browser to handle the provided URL.
  * @param context The context used to start the activity.
  * @param url The URI string to be opened (e.g., a website URL or a deep link).
@@ -349,8 +385,13 @@ fun openThirdPartyApp(
 ) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
         data = url.toUri()
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
-    context.startActivity(intent)
+    try {
+        context.startActivity(intent)
+    } catch (_: Exception) {
+        // Silently fail or handle error if no app can handle the intent
+    }
 }
 
 /**

@@ -720,8 +720,8 @@ fun ProfileContent(
         InputTextField(
             value = facebookUsername,
             onValueChange = onFacebookUsernameChange,
-            label = stringResource(R.string.facebook_username),
-            icon = Icons.Default.Facebook,
+            label = stringResource(R.string.messenger_username),
+            painter = painterResource(id = R.drawable.messenger),
             modifier = Modifier.testTag("facebook_field"),
             prefix = { Text("@") },
             enabled = !isLoading,

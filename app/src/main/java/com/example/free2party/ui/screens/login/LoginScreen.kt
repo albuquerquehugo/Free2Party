@@ -349,7 +349,7 @@ fun LoginScreen(
         ) {
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_transparent),
-                contentDescription = stringResource(R.string.logo_content_description),
+                contentDescription = stringResource(R.string.description_logo_content),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
