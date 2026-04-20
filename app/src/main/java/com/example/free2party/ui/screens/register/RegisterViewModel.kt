@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.register
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -84,8 +85,11 @@ class RegisterViewModel(
         country == null || phoneNumber.length == country.digitsCount
     }
 
-    private val isBirthdayValid by derivedStateOf {
-        birthday.isEmpty() || isValidDateDigits(birthday, DatePattern.YYYY_MM_DD)
+    private fun isBirthdayValid(context: Context): Boolean {
+        return birthday.isEmpty() || isValidDateDigits(
+            birthday,
+            context.getString(DatePattern.YYYY_MM_DD.patternResId)
+        )
     }
 
     private val isWhatsappValid by derivedStateOf {
@@ -98,15 +102,15 @@ class RegisterViewModel(
         password == confirmPassword
     }
 
-    val isFormValid by derivedStateOf {
-        firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank()
-                && isPhoneValid && isBirthdayValid && isWhatsappValid && isPasswordConfirmed
+    fun isFormValid(context: Context): Boolean {
+        return firstName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+                && isPhoneValid && isBirthdayValid(context) && isWhatsappValid && isPasswordConfirmed
     }
 
     var uiState by mutableStateOf<RegisterUiState>(RegisterUiState.Idle)
         private set
 
-    fun onRegisterClick() {
+    fun onRegisterClick(context: Context) {
         val normalizedEmail = email.trim().lowercase()
         firstName = firstName.trim()
         lastName = lastName.trim()
@@ -142,7 +146,7 @@ class RegisterViewModel(
             return
         }
 
-        if (!isBirthdayValid) {
+        if (!isBirthdayValid(context)) {
             uiState = RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_date))
             return
         }

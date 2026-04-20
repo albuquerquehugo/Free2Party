@@ -59,7 +59,7 @@ fun AboutDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.about),
+                    text = stringResource(R.string.title_about),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -132,7 +132,7 @@ fun AboutDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.close))
+                    Text(stringResource(R.string.button_close))
                 }
             }
         }

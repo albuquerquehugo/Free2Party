@@ -84,6 +84,12 @@ class LoginViewModel(
         }
     }
 
+    fun updateGradientBackground(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setGradientBackground(enabled)
+        }
+    }
+
     fun onLoginClick(onSuccess: () -> Unit) {
         if (uiState is LoginUiState.Loading) return
 
@@ -127,7 +133,7 @@ class LoginViewModel(
             authRepository.resendVerificationEmail(normalizedEmail, password)
                 .onSuccess {
                     uiState = LoginUiState.Idle
-                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.resend_verification_success)))
+                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.message_resend_verification_success)))
                 }
                 .onFailure { e ->
                     val errorText = if (e is AuthException && e.messageRes != null) {

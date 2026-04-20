@@ -117,6 +117,7 @@ fun SettingsScreen(
                     paddingValues = paddingValues,
                     user = uiState.user,
                     currentThemeMode = currentThemeMode,
+                    gradientBackground = gradientBackground,
                     isSaving = uiState.isSaving,
                     onSetThemeMode = onSetThemeMode,
                     onSetGradientBackground = onSetGradientBackground,
@@ -132,6 +133,7 @@ fun SettingsScreenContent(
     paddingValues: PaddingValues,
     user: User,
     currentThemeMode: ThemeMode,
+    gradientBackground: Boolean,
     isSaving: Boolean,
     onSetThemeMode: (ThemeMode) -> Unit,
     onSetGradientBackground: (Boolean) -> Unit,
@@ -144,10 +146,21 @@ fun SettingsScreenContent(
         mutableStateOf(user.settings.datePattern)
     }
 
+    val oldPatternString = stringResource(user.settings.datePattern.patternResId).replace("-", "")
+    val newPatternString = stringResource(datePattern.patternResId).replace("-", "")
+
     val hasChanges = remember(user, use24HourFormat, datePattern) {
         use24HourFormat != user.settings.use24HourFormat ||
                 datePattern != user.settings.datePattern
     }
+
+    val cardColors = CardDefaults.cardColors(
+        containerColor = if (gradientBackground) {
+            MaterialTheme.colorScheme.surface.copy(alpha = if (isSystemInDarkTheme()) 0.1f else 0.5f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
+    )
 
     Column(
         modifier = Modifier
@@ -157,15 +170,21 @@ fun SettingsScreenContent(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(
+        // Section 1: Appearance (Auto-applied)
+        Text(
+            text = stringResource(R.string.title_appearance),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isSystemInDarkTheme()) {
-                    MaterialTheme.colorScheme.surface.copy(alpha = 0.1f)
-                } else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-            )
+                .padding(top = 16.dp, bottom = 16.dp)
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = cardColors
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -173,7 +192,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.label_app_theme),
+                    text = stringResource(R.string.label_theme_mode),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -189,7 +208,7 @@ fun SettingsScreenContent(
                 ) {
                     ThemeMode.entries.forEach { mode ->
                         SettingsOption(
-                            label = mode.label,
+                            label = stringResource(mode.labelResId),
                             selected = currentThemeMode == mode,
                             onClick = { onSetThemeMode(mode) },
                             enabled = true
@@ -222,21 +241,36 @@ fun SettingsScreenContent(
                 ) {
                     SettingsOption(
                         label = stringResource(R.string.option_mesh_gradient),
-                        selected = user.settings.gradientBackground,
+                        selected = gradientBackground,
                         onClick = { onSetGradientBackground(true) },
                         enabled = !isSaving
                     )
                     SettingsOption(
                         label = stringResource(R.string.option_solid),
-                        selected = !user.settings.gradientBackground,
+                        selected = !gradientBackground,
                         onClick = { onSetGradientBackground(false) },
                         enabled = !isSaving
                     )
                 }
             }
+        }
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+        // Section 2: Preferences (Requires Save)
+        Text(
+            text = stringResource(R.string.title_preferences),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp, bottom = 16.dp)
+        )
 
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = cardColors
+        ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.Top,
@@ -296,7 +330,7 @@ fun SettingsScreenContent(
                 ) {
                     DatePattern.entries.forEach { pattern ->
                         SettingsOption(
-                            label = pattern.label,
+                            label = stringResource(pattern.labelResId),
                             selected = datePattern == pattern,
                             onClick = { datePattern = pattern },
                             enabled = !isSaving
@@ -304,64 +338,65 @@ fun SettingsScreenContent(
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    val oldPattern = user.settings.datePattern
+                    val newPattern = datePattern
 
-        Button(
-            onClick = {
-                val oldPattern = user.settings.datePattern
-                val newPattern = datePattern
+                    val updatedBirthday = if (oldPattern != newPattern && user.birthday.length == 8) {
+                        // Convert birthday from old pattern digits to new pattern digits
+                        val oldSdf = SimpleDateFormat(
+                            oldPatternString,
+                            Locale.getDefault()
+                        ).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
+                        val newSdf = SimpleDateFormat(
+                            newPatternString,
+                            Locale.getDefault()
+                        ).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
 
-                val updatedBirthday = if (oldPattern != newPattern && user.birthday.length == 8) {
-                    // Convert birthday from old pattern digits to new pattern digits
-                    val oldSdf = SimpleDateFormat(
-                        oldPattern.pattern.replace("-", ""),
-                        Locale.getDefault()
-                    ).apply {
-                        timeZone = TimeZone.getTimeZone("UTC")
+                        runCatching {
+                            val date = oldSdf.parse(user.birthday)
+                            if (date != null) newSdf.format(date) else user.birthday
+                        }.getOrDefault(user.birthday)
+                    } else {
+                        user.birthday
                     }
-                    val newSdf = SimpleDateFormat(
-                        newPattern.pattern.replace("-", ""),
-                        Locale.getDefault()
-                    ).apply {
-                        timeZone = TimeZone.getTimeZone("UTC")
-                    }
 
-                    runCatching {
-                        val date = oldSdf.parse(user.birthday)
-                        if (date != null) newSdf.format(date) else user.birthday
-                    }.getOrDefault(user.birthday)
-                } else {
-                    user.birthday
-                }
-
-                onUpdateSettings(
-                    user.copy(
-                        birthday = updatedBirthday,
-                        settings = user.settings.copy(
-                            use24HourFormat = use24HourFormat,
-                            datePattern = datePattern
+                    onUpdateSettings(
+                        user.copy(
+                            birthday = updatedBirthday,
+                            settings = user.settings.copy(
+                                use24HourFormat = use24HourFormat,
+                                datePattern = datePattern,
+                                themeMode = currentThemeMode,
+                                gradientBackground = gradientBackground
+                            )
                         )
                     )
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            enabled = hasChanges && !isSaving
-        ) {
-            if (isSaving) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    stringResource(R.string.button_save_settings),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                    .height(56.dp),
+                enabled = hasChanges && !isSaving
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.button_save_settings),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
         }
 

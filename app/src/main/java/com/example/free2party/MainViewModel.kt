@@ -72,8 +72,9 @@ class MainViewModel(
             }
         }
 
-        observeNotifications()
+        observeUserSettings()
         observeFriendRequests()
+        observeNotifications()
     }
 
     private fun observeThemeMode() {
@@ -92,53 +93,46 @@ class MainViewModel(
         }
     }
 
-    private fun observeNotifications() {
+    private fun observeUserSettings() {
         viewModelScope.launch {
             userRepository.userIdFlow.collectLatest { uid ->
                 if (uid.isNotBlank()) {
-                    combine(
-                        socialRepository.getNotifications(),
-                        settingsRepository.shownNotificationIdsFlow,
-                        activeSystemNotifications
-                    ) { notifications, shownIds, suppressedIds ->
-                        Triple(notifications, shownIds, suppressedIds)
-                    }.collect { (notifications, shownIds, suppressedIds) ->
-                        val currentIds = notifications.map { it.id }.toSet()
+                    // Initial Sync: Push local choices to Cloud (especially important after login)
+                    val localTheme = settingsRepository.themeModeFlow.first()
+                    val localBackground = settingsRepository.gradientBackgroundFlow.first()
 
-                        val removedIds = shownIds.filter { id ->
-                            !currentIds.contains(id) && !id.contains("_")
-                        }
-                        removedIds.forEach { id ->
-                            settingsRepository.clearShownNotification(id)
-                        }
+                    val initialUser = userRepository.observeUser(uid).first()
+                    if (initialUser.settings.themeMode != localTheme || initialUser.settings.gradientBackground != localBackground) {
+                        Log.d("MainViewModel", "Pushing local settings to Cloud at login/startup")
+                        val updatedUser = initialUser.copy(
+                            settings = initialUser.settings.copy(
+                                themeMode = localTheme,
+                                gradientBackground = localBackground
+                            )
+                        )
+                        userRepository.updateUser(updatedUser)
+                    }
 
-                        // Dismiss if read or deleted
-                        val toDismiss = suppressedIds.filter { id ->
-                            !id.contains("_") &&
-                                    (!currentIds.contains(id) || notifications.find { it.id == id }?.isRead == true)
-                        }
+                    // Continuous Pull Sync: Only from Cloud to Local
+                    userRepository.observeUser(uid).collectLatest { user ->
+                        val currentTheme = settingsRepository.themeModeFlow.first()
+                        val currentBackground = settingsRepository.gradientBackgroundFlow.first()
 
-                        toDismiss.forEach { id ->
-                            Log.d("MainViewModel", "Dismissing system notification: $id")
-                            _systemNotificationToDismiss.send(id)
-                            activeSystemNotifications.update { it - id }
+                        if (user.settings.themeMode != currentTheme) {
+                            Log.d(
+                                "MainViewModel",
+                                "Syncing themeMode from Cloud: ${user.settings.themeMode}"
+                            )
+                            settingsRepository.setThemeMode(user.settings.themeMode)
                         }
-
-                        notifications.forEach { notification ->
-                            if (notification.type == NotificationType.FRIEND_ADDED &&
-                                !notification.isRead &&
-                                !shownIds.contains(notification.id) &&
-                                !suppressedIds.contains(notification.id)
-                            ) {
-                                Log.d("MainViewModel", "Triggering banner: ${notification.id}")
-                                activeSystemNotifications.update { it + notification.id }
-                                settingsRepository.markNotificationAsShown(notification.id)
-                                _systemNotificationToDisplay.send(notification)
-                            }
+                        if (user.settings.gradientBackground != currentBackground) {
+                            Log.d(
+                                "MainViewModel",
+                                "Syncing gradientBackground from Cloud: ${user.settings.gradientBackground}"
+                            )
+                            settingsRepository.setGradientBackground(user.settings.gradientBackground)
                         }
                     }
-                } else {
-                    activeSystemNotifications.value = emptySet()
                 }
             }
         }
@@ -188,6 +182,58 @@ class MainViewModel(
                                         type = NotificationType.FRIEND_REQUEST_RECEIVED
                                     )
                                 )
+                            }
+                        }
+                    }
+                } else {
+                    activeSystemNotifications.value = emptySet()
+                }
+            }
+        }
+    }
+
+    private fun observeNotifications() {
+        viewModelScope.launch {
+            userRepository.userIdFlow.collectLatest { uid ->
+                if (uid.isNotBlank()) {
+                    combine(
+                        socialRepository.getNotifications(),
+                        settingsRepository.shownNotificationIdsFlow,
+                        activeSystemNotifications
+                    ) { notifications, shownIds, suppressedIds ->
+                        Triple(notifications, shownIds, suppressedIds)
+                    }.collect { (notifications, shownIds, suppressedIds) ->
+                        val currentIds = notifications.map { it.id }.toSet()
+
+                        val removedIds = shownIds.filter { id ->
+                            !currentIds.contains(id) && !id.contains("_")
+                        }
+                        removedIds.forEach { id ->
+                            settingsRepository.clearShownNotification(id)
+                        }
+
+                        // Dismiss if read or deleted
+                        val toDismiss = suppressedIds.filter { id ->
+                            !id.contains("_") &&
+                                    (!currentIds.contains(id) || notifications.find { it.id == id }?.isRead == true)
+                        }
+
+                        toDismiss.forEach { id ->
+                            Log.d("MainViewModel", "Dismissing system notification: $id")
+                            _systemNotificationToDismiss.send(id)
+                            activeSystemNotifications.update { it - id }
+                        }
+
+                        notifications.forEach { notification ->
+                            if (notification.type == NotificationType.FRIEND_ADDED &&
+                                !notification.isRead &&
+                                !shownIds.contains(notification.id) &&
+                                !suppressedIds.contains(notification.id)
+                            ) {
+                                Log.d("MainViewModel", "Triggering banner: ${notification.id}")
+                                activeSystemNotifications.update { it + notification.id }
+                                settingsRepository.markNotificationAsShown(notification.id)
+                                _systemNotificationToDisplay.send(notification)
                             }
                         }
                     }

@@ -47,7 +47,7 @@ fun TopBar(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         tint = color,
-                        contentDescription = stringResource(R.string.back)
+                        contentDescription = stringResource(R.string.text_back)
                     )
                 }
             }

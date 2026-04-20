@@ -204,7 +204,8 @@ fun LoginRoute(
             viewModel.resetFields()
             onNavigateToRegister()
         },
-        gradientBackground = viewModel.gradientBackground
+        gradientBackground = viewModel.gradientBackground,
+        onSetGradientBackground = { viewModel.updateGradientBackground(it) }
     )
 }
 
@@ -227,7 +228,8 @@ fun LoginScreen(
     onDismissForgotPassword: () -> Unit,
     onResetState: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    gradientBackground: Boolean
+    gradientBackground: Boolean,
+    onSetGradientBackground: (Boolean) -> Unit
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     var showThemeMenu by remember { mutableStateOf(false) }
@@ -250,29 +252,28 @@ fun LoginScreen(
             Icon(
                 imageVector = Icons.Default.Contrast,
                 tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = stringResource(R.string.appearance)
+                contentDescription = stringResource(R.string.title_appearance)
             )
 
             DropdownMenu(
+                modifier = Modifier.padding(start = 8.dp),
                 expanded = showThemeMenu,
                 onDismissRequest = { showThemeMenu = false },
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Text(
-                    text = stringResource(R.string.appearance),
+                    text = stringResource(R.string.title_theme_mode),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp, bottom = 16.dp),
+                        .padding(top = 16.dp, bottom = 8.dp),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
 
-                HorizontalDivider()
-
                 ThemeMode.entries.forEach { mode ->
                     DropdownMenuItem(
-                        text = { Text(mode.label) },
+                        text = { Text(stringResource(mode.labelResId)) },
                         onClick = {
                             onSetThemeMode(mode)
                             showThemeMenu = false
@@ -288,6 +289,54 @@ fun LoginScreen(
                         }
                     )
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                HorizontalDivider()
+
+                Text(
+                    text = stringResource(R.string.title_background),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 8.dp),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.option_mesh_gradient)) },
+                    onClick = {
+                        onSetGradientBackground(true)
+                        showThemeMenu = false
+                    },
+                    trailingIcon = {
+                        if (gradientBackground) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.option_solid)) },
+                    onClick = {
+                        onSetGradientBackground(false)
+                        showThemeMenu = false
+                    },
+                    trailingIcon = {
+                        if (!gradientBackground) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                )
             }
         }
 
@@ -313,7 +362,7 @@ fun LoginScreen(
             InputTextField(
                 value = email,
                 onValueChange = onEmailChange,
-                label = stringResource(R.string.email_label),
+                label = stringResource(R.string.label_email),
                 icon = Icons.Default.Email,
                 enabled = uiState !is LoginUiState.Loading,
                 keyboardOptions = KeyboardOptions(
@@ -330,7 +379,7 @@ fun LoginScreen(
             InputTextField(
                 value = password,
                 onValueChange = onPasswordChange,
-                label = stringResource(R.string.password_label),
+                label = stringResource(R.string.label_password),
                 isPassword = true,
                 passwordVisible = passwordVisible,
                 changeVisibility = { passwordVisible = !passwordVisible },
@@ -351,7 +400,7 @@ fun LoginScreen(
                 enabled = uiState !is LoginUiState.Loading
             ) {
                 Text(
-                    text = stringResource(R.string.forgot_password),
+                    text = stringResource(R.string.link_forgot_password),
                     style = MaterialTheme.typography.labelMedium,
                     color =
                         if (uiState is LoginUiState.Loading) MaterialTheme.colorScheme.outline
@@ -412,7 +461,7 @@ fun LoginScreen(
                         ) else MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text(stringResource(R.string.login))
+                    Text(stringResource(R.string.button_login))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -463,7 +512,7 @@ fun LoginScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.sign_in_with_google),
+                            stringResource(R.string.button_sign_in_with_google),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -476,7 +525,7 @@ fun LoginScreen(
                     enabled = uiState !is LoginUiState.Loading
                 ) {
                     Text(
-                        stringResource(R.string.dont_have_account_sign_up),
+                        stringResource(R.string.link_sign_up),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -487,8 +536,8 @@ fun LoginScreen(
     if (showForgotPasswordDialog) {
         val (forgotPasswordEmail, setForgotPasswordEmail) = remember { mutableStateOf("") }
         EmailDialog(
-            title = stringResource(R.string.reset_password),
-            description = stringResource(R.string.reset_password_description),
+            title = stringResource(R.string.title_reset_password),
+            description = stringResource(R.string.description_reset_password),
             email = forgotPasswordEmail,
             onValueChange = {
                 setForgotPasswordEmail(it)
@@ -498,7 +547,7 @@ fun LoginScreen(
             onConfirm = { onForgotPasswordConfirm(forgotPasswordEmail) },
             isLoading = uiState is LoginUiState.Loading,
             errorMessage = if (uiState is LoginUiState.Error) uiState.message.asString() else null,
-            confirmButtonLabel = stringResource(R.string.send_link)
+            confirmButtonLabel = stringResource(R.string.button_send_link)
         )
     }
 }

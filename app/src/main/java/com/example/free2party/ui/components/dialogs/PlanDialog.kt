@@ -476,7 +476,7 @@ fun PlanDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -501,8 +501,8 @@ fun PlanDialog(
                     enabled = isConfirmEnabled
                 ) {
                     Text(
-                        if (editingPlan == null) stringResource(R.string.add)
-                        else stringResource(R.string.update)
+                        if (editingPlan == null) stringResource(R.string.button_add)
+                        else stringResource(R.string.button_update)
                     )
                 }
             }
@@ -515,7 +515,7 @@ fun PlanDialog(
             colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = { setShowStartDatePicker(false) }) {
-                    Text(stringResource(R.string.ok))
+                    Text(stringResource(R.string.button_ok))
                 }
             }) {
             DatePicker(
@@ -538,7 +538,7 @@ fun PlanDialog(
             colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = { setShowEndDatePicker(false) }) {
-                    Text(stringResource(R.string.ok))
+                    Text(stringResource(R.string.button_ok))
                 }
             }) {
             DatePicker(
@@ -601,7 +601,7 @@ fun PlanDialog(
                         }
                         setShowStartTimePicker(false)
                         setShowEndTimePicker(false)
-                    }) { Text(stringResource(R.string.ok)) }
+                    }) { Text(stringResource(R.string.button_ok)) }
                 }
             }
         }

@@ -138,6 +138,8 @@ fun ProfileContent(
         uri?.let { onProfilePicChange(it) }
     }
     val focusManager = LocalFocusManager.current
+    val birthdayPattern = stringResource(datePattern.patternResId).replace("-", "")
+
     val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
 
     val (showCountryDialog, setShowCountryDialog) = remember { mutableStateOf(false) }
@@ -219,8 +221,11 @@ fun ProfileContent(
         }
     }
 
-    val isBirthdayError = remember(birthday, datePattern) {
-        birthday.isNotEmpty() && birthday.length == 8 && !isValidDateDigits(birthday, datePattern)
+    val isBirthdayError = remember(birthday, birthdayPattern) {
+        birthday.isNotEmpty() && birthday.length == 8 && isValidDateDigits(
+            birthday,
+            birthdayPattern
+        ).let { !it }
     }
 
     val isPhoneError = remember(phoneNumber, countryCode, isPhoneFocused, wasPhoneFocused) {
@@ -457,7 +462,7 @@ fun ProfileContent(
                 }
             },
             label = stringResource(R.string.birthday),
-            placeholder = datePattern.label,
+            placeholder = stringResource(datePattern.labelResId),
             icon = Icons.Default.Cake,
             modifier = Modifier.testTag("birthday_field"),
             isError = isBirthdayError,
@@ -761,7 +766,10 @@ fun ProfileContent(
     if (showDatePicker) {
         val initialDateMillis = if (birthday.length == 8) {
             val sdf =
-                SimpleDateFormat(datePattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+                SimpleDateFormat(
+                    birthdayPattern,
+                    Locale.getDefault()
+                ).apply {
                     timeZone = TimeZone.getTimeZone("UTC")
                 }
             runCatching { sdf.parse(birthday)?.time }.getOrNull()
@@ -781,12 +789,12 @@ fun ProfileContent(
                     }
                     setShowDatePicker(false)
                 }) {
-                    Text(stringResource(R.string.ok))
+                    Text(stringResource(R.string.button_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { setShowDatePicker(false) }) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(R.string.button_cancel))
                 }
             }
         ) {

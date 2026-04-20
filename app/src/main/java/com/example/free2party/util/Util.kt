@@ -2,7 +2,6 @@ package com.example.free2party.util
 
 import android.content.Context
 import android.content.Intent
-import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.FuturePlan
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -123,20 +122,6 @@ fun formatPlanDateInFull(dateStr: String): String {
     return "$month $day, ${parts[0]}"
 }
 
-fun formatPlanDateShort(dateStr: String, pattern: DatePattern = DatePattern.YYYY_MM_DD): String {
-    val internalSdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-    val targetSdf = SimpleDateFormat(pattern.pattern, Locale.getDefault()).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-
-    return runCatching {
-        val date = internalSdf.parse(dateStr)
-        if (date != null) targetSdf.format(date) else dateStr
-    }.getOrDefault(dateStr)
-}
-
 /**
  * Parses a date string into milliseconds representing UTC midnight of that date into epoch milliseconds.
  * @param dateString The date string in "yyyy-MM-dd" format to parse.
@@ -221,7 +206,12 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
  * @return A user-friendly string representing the duration (e.g., "1d 2h 30m", "5h 15m", "45m").
  * Returns "0m" if the duration is zero or negative.
  */
-fun calculateDuration(startDate: String, endDate: String, startTime: String, endTime: String): String {
+fun calculateDuration(
+    startDate: String,
+    endDate: String,
+    startTime: String,
+    endTime: String
+): String {
     val startDateMillis = parseDateToMillis(startDate) ?: 0L
     val endDateMillis = parseDateToMillis(endDate) ?: 0L
     val startTimeMinutes = parseTimeToMinutes(startTime) ?: 0
@@ -243,27 +233,28 @@ fun calculateDuration(startDate: String, endDate: String, startTime: String, end
             val m = if (minutes > 0) " ${minutes}m" else ""
             "$d$h$m".trim()
         }
+
         hours > 0 -> {
             val h = "${hours}h"
             val m = if (minutes > 0) " ${minutes}m" else ""
             "$h$m".trim()
         }
+
         else -> "${minutes}m"
     }
 }
 
 /**
- * Validates whether a string of exactly 8 digits represents a valid date according to the provided pattern.
- * The function strips separators from the pattern to match the digit-only input and ensures
- * the resulting date is not in the future.
+ * Validates whether a string of exactly 8 digits represents a valid date according to the provided pattern string.
+ * The function ensures the resulting date is not in the future.
  * @param digits A string containing 8 numeric characters.
- * @param pattern The [DatePattern] defining the expected sequence of years, months, and days.
+ * @param pattern The pattern string defining the expected sequence of years, months, and days.
  * @return `true` if the string is a valid past or present date; `false` otherwise.
  */
-fun isValidDateDigits(digits: String, pattern: DatePattern): Boolean {
+fun isValidDateDigits(digits: String, pattern: String): Boolean {
     if (digits.length != 8) return false
 
-    val format = SimpleDateFormat(pattern.pattern.replace("-", ""), Locale.getDefault()).apply {
+    val format = SimpleDateFormat(pattern, Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("UTC")
         isLenient = false
     }

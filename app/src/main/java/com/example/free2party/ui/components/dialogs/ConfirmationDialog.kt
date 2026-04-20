@@ -24,9 +24,9 @@ import com.example.free2party.R
 fun ConfirmationDialog(
     title: String,
     text: String,
-    confirmButtonText: String = stringResource(R.string.confirm),
+    confirmButtonText: String = stringResource(R.string.button_confirm),
     onConfirm: () -> Unit,
-    dismissButtonText: String = stringResource(R.string.cancel),
+    dismissButtonText: String = stringResource(R.string.button_cancel),
     onDismiss: () -> Unit,
     isDestructive: Boolean = false
 ) {
@@ -37,16 +37,16 @@ fun ConfirmationDialog(
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,

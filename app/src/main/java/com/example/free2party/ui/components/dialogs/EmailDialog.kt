@@ -94,7 +94,7 @@ fun EmailDialog(
             InputTextField(
                 value = email.trim(),
                 onValueChange = onValueChange,
-                label = stringResource(R.string.email_label),
+                label = stringResource(R.string.label_email),
                 icon = Icons.Default.Email,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading,
@@ -117,7 +117,7 @@ fun EmailDialog(
                     onClick = onDismiss,
                     enabled = !isLoading
                 ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(stringResource(R.string.button_cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(

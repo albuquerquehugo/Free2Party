@@ -417,7 +417,7 @@ fun DeclineFriendRequestDialog(
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
-                    Text(text = stringResource(R.string.cancel))
+                    Text(text = stringResource(R.string.button_cancel))
                 }
             }
         }
@@ -602,7 +602,7 @@ fun NotificationBox(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.delete)) },
+                    text = { Text(stringResource(R.string.text_delete)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Delete,

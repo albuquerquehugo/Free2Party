@@ -102,9 +102,9 @@ fun ProfileRoute(
         onUnblockUser = { viewModel.unblockUser(it) },
         blockedUsers = (viewModel.uiState as? ProfileUiState.Success)?.blockedUsers ?: emptyList(),
         hasChanges = viewModel.hasChanges,
-        isFormValid = viewModel.isFormValid,
+        isFormValid = viewModel.isFormValid(context),
         onDiscardChanges = { viewModel.discardChanges() },
-        onUpdateProfile = { viewModel.updateProfile() },
+        onUpdateProfile = { viewModel.updateProfile(context) },
         onDeleteAccount = { viewModel.deleteAccount() }
     )
 }
@@ -271,7 +271,7 @@ fun ProfileScreenContent(
         ConfirmationDialog(
             title = stringResource(R.string.delete_account),
             text = stringResource(R.string.delete_account_confirmation_message),
-            confirmButtonText = stringResource(R.string.delete),
+            confirmButtonText = stringResource(R.string.text_delete),
             onConfirm = {
                 setShowDeleteDialog(false)
                 onDeleteAccount()

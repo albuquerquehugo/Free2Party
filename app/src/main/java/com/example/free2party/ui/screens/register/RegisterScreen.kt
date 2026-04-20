@@ -84,7 +84,7 @@ fun RegisterRoute(
         tiktokUsername = viewModel.tiktokUsername,
         xUsername = viewModel.xUsername,
         profilePicUri = viewModel.profilePicUri,
-        isFormValid = viewModel.isFormValid,
+        isFormValid = viewModel.isFormValid(context),
         onFirstNameChange = { viewModel.firstName = it },
         onLastNameChange = { viewModel.lastName = it },
         onEmailChange = { viewModel.email = it },
@@ -103,7 +103,7 @@ fun RegisterRoute(
         onTiktokUsernameChange = { viewModel.tiktokUsername = it },
         onXUsernameChange = { viewModel.xUsername = it },
         onProfilePicChange = { viewModel.profilePicUri = it },
-        onRegisterClick = { viewModel.onRegisterClick() },
+        onRegisterClick = { viewModel.onRegisterClick(context) },
         onBackToLogin = {
             viewModel.resetFields()
             onBackToLogin()

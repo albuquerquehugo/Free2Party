@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.profile
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -87,9 +88,12 @@ class ProfileViewModel(
         country == null || phoneNumber.length == country.digitsCount
     }
 
-    private val isBirthdayValid by derivedStateOf {
+    fun isBirthdayValid(context: Context): Boolean {
         val pattern = (uiState as? ProfileUiState.Success)?.user?.settings?.datePattern
-        birthday.isEmpty() || (pattern != null && isValidDateDigits(birthday, pattern))
+        return birthday.isEmpty() || (pattern != null && isValidDateDigits(
+            birthday,
+            context.getString(pattern.patternResId)
+        ))
     }
 
     private val isWhatsappValid by derivedStateOf {
@@ -98,8 +102,10 @@ class ProfileViewModel(
         country == null || whatsappNumber.length == country.digitsCount
     }
 
-    val isFormValid by derivedStateOf {
-        firstName.isNotBlank() && lastName.isNotBlank() && isPhoneValid && isBirthdayValid && isWhatsappValid
+    fun isFormValid(context: Context): Boolean {
+        return firstName.isNotBlank() && lastName.isNotBlank() && isPhoneValid && isBirthdayValid(
+            context
+        ) && isWhatsappValid
     }
 
     val hasChanges by derivedStateOf {
@@ -182,7 +188,7 @@ class ProfileViewModel(
         initializeFields(user)
     }
 
-    fun updateProfile() {
+    fun updateProfile(context: Context) {
         val currentState = uiState as? ProfileUiState.Success ?: return
 
         firstName = firstName.trim()
@@ -200,7 +206,7 @@ class ProfileViewModel(
             return
         }
 
-        if (!isBirthdayValid) {
+        if (!isBirthdayValid(context)) {
             uiState = ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_date))
             return
         }
@@ -211,7 +217,7 @@ class ProfileViewModel(
             return
         }
 
-        if (!isFormValid) return
+        if (!isFormValid(context)) return
 
         val whatsappFullNumber = if (whatsappNumber.isNotBlank()) {
             val country = Countries.find { it.code == whatsappCountryCode }

@@ -304,7 +304,7 @@ fun HomeScreen(
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                             }
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.profile)) },
+                                text = { Text(stringResource(R.string.title_profile)) },
                                 onClick = {
                                     showUserMenu = false
                                     onNavigateToProfile()
@@ -317,7 +317,7 @@ fun HomeScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.settings)) },
+                                text = { Text(stringResource(R.string.title_settings)) },
                                 onClick = {
                                     showUserMenu = false
                                     onNavigateToSettings()
@@ -330,7 +330,7 @@ fun HomeScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.about)) },
+                                text = { Text(stringResource(R.string.title_about)) },
                                 onClick = {
                                     showUserMenu = false
                                     showAboutDialog = true
@@ -344,7 +344,7 @@ fun HomeScreen(
                             )
                             HorizontalDivider()
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.logout)) },
+                                text = { Text(stringResource(R.string.text_logout)) },
                                 onClick = {
                                     showUserMenu = false
                                     showLogoutDialog = true
@@ -400,14 +400,14 @@ fun HomeScreen(
 
         if (showLogoutDialog) {
             ConfirmationDialog(
-                title = stringResource(R.string.logout),
+                title = stringResource(R.string.text_logout),
                 text = stringResource(R.string.logout_confirmation_text),
-                confirmButtonText = stringResource(R.string.logout),
+                confirmButtonText = stringResource(R.string.text_logout),
                 onConfirm = {
                     showLogoutDialog = false
                     onLogoutClick()
                 },
-                dismissButtonText = stringResource(R.string.cancel),
+                dismissButtonText = stringResource(R.string.button_cancel),
                 onDismiss = { showLogoutDialog = false },
                 isDestructive = true
             )
@@ -417,13 +417,13 @@ fun HomeScreen(
             ConfirmationDialog(
                 title = stringResource(R.string.remove_friend),
                 text = stringResource(R.string.remove_friend_confirmation_text),
-                confirmButtonText = stringResource(R.string.remove),
+                confirmButtonText = stringResource(R.string.button_remove),
                 onConfirm = {
                     showRemoveFriendDialog = false
                     friendIdToRemove?.let { onRemoveFriend(it) }
                     friendIdToRemove = null
                 },
-                dismissButtonText = stringResource(R.string.cancel),
+                dismissButtonText = stringResource(R.string.button_cancel),
                 onDismiss = {
                     showRemoveFriendDialog = false
                     friendIdToRemove = null

@@ -93,38 +93,52 @@ class SettingsViewModel(
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             settingsRepository.setThemeMode(mode)
+
+            // Also update the Firestore user settings if we are in Success state
+            (uiState as? SettingsUiState.Success)?.let { state ->
+                val updatedUser = state.user.copy(
+                    settings = state.user.settings.copy(themeMode = mode)
+                )
+                updateSettings(updatedUser, showToast = false)
+            }
         }
     }
 
     fun updateGradientBackground(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setGradientBackground(enabled)
-            
+
             // Also update the Firestore user settings if we are in Success state
             (uiState as? SettingsUiState.Success)?.let { state ->
                 val updatedUser = state.user.copy(
                     settings = state.user.settings.copy(gradientBackground = enabled)
                 )
-                updateSettings(updatedUser)
+                updateSettings(updatedUser, showToast = false)
             }
         }
     }
 
-    fun updateSettings(updatedUser: User) {
+    fun updateSettings(updatedUser: User, showToast: Boolean = true) {
         val currentState = uiState as? SettingsUiState.Success ?: return
-        uiState = currentState.copy(isSaving = true)
+        if (showToast) {
+            uiState = currentState.copy(isSaving = true)
+        }
 
         viewModelScope.launch {
             userRepository.updateUser(updatedUser)
                 .onSuccess {
-                    uiState =
-                        (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
-                    _uiEvent.emit(SettingsUiEvent.ShowToast("Settings updated successfully!"))
+                    if (showToast) {
+                        uiState =
+                            (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
+                        _uiEvent.emit(SettingsUiEvent.ShowToast("Settings updated successfully!"))
+                    }
                 }
                 .onFailure { e ->
-                    uiState =
-                        (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
-                    _uiEvent.emit(SettingsUiEvent.ShowToast("Error: ${e.localizedMessage}"))
+                    if (showToast) {
+                        uiState =
+                            (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
+                        _uiEvent.emit(SettingsUiEvent.ShowToast("Error: ${e.localizedMessage}"))
+                    }
                 }
         }
     }

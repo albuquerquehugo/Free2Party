@@ -367,7 +367,7 @@ fun PlanActionsMenu(
     ) {
         onEdit?.let {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.edit)) },
+                text = { Text(stringResource(R.string.text_edit)) },
                 enabled = editEnabled,
                 onClick = {
                     onDismissRequest()
@@ -380,7 +380,7 @@ fun PlanActionsMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        stringResource(R.string.delete),
+                        stringResource(R.string.text_delete),
                         color = MaterialTheme.colorScheme.error
                     )
                 },
