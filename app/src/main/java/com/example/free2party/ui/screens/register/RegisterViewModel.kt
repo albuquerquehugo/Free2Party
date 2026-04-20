@@ -52,11 +52,31 @@ class RegisterViewModel(
     var confirmPassword by mutableStateOf("")
     var profilePicUri by mutableStateOf<Uri?>(null)
     var countryCode by mutableStateOf("")
-    var phoneNumber by mutableStateOf("")
+    private var _phoneNumber by mutableStateOf("")
+    var phoneNumber: String
+        get() = _phoneNumber
+        set(value) {
+            _phoneNumber = value
+            if (value.length >= 3) {
+                com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
+                    countryCode = it
+                }
+            }
+        }
     var birthday by mutableStateOf("")
     var bio by mutableStateOf("")
     var whatsappCountryCode by mutableStateOf("")
-    var whatsappNumber by mutableStateOf("")
+    private var _whatsappNumber by mutableStateOf("")
+    var whatsappNumber: String
+        get() = _whatsappNumber
+        set(value) {
+            _whatsappNumber = value
+            if (value.length >= 3) {
+                com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
+                    whatsappCountryCode = it
+                }
+            }
+        }
     var isWhatsappSameAsPhone by mutableStateOf(false)
     var telegramUsername by mutableStateOf("")
     var facebookUsername by mutableStateOf("")

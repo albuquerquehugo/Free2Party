@@ -305,3 +305,93 @@ fun openThirdPartyApp(
     }
     context.startActivity(intent)
 }
+
+/**
+ * Detects the country code from a 3-digit NANP area code.
+ * Returns the 2-letter ISO country code or null if it's not a recognized NANP area code.
+ */
+fun getCountryFromNanpAreaCode(areaCode: String): String? {
+    if (areaCode.length < 3) return null
+    val code = areaCode.take(3)
+    val areaCodeMap = mapOf(
+        "204" to "CA",
+        "226" to "CA",
+        "236" to "CA",
+        "249" to "CA",
+        "250" to "CA",
+        "263" to "CA",
+        "289" to "CA",
+        "306" to "CA",
+        "343" to "CA",
+        "365" to "CA",
+        "367" to "CA",
+        "368" to "CA",
+        "382" to "CA",
+        "403" to "CA",
+        "416" to "CA",
+        "418" to "CA",
+        "431" to "CA",
+        "437" to "CA",
+        "438" to "CA",
+        "450" to "CA",
+        "474" to "CA",
+        "506" to "CA",
+        "514" to "CA",
+        "519" to "CA",
+        "548" to "CA",
+        "579" to "CA",
+        "581" to "CA",
+        "584" to "CA",
+        "587" to "CA",
+        "604" to "CA",
+        "613" to "CA",
+        "639" to "CA",
+        "647" to "CA",
+        "672" to "CA",
+        "683" to "CA",
+        "705" to "CA",
+        "709" to "CA",
+        "742" to "CA",
+        "753" to "CA",
+        "778" to "CA",
+        "780" to "CA",
+        "782" to "CA",
+        "807" to "CA",
+        "819" to "CA",
+        "825" to "CA",
+        "867" to "CA",
+        "873" to "CA",
+        "879" to "CA",
+        "902" to "CA",
+        "905" to "CA",
+        "242" to "BS",
+        "246" to "BB",
+        "264" to "AI",
+        "268" to "AG",
+        "284" to "VG",
+        "345" to "KY",
+        "441" to "BM",
+        "473" to "GD",
+        "649" to "TC",
+        "664" to "MS",
+        "758" to "LC",
+        "767" to "DM",
+        "784" to "VC",
+        "787" to "PR",
+        "939" to "PR",
+        "809" to "DO",
+        "829" to "DO",
+        "849" to "DO",
+        "868" to "TT",
+        "869" to "KN",
+        "876" to "JM",
+        "658" to "JM",
+        "721" to "SX",
+        "670" to "MP",
+        "671" to "GU",
+        "684" to "AS",
+        "340" to "VI"
+    )
+
+    return areaCodeMap[code] ?: if (code[0] in '2'..'9') "US" else null
+}
