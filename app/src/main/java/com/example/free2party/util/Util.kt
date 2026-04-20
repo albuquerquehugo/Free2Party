@@ -2,12 +2,14 @@ package com.example.free2party.util
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import androidx.core.net.toUri
 import com.example.free2party.data.model.FuturePlan
+import com.example.free2party.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
-import androidx.core.net.toUri
 import java.util.Date
 
 /**
@@ -266,14 +268,30 @@ fun isValidDateDigits(digits: String, pattern: String): Boolean {
     }.getOrDefault(false)
 }
 
+fun openEmail(
+    context: Context,
+    email: String,
+    subject: String = context.getString(R.string.app_name),
+    body: String = context.getString(R.string.text_hang_out_message)
+) {
+    val mailto = "mailto:$email" +
+            "?subject=${Uri.encode(subject)}" +
+            "&body=${Uri.encode(body)}"
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = mailto.toUri()
+    }
+    context.startActivity(intent)
+}
+
 fun openSMS(
     context: Context,
     phoneNumber: String,
-    message: String = "Hey! Saw you're Free2Party, want to hang out?"
+    message: String = context.getString(R.string.text_hang_out_message)
 ) {
+    val smsto = "smsto:$phoneNumber" +
+            "?body=${Uri.encode(message)}"
     val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = "smsto:$phoneNumber".toUri()
-        putExtra("sms_body", message)
+        data = smsto.toUri()
     }
     context.startActivity(intent)
 }

@@ -106,6 +106,7 @@ class SocialRepositoryImpl(
             userRepository.observeUser(stub.uid).map { user ->
                 stub.copy(
                     name = user.fullName,
+                    email = user.email,
                     isFreeNow = user.isFreeNow,
                     socials = user.socials,
                     phoneNumber = user.phoneNumber

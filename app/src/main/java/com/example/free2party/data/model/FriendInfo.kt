@@ -3,6 +3,7 @@ package com.example.free2party.data.model
 data class FriendInfo(
     val uid: String = "",
     val name: String = "",
+    val email: String = "",
     val isFreeNow: Boolean = false,
     val inviteStatus: InviteStatus = InviteStatus.ACCEPTED,
     val phoneCode: String = "",

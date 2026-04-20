@@ -18,6 +18,7 @@
     <string name="text_back">Back</string>
     <string name="text_delete">Delete</string>
     <string name="text_edit">Edit</string>
+    <string name="text_hang_out_message">Hey! Saw you\'re Free2Party, want to hang out?</string>
     <string name="text_logout">Logout</string>
     <string name="theme_mode_automatic">Automatic</string>
     <string name="theme_mode_dark">Dark</string>
@@ -52,6 +53,7 @@
     <string name="section_title_free">Free</string>
     <string name="section_title_invited">Invited</string>
     <string name="send_invite">Send invite</string>
+    <string name="email">Email</string>
     <string name="sms">SMS</string>
     <string name="status">Status:</string>
     <string name="status_busy">Busy</string>
@@ -60,7 +62,6 @@
     <string name="tiktok">TikTok</string>
     <string name="user_menu_content_description">User Menu</string>
     <string name="whatsapp">WhatsApp</string>
-    <string name="whatsapp_message_template">Hey! Saw you\'re Free2Party, want to hang out?</string>
     <string name="x">X</string>
     <string name="your_friends">Your Friends</string>
 

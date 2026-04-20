@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Facebook
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -92,6 +93,7 @@ import com.example.free2party.ui.theme.onBusyContainer
 import com.example.free2party.ui.theme.onInactiveContainer
 import com.example.free2party.ui.theme.TelegramColor
 import com.example.free2party.ui.theme.WhatsAppColor
+import com.example.free2party.util.openEmail
 import com.example.free2party.util.openSMS
 import com.example.free2party.util.openThirdPartyApp
 import kotlinx.coroutines.flow.collectLatest
@@ -739,8 +741,7 @@ fun FriendItem(
     var showContactMenu by remember { mutableStateOf(false) }
     val isInvited = friend.inviteStatus == InviteStatus.INVITED
     val context = LocalContext.current
-
-    val waMessage = stringResource(R.string.whatsapp_message_template)
+    val hangOutMessage = stringResource(R.string.text_hang_out_message)
 
     Box {
         Card(
@@ -818,6 +819,24 @@ fun FriendItem(
                             onDismissRequest = { showContactMenu = false },
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
+                            if (friend.email.isNotBlank()) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.email)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Email,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    },
+                                    onClick = {
+                                        showContactMenu = false
+                                        openEmail(context, friend.email)
+                                    }
+                                )
+                            }
+
                             val smsNumber = "${friend.phoneCode}${friend.phoneNumber}"
                             if (smsNumber.isNotBlank()) {
                                 DropdownMenuItem(
@@ -921,10 +940,7 @@ fun FriendItem(
                                 )
                             }
 
-                            val waNumber = friend.socials.whatsappFullNumber.ifBlank {
-                                "${friend.phoneCode}${friend.phoneNumber}".replace("+", "")
-                                    .filter { it.isDigit() }
-                            }
+                            val waNumber = friend.socials.whatsappFullNumber
                             if (waNumber.isNotBlank()) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.whatsapp)) },
@@ -940,7 +956,7 @@ fun FriendItem(
                                         showContactMenu = false
                                         openThirdPartyApp(
                                             context,
-                                            "https://wa.me/$waNumber?text=${Uri.encode(waMessage)}"
+                                            "https://wa.me/$waNumber?text=${Uri.encode(hangOutMessage)}"
                                         )
                                     }
                                 )
