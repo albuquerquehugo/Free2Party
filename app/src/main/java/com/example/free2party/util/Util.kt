@@ -340,89 +340,63 @@ fun openSMS(
 }
 
 /**
- * Opens the Facebook Messenger app to a specific user's chat.
- * Fallbacks to the web version if the app is not installed.
- * @param context The context used to start the activity.
- * @param username The Facebook username to message.
+ * Supported social platforms for messaging.
  */
-fun openFacebookMessenger(
-    context: Context,
-    username: String
-) {
-    // If Messenger is installed and configured to open these links, it will open directly.
-    // If not, it will open the browser.
-    val uri = "https://m.me/$username".toUri()
-    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-
-    try {
-        // Try to specifically target Messenger if possible, but don't fail if we can't
-        val messengerIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-            `package` = "com.facebook.orca"
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(messengerIntent)
-    } catch (_: Exception) {
-        // Fallback to the generic intent which will open in browser or ask the user
-        try {
-            context.startActivity(intent)
-        } catch (_: Exception) {
-            // Last resort: Inform the user if no app can handle the request
-            Toast.makeText(context, "No app available to handle this request", Toast.LENGTH_SHORT).show()
-        }
-    }
+enum class SocialPlatform(val baseUrl: String, val packageName: String) {
+    MESSENGER("https://m.me/", "com.facebook.orca"),
+    INSTAGRAM("https://ig.me/m/", "com.instagram.android"),
+    TELEGRAM("https://t.me/", "org.telegram.messenger"),
+    WHATSAPP("https://wa.me/", "com.whatsapp"),
+    TIKTOK("https://tiktok.com/@", "com.zhiliaoapp.musically"),
+    X("https://x.com/", "com.twitter.android")
 }
 
 /**
- * Opens the Instagram app to a specific user's direct message screen.
+ * Opens a social messaging app to a specific user's chat.
  * Fallbacks to the web version if the app is not installed.
  * @param context The context used to start the activity.
- * @param username The Instagram username to message.
+ * @param platform The [SocialPlatform] to open.
+ * @param username The username to message.
+ * @param message Optional message to pre-fill (supported by some platforms like WhatsApp).
  */
-fun openInstagramDirectMessage(
+fun openSocialMessage(
     context: Context,
-    username: String
+    platform: SocialPlatform,
+    username: String,
+    message: String? = null
 ) {
-    val uri = "https://ig.me/m/$username".toUri()
+    val url = when (platform) {
+        SocialPlatform.WHATSAPP -> {
+            if (message != null) {
+                "${platform.baseUrl}$username?text=${Uri.encode(message)}"
+            } else {
+                "${platform.baseUrl}$username"
+            }
+        }
+
+        else -> "${platform.baseUrl}$username"
+    }
+
+    val uri = url.toUri()
     val intent = Intent(Intent.ACTION_VIEW, uri).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
     try {
-        // Try to specifically target Instagram if possible
-        val instagramIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-            `package` = "com.instagram.android"
+        // Try to specifically target the app if possible
+        val appIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            `package` = platform.packageName
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(instagramIntent)
+        context.startActivity(appIntent)
     } catch (_: Exception) {
         // Fallback to generic intent (browser or user choice)
         try {
             context.startActivity(intent)
         } catch (_: Exception) {
-            Toast.makeText(context, "No app available to handle this request", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "No app available to handle this request", Toast.LENGTH_SHORT)
+                .show()
         }
-    }
-}
-
-/**
- * Opens a third-party application or web browser to handle the provided URL.
- * @param context The context used to start the activity.
- * @param url The URI string to be opened (e.g., a website URL or a deep link).
- */
-fun openThirdPartyApp(
-    context: Context,
-    url: String
-) {
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = url.toUri()
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    try {
-        context.startActivity(intent)
-    } catch (_: Exception) {
-        // Silently fail or handle error if no app can handle the intent
     }
 }
 

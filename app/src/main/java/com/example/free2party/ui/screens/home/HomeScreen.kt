@@ -1,6 +1,5 @@
 package com.example.free2party.ui.screens.home
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -93,11 +92,10 @@ import com.example.free2party.ui.theme.onBusyContainer
 import com.example.free2party.ui.theme.onInactiveContainer
 import com.example.free2party.ui.theme.TelegramColor
 import com.example.free2party.ui.theme.WhatsAppColor
+import com.example.free2party.util.SocialPlatform
 import com.example.free2party.util.openEmail
-import com.example.free2party.util.openFacebookMessenger
-import com.example.free2party.util.openInstagramDirectMessage
 import com.example.free2party.util.openSMS
-import com.example.free2party.util.openThirdPartyApp
+import com.example.free2party.util.openSocialMessage
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -872,8 +870,9 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openFacebookMessenger(
+                                        openSocialMessage(
                                             context,
+                                            SocialPlatform.MESSENGER,
                                             friend.socials.facebookUsername
                                         )
                                     }
@@ -893,8 +892,9 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openInstagramDirectMessage(
+                                        openSocialMessage(
                                             context,
+                                            SocialPlatform.INSTAGRAM,
                                             friend.socials.instagramUsername
                                         )
                                     }
@@ -914,9 +914,10 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openThirdPartyApp(
+                                        openSocialMessage(
                                             context,
-                                            "https://t.me/${friend.socials.telegramUsername}"
+                                            SocialPlatform.TELEGRAM,
+                                            friend.socials.telegramUsername
                                         )
                                     }
                                 )
@@ -935,9 +936,10 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openThirdPartyApp(
+                                        openSocialMessage(
                                             context,
-                                            "https://tiktok.com/@${friend.socials.tiktokUsername}"
+                                            SocialPlatform.TIKTOK,
+                                            friend.socials.tiktokUsername
                                         )
                                     }
                                 )
@@ -957,13 +959,11 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openThirdPartyApp(
+                                        openSocialMessage(
                                             context,
-                                            "https://wa.me/$waNumber?text=${
-                                                Uri.encode(
-                                                    hangOutMessage
-                                                )
-                                            }"
+                                            SocialPlatform.WHATSAPP,
+                                            waNumber,
+                                            message = hangOutMessage
                                         )
                                     }
                                 )
@@ -982,9 +982,10 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openThirdPartyApp(
+                                        openSocialMessage(
                                             context,
-                                            "https://x.com/${friend.socials.xUsername}"
+                                            SocialPlatform.X,
+                                            friend.socials.xUsername
                                         )
                                     }
                                 )
