@@ -1,6 +1,8 @@
 package com.example.free2party.ui.screens.profile
 
+import android.content.Context
 import android.net.Uri
+import com.example.free2party.R
 import com.example.free2party.data.model.User
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
@@ -30,6 +32,7 @@ class ProfileViewModelTest {
     private lateinit var viewModel: ProfileViewModel
     private val userRepository: UserRepository = mockk(relaxed = true)
     private val socialRepository: SocialRepository = mockk(relaxed = true)
+    private val context: Context = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val userFlow = MutableStateFlow(User(uid = "me", firstName = "John", lastName = "Doe"))
 
@@ -38,6 +41,10 @@ class ProfileViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { userRepository.currentUserId } returns "me"
         every { userRepository.observeUser("me") } returns userFlow
+
+        every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
+        every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
+        every { context.getString(R.string.date_pattern_dd_mm_yyyy) } returns "ddMMyyyy"
     }
 
     @After
@@ -54,7 +61,7 @@ class ProfileViewModelTest {
         assertEquals("John", viewModel.firstName)
         assertEquals("Doe", viewModel.lastName)
         assertFalse(viewModel.hasChanges)
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
     }
 
     @Test
@@ -64,26 +71,26 @@ class ProfileViewModelTest {
 
         viewModel.firstName = "Jane"
         assertTrue(viewModel.hasChanges)
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
 
         viewModel.firstName = ""
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         viewModel.firstName = "John"
         viewModel.countryCode = "US"
         viewModel.phoneNumber = "" // Invalid: country selected but phone empty
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         viewModel.phoneNumber = "1234567890" // Valid for US
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
 
         // Invalid birthday: invalid month
         viewModel.birthday = "19901301"
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         // Valid birthday
         viewModel.birthday = "19900101"
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
     }
 
     @Test
@@ -116,7 +123,7 @@ class ProfileViewModelTest {
         runCurrent()
 
         viewModel.firstName = "Jane"
-        viewModel.updateProfile()
+        viewModel.updateProfile(context)
         runCurrent()
 
         val state = viewModel.uiState as ProfileUiState.Success
@@ -144,7 +151,7 @@ class ProfileViewModelTest {
         runCurrent()
 
         viewModel.firstName = "Jane"
-        viewModel.updateProfile()
+        viewModel.updateProfile(context)
         runCurrent()
 
         assertTrue(events.any { it is ProfileUiEvent.ShowToast })
@@ -187,7 +194,7 @@ class ProfileViewModelTest {
         }
 
         viewModel.firstName = "Jane"
-        viewModel.updateProfile()
+        viewModel.updateProfile(context)
         runCurrent()
 
         assertFalse((viewModel.uiState as ProfileUiState.Success).isSaving)

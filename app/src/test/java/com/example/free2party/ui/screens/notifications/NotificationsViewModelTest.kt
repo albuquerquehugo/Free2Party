@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
 import io.mockk.coEvery
@@ -32,6 +33,7 @@ class NotificationsViewModelTest {
     private lateinit var viewModel: NotificationsViewModel
     private val socialRepository: SocialRepository = mockk(relaxed = true)
     private val userRepository: UserRepository = mockk(relaxed = true)
+    private val settingsRepository: SettingsRepository = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val requestsFlow = MutableStateFlow<List<FriendRequest>>(emptyList())
     private val notificationsFlow = MutableStateFlow<List<Notification>>(emptyList())
@@ -47,6 +49,7 @@ class NotificationsViewModelTest {
         every { socialRepository.getIncomingFriendRequests() } returns requestsFlow
         every { socialRepository.getNotifications() } returns notificationsFlow
         every { userRepository.userIdFlow } returns flowOf("test-uid")
+        every { settingsRepository.gradientBackgroundFlow } returns flowOf(false)
         
         coEvery { socialRepository.updateFriendRequestStatus(any(), any()) } returns Result.success(Unit)
         coEvery { socialRepository.declineAndBlockFriendRequest(any()) } returns Result.success(Unit)
@@ -65,7 +68,7 @@ class NotificationsViewModelTest {
         requestsFlow.value = requests
         notificationsFlow.value = notifications
         
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         // Start collecting flows to activate them (required for WhileSubscribed)
         backgroundScope.launch { viewModel.notificationsUnreadCount.collect {} }
@@ -86,7 +89,7 @@ class NotificationsViewModelTest {
             Notification(id = "n3", isRead = false)
         )
         
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         backgroundScope.launch { viewModel.notificationsUnreadCount.collect {} }
         backgroundScope.launch { viewModel.itemsUnreadCount.collect {} }
@@ -103,7 +106,7 @@ class NotificationsViewModelTest {
             Notification(id = "n2", isRead = true),
             Notification(id = "n3", isRead = false)
         )
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         runCurrent()
 
         viewModel.markAllAsRead()
@@ -114,7 +117,7 @@ class NotificationsViewModelTest {
 
     @Test
     fun `toggleReadStatus calls correct repository method`() = runTest {
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         val unreadNotif = Notification(id = "n1", isRead = false)
         val readNotif = Notification(id = "n2", isRead = true)
 
@@ -129,7 +132,7 @@ class NotificationsViewModelTest {
 
     @Test
     fun `deleteNotification calls repository`() = runTest {
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         viewModel.deleteNotification("n123")
         runCurrent()
 
@@ -138,7 +141,7 @@ class NotificationsViewModelTest {
 
     @Test
     fun `acceptFriendRequest calls repository`() = runTest {
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         viewModel.acceptFriendRequest("req123")
         runCurrent()
@@ -148,7 +151,7 @@ class NotificationsViewModelTest {
 
     @Test
     fun `declineFriendRequest calls repository`() = runTest {
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         viewModel.declineFriendRequest("req456")
         runCurrent()
@@ -158,7 +161,7 @@ class NotificationsViewModelTest {
 
     @Test
     fun `declineAndBlockFriendRequest calls repository`() = runTest {
-        viewModel = NotificationsViewModel(socialRepository, userRepository)
+        viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         viewModel.declineAndBlockFriendRequest("req789")
         runCurrent()

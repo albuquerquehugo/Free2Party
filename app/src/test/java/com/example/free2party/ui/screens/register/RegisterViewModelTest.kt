@@ -1,13 +1,17 @@
 package com.example.free2party.ui.screens.register
 
+import android.content.Context
 import android.net.Uri
+import com.example.free2party.R
 import com.example.free2party.data.repository.AuthRepository
+import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -25,12 +29,18 @@ class RegisterViewModelTest {
 
     private lateinit var viewModel: RegisterViewModel
     private val authRepository: AuthRepository = mockk()
+    private val settingsRepository: SettingsRepository = mockk()
+    private val context: Context = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = RegisterViewModel(authRepository)
+        io.mockk.every { settingsRepository.gradientBackgroundFlow } returns flowOf(true)
+        io.mockk.every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
+        io.mockk.every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
+        io.mockk.every { context.getString(R.string.date_pattern_dd_mm_yyyy) } returns "ddMMyyyy"
+        viewModel = RegisterViewModel(settingsRepository, authRepository)
     }
 
     @After
@@ -40,7 +50,7 @@ class RegisterViewModelTest {
 
     @Test
     fun `isFormValid returns true only when all required fields and validations pass`() {
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         viewModel.firstName = "John"
         viewModel.lastName = "Doe"
@@ -48,44 +58,44 @@ class RegisterViewModelTest {
         viewModel.password = "password123"
         viewModel.confirmPassword = "password123"
         // Phone and birthday are empty by default, so they are valid
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
 
         // Invalid phone: country selected but no number
         viewModel.countryCode = "US"
         viewModel.phoneNumber = ""
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         // Valid phone: US has 10 digits
         viewModel.phoneNumber = "1234567890"
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
 
         // Invalid phone: too short for US
         viewModel.phoneNumber = "123"
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         // Invalid phone: too long for US
         viewModel.phoneNumber = "12345678901"
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         // Valid phone for another country: PT has 9 digits
         viewModel.countryCode = "PT"
         viewModel.phoneNumber = "912345678"
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
 
         // Invalid birthday: wrong length
         viewModel.birthday = "199001"
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         // Invalid birthday: invalid date (month 13)
         viewModel.birthday = "19901301"
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
 
         // Valid birthday
         viewModel.birthday = "19900101"
-        assertTrue(viewModel.isFormValid)
+        assertTrue(viewModel.isFormValid(context))
 
         viewModel.email = ""
-        assertFalse(viewModel.isFormValid)
+        assertFalse(viewModel.isFormValid(context))
     }
 
     @Test
@@ -96,7 +106,7 @@ class RegisterViewModelTest {
         viewModel.password = ""
         viewModel.confirmPassword = ""
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
         val state = viewModel.uiState as RegisterUiState.Error
@@ -111,7 +121,7 @@ class RegisterViewModelTest {
         viewModel.password = "password123"
         viewModel.confirmPassword = "password123"
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
         val state = viewModel.uiState as RegisterUiState.Error
@@ -128,7 +138,7 @@ class RegisterViewModelTest {
         viewModel.countryCode = "US"
         viewModel.phoneNumber = "123"
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
         val state = viewModel.uiState as RegisterUiState.Error
@@ -144,7 +154,7 @@ class RegisterViewModelTest {
         viewModel.confirmPassword = "password123"
         viewModel.birthday = "19901301"
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
 
         assertTrue(viewModel.uiState is RegisterUiState.Error)
         val state = viewModel.uiState as RegisterUiState.Error
@@ -191,7 +201,7 @@ class RegisterViewModelTest {
             )
         } returns Result.success(mockk())
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
         runCurrent()
 
         assertEquals(RegisterUiState.Success, viewModel.uiState)
@@ -234,7 +244,7 @@ class RegisterViewModelTest {
             )
         } returns Result.success(mockk())
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
         runCurrent()
 
         coVerify {
@@ -305,7 +315,7 @@ class RegisterViewModelTest {
             Result.success(mockk())
         }
 
-        viewModel.onRegisterClick()
+        viewModel.onRegisterClick(context)
         runCurrent()
         assertEquals(RegisterUiState.Success, viewModel.uiState)
     }

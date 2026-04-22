@@ -35,6 +35,7 @@ class LoginViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
+        every { settingsRepository.gradientBackgroundFlow } returns flowOf(true)
         viewModel = LoginViewModel(authRepository, settingsRepository)
     }
 

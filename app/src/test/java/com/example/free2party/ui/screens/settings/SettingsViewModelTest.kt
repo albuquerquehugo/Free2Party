@@ -40,6 +40,7 @@ class SettingsViewModelTest {
         every { userRepository.currentUserId } returns "me"
         every { userRepository.observeUser("me") } returns userFlow
         every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
+        coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
     }
 
     @After
