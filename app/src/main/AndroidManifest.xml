@@ -7,6 +7,7 @@
 
     <queries>
         <package android:name="com.facebook.orca" />
+        <package android:name="com.instagram.android" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="fb-messenger" />
@@ -14,6 +15,10 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" android:host="m.me" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" android:host="ig.me" />
         </intent>
     </queries>
 

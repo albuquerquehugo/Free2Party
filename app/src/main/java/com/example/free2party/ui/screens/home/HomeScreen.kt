@@ -95,6 +95,7 @@ import com.example.free2party.ui.theme.TelegramColor
 import com.example.free2party.ui.theme.WhatsAppColor
 import com.example.free2party.util.openEmail
 import com.example.free2party.util.openFacebookMessenger
+import com.example.free2party.util.openInstagramDirectMessage
 import com.example.free2party.util.openSMS
 import com.example.free2party.util.openThirdPartyApp
 import kotlinx.coroutines.flow.collectLatest
@@ -860,7 +861,7 @@ fun FriendItem(
 
                             if (friend.socials.facebookUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_messenger)) },
+                                    text = { Text(stringResource(R.string.text_facebook_messenger)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.messenger_color),
@@ -892,9 +893,9 @@ fun FriendItem(
                                     },
                                     onClick = {
                                         showContactMenu = false
-                                        openThirdPartyApp(
+                                        openInstagramDirectMessage(
                                             context,
-                                            "https://instagram.com/${friend.socials.instagramUsername}"
+                                            friend.socials.instagramUsername
                                         )
                                     }
                                 )

@@ -54,8 +54,8 @@
     <string name="status_free">Free</string>
     <string name="status_pending">Pending</string>
     <string name="text_email">Email</string>
+    <string name="text_facebook_messenger">Facebook Messenger</string>
     <string name="text_instagram">Instagram</string>
-    <string name="text_messenger">Messenger</string>
     <string name="text_sms">SMS</string>
     <string name="text_telegram">Telegram</string>
     <string name="text_tiktok">TikTok</string>

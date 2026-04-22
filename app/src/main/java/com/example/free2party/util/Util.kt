@@ -375,6 +375,38 @@ fun openFacebookMessenger(
 }
 
 /**
+ * Opens the Instagram app to a specific user's direct message screen.
+ * Fallbacks to the web version if the app is not installed.
+ * @param context The context used to start the activity.
+ * @param username The Instagram username to message.
+ */
+fun openInstagramDirectMessage(
+    context: Context,
+    username: String
+) {
+    val uri = "https://ig.me/m/$username".toUri()
+    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    try {
+        // Try to specifically target Instagram if possible
+        val instagramIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            `package` = "com.instagram.android"
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(instagramIntent)
+    } catch (_: Exception) {
+        // Fallback to generic intent (browser or user choice)
+        try {
+            context.startActivity(intent)
+        } catch (_: Exception) {
+            Toast.makeText(context, "No app available to handle this request", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+/**
  * Opens a third-party application or web browser to handle the provided URL.
  * @param context The context used to start the activity.
  * @param url The URI string to be opened (e.g., a website URL or a deep link).
