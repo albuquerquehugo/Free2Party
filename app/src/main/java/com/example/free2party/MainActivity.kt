@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
 
             val mainViewModel: MainViewModel = viewModel(
                 factory = MainViewModel.provideFactory(
+                    context = applicationContext,
                     settingsRepository = settingsRepository,
                     initialHandledNotificationId = currentNotificationId
                 )

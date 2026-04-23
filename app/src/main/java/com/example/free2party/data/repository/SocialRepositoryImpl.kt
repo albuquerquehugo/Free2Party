@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import android.util.Log
+import com.example.free2party.R
 import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
@@ -36,7 +37,8 @@ import kotlinx.coroutines.tasks.await
 
 class SocialRepositoryImpl(
     private val db: FirebaseFirestore,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val context: android.content.Context
 ) : SocialRepository {
 
     private val currentUserId: String
@@ -338,11 +340,33 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
-                        "title" to "Friend Request Accepted",
-                        "message" to "$receiverName ($receiverEmail) was added as a friend",
+                        "title" to context.getString(R.string.notification_system_friend_accepted_title),
+                        "message" to context.getString(
+                            R.string.notification_system_friend_accepted_body,
+                            receiverName,
+                            receiverEmail
+                        ),
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "type" to NotificationType.FRIEND_ADDED.name
+                    )
+                )
+
+                // Create notification for receiver (current user)
+                val receiverNotifRef = db.collection("users").document(request.receiverId)
+                    .collection("notifications").document()
+                transaction.set(
+                    receiverNotifRef, mapOf(
+                        "title" to context.getString(R.string.notification_system_friend_accepted_title),
+                        "message" to context.getString(
+                            R.string.notification_system_friend_accepted_body,
+                            request.senderName,
+                            request.senderEmail
+                        ),
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.FRIEND_ADDED.name,
+                        "isSilent" to true
                     )
                 )
             } else {
@@ -355,11 +379,16 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
-                        "title" to "Friend Request Declined",
-                        "message" to "Your friend request to $receiverName ($receiverEmail) was declined",
+                        "title" to context.getString(R.string.notification_system_friend_declined_title),
+                        "message" to context.getString(
+                            R.string.notification_system_friend_declined_body,
+                            receiverName,
+                            receiverEmail
+                        ),
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
-                        "type" to NotificationType.FRIEND_DECLINED.name
+                        "type" to NotificationType.FRIEND_DECLINED.name,
+                        "isSilent" to true
                     )
                 )
             }
@@ -411,11 +440,16 @@ class SocialRepositoryImpl(
                 .collection("notifications").document()
             transaction.set(
                 senderNotifRef, mapOf(
-                    "title" to "Friend Request Declined",
-                    "message" to "Your friend request to $receiverName ($receiverEmail) was declined",
+                    "title" to context.getString(R.string.notification_system_friend_declined_title),
+                    "message" to context.getString(
+                        R.string.notification_system_friend_declined_body,
+                        receiverName,
+                        receiverEmail
+                    ),
                     "isRead" to false,
                     "timestamp" to FieldValue.serverTimestamp(),
-                    "type" to NotificationType.FRIEND_DECLINED.name
+                    "type" to NotificationType.FRIEND_DECLINED.name,
+                    "isSilent" to true
                 )
             )
         }.await()
@@ -459,11 +493,16 @@ class SocialRepositoryImpl(
                 .collection("notifications").document()
             transaction.set(
                 receiverNotifRef, mapOf(
-                    "title" to "Friend Removed",
-                    "message" to "${sender.fullName} (${sender.email}) is no longer your friend",
+                    "title" to context.getString(R.string.notification_system_friend_removed_title),
+                    "message" to context.getString(
+                        R.string.notification_system_friend_removed_body,
+                        sender.fullName,
+                        sender.email
+                    ),
                     "isRead" to false,
                     "timestamp" to FieldValue.serverTimestamp(),
-                    "type" to NotificationType.FRIEND_REMOVED.name
+                    "type" to NotificationType.FRIEND_REMOVED.name,
+                    "isSilent" to true
                 )
             )
         }.await()

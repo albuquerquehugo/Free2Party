@@ -1,5 +1,7 @@
 package com.example.free2party.data.repository
 
+import android.content.Context
+import android.content.res.Resources
 import android.util.Log
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.User
@@ -35,6 +37,8 @@ class SocialRepositoryTest {
     private val friendsCollection: CollectionReference = mockk()
     private val friendDoc: DocumentReference = mockk()
 
+    private val context: Context = mockk()
+
     @Before
     fun setup() {
         mockkStatic(Log::class)
@@ -46,11 +50,21 @@ class SocialRepositoryTest {
         every { usersCollection.document("me123") } returns userDoc
         every { userDoc.collection("friends") } returns friendsCollection
         
-        repository = SocialRepositoryImpl(db, userRepository)
+        repository = SocialRepositoryImpl(db, userRepository, context)
         
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
         mockkStatic(FieldValue::class)
         every { FieldValue.serverTimestamp() } returns mockk()
+
+        every { context.getString(any()) } returns "Mock String"
+        every { context.getString(any(), any()) } returns "Mock String"
+        every { context.getString(any(), any(), any()) } returns "Mock String"
+
+        val resources: Resources = mockk()
+        every { context.resources } returns resources
+        every { resources.getString(any()) } returns "Mock String"
+        every { resources.getString(any(), any()) } returns "Mock String"
+        every { resources.getString(any(), any(), any()) } returns "Mock String"
     }
 
     @Test
@@ -221,6 +235,10 @@ class SocialRepositoryTest {
 
         val result = repository.removeFriend(friendId)
         
+        if (result.isFailure) {
+            println("Test failed with: ${result.exceptionOrNull()}")
+            result.exceptionOrNull()?.printStackTrace()
+        }
         assertTrue(result.isSuccess)
     }
 }

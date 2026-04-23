@@ -1,5 +1,6 @@
 package com.example.free2party
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -226,6 +227,7 @@ class MainViewModel(
 
                         notifications.forEach { notification ->
                             if (notification.type == NotificationType.FRIEND_ADDED &&
+                                !notification.isSilent &&
                                 !notification.isRead &&
                                 !shownIds.contains(notification.id) &&
                                 !suppressedIds.contains(notification.id)
@@ -274,6 +276,7 @@ class MainViewModel(
 
     companion object {
         fun provideFactory(
+            context: Context,
             settingsRepository: SettingsRepository,
             initialHandledNotificationId: String? = null,
             userRepository: UserRepository = UserRepositoryImpl(
@@ -283,7 +286,8 @@ class MainViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository
+                userRepository = userRepository,
+                context = context
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

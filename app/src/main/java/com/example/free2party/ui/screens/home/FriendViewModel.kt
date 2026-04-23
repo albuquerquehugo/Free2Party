@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
@@ -31,14 +32,7 @@ sealed class FriendUiEvent {
 }
 
 class FriendViewModel(
-    private val socialRepository: SocialRepository = SocialRepositoryImpl(
-        db = Firebase.firestore,
-        userRepository = UserRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore,
-            storage = Firebase.storage
-        )
-    )
+    private val socialRepository: SocialRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<InviteFriendUiState>(InviteFriendUiState.Idle)
@@ -83,5 +77,25 @@ class FriendViewModel(
 
     fun resetState() {
         uiState = InviteFriendUiState.Idle
+    }
+
+    companion object {
+        fun provideFactory(
+            context: android.content.Context,
+            socialRepository: SocialRepository = SocialRepositoryImpl(
+                db = Firebase.firestore,
+                userRepository = UserRepositoryImpl(
+                    auth = Firebase.auth,
+                    db = Firebase.firestore,
+                    storage = Firebase.storage
+                ),
+                context = context
+            )
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return FriendViewModel(socialRepository) as T
+            }
+        }
     }
 }

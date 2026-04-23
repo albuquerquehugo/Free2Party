@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.home
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -227,6 +228,7 @@ class HomeViewModel(
 
     companion object {
         fun provideFactory(
+            context: Context,
             settingsRepository: SettingsRepository,
             userRepository: UserRepository = UserRepositoryImpl(
                 auth = Firebase.auth,
@@ -235,7 +237,8 @@ class HomeViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository
+                userRepository = userRepository,
+                context = context
             ),
             authRepository: AuthRepository = AuthRepositoryImpl(
                 auth = Firebase.auth,

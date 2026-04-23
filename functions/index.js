@@ -72,8 +72,7 @@ exports.onNotificationCreated = onDocumentCreated(
       const notifData = snapshot.data();
       const userId = event.params.userId;
 
-      if (notifData.type === "FRIEND_DECLINED" ||
-          notifData.type === "FRIEND_REMOVED") {
+      if (notifData.isSilent) {
         return;
       }
 

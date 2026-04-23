@@ -40,11 +40,13 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ProfileRoute(
-    viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.provideFactory()),
     onBack: () -> Unit,
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
+    val viewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModel.provideFactory(context)
+    )
     val deleteMsg = stringResource(R.string.account_deleted)
 
     LaunchedEffect(Unit) {

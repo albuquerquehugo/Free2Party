@@ -56,12 +56,11 @@ import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarRoute(
-    viewModel: CalendarViewModel = viewModel(
-        factory = CalendarViewModel.provideFactory(null)
-    )
-) {
+fun CalendarRoute() {
     val context = LocalContext.current
+    val viewModel: CalendarViewModel = viewModel(
+        factory = CalendarViewModel.provideFactory(context, null)
+    )
     val use24HourFormat = viewModel.use24HourFormat
 
     val startDatePickerState = rememberDatePickerState()

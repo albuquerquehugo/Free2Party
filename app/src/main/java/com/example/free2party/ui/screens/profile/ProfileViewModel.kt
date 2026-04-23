@@ -409,6 +409,7 @@ class ProfileViewModel(
 
     companion object {
         fun provideFactory(
+            context: Context,
             userRepository: UserRepository = UserRepositoryImpl(
                 auth = Firebase.auth,
                 db = Firebase.firestore,
@@ -416,7 +417,8 @@ class ProfileViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository
+                userRepository = userRepository,
+                context = context
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

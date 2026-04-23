@@ -72,7 +72,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
@@ -100,8 +99,8 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun HomeRoute(
-    homeViewModel: HomeViewModel = viewModel(),
-    friendViewModel: FriendViewModel = viewModel(),
+    homeViewModel: HomeViewModel,
+    friendViewModel: FriendViewModel,
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToSettings: () -> Unit

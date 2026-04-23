@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.notifications
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -178,6 +179,7 @@ class NotificationsViewModel(
 
     companion object {
         fun provideFactory(
+            context: Context,
             settingsRepository: SettingsRepository,
             userRepository: UserRepository = UserRepositoryImpl(
                 auth = Firebase.auth,
@@ -186,7 +188,8 @@ class NotificationsViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository
+                userRepository = userRepository,
+                context = context
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")

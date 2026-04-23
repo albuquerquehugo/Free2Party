@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,7 +43,7 @@ import com.example.free2party.MainViewModel
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.components.AppBackground
 import com.example.free2party.ui.screens.calendar.CalendarRoute
-import com.example.free2party.ui.screens.calendar.CalendarViewModel
+import com.example.free2party.ui.screens.home.FriendViewModel
 import com.example.free2party.ui.screens.home.HomeRoute
 import com.example.free2party.ui.screens.home.HomeViewModel
 import com.example.free2party.ui.screens.login.LoginRoute
@@ -102,7 +103,10 @@ fun AppNavigation(
     settingsRepository: SettingsRepository,
     mainViewModel: MainViewModel,
     notificationsViewModel: NotificationsViewModel = viewModel(
-        factory = NotificationsViewModel.provideFactory(settingsRepository)
+        factory = NotificationsViewModel.provideFactory(
+            context = LocalContext.current,
+            settingsRepository = settingsRepository
+        )
     ),
     startDestination: String? = null
 ) {
@@ -268,9 +272,18 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Home.route) {
+            val context = LocalContext.current
             HomeRoute(
                 homeViewModel = viewModel(
-                    factory = HomeViewModel.provideFactory(settingsRepository)
+                    factory = HomeViewModel.provideFactory(
+                        context = context,
+                        settingsRepository = settingsRepository
+                    )
+                ),
+                friendViewModel = viewModel(
+                    factory = FriendViewModel.provideFactory(
+                        context = context
+                    )
                 ),
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -287,13 +300,7 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Calendar.route) {
-            val uid = Firebase.auth.currentUser?.uid ?: ""
-            CalendarRoute(
-                viewModel = viewModel(
-                    key = "calendar_$uid",
-                    factory = CalendarViewModel.provideFactory(null)
-                )
-            )
+            CalendarRoute()
         }
 
         composable(Screen.Notifications.route) {

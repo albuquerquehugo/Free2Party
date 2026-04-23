@@ -199,6 +199,10 @@
     <string name="notification_system_friend_request_body">%1$s (%2$s) sent you a friend request!</string>
     <string name="notification_system_friend_accepted_title">Friend Request Accepted</string>
     <string name="notification_system_friend_accepted_body">%1$s (%2$s) was added as a friend</string>
+    <string name="notification_system_friend_declined_title">Friend Request Declined</string>
+    <string name="notification_system_friend_declined_body">Your friend request to %1$s (%2$s) was declined</string>
+    <string name="notification_system_friend_removed_title">Friend Removed</string>
+    <string name="notification_system_friend_removed_body">%1$s (%2$s) is no longer your friend</string>
 
     <!-- Errors & Exceptions -->
     <string name="error_auth_failed_user_null">Authentication failed: User is null</string>

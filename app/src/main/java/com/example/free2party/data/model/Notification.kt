@@ -13,7 +13,10 @@ data class Notification(
     var isRead: Boolean = false,
     @ServerTimestamp
     val timestamp: Date? = null,
-    val type: NotificationType = NotificationType.GENERAL
+    val type: NotificationType = NotificationType.GENERAL,
+    @get:PropertyName("isSilent")
+    @set:PropertyName("isSilent")
+    var isSilent: Boolean = false
 )
 
 enum class NotificationType {

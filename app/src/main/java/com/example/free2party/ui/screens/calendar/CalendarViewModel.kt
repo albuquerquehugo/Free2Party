@@ -1,5 +1,6 @@
 package com.example.free2party.ui.screens.calendar
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -275,6 +276,7 @@ class CalendarViewModel(
 
     companion object {
         fun provideFactory(
+            context: Context,
             targetUserId: String?,
             planRepository: PlanRepository = PlanRepositoryImpl(
                 auth = Firebase.auth,
@@ -287,7 +289,8 @@ class CalendarViewModel(
             ),
             socialRepository: SocialRepository = SocialRepositoryImpl(
                 db = Firebase.firestore,
-                userRepository = userRepository
+                userRepository = userRepository,
+                context = context
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
