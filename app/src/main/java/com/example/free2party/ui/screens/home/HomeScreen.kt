@@ -688,7 +688,7 @@ fun ExpandableFriendSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "$title (${friends.size})",
+                text = stringResource(R.string.friend_section_title, title, friends.size),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold

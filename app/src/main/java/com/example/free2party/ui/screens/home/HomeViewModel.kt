@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.AuthRepository
@@ -114,30 +115,26 @@ class HomeViewModel(
         }.catch { e ->
             // Suppress errors during account deletion/logout transition
             if (e is UserNotFoundException || e is UnauthorizedException) {
-                Log.d("HomeViewModel", "Ignoring error during transition: ${e.javaClass.simpleName}")
+                Log.d(
+                    "HomeViewModel",
+                    "Ignoring error during transition: ${e.javaClass.simpleName}"
+                )
                 return@catch
             }
 
             Log.e("HomeViewModel", "Error observing data", e)
             val errorText = when (e) {
-                is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                    e.localizedMessage ?: "Infrastructure error"
-                )
+                is InfrastructureException ->
+                    if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                    else UiText.StringResource(R.string.error_infrastructure)
 
-                is SocialException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                    e.localizedMessage ?: "Social error"
-                )
+                is SocialException ->
+                    if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                    else UiText.StringResource(R.string.error_social)
 
-                else -> UiText.DynamicString(e.localizedMessage ?: "An error occurred")
+                else -> UiText.StringResource(R.string.error_unknown)
             }
-
-            if (errorText is UiText.DynamicString &&
-                errorText.value.contains("permission", ignoreCase = true)
-            ) {
-                Log.w("HomeViewModel", "Permission error handled: ${errorText.value}")
-            } else {
-                uiState = HomeUiState.Error(errorText)
-            }
+            uiState = HomeUiState.Error(errorText)
         }.launchIn(viewModelScope)
     }
 
@@ -165,9 +162,7 @@ class HomeViewModel(
                         e is InfrastructureException &&
                                 e.messageRes != null -> UiText.StringResource(e.messageRes)
 
-                        else -> UiText.DynamicString(
-                            e.localizedMessage ?: "Error updating availability"
-                        )
+                        else -> UiText.StringResource(R.string.error_updating_availability)
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
@@ -179,20 +174,20 @@ class HomeViewModel(
             socialRepository.removeFriend(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Friend removed successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.DynamicString("Friend removed successfully")))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.message_friend_removed)))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error removing friend", e)
                     val errorText = when (e) {
                         is InfrastructureException ->
                             if (e.messageRes != null) UiText.StringResource(e.messageRes)
-                            else UiText.DynamicString(e.localizedMessage ?: "Infrastructure error")
+                            else UiText.StringResource(R.string.error_infrastructure)
 
                         is SocialException ->
                             if (e.messageRes != null) UiText.StringResource(e.messageRes)
-                            else UiText.DynamicString(e.localizedMessage ?: "Social error")
+                            else UiText.StringResource(R.string.error_social)
 
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Error removing friend")
+                        else -> UiText.StringResource(R.string.error_removing_friend)
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }
@@ -204,22 +199,20 @@ class HomeViewModel(
             socialRepository.cancelFriendRequest(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Invite cancelled successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.DynamicString("Invite cancelled successfully")))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.message_invite_cancelled)))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error cancelling invite", e)
                     val errorText = when (e) {
                         is InfrastructureException ->
                             if (e.messageRes != null) UiText.StringResource(e.messageRes)
-                            else UiText.DynamicString(e.localizedMessage ?: "Infrastructure error")
+                            else UiText.StringResource(R.string.error_infrastructure)
 
                         is SocialException ->
                             if (e.messageRes != null) UiText.StringResource(e.messageRes)
-                            else UiText.DynamicString(e.localizedMessage ?: "Social error")
+                            else UiText.StringResource(R.string.error_social)
 
-                        else -> UiText.DynamicString(
-                            e.localizedMessage ?: "Error cancelling invite"
-                        )
+                        else -> UiText.StringResource(R.string.error_cancelling_invite)
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }

@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.example.free2party.R
 import com.example.free2party.BuildConfig
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.components.MonthCalendar
@@ -72,9 +74,13 @@ fun FriendCalendarDialog(
                     .padding(start = 8.dp, bottom = 8.dp, end = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val apostrophe = if (friend.name.endsWith("s")) "'" else "'s"
+                val title = if (friend.name.endsWith("s")) {
+                    stringResource(R.string.title_friend_calendar_s, friend.name)
+                } else {
+                    stringResource(R.string.title_friend_calendar, friend.name)
+                }
                 Text(
-                    text = "${friend.name}$apostrophe Calendar",
+                    text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -115,7 +121,7 @@ fun FriendCalendarDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = handleDismiss) {
-                    Text("Close")
+                    Text(stringResource(R.string.button_close))
                 }
             }
         }

@@ -395,13 +395,13 @@ class ProfileViewModel(
     private fun mapToUiText(e: Throwable, defaultRes: Int): UiText {
         return when (e) {
             is InfrastructureException -> e.messageRes?.let { UiText.StringResource(it) }
-                ?: UiText.DynamicString(e.localizedMessage ?: "Infrastructure error")
+                ?: UiText.StringResource(R.string.error_infrastructure)
 
             is SocialException -> e.messageRes?.let { UiText.StringResource(it) }
-                ?: UiText.DynamicString(e.localizedMessage ?: "Social error")
+                ?: UiText.StringResource(R.string.error_social)
 
             is AuthException -> e.messageRes?.let { UiText.StringResource(it) }
-                ?: UiText.DynamicString(e.localizedMessage ?: "Auth error")
+                ?: UiText.StringResource(R.string.error_auth)
 
             else -> UiText.StringResource(defaultRes)
         }

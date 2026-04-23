@@ -135,7 +135,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
                 .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.notification_decline_message)))
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.text_decline_message)))
                 }
         }
     }
@@ -144,7 +144,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             socialRepository.declineAndBlockFriendRequest(requestId)
                 .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.notification_decline_and_block_message)))
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.text_decline_and_block_message)))
                 }
         }
     }

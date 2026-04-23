@@ -340,9 +340,9 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
-                        "title" to context.getString(R.string.notification_system_friend_accepted_title),
+                        "title" to context.getString(R.string.title_friend_accepted),
                         "message" to context.getString(
-                            R.string.notification_system_friend_accepted_body,
+                            R.string.text_friend_accepted_body,
                             receiverName,
                             receiverEmail
                         ),
@@ -357,9 +357,9 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     receiverNotifRef, mapOf(
-                        "title" to context.getString(R.string.notification_system_friend_accepted_title),
+                        "title" to context.getString(R.string.title_friend_accepted),
                         "message" to context.getString(
-                            R.string.notification_system_friend_accepted_body,
+                            R.string.text_friend_accepted_body,
                             request.senderName,
                             request.senderEmail
                         ),
@@ -379,9 +379,9 @@ class SocialRepositoryImpl(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
-                        "title" to context.getString(R.string.notification_system_friend_declined_title),
+                        "title" to context.getString(R.string.title_friend_declined),
                         "message" to context.getString(
-                            R.string.notification_system_friend_declined_body,
+                            R.string.text_friend_declined_body,
                             receiverName,
                             receiverEmail
                         ),
@@ -440,9 +440,9 @@ class SocialRepositoryImpl(
                 .collection("notifications").document()
             transaction.set(
                 senderNotifRef, mapOf(
-                    "title" to context.getString(R.string.notification_system_friend_declined_title),
+                    "title" to context.getString(R.string.title_friend_declined),
                     "message" to context.getString(
-                        R.string.notification_system_friend_declined_body,
+                        R.string.text_friend_declined_body,
                         receiverName,
                         receiverEmail
                     ),
@@ -493,9 +493,9 @@ class SocialRepositoryImpl(
                 .collection("notifications").document()
             transaction.set(
                 receiverNotifRef, mapOf(
-                    "title" to context.getString(R.string.notification_system_friend_removed_title),
+                    "title" to context.getString(R.string.title_friend_removed),
                     "message" to context.getString(
-                        R.string.notification_system_friend_removed_body,
+                        R.string.text_friend_removed_body,
                         sender.fullName,
                         sender.email
                     ),

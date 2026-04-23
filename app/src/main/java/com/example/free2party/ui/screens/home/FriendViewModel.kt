@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
@@ -47,7 +48,7 @@ class FriendViewModel(
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
             uiState =
-                InviteFriendUiState.Error(UiText.DynamicString("Please enter a valid email address."))
+                InviteFriendUiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
 
@@ -60,15 +61,15 @@ class FriendViewModel(
                 }
                 .onFailure { e ->
                     val errorText = when (e) {
-                        is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(
-                            e.messageRes
-                        ) else UiText.DynamicString(e.localizedMessage ?: "Error sending invite.")
+                        is InfrastructureException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.StringResource(R.string.error_infrastructure)
 
-                        is SocialException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                            e.localizedMessage ?: "Error sending invite."
-                        )
+                        is SocialException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.StringResource(R.string.error_social)
 
-                        else -> UiText.DynamicString(e.localizedMessage ?: "Error sending invite.")
+                        else -> UiText.StringResource(R.string.error_sending_invite)
                     }
                     uiState = InviteFriendUiState.Error(errorText)
                 }

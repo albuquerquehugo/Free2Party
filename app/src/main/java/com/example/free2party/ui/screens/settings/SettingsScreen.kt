@@ -61,7 +61,7 @@ fun SettingsRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is SettingsUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -108,7 +108,7 @@ fun SettingsScreen(
 
             is SettingsUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.message, color = MaterialTheme.colorScheme.error)
+                    Text(text = uiState.message.asString(), color = MaterialTheme.colorScheme.error)
                 }
             }
 

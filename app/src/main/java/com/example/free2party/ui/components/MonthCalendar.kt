@@ -33,6 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.free2party.R
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import com.example.free2party.ui.theme.inactive
 import com.example.free2party.ui.theme.onInactiveContainer
@@ -79,7 +81,7 @@ fun MonthCalendar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "Previous"
+                    contentDescription = stringResource(R.string.description_previous_month)
                 )
             }
 
@@ -97,7 +99,7 @@ fun MonthCalendar(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
-                        text = "Today",
+                        text = stringResource(R.string.label_today),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -113,7 +115,7 @@ fun MonthCalendar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "Next"
+                    contentDescription = stringResource(R.string.description_next_month)
                 )
             }
         }
@@ -124,9 +126,18 @@ fun MonthCalendar(
                 .fillMaxWidth()
                 .padding(bottom = 4.dp)
         ) {
-            listOf("S", "M", "T", "W", "T", "F", "S").forEach { day ->
+            val daysOfWeek = listOf(
+                R.string.day_sunday_short,
+                R.string.day_monday_short,
+                R.string.day_tuesday_short,
+                R.string.day_wednesday_short,
+                R.string.day_thursday_short,
+                R.string.day_friday_short,
+                R.string.day_saturday_short
+            )
+            daysOfWeek.forEach { dayResId ->
                 Text(
-                    text = day,
+                    text = stringResource(dayResId),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,

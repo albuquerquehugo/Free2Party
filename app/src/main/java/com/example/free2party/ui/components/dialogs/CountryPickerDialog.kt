@@ -35,6 +35,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.free2party.R
 import com.example.free2party.data.model.Country
 import com.example.free2party.data.model.Countries
 import java.util.Locale
@@ -46,7 +48,8 @@ fun CountryPickerDialog(
 ) {
     val context = LocalContext.current
     val detectedCountryCode = remember {
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+        val telephonyManager =
+            context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
         val countryIso = telephonyManager?.networkCountryIso?.uppercase()
             ?.takeIf { it.isNotBlank() }
             ?: telephonyManager?.simCountryIso?.uppercase()
@@ -57,12 +60,12 @@ fun CountryPickerDialog(
 
     var searchQuery by remember { mutableStateOf("") }
     val filteredCountries = remember(searchQuery, detectedCountryCode) {
-        val baseList = Countries.filter { 
+        val baseList = Countries.filter {
             it.name.contains(searchQuery, ignoreCase = true) ||
-            it.phoneCode.contains(searchQuery) ||
-            it.code.contains(searchQuery, ignoreCase = true)
+                    it.phoneCode.contains(searchQuery) ||
+                    it.code.contains(searchQuery, ignoreCase = true)
         }
-        
+
         if (searchQuery.isEmpty()) {
             val detected = baseList.find { it.code == detectedCountryCode }
             if (detected != null) {
@@ -83,7 +86,7 @@ fun CountryPickerDialog(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Select Country",
+                text = stringResource(R.string.select_country),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 8.dp)
@@ -95,7 +98,12 @@ fun CountryPickerDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp),
-                placeholder = { Text("Search country or code...", style = MaterialTheme.typography.bodyMedium) },
+                placeholder = {
+                    Text(
+                        stringResource(R.string.placeholder_search_country),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
@@ -112,12 +120,12 @@ fun CountryPickerDialog(
                     item {
                         Box(
                             modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
+                                .fillMaxWidth()
+                                .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "No results found",
+                                stringResource(R.string.no_results_found),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -131,11 +139,15 @@ fun CountryPickerDialog(
                     if (suggestedCountry != null) {
                         item {
                             Text(
-                                "Suggested",
+                                stringResource(R.string.label_suggested),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 4.dp)
+                                modifier = Modifier.padding(
+                                    start = 12.dp,
+                                    top = 8.dp,
+                                    bottom = 4.dp
+                                )
                             )
                         }
                         item {
@@ -143,11 +155,15 @@ fun CountryPickerDialog(
                         }
                         item {
                             Text(
-                                "All Countries",
+                                stringResource(R.string.label_all_countries),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 12.dp, top = 16.dp, bottom = 4.dp)
+                                modifier = Modifier.padding(
+                                    start = 12.dp,
+                                    top = 16.dp,
+                                    bottom = 4.dp
+                                )
                             )
                         }
                         items(filteredCountries.drop(1)) { country ->
@@ -162,11 +178,13 @@ fun CountryPickerDialog(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismissRequest) {
-                    Text("Close")
+                    Text(stringResource(R.string.button_close))
                 }
             }
         }

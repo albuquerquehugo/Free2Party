@@ -146,9 +146,9 @@ fun NotificationsScreen(
         }
 
         val titleText = if (itemsUnreadCount > 0) {
-            stringResource(R.string.notifications_with_count, itemsUnreadCount)
+            stringResource(R.string.title_notifications_with_count, itemsUnreadCount)
         } else {
-            stringResource(R.string.notifications)
+            stringResource(R.string.title_notifications)
         }
 
         Text(
@@ -171,7 +171,7 @@ fun NotificationsScreen(
                     tint = MaterialTheme.colorScheme.inactive
                 )
                 Text(
-                    text = stringResource(R.string.notification_all_caught_up),
+                    text = stringResource(R.string.text_all_caught_up),
                     color = MaterialTheme.colorScheme.inactive
                 )
             }
@@ -211,7 +211,7 @@ fun NotificationsScreen(
                             shape = MaterialTheme.shapes.small,
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
-                            Text(stringResource(R.string.notification_mark_all_as_read))
+                            Text(stringResource(R.string.label_mark_all_as_read))
                         }
                     }
                     item {
@@ -278,7 +278,7 @@ fun FriendRequestItem(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = stringResource(R.string.notification_friend_request_title),
+                text = stringResource(R.string.title_friend_request),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -288,7 +288,7 @@ fun FriendRequestItem(
                 if (request.senderProfilePicUrl.isNotBlank()) {
                     AsyncImage(
                         model = request.senderProfilePicUrl,
-                        contentDescription = stringResource(R.string.notification_friends_picture),
+                        contentDescription = stringResource(R.string.label_friends_picture),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
@@ -319,7 +319,7 @@ fun FriendRequestItem(
                     )
 
                     Text(
-                        text = formatTimeAgo(request.timestamp),
+                        text = formatTimeAgo(request.timestamp).asString(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -341,7 +341,7 @@ fun FriendRequestItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.notification_decline),
+                    contentDescription = stringResource(R.string.label_decline),
                     tint = MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(20.dp)
                 )
@@ -359,7 +359,7 @@ fun FriendRequestItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.notification_accept),
+                    contentDescription = stringResource(R.string.label_accept),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -377,10 +377,10 @@ fun DeclineFriendRequestDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = stringResource(R.string.notification_decline_dialog_title))
+            Text(text = stringResource(R.string.title_decline_dialog))
         },
         text = {
-            Text(text = stringResource(R.string.notification_decline_dialog_message))
+            Text(text = stringResource(R.string.text_decline_dialog_message))
         },
         containerColor = MaterialTheme.colorScheme.surface,
         confirmButton = {
@@ -397,7 +397,7 @@ fun DeclineFriendRequestDialog(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text(text = stringResource(R.string.notification_decline_only))
+                    Text(text = stringResource(R.string.label_decline_only))
                 }
                 Button(
                     onClick = onDeclineAndBlock,
@@ -407,7 +407,7 @@ fun DeclineFriendRequestDialog(
                         contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text(text = stringResource(R.string.notification_decline_and_block))
+                    Text(text = stringResource(R.string.label_decline_and_block))
                 }
                 Button(
                     onClick = onDismiss,
@@ -558,7 +558,7 @@ fun NotificationBox(
             )
 
             Text(
-                text = formatTimeAgo(notification.timestamp),
+                text = formatTimeAgo(notification.timestamp).asString(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline
             )
@@ -568,7 +568,7 @@ fun NotificationBox(
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.notification_options_content_description),
+                    contentDescription = stringResource(R.string.label_options_content_description),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -581,8 +581,8 @@ fun NotificationBox(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            if (notification.isRead) stringResource(R.string.notification_mark_as_unread)
-                            else stringResource(R.string.notification_mark_as_read)
+                            if (notification.isRead) stringResource(R.string.label_mark_as_unread)
+                            else stringResource(R.string.label_mark_as_read)
                         )
                     },
                     leadingIcon = {

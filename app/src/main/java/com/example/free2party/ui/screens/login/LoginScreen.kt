@@ -85,6 +85,11 @@ fun LoginRoute(
     val coroutineScope = rememberCoroutineScope()
     val (showForgotPasswordDialog, setShowForgotPasswordDialog) = remember { mutableStateOf(false) }
     val serverClientId = stringResource(R.string.default_web_client_id)
+    val googleConfigError = stringResource(R.string.error_google_config)
+    val googleInvalidTokenError = stringResource(R.string.error_google_invalid_token)
+    val googleUnexpectedResponseError = stringResource(R.string.error_google_unexpected_response)
+    val googleNoAccountsError = stringResource(R.string.error_google_no_accounts)
+    val googleSignInFailedError = stringResource(R.string.error_google_failed)
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -106,7 +111,7 @@ fun LoginRoute(
         if (serverClientId.isEmpty()) {
             Toast.makeText(
                 context,
-                "Google Sign-In configuration error. Please try again later.",
+                googleConfigError,
                 Toast.LENGTH_LONG
             ).show()
         } else {
@@ -140,7 +145,7 @@ fun LoginRoute(
                             Log.e("LoginScreen", "Received an invalid google id token response", e)
                             Toast.makeText(
                                 context,
-                                "Google Sign-In failed: Invalid token",
+                                googleInvalidTokenError,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -148,7 +153,7 @@ fun LoginRoute(
                         Log.e("LoginScreen", "Unexpected credential type: ${credential.type}")
                         Toast.makeText(
                             context,
-                            "Google Sign-In failed: Unexpected response",
+                            googleUnexpectedResponseError,
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -158,12 +163,16 @@ fun LoginRoute(
                     Log.e("LoginScreen", "No Google accounts available", e)
                     Toast.makeText(
                         context,
-                        "No Google accounts found on this device",
+                        googleNoAccountsError,
                         Toast.LENGTH_SHORT
                     ).show()
                 } catch (e: GetCredentialException) {
                     Log.e("LoginScreen", "Google Sign-In failed", e)
-                    Toast.makeText(context, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        googleSignInFailedError,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } catch (e: Exception) {
                     Log.e("LoginScreen", "An unexpected error occurred during Google Sign-In", e)
                 }
@@ -475,7 +484,7 @@ fun LoginScreen(
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = " OR ",
+                        text = stringResource(R.string.text_or),
                         modifier = Modifier.padding(horizontal = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline

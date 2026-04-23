@@ -6,11 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.util.UiText
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
@@ -24,11 +26,11 @@ import kotlinx.coroutines.launch
 sealed interface SettingsUiState {
     object Loading : SettingsUiState
     data class Success(val user: User, val isSaving: Boolean = false) : SettingsUiState
-    data class Error(val message: String) : SettingsUiState
+    data class Error(val message: UiText) : SettingsUiState
 }
 
 sealed class SettingsUiEvent {
-    data class ShowToast(val message: String) : SettingsUiEvent()
+    data class ShowToast(val message: UiText) : SettingsUiEvent()
 }
 
 class SettingsViewModel(
@@ -57,10 +59,9 @@ class SettingsViewModel(
     private fun loadSettings() {
         viewModelScope.launch {
             userRepository.observeUser(userRepository.currentUserId)
-                .catch { e ->
+                .catch { _ ->
                     uiState = SettingsUiState.Error(
-                        e.localizedMessage
-                            ?: "User settings not found. Please try logging out and in again."
+                        UiText.StringResource(R.string.error_settings_not_found)
                     )
                 }
                 .collect { user ->
@@ -130,14 +131,18 @@ class SettingsViewModel(
                     if (showToast) {
                         uiState =
                             (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
-                        _uiEvent.emit(SettingsUiEvent.ShowToast("Settings updated successfully!"))
+                        _uiEvent.emit(SettingsUiEvent.ShowToast(UiText.StringResource(R.string.message_settings_updated)))
                     }
                 }
-                .onFailure { e ->
+                .onFailure { _ ->
                     if (showToast) {
                         uiState =
                             (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
-                        _uiEvent.emit(SettingsUiEvent.ShowToast("Error: ${e.localizedMessage}"))
+                        _uiEvent.emit(
+                            SettingsUiEvent.ShowToast(
+                                UiText.StringResource(R.string.error_updating_settings)
+                            )
+                        )
                     }
                 }
         }

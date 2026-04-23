@@ -85,6 +85,7 @@ fun PlanItem(
     val currentUserId = remember { Firebase.auth.currentUser?.uid }
     val isOwnPlan = plan.userId == currentUserId
     val isReadOnly = onEdit == null && onDelete == null || !isOwnPlan
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     val planStatus by remember(plan, currentTimeMillis) {
         derivedStateOf {
@@ -118,7 +119,7 @@ fun PlanItem(
     }
 
     val duration = remember(plan.startDate, plan.endDate, plan.startTime, plan.endTime) {
-        calculateDuration(plan.startDate, plan.endDate, plan.startTime, plan.endTime)
+        calculateDuration(plan.startDate, plan.endDate, plan.startTime, plan.endTime, context)
     }
 
     val friendsSelection = when (plan.visibility) {
@@ -182,11 +183,11 @@ fun PlanItem(
                     ) {
                         if (plan.startDate == plan.endDate) {
                             Text(
-                                text = formatTimeForDisplay(
-                                    plan.startTime,
-                                    use24HourFormat
-                                ) + " - " +
-                                        formatTimeForDisplay(plan.endTime, use24HourFormat),
+                                text = stringResource(
+                                    R.string.time_range,
+                                    formatTimeForDisplay(plan.startTime, use24HourFormat),
+                                    formatTimeForDisplay(plan.endTime, use24HourFormat)
+                                ),
                                 style = MaterialTheme.typography.titleSmall
                             )
                         } else {
@@ -318,7 +319,7 @@ private fun DateTimeLabel(time: String, date: String) {
             style = MaterialTheme.typography.titleSmall
         )
         Text(
-            text = " (${formatPlanDateInFull(date)})",
+            text = " " + stringResource(R.string.date_in_parentheses, formatPlanDateInFull(date)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
             modifier = Modifier.padding(start = 2.dp),

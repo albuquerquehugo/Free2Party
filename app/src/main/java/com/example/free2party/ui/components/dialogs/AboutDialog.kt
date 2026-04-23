@@ -99,6 +99,7 @@ fun AboutDialog(
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
+            val feedbackSubject = stringResource(R.string.email_subject_feedback)
             Text(
                 text = stringResource(R.string.developer_name),
                 style = MaterialTheme.typography.titleMedium,
@@ -108,7 +109,7 @@ fun AboutDialog(
                 modifier = Modifier.clickable {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
                         data = "mailto:albuquerquehugo@gmail.com".toUri()
-                        putExtra(Intent.EXTRA_SUBJECT, "Free2Party App Feedback")
+                        putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
                     }
                     context.startActivity(intent)
                 }

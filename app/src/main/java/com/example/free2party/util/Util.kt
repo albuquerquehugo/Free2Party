@@ -26,12 +26,12 @@ fun formatTime(hour: Int, minute: Int): String {
 }
 
 /**
- * Formats the time elapsed since the given [Date] into a user-friendly string.
+ * Formats the time elapsed since the given [Date] into a [UiText].
  * @param timestamp The date to calculate the elapsed time from.
- * @return A string representing the time ago (e.g., "just now", "5m ago", "2h ago", "3d ago").
+ * @return A [UiText] representing the time ago.
  */
-fun formatTimeAgo(timestamp: Date?): String {
-    if (timestamp == null) return ""
+fun formatTimeAgo(timestamp: Date?): UiText {
+    if (timestamp == null) return UiText.DynamicString("")
     val diff = System.currentTimeMillis() - timestamp.time
     val seconds = diff / 1000
     val minutes = seconds / 60
@@ -39,10 +39,10 @@ fun formatTimeAgo(timestamp: Date?): String {
     val days = hours / 24
 
     return when {
-        seconds < 60 -> "just now"
-        minutes < 60 -> "${minutes}m ago"
-        hours < 24 -> "${hours}h ago"
-        else -> "${days}d ago"
+        seconds < 60 -> UiText.StringResource(R.string.time_just_now)
+        minutes < 60 -> UiText.StringResource(R.string.time_minutes_ago, minutes.toInt())
+        hours < 24 -> UiText.StringResource(R.string.time_hours_ago, hours.toInt())
+        else -> UiText.StringResource(R.string.time_days_ago, days.toInt())
     }
 }
 
@@ -53,19 +53,17 @@ fun formatTimeAgo(timestamp: Date?): String {
  */
 fun formatTimeForDisplay(time: String, use24Hour: Boolean): String {
     val (hour, minute) = unformatTime(time)
+    val calendar = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+    }
+
     return if (use24Hour) {
-        val hh = hour.toString().padStart(2, '0')
-        val mm = minute.toString().padStart(2, '0')
-        "$hh:$mm"
+        val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+        format.format(calendar.time)
     } else {
-        val amPm = if (hour < 12) "AM" else "PM"
-        val displayHour = when {
-            hour == 0 -> 12
-            hour > 12 -> hour - 12
-            else -> hour
-        }
-        val mm = minute.toString().padStart(2, '0')
-        "$displayHour:$mm $amPm"
+        val format = SimpleDateFormat("h:mm a", Locale.getDefault())
+        format.format(calendar.time)
     }
 }
 
@@ -106,23 +104,20 @@ fun parseTimeToMillis(time: String): Long? {
 }
 
 /**
- * Formats a date "yyyy-MM-dd" to "MMM dd, yyyy".
+ * Formats a date "yyyy-MM-dd" to localized "MMM dd, yyyy".
  * @param dateStr The date string to be formatted.
- * @return A formatted date string in the format "MMM dd, yyyy". If the format is invalid, it
- * returns the original string
+ * @return A localized formatted date string. If the format is invalid, it returns the original string
  */
 fun formatPlanDateInFull(dateStr: String): String {
-    val parts = dateStr.split("-")
-    if (parts.size < 3) return dateStr
-
-    val month = when (parts[1]) {
-        "01" -> "Jan"; "02" -> "Feb"; "03" -> "Mar"; "04" -> "Apr"
-        "05" -> "May"; "06" -> "Jun"; "07" -> "Jul"; "08" -> "Aug"
-        "09" -> "Sep"; "10" -> "Oct"; "11" -> "Nov"; "12" -> "Dec"
-        else -> return dateStr
+    val sdfSource = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
     }
-    val day = parts[2].toIntOrNull() ?: return dateStr
-    return "$month $day, ${parts[0]}"
+    val date = runCatching { sdfSource.parse(dateStr) }.getOrNull() ?: return dateStr
+
+    val sdfDest = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    return sdfDest.format(date)
 }
 
 /**
@@ -201,19 +196,21 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
 }
 
 /**
- * Calculates the duration between two date-time points and returns a formatted string.
+ * Calculates the duration between two date-time points and returns a localized string.
  * @param startDate The starting date in "yyyy-MM-dd" format.
  * @param endDate The ending date in "yyyy-MM-dd" format.
  * @param startTime The starting time in "H:mm" or "HH:mm" format.
  * @param endTime The ending time in "H:mm" or "HH:mm" format.
- * @return A user-friendly string representing the duration (e.g., "1d 2h 30m", "5h 15m", "45m").
- * Returns "0m" if the duration is zero or negative.
+ * @param context The context used to retrieve string resources.
+ * @return A user-friendly string representing the duration.
+ * Returns localized "0m" if the duration is zero or negative.
  */
 fun calculateDuration(
     startDate: String,
     endDate: String,
     startTime: String,
-    endTime: String
+    endTime: String,
+    context: Context
 ): String {
     val startDateMillis = parseDateToMillis(startDate) ?: 0L
     val endDateMillis = parseDateToMillis(endDate) ?: 0L
@@ -222,28 +219,30 @@ fun calculateDuration(
 
     val totalMins = ((endDateMillis - startDateMillis) / 60000L) + endTimeMinutes - startTimeMinutes
 
-    if (totalMins <= 0) return "0m"
+    if (totalMins <= 0) return context.getString(R.string.duration_minutes, 0)
 
-    val days = totalMins / 1440
-    val remainingMinsAfterDays = totalMins % 1440
+    val days = (totalMins / 1440).toInt()
+    val remainingMinsAfterDays = (totalMins % 1440).toInt()
     val hours = remainingMinsAfterDays / 60
     val minutes = remainingMinsAfterDays % 60
 
     return when {
         days > 0 -> {
-            val d = "${days}d"
-            val h = if (hours > 0) " ${hours}h" else ""
-            val m = if (minutes > 0) " ${minutes}m" else ""
+            val d = context.getString(R.string.duration_days, days)
+            val h = if (hours > 0) " " + context.getString(R.string.duration_hours, hours) else ""
+            val m =
+                if (minutes > 0) " " + context.getString(R.string.duration_minutes, minutes) else ""
             "$d$h$m".trim()
         }
 
         hours > 0 -> {
-            val h = "${hours}h"
-            val m = if (minutes > 0) " ${minutes}m" else ""
+            val h = context.getString(R.string.duration_hours, hours)
+            val m =
+                if (minutes > 0) " " + context.getString(R.string.duration_minutes, minutes) else ""
             "$h$m".trim()
         }
 
-        else -> "${minutes}m"
+        else -> context.getString(R.string.duration_minutes, minutes)
     }
 }
 
@@ -394,7 +393,11 @@ fun openSocialMessage(
         try {
             context.startActivity(intent)
         } catch (_: Exception) {
-            Toast.makeText(context, "No app available to handle this request", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                context,
+                context.getString(R.string.error_no_app_available),
+                Toast.LENGTH_SHORT
+            )
                 .show()
         }
     }

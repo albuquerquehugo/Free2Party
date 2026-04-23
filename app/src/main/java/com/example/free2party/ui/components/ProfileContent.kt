@@ -708,7 +708,7 @@ fun ProfileContent(
             label = stringResource(R.string.telegram_username),
             painter = painterResource(id = R.drawable.telegram),
             modifier = Modifier.testTag("telegram_field"),
-            prefix = { Text("@") },
+            prefix = { Text(stringResource(R.string.handle_prefix)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -722,7 +722,7 @@ fun ProfileContent(
             label = stringResource(R.string.messenger_username),
             painter = painterResource(id = R.drawable.messenger),
             modifier = Modifier.testTag("facebook_field"),
-            prefix = { Text("@") },
+            prefix = { Text(stringResource(R.string.handle_prefix)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -736,7 +736,7 @@ fun ProfileContent(
             label = stringResource(R.string.instagram_username),
             painter = painterResource(id = R.drawable.instagram),
             modifier = Modifier.testTag("instagram_field"),
-            prefix = { Text("@") },
+            prefix = { Text(stringResource(R.string.handle_prefix)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -750,7 +750,7 @@ fun ProfileContent(
             label = stringResource(R.string.tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
             modifier = Modifier.testTag("tiktok_field"),
-            prefix = { Text("@") },
+            prefix = { Text(stringResource(R.string.handle_prefix)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -764,7 +764,7 @@ fun ProfileContent(
             label = stringResource(R.string.x_username),
             painter = painterResource(id = R.drawable.x),
             modifier = Modifier.testTag("x_field"),
-            prefix = { Text("@") },
+            prefix = { Text(stringResource(R.string.handle_prefix)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(

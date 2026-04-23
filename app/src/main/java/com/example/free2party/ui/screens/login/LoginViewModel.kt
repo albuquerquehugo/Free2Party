@@ -95,7 +95,7 @@ class LoginViewModel(
 
         val normalizedEmail = email.trim().lowercase()
         if (normalizedEmail.isBlank() || password.isBlank()) {
-            uiState = LoginUiState.Error(UiText.DynamicString("Email and password cannot be empty"))
+            uiState = LoginUiState.Error(UiText.StringResource(R.string.error_login_empty_fields))
             return
         }
 
@@ -111,7 +111,7 @@ class LoginViewModel(
                     val errorText = if (e is AuthException && e.messageRes != null) {
                         UiText.StringResource(e.messageRes)
                     } else {
-                        UiText.DynamicString(e.localizedMessage ?: "Login failed")
+                        UiText.StringResource(R.string.error_login_failed)
                     }
                     uiState = LoginUiState.Error(errorText, isEmailNotVerified)
                 }
@@ -139,9 +139,7 @@ class LoginViewModel(
                     val errorText = if (e is AuthException && e.messageRes != null) {
                         UiText.StringResource(e.messageRes)
                     } else {
-                        UiText.DynamicString(
-                            e.localizedMessage ?: "Failed to resend verification email"
-                        )
+                        UiText.StringResource(R.string.error_resend_verification_failed)
                     }
                     uiState = LoginUiState.Error(errorText)
                 }
@@ -161,7 +159,7 @@ class LoginViewModel(
                     val errorText = if (e is AuthException && e.messageRes != null) {
                         UiText.StringResource(e.messageRes)
                     } else {
-                        UiText.DynamicString(e.localizedMessage ?: "Google Sign-In failed")
+                        UiText.StringResource(R.string.error_google_failed)
                     }
                     uiState = LoginUiState.Error(errorText)
                 }
@@ -183,13 +181,13 @@ class LoginViewModel(
             authRepository.sendPasswordResetEmail(normalizedEmail)
                 .onSuccess {
                     uiState = LoginUiState.Idle
-                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.DynamicString("Password reset email sent! Please check your inbox.")))
+                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.message_reset_password_sent)))
                 }
                 .onFailure { e ->
                     val errorText = if (e is AuthException && e.messageRes != null) {
                         UiText.StringResource(e.messageRes)
                     } else {
-                        UiText.DynamicString(e.localizedMessage ?: "Failed to send reset email")
+                        UiText.StringResource(R.string.error_failed_reset_password)
                     }
                     uiState = LoginUiState.Error(errorText)
                 }

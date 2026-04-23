@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.free2party.R
 import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.PlanVisibility
@@ -19,6 +20,7 @@ import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.util.UiText
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
@@ -136,7 +138,7 @@ class CalendarViewModel(
         note: String,
         visibility: PlanVisibility,
         friendsSelection: List<String>,
-        onValidationError: (String) -> Unit,
+        onValidationError: (UiText) -> Unit,
         onSuccess: () -> Unit
     ) {
         val plan = FuturePlan(
@@ -152,9 +154,9 @@ class CalendarViewModel(
         viewModelScope.launch {
             planRepository.savePlan(plan)
                 .onSuccess { onSuccess() }
-                .onFailure { e ->
+                .onFailure { _ ->
                     onValidationError(
-                        e.localizedMessage ?: "Failed to save the plan."
+                        UiText.StringResource(R.string.error_failed_save_plan)
                     )
                 }
         }
@@ -169,7 +171,7 @@ class CalendarViewModel(
         note: String,
         visibility: PlanVisibility,
         friendsSelection: List<String>,
-        onError: (String) -> Unit,
+        onError: (UiText) -> Unit,
         onSuccess: () -> Unit
     ) {
         val updatedPlan = FuturePlan(
@@ -186,15 +188,15 @@ class CalendarViewModel(
         viewModelScope.launch {
             planRepository.updatePlan(updatedPlan)
                 .onSuccess { onSuccess() }
-                .onFailure { e -> onError(e.localizedMessage ?: "Failed to update the plan.") }
+                .onFailure { _ -> onError(UiText.StringResource(R.string.error_failed_update_plan)) }
         }
     }
 
-    fun deletePlan(planId: String, onError: (String) -> Unit, onSuccess: () -> Unit) {
+    fun deletePlan(planId: String, onError: (UiText) -> Unit, onSuccess: () -> Unit) {
         viewModelScope.launch {
             planRepository.deletePlan(planId)
                 .onSuccess { onSuccess() }
-                .onFailure { e -> onError(e.localizedMessage ?: "Failed to delete the plan.") }
+                .onFailure { _ -> onError(UiText.StringResource(R.string.error_failed_delete_plan)) }
         }
     }
 

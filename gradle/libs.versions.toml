@@ -1,8 +1,8 @@
 [versions]
 activityCompose = "1.13.0"
-agp = "9.1.1"
+agp = "9.2.0"
 coil = "2.7.0"
-composeBom = "2026.03.01"
+composeBom = "2026.04.01"
 coreKtx = "1.18.0"
 credentials = "1.6.0"
 credentialsPlayServicesAuth = "1.6.0"
@@ -18,9 +18,9 @@ kotlinxCoroutinesTest = "1.10.2"
 lifecycleProcess = "2.10.0"
 lifecycleRuntimeKtx = "2.10.0"
 mockk = "1.14.9"
-navigationCompose = "2.9.7"
+navigationCompose = "2.9.8"
 playIntegrity = "1.6.0"
-uiTextGoogleFonts = "1.10.6"
+uiTextGoogleFonts = "1.11.0"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

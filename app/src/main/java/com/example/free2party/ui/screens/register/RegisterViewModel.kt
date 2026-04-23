@@ -222,12 +222,12 @@ class RegisterViewModel(
                 uiState = RegisterUiState.Success
             }.onFailure { e ->
                 val errorText = when (e) {
-                    is AuthException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                        e.localizedMessage ?: "Registration failed"
+                    is AuthException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.StringResource(
+                        R.string.error_registration_failed
                     )
 
-                    is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.DynamicString(
-                        e.localizedMessage ?: "Infrastructure error"
+                    is InfrastructureException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.StringResource(
+                        R.string.error_infrastructure
                     )
 
                     else -> UiText.StringResource(R.string.error_registration_failed)

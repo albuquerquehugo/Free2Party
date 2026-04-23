@@ -111,8 +111,8 @@ fun CalendarRoute() {
         startTimeState = startTimeState,
         endTimeState = endTimeState,
         onSavePlan = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection, editingPlanId ->
-            val onError = { errorMessage: String ->
-                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            val onError = { errorMessage: com.example.free2party.util.UiText ->
+                Toast.makeText(context, errorMessage.asString(context), Toast.LENGTH_LONG).show()
             }
             val onSuccess = { message: String ->
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -148,8 +148,8 @@ fun CalendarRoute() {
         onDeletePlan = { planId ->
             viewModel.deletePlan(
                 planId = planId,
-                onError = { errorMessage: String ->
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                onError = { errorMessage: com.example.free2party.util.UiText ->
+                    Toast.makeText(context, errorMessage.asString(context), Toast.LENGTH_LONG).show()
                 },
                 onSuccess = {
                     Toast.makeText(context, planDeletedMessage, Toast.LENGTH_SHORT).show()
