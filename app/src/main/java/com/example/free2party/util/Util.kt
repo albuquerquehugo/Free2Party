@@ -47,6 +47,48 @@ fun formatTimeAgo(timestamp: Date?): UiText {
 }
 
 /**
+ * Extracts a name and an email address from a string, typically formatted as "Name (email)".
+ * Cleans up common prefixes used in system notifications based on the current context.
+ * @return A [Pair] containing the cleaned name and email if a match is found;
+ * otherwise, `null` if the string does not follow the expected pattern.
+ */
+fun String.matchNameAndEmail(context: Context): Pair<String, String>? {
+    val regex = Regex("""([^()]+) \(([^()]+)\)""")
+    val matchResult = regex.find(this)
+    return if (matchResult != null && matchResult.groupValues.size >= 3) {
+        var cleanName = matchResult.groupValues[1]
+
+        // Strip prefixes defined in strings.xml
+        val prefixes = context.resources.getStringArray(R.array.notification_prefixes_to_strip)
+        for (prefix in prefixes) {
+            if (cleanName.contains(prefix, ignoreCase = true)) {
+                cleanName = cleanName.substringAfter(prefix)
+            }
+        }
+
+        cleanName.trim() to matchResult.groupValues[2].trim()
+    } else null
+}
+
+/**
+ * Capitalizes the first letter of each word in the string, separated by spaces.
+ * @return A new string with each word capitalized.
+ */
+fun String.capitalizeWords(): String {
+    return split(" ").joinToString(" ") { it.capitalizeFirstLetter() }
+}
+
+/**
+ * Capitalizes the first letter of a string using the system's default locale.
+ * Useful for month names and other localized strings that might be lowercase by default.
+ * @return The string with the first character converted to title case, or the original string
+ * if it is empty or the first character is already capitalized.
+ */
+fun String.capitalizeFirstLetter(): String {
+    return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+}
+
+/**
  * Formats the given internal time string into a user-friendly display string.
  * @param time Internal time string in the format "H:mm" or "HH:mm".
  * @param use24Hour Whether to use 24-hour or am/pm format.
@@ -117,7 +159,7 @@ fun formatPlanDateInFull(dateStr: String): String {
     val sdfDest = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
-    return sdfDest.format(date)
+    return sdfDest.format(date).capitalizeFirstLetter()
 }
 
 /**

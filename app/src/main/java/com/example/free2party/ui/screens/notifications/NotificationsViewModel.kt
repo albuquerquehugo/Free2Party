@@ -128,6 +128,9 @@ class NotificationsViewModel(
     fun acceptFriendRequest(requestId: String) {
         viewModelScope.launch {
             socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.ACCEPTED)
+                .onSuccess {
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_accepted)))
+                }
         }
     }
 
@@ -135,7 +138,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
                 .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.text_decline_message)))
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_declined)))
                 }
         }
     }
@@ -144,7 +147,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             socialRepository.declineAndBlockFriendRequest(requestId)
                 .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.text_decline_and_block_message)))
+                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_declined_and_user_blocked)))
                 }
         }
     }
@@ -194,7 +197,11 @@ class NotificationsViewModel(
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NotificationsViewModel(socialRepository, userRepository, settingsRepository) as T
+                return NotificationsViewModel(
+                    socialRepository,
+                    userRepository,
+                    settingsRepository
+                ) as T
             }
         }
     }

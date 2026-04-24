@@ -66,7 +66,6 @@ class FriendViewModelTest {
         assertEquals(InviteFriendUiState.Success, viewModel.uiState)
         val event = events.firstOrNull()
         assertTrue(event is FriendUiEvent.InviteSentSuccessfully)
-        assertEquals(email, (event as FriendUiEvent.InviteSentSuccessfully).email)
     }
 
     @Test

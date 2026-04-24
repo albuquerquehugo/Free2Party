@@ -178,8 +178,8 @@ class MainViewModel(
                                 _systemNotificationToDisplay.send(
                                     Notification(
                                         id = request.id,
-                                        title = "New Friend Request",
-                                        message = "${request.senderName} (${request.senderEmail}) sent you a friend request!",
+                                        title = "", // Handled by View (MainActivity) using type
+                                        message = "${request.senderName} (${request.senderEmail})", // Raw data for parsing
                                         type = NotificationType.FRIEND_REQUEST_RECEIVED
                                     )
                                 )

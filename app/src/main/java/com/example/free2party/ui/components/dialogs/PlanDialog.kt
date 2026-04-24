@@ -60,6 +60,7 @@ import com.example.free2party.util.isDateTimeInPast
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.example.free2party.util.unformatTime
+import com.example.free2party.util.capitalizeWords
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -112,10 +113,10 @@ fun PlanDialog(
         }
     }
     val startDateText =
-        startDatePickerState.selectedDateMillis?.let { format.format(Date(it)) }
+        startDatePickerState.selectedDateMillis?.let { format.format(Date(it)).capitalizeWords() }
             ?: stringResource(R.string.select_start_date)
     val endDateText =
-        endDatePickerState.selectedDateMillis?.let { format.format(Date(it)) }
+        endDatePickerState.selectedDateMillis?.let { format.format(Date(it)).capitalizeWords() }
             ?: stringResource(R.string.select_end_date)
 
     val isDateTimeValid = remember(

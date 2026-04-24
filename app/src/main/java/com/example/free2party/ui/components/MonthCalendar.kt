@@ -38,6 +38,7 @@ import com.example.free2party.R
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
 import com.example.free2party.ui.theme.inactive
 import com.example.free2party.ui.theme.onInactiveContainer
+import com.example.free2party.util.capitalizeFirstLetter
 import com.example.free2party.util.isDateTimeInPast
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -58,7 +59,7 @@ fun MonthCalendar(
 
     val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("UTC")
-    }.format(calendar.time)
+    }.format(calendar.time).capitalizeFirstLetter()
 
     val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1
     val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)

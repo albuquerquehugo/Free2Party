@@ -39,6 +39,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.res.stringResource
+import com.example.free2party.R
 import com.example.free2party.MainViewModel
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.components.AppBackground
@@ -58,20 +60,38 @@ import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
+import androidx.annotation.StringRes
 
 sealed class Screen(
     val route: String,
-    val label: String? = null,
+    @get:StringRes val labelResId: Int? = null,
     val icon: ImageVector? = null,
     val iconSelected: ImageVector? = null
 ) {
-    object Login : Screen(route = "login", label = "Login", icon = Icons.AutoMirrored.Filled.Login)
-    object Register : Screen(route = "register", label = "Register", icon = Icons.Default.HowToReg)
-    object Profile : Screen(route = "profile", label = "Profile", icon = Icons.Default.Person)
-    object Settings : Screen(route = "settings", label = "Settings", icon = Icons.Default.Settings)
+    object Login : Screen(
+        route = "login",
+        labelResId = R.string.title_login,
+        icon = Icons.AutoMirrored.Filled.Login
+    )
+
+    object Register : Screen(
+        route = "register",
+        labelResId = R.string.title_register,
+        icon = Icons.Default.HowToReg
+    )
+
+    object Profile :
+        Screen(route = "profile", labelResId = R.string.title_profile, icon = Icons.Default.Person)
+
+    object Settings : Screen(
+        route = "settings",
+        labelResId = R.string.title_settings,
+        icon = Icons.Default.Settings
+    )
+
     object Home : Screen(
         route = "home",
-        label = "Home",
+        labelResId = R.string.title_home,
         icon = Icons.Outlined.Home,
         iconSelected = Icons.Filled.Home
     )
@@ -79,14 +99,14 @@ sealed class Screen(
     object Calendar :
         Screen(
             route = "calendar",
-            label = "Calendar",
+            labelResId = R.string.title_calendar,
             icon = Icons.Outlined.CalendarMonth,
             iconSelected = Icons.Filled.CalendarMonth
         )
 
     object Notifications : Screen(
         route = "notifications",
-        label = "Notifications",
+        labelResId = R.string.title_notifications,
         icon = Icons.Outlined.Notifications,
         iconSelected = Icons.Filled.Notifications
     )
@@ -162,6 +182,8 @@ fun BottomNavigationBar(
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)) {
         BottomNavItems.forEach { screen ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+            val label = screen.labelResId?.let { stringResource(it) }
+
             NavigationBarItem(
                 icon = {
                     if (screen is Screen.Notifications && totalUnread > 0) {
@@ -174,22 +196,22 @@ fun BottomNavigationBar(
                         ) {
                             Icon(
                                 if (isSelected) screen.iconSelected!! else screen.icon!!,
-                                contentDescription = screen.label
+                                contentDescription = label
                             )
 
                         }
                     } else {
                         if (isSelected && screen.iconSelected != null) {
-                            Icon(screen.iconSelected, contentDescription = screen.label)
+                            Icon(screen.iconSelected, contentDescription = label)
                         } else {
                             screen.icon?.let {
-                                Icon(it, contentDescription = screen.label)
+                                Icon(it, contentDescription = label)
                             }
                         }
                     }
                 },
                 label = {
-                    screen.label?.let {
+                    label?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.labelSmall,

@@ -16,24 +16,44 @@
     <string name="text_or"> OR </string>
 
     <!-- General Labels & Text -->
-    <string name="date_label_dd_mm_yyyy">DD/MM/YYYY</string>
-    <string name="date_label_mm_dd_yyyy">MM/DD/YYYY</string>
-    <string name="date_label_yyyy_mm_dd">YYYY/MM/DD</string>
     <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
     <string name="date_pattern_mm_dd_yyyy">MM-dd-yyyy</string>
     <string name="date_pattern_yyyy_mm_dd">yyyy-MM-dd</string>
     <string name="handle_prefix">\@</string>
-    <string name="status">Status:</string>
-    <string name="status_busy">Busy</string>
-    <string name="status_free">Free</string>
-    <string name="status_pending">Pending</string>
+    <string name="label_accept">Accept</string>
+    <string name="label_ad">AD</string>
+    <string name="label_date_dd_mm_yyyy">DD/MM/YYYY</string>
+    <string name="label_date_mm_dd_yyyy">MM/DD/YYYY</string>
+    <string name="label_date_yyyy_mm_dd">YYYY/MM/DD</string>
+    <string name="label_decline">Decline</string>
+    <string name="label_decline_and_block">Decline and Block</string>
+    <string name="label_decline_only">Decline Only</string>
+    <string name="label_email">Email</string>
+    <string name="label_facebook_messenger">Facebook Messenger</string>
+    <string name="label_friends_picture">Friend\'s Picture</string>
+    <string name="label_instagram">Instagram</string>
+    <string name="label_mark_all_as_read">Mark all as read</string>
+    <string name="label_mark_as_read">Mark as read</string>
+    <string name="label_mark_as_unread">Mark as unread</string>
+    <string name="label_options">Options</string>
+    <string name="label_password">Password</string>
+    <string name="label_sms">SMS</string>
+    <string name="label_status">Status:</string>
+    <string name="label_status_busy">Busy</string>
+    <string name="label_status_free">Free</string>
+    <string name="label_status_pending">Pending</string>
+    <string name="label_telegram">Telegram</string>
+    <string name="label_theme_mode_automatic">Automatic</string>
+    <string name="label_theme_mode_dark">Dark</string>
+    <string name="label_theme_mode_light">Light</string>
+    <string name="label_tiktok">TikTok</string>
+    <string name="label_whatsapp">WhatsApp</string>
+    <string name="label_x">X/Twitter</string>
     <string name="text_hang_out_message">Hey! Saw you\'re Free2Party, want to hang out?</string>
-    <string name="theme_mode_automatic">Automatic</string>
-    <string name="theme_mode_dark">Dark</string>
-    <string name="theme_mode_light">Light</string>
 
     <!-- Home Screen -->
     <string name="add_friends_message">Add friends to see their availability and share your plans!</string>
+    <string name="ad_banner_placeholder">AD BANNER (TO BE ADDED LATER)</string>
     <string name="cancel_invite">Cancel Invite</string>
     <string name="contact_options">Contact Options</string>
     <string name="description_collapse">Collapse</string>
@@ -45,9 +65,6 @@
     <string name="invite_friend">Invite Friend</string>
     <string name="invite_friend_description">Enter your friend\'s email to send an invite.</string>
     <string name="logout_confirmation_text">Are you sure you want to log out?</string>
-    <string name="message_friend_removed">Friend removed successfully</string>
-    <string name="message_invite_cancelled">Invite cancelled successfully</string>
-    <string name="message_invite_sent">Invite sent to %1$s!</string>
     <string name="no_friends_in_section">No friends in this section</string>
     <string name="no_friends_yet">You don\'t have any friends yet!</string>
     <string name="remove_friend">Remove Friend</string>
@@ -56,15 +73,11 @@
     <string name="section_title_free">Free</string>
     <string name="section_title_invited">Invited</string>
     <string name="send_invite">Send invite</string>
-    <string name="text_email">Email</string>
-    <string name="text_facebook_messenger">Facebook Messenger</string>
-    <string name="text_instagram">Instagram</string>
-    <string name="text_sms">SMS</string>
-    <string name="text_telegram">Telegram</string>
-    <string name="text_tiktok">TikTok</string>
-    <string name="text_whatsapp">WhatsApp</string>
-    <string name="text_x">X/Twitter</string>
+    <string name="title_home">Home</string>
     <string name="title_your_friends">Your Friends</string>
+    <string name="toast_friend_removed">Friend removed</string>
+    <string name="toast_invite_cancelled">Invite cancelled</string>
+    <string name="toast_invite_sent">Invite sent</string>
 
     <!-- Login & Register Screen -->
     <string name="already_have_account_log_in">Already have an account? Log in</string>
@@ -74,8 +87,6 @@
     <string name="button_sign_in_with_google">Sign in with Google</string>
     <string name="confirm_password_required">Confirm Password *</string>
     <string name="description_reset_password">Enter your email address and we\'ll send you a link to reset your password.\n\n(Remember to check the SPAM folder in your email)</string>
-    <string name="label_email">Email</string>
-    <string name="label_password">Password</string>
     <string name="link_forgot_password">Forgot Password?</string>
     <string name="link_sign_up">Don\'t have an account? Sign up</string>
     <string name="message_resend_verification_success">Verification email resent! Please check your inbox.</string>
@@ -84,6 +95,8 @@
     <string name="success_account_created">Account created successfully! Check your email to verify your account.</string>
     <string name="title_create_account">Create Account</string>
     <string name="title_reset_password">Reset Password</string>
+    <string name="title_login">Login</string>
+    <string name="title_register">Register</string>
 
     <!-- Profile Screen -->
     <string name="account_deleted">Account deleted!</string>
@@ -164,6 +177,7 @@
     <string name="select_start_date">Select start date</string>
     <string name="title_friend_calendar">%1$s\'s Calendar</string>
     <string name="title_friend_calendar_s">%1$s\' Calendar</string>
+    <string name="title_calendar">Calendar</string>
 
     <!-- Plan Dialog -->
     <string name="edit_plan">Edit your plan</string>
@@ -188,30 +202,31 @@
     <string name="visibility_label_discretion">(This is not visible to others)</string>
 
     <!-- Notifications -->
-    <string name="label_accept">Accept</string>
-    <string name="label_decline">Decline</string>
-    <string name="label_decline_and_block">Decline and Block</string>
-    <string name="label_decline_only">Decline Only</string>
-    <string name="label_friends_picture">Friend\'s Picture</string>
-    <string name="label_mark_all_as_read">Mark all as read</string>
-    <string name="label_mark_as_read">Mark as read</string>
-    <string name="label_mark_as_unread">Mark as unread</string>
-    <string name="label_options_content_description">Options</string>
+    <string name="notification_friend_removed_body">%1$s (%2$s) is no longer your friend</string>
+    <string name="notification_friend_removed_title">Friend Removed</string>
+    <string name="notification_friend_request_accepted_body">%1$s (%2$s) was added as a friend</string>
+    <string name="notification_friend_request_accepted_title">Friend Request Accepted</string>
+    <string name="notification_friend_request_declined_body">Your friend request to %1$s (%2$s) was declined</string>
+    <string name="notification_friend_request_declined_title">Friend Request Declined</string>
+    <string name="notification_friend_request_received_body">%1$s (%2$s) sent you a friend request!</string>
+    <string name="notification_friend_request_received_title">New Friend Request</string>
     <string name="text_all_caught_up">You\'re all caught up!</string>
-    <string name="text_decline_and_block_message">The friend request was declined and the user blocked.</string>
-    <string name="text_decline_dialog_message">Choose how you want to decline this request.</string>
-    <string name="text_decline_message">The friend request was declined.</string>
-    <string name="text_friend_accepted_body">%1$s (%2$s) was added as a friend</string>
-    <string name="text_friend_declined_body">Your friend request to %1$s (%2$s) was declined</string>
-    <string name="text_friend_removed_body">%1$s (%2$s) is no longer your friend</string>
-    <string name="text_friend_request_body">%1$s (%2$s) sent you a friend request!</string>
-    <string name="title_decline_dialog">Decline Friend Request</string>
+    <string name="text_decline_friend_request_dialog">Choose how you want to decline this request</string>
+    <string name="title_decline_friend_request_dialog">Decline Friend Request</string>
     <string name="title_friend_request">Friend Request</string>
-    <string name="title_friend_accepted">Friend Request Accepted</string>
-    <string name="title_friend_declined">Friend Request Declined</string>
+    <string name="title_friend_request_accepted">Friend Request Accepted</string>
+    <string name="title_friend_request_declined">Friend Request Declined</string>
     <string name="title_friend_removed">Friend Removed</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_notifications_with_count">Notifications (%1$d)</string>
+    <string name="toast_friend_request_accepted">Friend request accepted</string>
+    <string name="toast_friend_request_declined">Friend request declined</string>
+    <string name="toast_friend_request_declined_and_user_blocked">Friend request declined and user blocked</string>
+
+    <string-array name="notification_prefixes_to_strip">
+        <item>Your friend request to </item>
+        <item>Seu pedido de amizade para </item>
+    </string-array>
 
     <!-- About Screen -->
     <string name="app_description">A simple way to sync availability with your friends and never miss a meeting again.</string>

@@ -1,0 +1,315 @@
+<resources>
+    <string name="app_name">Free2Party</string>
+
+    <!-- General Buttons & Actions -->
+    <string name="button_add">Adicionar</string>
+    <string name="button_cancel">Cancelar</string>
+    <string name="button_close">Fechar</string>
+    <string name="button_confirm">Confirmar</string>
+    <string name="button_ok">OK</string>
+    <string name="button_remove">Remover</string>
+    <string name="button_update">Atualizar</string>
+    <string name="text_back">Voltar</string>
+    <string name="text_delete">Excluir</string>
+    <string name="text_edit">Editar</string>
+    <string name="text_logout">Sair</string>
+    <string name="text_or"> OU </string>
+
+    <!-- General Labels & Text -->
+    <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
+    <string name="date_pattern_mm_dd_yyyy">MM-dd-yyyy</string>
+    <string name="date_pattern_yyyy_mm_dd">yyyy-MM-dd</string>
+    <string name="handle_prefix">\@</string>
+    <string name="label_accept">Aceitar</string>
+    <string name="label_ad">AD</string>
+    <string name="label_date_dd_mm_yyyy">DD/MM/AAAA</string>
+    <string name="label_date_mm_dd_yyyy">MM/DD/AAAA</string>
+    <string name="label_date_yyyy_mm_dd">AAAA/MM/DD</string>
+    <string name="label_decline">Recusar</string>
+    <string name="label_decline_and_block">Recusar e Bloquear</string>
+    <string name="label_decline_only">Apenas Recusar</string>
+    <string name="label_email">E-mail</string>
+    <string name="label_facebook_messenger">Facebook Messenger</string>
+    <string name="label_friends_picture">Foto do Amigo</string>
+    <string name="label_instagram">Instagram</string>
+    <string name="label_mark_all_as_read">Marcar tudo como lido</string>
+    <string name="label_mark_as_read">Marcar como lido</string>
+    <string name="label_mark_as_unread">Marcar como não lido</string>
+    <string name="label_options">Opções</string>
+    <string name="label_password">Senha</string>
+    <string name="label_sms">SMS</string>
+    <string name="label_status">Status:</string>
+    <string name="label_status_busy">Ocupado</string>
+    <string name="label_status_free">Livre</string>
+    <string name="label_status_pending">Pendente</string>
+    <string name="label_telegram">Telegram</string>
+    <string name="label_theme_mode_automatic">Automático</string>
+    <string name="label_theme_mode_dark">Escuro</string>
+    <string name="label_theme_mode_light">Claro</string>
+    <string name="label_tiktok">TikTok</string>
+    <string name="label_whatsapp">WhatsApp</string>
+    <string name="label_x">X/Twitter</string>
+    <string name="text_hang_out_message">Ei! Vi que você está livre no Free2Party, vamos marcar alguma coisa?</string>
+
+    <!-- Home Screen -->
+    <string name="add_friends_message">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
+    <string name="ad_banner_placeholder">BANNER DE PUBLICIDADE (A SER ADICIONADO DEPOIS)</string>
+    <string name="cancel_invite">Cancelar Convite</string>
+    <string name="contact_options">Opções de Contato</string>
+    <string name="description_collapse">Recolher</string>
+    <string name="description_expand">Expandir</string>
+    <string name="description_friend_options">Opções do Amigo</string>
+    <string name="description_logo_content">Logo do Free2Party</string>
+    <string name="description_user_menu">Menu do Usuário</string>
+    <string name="friend_section_title">%1$s (%2$d)</string>
+    <string name="invite_friend">Convidar Amigo</string>
+    <string name="invite_friend_description">Digite o e-mail do seu amigo para enviar um convite.</string>
+    <string name="logout_confirmation_text">Tem certeza que deseja sair?</string>
+    <string name="no_friends_in_section">Nenhum amigo nesta seção</string>
+    <string name="no_friends_yet">Você ainda não tem amigos!</string>
+    <string name="remove_friend">Remover Amigo</string>
+    <string name="remove_friend_confirmation_text">Tem certeza que deseja remover este amigo?</string>
+    <string name="section_title_busy">Ocupados</string>
+    <string name="section_title_free">Livres</string>
+    <string name="section_title_invited">Convidados</string>
+    <string name="send_invite">Enviar convite</string>
+    <string name="title_home">Início</string>
+    <string name="title_your_friends">Seus Amigos</string>
+    <string name="toast_friend_removed">Amigo removido</string>
+    <string name="toast_invite_cancelled">Convite cancelado</string>
+    <string name="toast_invite_sent">Convite enviado</string>
+
+    <!-- Login & Register Screen -->
+    <string name="already_have_account_log_in">Já tem uma conta? Entre</string>
+    <string name="button_login">Entrar</string>
+    <string name="button_register">Registrar</string>
+    <string name="button_send_link">Enviar link</string>
+    <string name="button_sign_in_with_google">Entrar com Google</string>
+    <string name="confirm_password_required">Confirmar Senha *</string>
+    <string name="description_reset_password">Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.\n\n(Lembre-se de verificar a pasta de SPAM no seu e-mail)</string>
+    <string name="link_forgot_password">Esqueceu a senha?</string>
+    <string name="link_sign_up">Não tem uma conta? Cadastre-se</string>
+    <string name="message_resend_verification_success">E-mail de verificação reenviado! Verifique sua caixa de entrada.</string>
+    <string name="message_reset_password_sent">E-mail de redefinição de senha enviado! Verifique sua caixa de entrada.</string>
+    <string name="password_required">Senha *</string>
+    <string name="success_account_created">Conta criada com sucesso! Verifique seu e-mail para validar sua conta.</string>
+    <string name="title_create_account">Criar Conta</string>
+    <string name="title_reset_password">Redefinir Senha</string>
+    <string name="title_login">Entrar</string>
+    <string name="title_register">Registrar</string>
+
+    <!-- Profile Screen -->
+    <string name="account_deleted">Conta excluída!</string>
+    <string name="bio">Bio</string>
+    <string name="bio_placeholder">Escreva sobre você…</string>
+    <string name="birthday">Data de Nascimento</string>
+    <string name="blocked_users">Usuários Bloqueados</string>
+    <string name="delete_account">Excluir Conta</string>
+    <string name="delete_account_confirmation_message">Tem certeza que deseja excluir sua conta? Esta ação é permanente e todos os seus dados (perfil, planos e amigos) serão perdidos para sempre.</string>
+    <string name="discard_changes">Descartar Alterações</string>
+    <string name="edit_photo_content_description">Editar Foto</string>
+    <string name="email_required">E-mail *</string>
+    <string name="first_name_required">Nome *</string>
+    <string name="instagram_username">Usuário do Instagram</string>
+    <string name="label_all_countries">Todos os Países</string>
+    <string name="label_suggested">Sugerido</string>
+    <string name="last_name_required">Sobrenome *</string>
+    <string name="messenger_username">Usuário do Facebook/Messenger</string>
+    <string name="more_options">Mais opções</string>
+    <string name="no_results_found">Nenhum resultado encontrado</string>
+    <string name="phone_mask_placeholder">Por favor, selecione um país primeiro</string>
+    <string name="phone_number">Número de Telefone</string>
+    <string name="placeholder_search_country">Pesquisar país ou código…</string>
+    <string name="profile_picture_content_description">Foto de Perfil</string>
+    <string name="profile_picture_updated">Foto de perfil atualizada!</string>
+    <string name="profile_updated_successfully">Perfil atualizado com sucesso!</string>
+    <string name="save_changes">Salvar Alterações</string>
+    <string name="section_socials">Redes Sociais</string>
+    <string name="select_birthday">Selecionar data de nascimento</string>
+    <string name="select_country">Selecionar País</string>
+    <string name="telegram_username">Usuário do Telegram</string>
+    <string name="tiktok_username">Usuário do TikTok</string>
+    <string name="title_your_profile">Seu Perfil</string>
+    <string name="unblock">Desbloquear</string>
+    <string name="whatsapp_number">Número do WhatsApp</string>
+    <string name="whatsapp_same_as_phone_number">Mesmo número do telefone</string>
+    <string name="x_username">Usuário do X/Twitter</string>
+
+    <!-- Settings Screen -->
+    <string name="button_save_settings">Salvar Configurações</string>
+    <string name="label_background">Plano de Fundo:</string>
+    <string name="label_date_format">Formato da Data:</string>
+    <string name="label_theme_mode">Modo do Tema:</string>
+    <string name="label_time_format">Formato da Hora:</string>
+    <string name="message_settings_updated">Configurações atualizadas com sucesso!</string>
+    <string name="option_am_pm">AM/PM</string>
+    <string name="option_mesh_gradient">Gradiente Mesh</string>
+    <string name="option_solid">Sólido</string>
+    <string name="option_twenty_four_hour">24 horas</string>
+    <string name="title_appearance">Aparência</string>
+    <string name="title_background">Plano de Fundo</string>
+    <string name="title_preferences">Preferências</string>
+    <string name="title_settings">Configurações</string>
+    <string name="title_theme_mode">Modo do Tema</string>
+    <string name="title_your_settings">Suas Configurações</string>
+
+    <!-- Calendar Screen -->
+    <string name="add_plan">Adicionar Plano</string>
+    <string name="day_friday_short">S</string>
+    <string name="day_monday_short">S</string>
+    <string name="day_saturday_short">S</string>
+    <string name="day_sunday_short">D</string>
+    <string name="day_thursday_short">Q</string>
+    <string name="day_tuesday_short">T</string>
+    <string name="day_wednesday_short">Q</string>
+    <string name="delete_plan">Excluir Plano</string>
+    <string name="delete_plan_confirmation_text">Tem certeza que deseja excluir este plano?</string>
+    <string name="description_next_month">Próximo mês</string>
+    <string name="description_previous_month">Mês anterior</string>
+    <string name="label_today">Hoje</string>
+    <string name="no_plans_for_day">Nenhum plano para este dia</string>
+    <string name="plan_added_successfully">Plano adicionado com sucesso!</string>
+    <string name="plan_deleted">Plano excluído!</string>
+    <string name="plan_updated_successfully">Plano atualizado com sucesso!</string>
+    <string name="results_for">Resultados para: %1$s</string>
+    <string name="select_day_on_calendar">Selecione um dia no calendário para ver os planos</string>
+    <string name="select_end_date">Selecionar data de término</string>
+    <string name="select_start_date">Selecionar data de início</string>
+    <string name="title_friend_calendar">Calendário de %1$s</string>
+    <string name="title_friend_calendar_s">Calendário de %1$s</string>
+    <string name="title_calendar">Calendário</string>
+
+    <!-- Plan Dialog -->
+    <string name="edit_plan">Edite seu plano</string>
+    <string name="end_label">Término:</string>
+    <string name="everyone">Todos</string>
+    <string name="everyone_except">Todos, exceto: %1$s</string>
+    <string name="everyone_except_label">Todos, exceto…</string>
+    <string name="no_friends_to_select">Nenhum amigo para selecionar</string>
+    <string name="only_selected_people">Apenas: %1$s</string>
+    <string name="only_selected_people_label">Apenas pessoas selecionadas…</string>
+    <string name="only_you">Apenas você</string>
+    <string name="plan_actions_content_description">Ações do Plano</string>
+    <string name="plan_note_label">O que você está planejando?</string>
+    <string name="plan_note_placeholder">Digite uma breve nota…</string>
+    <string name="schedule_plan">Agendar seu plano</string>
+    <string name="select_all">Selecionar todos</string>
+    <string name="select_end_time">Selecionar hora de término</string>
+    <string name="select_start_time">Selecionar hora de início</string>
+    <string name="start_label">Início:</string>
+    <string name="unselect_all">Desmarcar todos</string>
+    <string name="visibility_label">Quem pode ver este plano?</string>
+    <string name="visibility_label_discretion">(Isso não é visível para os outros)</string>
+
+    <!-- Notifications -->
+    <string name="notification_friend_removed_body">%1$s (%2$s) não é mais seu amigo.</string>
+    <string name="notification_friend_removed_title">Amigo Removido</string>
+    <string name="notification_friend_request_accepted_body">%1$s (%2$s) foi adicionado como amigo.</string>
+    <string name="notification_friend_request_accepted_title">Pedido de Amizade Aceito</string>
+    <string name="notification_friend_request_declined_body">Seu pedido de amizade para %1$s (%2$s) foi recusado.</string>
+    <string name="notification_friend_request_declined_title">Pedido de Amizade Recusado</string>
+    <string name="notification_friend_request_received_body">%1$s (%2$s) enviou um pedido de amizade!</string>
+    <string name="notification_friend_request_received_title">Novo Pedido de Amizade</string>
+    <string name="text_all_caught_up">Você está em dia!</string>
+    <string name="text_decline_friend_request_dialog">Escolha como deseja recusar este pedido</string>
+    <string name="title_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
+    <string name="title_friend_request">Pedido de Amizade</string>
+    <string name="title_friend_request_accepted">Pedido de Amizade Aceito</string>
+    <string name="title_friend_request_declined">Pedido de Amizade Recusado</string>
+    <string name="title_friend_removed">Amigo Removido</string>
+    <string name="title_notifications">Notificações</string>
+    <string name="title_notifications_with_count">Notificações (%1$d)</string>
+    <string name="toast_friend_request_accepted">Pedido de amizade aceito</string>
+    <string name="toast_friend_request_declined">Pedido de amizade recusado</string>
+    <string name="toast_friend_request_declined_and_user_blocked">Pedido de amizade recusado e usuário bloqueado</string>
+
+    <string-array name="notification_prefixes_to_strip">
+        <item>Your friend request to </item>
+        <item>Seu pedido de amizade para </item>
+    </string-array>
+
+    <!-- About Screen -->
+    <string name="app_description">Uma maneira simples de sincronizar a disponibilidade com seus amigos e nunca mais perder um encontro.</string>
+    <string name="copyright_template">© %1$d Todos os Direitos Reservados</string>
+    <string name="developed_by">Desenvolvido por</string>
+    <string name="developer_name">Hugo Albuquerque</string>
+    <string name="email_subject_feedback">Feedback do App Free2Party</string>
+    <string name="title_about">Sobre</string>
+    <string name="title_profile">Perfil</string>
+    <string name="version_label">Versão %1$s</string>
+
+    <!-- Errors & Exceptions -->
+    <string name="error_auth">Erro de autenticação</string>
+    <string name="error_auth_failed_user_null">Falha na autenticação: Usuário é nulo</string>
+    <string name="error_auth_network">Ocorreu um erro de rede. Por favor, tente novamente.</string>
+    <string name="error_cancelling_invite">Erro ao cancelar convite</string>
+    <string name="error_cannot_add_self">Você não pode adicionar a si mesmo como amigo.</string>
+    <string name="error_database_operation">Ocorreu um erro ao salvar os dados. Por favor, tente novamente.</string>
+    <string name="error_email_already_in_use">Este e-mail já está em uso.</string>
+    <string name="error_email_not_verified">Por favor, verifique seu endereço de e-mail antes de entrar. Verifique sua caixa de entrada (incluindo a pasta de SPAM) pelo link de verificação.</string>
+    <string name="error_email_not_verified_resend">Não recebeu o link de verificação?</string>
+    <string name="error_email_not_verified_resend_clickable">Reenviar.</string>
+    <string name="error_failed_delete_plan">Falha ao excluir o plano.</string>
+    <string name="error_failed_reset_password">Falha ao enviar e-mail de redefinição</string>
+    <string name="error_failed_save_plan">Falha ao salvar o plano.</string>
+    <string name="error_failed_update_plan">Falha ao atualizar o plano.</string>
+    <string name="error_friend_request_already_accepted">Este usuário já é seu amigo.</string>
+    <string name="error_friend_request_already_sent">Um convite já foi enviado para este usuário.</string>
+    <string name="error_friend_request_blocked">Você não pode enviar um pedido de amizade para este usuário.</string>
+    <string name="error_friend_request_not_found">O pedido de amizade não foi encontrado</string>
+    <string name="error_google_config">Erro de configuração ao entrar com o Google. Por favor, tente novamente mais tarde.</string>
+    <string name="error_google_failed">Falha ao entrar com o Google</string>
+    <string name="error_google_invalid_token">Falha ao entrar com o Google: Token inválido</string>
+    <string name="error_google_no_accounts">Nenhuma conta do Google encontrada neste dispositivo</string>
+    <string name="error_google_unexpected_response">Falha ao entrar com o Google: Resposta inesperada</string>
+    <string name="error_infrastructure">Erro de infraestrutura</string>
+    <string name="error_invalid_credentials">E-mail ou senha inválidos</string>
+    <string name="error_invalid_date">Data inválida</string>
+    <string name="error_invalid_datetime">O término deve ser após o início</string>
+    <string name="error_invalid_email">Por favor, insira um endereço de e-mail válido.</string>
+    <string name="error_invalid_phone">Por favor, insira um número de telefone válido</string>
+    <string name="error_invalid_plan_data">Os detalhes do plano são inválidos</string>
+    <string name="error_social">Erro social</string>
+    <string name="error_invalid_whatsapp">Por favor, insira um número de WhatsApp válido</string>
+    <string name="error_login_empty_fields">E-mail e senha não podem estar vazios</string>
+    <string name="error_login_failed">Falha no login</string>
+    <string name="error_network_unavailable">Sem conexão com a internet</string>
+    <string name="error_no_app_available">Nenhum aplicativo disponível para lidar com esta solicitação</string>
+    <string name="error_overlapping_plan">Este intervalo de tempo se sobrepõe a um plano existente. Por favor, selecione um intervalo diferente.</string>
+    <string name="error_passwords_not_match">As senhas não coincidem</string>
+    <string name="error_past_date_time">Não é possível agendar planos para uma data ou hora passada</string>
+    <string name="error_past_plan">Não é possível agendar planos no passado</string>
+    <string name="error_plan_not_found">O plano que você está procurando não existe</string>
+    <string name="error_profile_not_found">Perfil de usuário não encontrado. Por favor, tente sair e entrar novamente.</string>
+    <string name="error_recent_login_required">Por razões de segurança, você deve ter entrado recentemente para excluir sua conta. Por favor, saia, entre novamente e tente de novo.</string>
+    <string name="error_registration_failed">Falha no registro</string>
+    <string name="error_removing_friend">Erro ao remover amigo</string>
+    <string name="error_required_fields">Campos obrigatórios (*) devem ser preenchidos</string>
+    <string name="error_resend_verification_empty_fields">Por favor, insira seu e-mail e senha para reenviar a verificação</string>
+    <string name="error_resend_verification_failed">Falha ao reenviar e-mail de verificação</string>
+    <string name="error_sending_invite">Erro ao enviar convite.</string>
+    <string name="error_settings_not_found">Configurações do usuário não encontradas. Por favor, tente sair e entrar novamente.</string>
+    <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
+    <string name="error_unblocking_user">Erro ao desbloquear usuário</string>
+    <string name="error_unknown">Ocorreu um erro</string>
+    <string name="error_unknown_auth">Ocorreu um erro de autenticação inesperado</string>
+    <string name="error_updating_availability">Erro ao atualizar disponibilidade</string>
+    <string name="error_updating_profile">Erro ao atualizar perfil</string>
+    <string name="error_updating_settings">Erro ao atualizar configurações</string>
+    <string name="error_uploading_image">Erro ao enviar imagem</string>
+    <string name="error_user_disabled">Esta conta de usuário foi desativada</string>
+    <string name="error_user_not_found">Usuário não encontrado</string>
+    <string name="error_weak_password">A senha é muito fraca</string>
+
+    <!-- Time and Duration -->
+    <string name="date_in_parentheses">(%1$s)</string>
+    <string name="duration_days">%1$dd</string>
+    <string name="duration_hours">%1$dh</string>
+    <string name="duration_minutes">%1$dm</string>
+    <string name="time_days_ago">%1$dd atrás</string>
+    <string name="time_hours_ago">%1$dh atrás</string>
+    <string name="time_just_now">agora mesmo</string>
+    <string name="time_minutes_ago">%1$dm atrás</string>
+    <string name="time_range">%1$s - %2$s</string>
+
+</resources>

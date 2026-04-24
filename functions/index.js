@@ -34,19 +34,20 @@ exports.onFriendRequestCreated = onDocumentCreated(
         const fcmToken = userDoc.data().fcmToken;
         if (!fcmToken) return;
 
+        const dataPayload = {
+          notificationId: event.params.requestId,
+          type: "FRIEND_REQUEST_RECEIVED",
+          titleLocKey: "notification_friend_request_received_title",
+          bodyLocKey: "notification_friend_request_received_body",
+          bodyLocArgs: JSON.stringify([senderName, senderEmail]),
+          // Explicitly empty fallbacks to force app-side localization
+          title: "",
+          message: "",
+        };
+
         const message = {
           token: fcmToken,
-          data: {
-            notificationId: event.params.requestId,
-            type: "FRIEND_REQUEST_RECEIVED",
-            titleLocKey: "notification_system_friend_request_title",
-            bodyLocKey: "notification_system_friend_request_body",
-            bodyLocArgs: JSON.stringify([senderName, senderEmail]),
-            // Fallback for old app versions
-            title: "New Friend Request",
-            message:
-              `${senderName} (${senderEmail}) sent you a friend request!`,
-          },
+          data: dataPayload,
           android: {priority: "high"},
         };
 
@@ -86,33 +87,63 @@ exports.onNotificationCreated = onDocumentCreated(
 
         const notificationId = event.params.notificationId;
 
-        let titleLocKey = undefined;
-        let bodyLocKey = undefined;
-        let bodyLocArgs = undefined;
+        let titleLocKey = null;
+        let bodyLocKey = null;
+        let bodyLocArgs = null;
 
-        if (notifData.type === "FRIEND_ADDED") {
-          titleLocKey = "notification_system_friend_accepted_title";
-          bodyLocKey = "notification_system_friend_accepted_body";
-          const match = notifData.message.match(/(.*) \((.*)\) was added/);
-          if (match) {
-            bodyLocArgs = [match[1], match[2]];
-          } else {
-            bodyLocArgs = [notifData.message];
+        // Extract name and email from message if it matches "Name (email) ..."
+        const match = notifData.message.match(/([^()]+) \(([^()]+)\)/);
+        let extractedArgs = null;
+
+        if (match) {
+          let cleanName = match[1].trim();
+          // Strip prefixes so we send ONLY the name in bodyLocArgs
+          const prefixes = [
+            "Your friend request to ",
+            "Seu pedido de amizade para ",
+          ];
+          for (const prefix of prefixes) {
+            if (cleanName.includes(prefix)) {
+              cleanName = cleanName.split(prefix).pop();
+            }
           }
+          extractedArgs = [cleanName.trim(), match[2].trim()];
         }
+
+        switch (notifData.type) {
+          case "FRIEND_ADDED":
+            titleLocKey = "notification_friend_request_accepted_title";
+            bodyLocKey = "notification_friend_request_accepted_body";
+            bodyLocArgs = extractedArgs;
+            break;
+          case "FRIEND_DECLINED":
+            titleLocKey = "notification_friend_request_declined_title";
+            bodyLocKey =
+              "notification_friend_request_declined_body";
+            bodyLocArgs = extractedArgs;
+            break;
+          case "FRIEND_REMOVED":
+            titleLocKey = "notification_friend_removed_title";
+            bodyLocKey = "notification_friend_removed_body";
+            bodyLocArgs = extractedArgs;
+            break;
+        }
+
+        const dataPayload = {
+          notificationId: notificationId,
+          type: notifData.type || "GENERAL",
+          // Explicitly empty fallbacks to force app-side localization
+          title: "",
+          message: "",
+        };
+
+        if (titleLocKey) dataPayload.titleLocKey = titleLocKey;
+        if (bodyLocKey) dataPayload.bodyLocKey = bodyLocKey;
+        if (bodyLocArgs) dataPayload.bodyLocArgs = JSON.stringify(bodyLocArgs);
 
         const message = {
           token: fcmToken,
-          data: {
-            notificationId: notificationId,
-            type: notifData.type || "GENERAL",
-            titleLocKey: titleLocKey,
-            bodyLocKey: bodyLocKey || "",
-            bodyLocArgs: bodyLocArgs ? JSON.stringify(bodyLocArgs) : "",
-            // Fallback for old app versions
-            title: notifData.title || "",
-            message: notifData.message || "",
-          },
+          data: dataPayload,
           android: {priority: "high"},
         };
 

@@ -174,7 +174,7 @@ class HomeViewModel(
             socialRepository.removeFriend(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Friend removed successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.message_friend_removed)))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_removed)))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error removing friend", e)
@@ -199,7 +199,7 @@ class HomeViewModel(
             socialRepository.cancelFriendRequest(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Invite cancelled successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.message_invite_cancelled)))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.toast_invite_cancelled)))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error cancelling invite", e)

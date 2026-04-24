@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -69,8 +70,8 @@ import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.Notification
-import com.example.free2party.ui.theme.inactive
 import com.example.free2party.util.formatTimeAgo
+import com.example.free2party.util.matchNameAndEmail
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -168,11 +169,11 @@ fun NotificationsScreen(
                     Icons.Default.NotificationsNone,
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.inactive
+                    tint = MaterialTheme.colorScheme.outline
                 )
                 Text(
                     text = stringResource(R.string.text_all_caught_up),
-                    color = MaterialTheme.colorScheme.inactive
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -377,10 +378,10 @@ fun DeclineFriendRequestDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = stringResource(R.string.title_decline_dialog))
+            Text(text = stringResource(R.string.title_decline_friend_request_dialog))
         },
         text = {
-            Text(text = stringResource(R.string.text_decline_dialog_message))
+            Text(text = stringResource(R.string.text_decline_friend_request_dialog))
         },
         containerColor = MaterialTheme.colorScheme.surface,
         confirmButton = {
@@ -391,7 +392,7 @@ fun DeclineFriendRequestDialog(
             ) {
                 Button(
                     onClick = onDeclineOnly,
-                    modifier = Modifier.width(160.dp),
+                    modifier = Modifier.wrapContentWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -401,7 +402,7 @@ fun DeclineFriendRequestDialog(
                 }
                 Button(
                     onClick = onDeclineAndBlock,
-                    modifier = Modifier.width(160.dp),
+                    modifier = Modifier.wrapContentWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
@@ -411,7 +412,7 @@ fun DeclineFriendRequestDialog(
                 }
                 Button(
                     onClick = onDismiss,
-                    modifier = Modifier.width(160.dp),
+                    modifier = Modifier.wrapContentWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -539,6 +540,40 @@ fun NotificationBox(
         else -> MaterialTheme.colorScheme.primaryContainer
     }
 
+    val context = LocalContext.current
+    val displayMessage = when (notification.type) {
+        com.example.free2party.data.model.NotificationType.FRIEND_ADDED -> {
+            val match = notification.message.matchNameAndEmail(context)
+            if (match != null) {
+                stringResource(
+                    R.string.notification_friend_request_accepted_body,
+                    match.first,
+                    match.second
+                )
+            } else notification.message
+        }
+
+        com.example.free2party.data.model.NotificationType.FRIEND_DECLINED -> {
+            val match = notification.message.matchNameAndEmail(context)
+            if (match != null) {
+                stringResource(
+                    R.string.notification_friend_request_declined_body,
+                    match.first,
+                    match.second
+                )
+            } else notification.message
+        }
+
+        com.example.free2party.data.model.NotificationType.FRIEND_REMOVED -> {
+            val match = notification.message.matchNameAndEmail(context)
+            if (match != null) {
+                stringResource(R.string.notification_friend_removed_body, match.first, match.second)
+            } else notification.message
+        }
+
+        else -> notification.message
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -551,7 +586,7 @@ fun NotificationBox(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = notification.message,
+                text = displayMessage,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold
@@ -568,7 +603,7 @@ fun NotificationBox(
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.label_options_content_description),
+                    contentDescription = stringResource(R.string.label_options),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

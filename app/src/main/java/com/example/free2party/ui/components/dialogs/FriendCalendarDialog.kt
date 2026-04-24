@@ -29,6 +29,7 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.components.MonthCalendar
 import com.example.free2party.ui.components.PlanResults
 import com.example.free2party.ui.screens.calendar.CalendarViewModel
+import com.example.free2party.util.capitalizeFirstLetter
 import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.util.Date
@@ -99,7 +100,7 @@ fun FriendCalendarDialog(
             val selectedDateText = viewModel.selectedDateMillis?.let {
                 val format = DateFormat.getDateInstance()
                 format.timeZone = TimeZone.getTimeZone("UTC")
-                format.format(Date(it))
+                format.format(Date(it)).capitalizeFirstLetter()
             } ?: ""
 
             PlanResults(

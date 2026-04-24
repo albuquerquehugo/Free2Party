@@ -12,9 +12,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.free2party.R
 
 @Composable
 fun AdBanner(
@@ -36,7 +38,7 @@ fun AdBanner(
         ) {
             // "AD" indicator in the corner
             Text(
-                text = "AD",
+                text = stringResource(R.string.label_ad),
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(end = 6.dp, top = 2.dp),
@@ -45,7 +47,7 @@ fun AdBanner(
             )
 
             Text(
-                text = "AD BANNER (TO BE ADDED LATER)",
+                text = stringResource(R.string.ad_banner_placeholder),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 fontWeight = FontWeight.Medium,

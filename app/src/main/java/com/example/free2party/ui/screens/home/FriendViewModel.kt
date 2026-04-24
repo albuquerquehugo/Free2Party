@@ -29,7 +29,7 @@ sealed interface InviteFriendUiState {
 }
 
 sealed class FriendUiEvent {
-    data class InviteSentSuccessfully(val email: String) : FriendUiEvent()
+    object InviteSentSuccessfully : FriendUiEvent()
 }
 
 class FriendViewModel(
@@ -57,7 +57,7 @@ class FriendViewModel(
             socialRepository.sendFriendRequest(normalizedEmail)
                 .onSuccess {
                     uiState = InviteFriendUiState.Success
-                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully(normalizedEmail))
+                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully)
                 }
                 .onFailure { e ->
                     val errorText = when (e) {

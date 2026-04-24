@@ -108,7 +108,7 @@ fun HomeRoute(
     val context = LocalContext.current
     val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
 
-    val inviteSentTemplate = stringResource(R.string.message_invite_sent)
+    val inviteSentTemplate = stringResource(R.string.toast_invite_sent)
 
     LaunchedEffect(Unit) {
         homeViewModel.uiEvent.collectLatest { event ->
@@ -132,7 +132,7 @@ fun HomeRoute(
                 is FriendUiEvent.InviteSentSuccessfully -> {
                     Toast.makeText(
                         context,
-                        inviteSentTemplate.format(event.email),
+                        inviteSentTemplate,
                         Toast.LENGTH_SHORT
                     ).show()
                     setShowInviteFriendDialog(false)
@@ -284,14 +284,14 @@ fun HomeScreen(
                                         ) {
                                             Row {
                                                 Text(
-                                                    text = stringResource(R.string.status),
+                                                    text = stringResource(R.string.label_status),
                                                     color = MaterialTheme.colorScheme.onSurface
                                                 )
                                                 Spacer(modifier = Modifier.width(4.dp))
                                                 Text(
                                                     text =
-                                                        if (isUserFree) stringResource(R.string.status_free)
-                                                        else stringResource(R.string.status_busy),
+                                                        if (isUserFree) stringResource(R.string.label_status_free)
+                                                        else stringResource(R.string.label_status_busy),
                                                     color =
                                                         if (isUserFree) MaterialTheme.colorScheme.available
                                                         else MaterialTheme.colorScheme.busy
@@ -772,7 +772,7 @@ fun FriendItem(
                     if (isInvited) {
                         Icon(
                             imageVector = Icons.Default.HourglassEmpty,
-                            contentDescription = stringResource(R.string.status_pending),
+                            contentDescription = stringResource(R.string.label_status_pending),
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onInactiveContainer
                         )
@@ -821,7 +821,7 @@ fun FriendItem(
                         ) {
                             if (friend.email.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_email)) },
+                                    text = { Text(stringResource(R.string.label_email)) },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Email,
@@ -840,7 +840,7 @@ fun FriendItem(
                             val smsNumber = "${friend.phoneCode}${friend.phoneNumber}"
                             if (smsNumber.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_sms)) },
+                                    text = { Text(stringResource(R.string.label_sms)) },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Default.Sms,
@@ -858,7 +858,7 @@ fun FriendItem(
 
                             if (friend.socials.facebookUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_facebook_messenger)) },
+                                    text = { Text(stringResource(R.string.label_facebook_messenger)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.messenger_color),
@@ -880,7 +880,7 @@ fun FriendItem(
 
                             if (friend.socials.instagramUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_instagram)) },
+                                    text = { Text(stringResource(R.string.label_instagram)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.instagram_color),
@@ -902,7 +902,7 @@ fun FriendItem(
 
                             if (friend.socials.telegramUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_telegram)) },
+                                    text = { Text(stringResource(R.string.label_telegram)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.telegram),
@@ -924,7 +924,7 @@ fun FriendItem(
 
                             if (friend.socials.tiktokUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_tiktok)) },
+                                    text = { Text(stringResource(R.string.label_tiktok)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.tiktok_color),
@@ -947,7 +947,7 @@ fun FriendItem(
                             val waNumber = friend.socials.whatsappFullNumber
                             if (waNumber.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_whatsapp)) },
+                                    text = { Text(stringResource(R.string.label_whatsapp)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.whatsapp),
@@ -970,7 +970,7 @@ fun FriendItem(
 
                             if (friend.socials.xUsername.isNotBlank()) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.text_x)) },
+                                    text = { Text(stringResource(R.string.label_x)) },
                                     leadingIcon = {
                                         Icon(
                                             painter = painterResource(id = R.drawable.x),

@@ -10,22 +10,22 @@ import java.util.Date
 enum class DatePattern(val patternResId: Int, val labelResId: Int) {
     YYYY_MM_DD(
         R.string.date_pattern_yyyy_mm_dd,
-        R.string.date_label_yyyy_mm_dd
+        R.string.label_date_yyyy_mm_dd
     ),
     MM_DD_YYYY(
         R.string.date_pattern_mm_dd_yyyy,
-        R.string.date_label_mm_dd_yyyy
+        R.string.label_date_mm_dd_yyyy
     ),
     DD_MM_YYYY(
         R.string.date_pattern_dd_mm_yyyy,
-        R.string.date_label_dd_mm_yyyy
+        R.string.label_date_dd_mm_yyyy
     )
 }
 
 enum class ThemeMode(val labelResId: Int) {
-    AUTOMATIC(R.string.theme_mode_automatic),
-    LIGHT(R.string.theme_mode_light),
-    DARK(R.string.theme_mode_dark)
+    AUTOMATIC(R.string.label_theme_mode_automatic),
+    LIGHT(R.string.label_theme_mode_light),
+    DARK(R.string.label_theme_mode_dark)
 }
 
 data class UserSettings(
