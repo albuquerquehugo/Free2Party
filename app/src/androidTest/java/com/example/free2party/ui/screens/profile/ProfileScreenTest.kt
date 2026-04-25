@@ -1,6 +1,7 @@
 package com.example.free2party.ui.screens.profile
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -8,21 +9,26 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.free2party.TestActivity
 import com.example.free2party.data.model.User
+import com.example.free2party.ui.theme.Free2PartyTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class ProfileScreenTest {
 
     @get:Rule
-    val composeTestRule = createComposeRule()
+    val composeTestRule = createAndroidComposeRule<TestActivity>()
 
     /**
      * A wrapper to provide state management for testing ProfileScreenContent,
@@ -47,59 +53,61 @@ class ProfileScreenTest {
 
         val isFormValid = firstName.value.isNotBlank() && lastName.value.isNotBlank()
 
-        ProfileScreenContent(
-            paddingValues = PaddingValues(0.dp),
-            uiState = uiState,
-            onUploadImage = {},
-            firstName = firstName.value,
-            onFirstNameChange = { firstName.value = it },
-            lastName = lastName.value,
-            onLastNameChange = { lastName.value = it },
-            countryCode = initialUser.countryCode,
-            onCountryCodeChange = {},
-            phoneNumber = initialUser.phoneNumber,
-            onPhoneNumberChange = {},
-            birthday = initialUser.birthday,
-            onBirthdayChange = {},
-            bio = bio.value,
-            onBioChange = { bio.value = it },
-            whatsappCountryCode = initialUser.socials.whatsappCountryCode,
-            onWhatsappCountryCodeChange = {},
-            whatsappNumber = initialUser.socials.whatsappNumber,
-            onWhatsappNumberChange = {},
-            isWhatsappSameAsPhone = isWhatsappSameAsPhone.value,
-            onWhatsappSameAsPhoneChange = { isWhatsappSameAsPhone.value = it },
-            telegramUsername = initialUser.socials.telegramUsername,
-            onTelegramUsernameChange = {},
-            facebookUsername = initialUser.socials.facebookUsername,
-            onFacebookUsernameChange = {},
-            instagramUsername = initialUser.socials.instagramUsername,
-            onInstagramUsernameChange = {},
-            tiktokUsername = initialUser.socials.tiktokUsername,
-            onTiktokUsernameChange = {},
-            xUsername = initialUser.socials.xUsername,
-            onXUsernameChange = {},
-            onUnblockUser = {},
-            blockedUsers = emptyList(),
-            hasChanges = hasChanges,
-            isFormValid = isFormValid,
-            onDiscardChanges = {
-                firstName.value = initialUser.firstName
-                lastName.value = initialUser.lastName
-                bio.value = initialUser.bio
-                isWhatsappSameAsPhone.value = false
-            },
-            onUpdateProfile = {
-                onUpdateProfileClicked(
-                    initialUser.copy(
-                        firstName = firstName.value,
-                        lastName = lastName.value,
-                        bio = bio.value
-                    )
+        Free2PartyTheme {
+            Surface {
+                ProfileScreenContent(
+                    paddingValues = PaddingValues(0.dp),
+                    uiState = uiState,
+                    onUploadImage = {},
+                    firstName = firstName.value,
+                    onFirstNameChange = { firstName.value = it },
+                    lastName = lastName.value,
+                    onLastNameChange = { lastName.value = it },
+                    countryCode = initialUser.countryCode,
+                    onCountryCodeChange = {},
+                    phoneNumber = initialUser.phoneNumber,
+                    onPhoneNumberChange = {},
+                    birthday = initialUser.birthday,
+                    onBirthdayChange = {},
+                    bio = bio.value,
+                    onBioChange = { bio.value = it },
+                    whatsappCountryCode = initialUser.socials.whatsappCountryCode,
+                    onWhatsappCountryCodeChange = {},
+                    whatsappNumber = initialUser.socials.whatsappNumber,
+                    onWhatsappNumberChange = {},
+                    isWhatsappSameAsPhone = isWhatsappSameAsPhone.value,
+                    onWhatsappSameAsPhoneChange = { isWhatsappSameAsPhone.value = it },
+                    telegramUsername = initialUser.socials.telegramUsername,
+                    onTelegramUsernameChange = {},
+                    facebookUsername = initialUser.socials.facebookUsername,
+                    onFacebookUsernameChange = {},
+                    instagramUsername = initialUser.socials.instagramUsername,
+                    onInstagramUsernameChange = {},
+                    tiktokUsername = initialUser.socials.tiktokUsername,
+                    onTiktokUsernameChange = {},
+                    xUsername = initialUser.socials.xUsername,
+                    onXUsernameChange = {},
+                    hasChanges = hasChanges,
+                    isFormValid = isFormValid,
+                    onDiscardChanges = {
+                        firstName.value = initialUser.firstName
+                        lastName.value = initialUser.lastName
+                        bio.value = initialUser.bio
+                        isWhatsappSameAsPhone.value = false
+                    },
+                    onUpdateProfile = {
+                        onUpdateProfileClicked(
+                            initialUser.copy(
+                                firstName = firstName.value,
+                                lastName = lastName.value,
+                                bio = bio.value
+                            )
+                        )
+                    },
+                    onDeleteAccount = {}
                 )
-            },
-            onDeleteAccount = {}
-        )
+            }
+        }
     }
 
     @Test

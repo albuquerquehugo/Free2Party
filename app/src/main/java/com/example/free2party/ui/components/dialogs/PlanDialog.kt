@@ -41,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -441,7 +442,8 @@ fun PlanDialog(
                     ) { visibility = PlanVisibility.EVERYONE }
                     VisibilityOption(
                         stringResource(R.string.everyone_except_label),
-                        visibility == PlanVisibility.EXCEPT
+                        visibility == PlanVisibility.EXCEPT,
+                        Modifier.testTag("visibility_except")
                     ) { visibility = PlanVisibility.EXCEPT }
                     AnimatedVisibility(visible = visibility == PlanVisibility.EXCEPT) {
                         FriendSelector(
@@ -456,7 +458,8 @@ fun PlanDialog(
                     }
                     VisibilityOption(
                         stringResource(R.string.only_selected_people_label),
-                        visibility == PlanVisibility.ONLY
+                        visibility == PlanVisibility.ONLY,
+                        Modifier.testTag("visibility_only")
                     ) { visibility = PlanVisibility.ONLY }
                     AnimatedVisibility(visible = visibility == PlanVisibility.ONLY) {
                         FriendSelector(
@@ -499,6 +502,7 @@ fun PlanDialog(
                             )
                         }
                     },
+                    modifier = Modifier.testTag("plan_dialog_confirm_button"),
                     enabled = isConfirmEnabled
                 ) {
                     Text(
@@ -610,9 +614,14 @@ fun PlanDialog(
 }
 
 @Composable
-fun VisibilityOption(label: String, selected: Boolean, onClick: () -> Unit) {
+fun VisibilityOption(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(vertical = 4.dp),
@@ -676,14 +685,18 @@ fun FriendSelector(
                 text = stringResource(R.string.unselect_all),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { onUnselectAll() }
+                modifier = Modifier
+                    .testTag("unselect_all")
+                    .clickable { onUnselectAll() }
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = stringResource(R.string.select_all),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { onSelectAll() }
+                modifier = Modifier
+                    .testTag("select_all")
+                    .clickable { onSelectAll() }
             )
         }
     }
