@@ -103,7 +103,6 @@
     <string name="bio">Bio</string>
     <string name="bio_placeholder">Write about yourself…</string>
     <string name="birthday">Birthday</string>
-    <string name="blocked_users">Blocked Users</string>
     <string name="delete_account">Delete Account</string>
     <string name="delete_account_confirmation_message">Are you sure you want to delete your account? This action is permanent and all your data (profile, plans, and friends) will be lost forever.</string>
     <string name="discard_changes">Discard Changes</string>
@@ -134,6 +133,10 @@
     <string name="whatsapp_number">WhatsApp Number</string>
     <string name="whatsapp_same_as_phone_number">Same as phone number</string>
     <string name="x_username">X/Twitter Username</string>
+
+    <!-- Blocked Users Screen -->
+    <string name="title_blocked_users">Blocked Users</string>
+    <string name="toast_user_unblocked">User unblocked</string>
 
     <!-- Settings Screen -->
     <string name="button_save_settings">Save Settings</string>

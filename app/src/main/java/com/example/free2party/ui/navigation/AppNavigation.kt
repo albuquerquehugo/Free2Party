@@ -3,6 +3,7 @@ package com.example.free2party.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToReg
@@ -53,6 +54,7 @@ import com.example.free2party.ui.screens.login.LoginViewModel
 import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
+import com.example.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
 import com.example.free2party.ui.screens.register.RegisterViewModel
 import com.example.free2party.ui.screens.settings.SettingsRoute
@@ -82,6 +84,12 @@ sealed class Screen(
 
     object Profile :
         Screen(route = "profile", labelResId = R.string.title_profile, icon = Icons.Default.Person)
+
+    object BlockedUsers : Screen(
+        route = "blocked_users",
+        labelResId = R.string.title_blocked_users,
+        icon = Icons.Default.Block
+    )
 
     object Settings : Screen(
         route = "settings",
@@ -315,6 +323,9 @@ fun Free2PartyNavGraph(
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
                 },
+                onNavigateToBlockedUsers = {
+                    navController.navigate(Screen.BlockedUsers.route)
+                },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
                 }
@@ -337,6 +348,12 @@ fun Free2PartyNavGraph(
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.BlockedUsers.route) {
+            BlockedUsersRoute(
+                onBack = { navController.popBackStack() }
             )
         }
 

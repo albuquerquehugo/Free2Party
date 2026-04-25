@@ -166,7 +166,6 @@ class SocialRepositoryImpl(
         awaitClose { listener.remove() }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getBlockedUsers(): Flow<List<BlockedUser>> = callbackFlow {
         if (currentUserId.isBlank()) {
             trySend(emptyList())
@@ -187,19 +186,6 @@ class SocialRepositoryImpl(
             }
 
         awaitClose { listener.remove() }
-    }.flatMapLatest { blockedStubs ->
-        if (blockedStubs.isEmpty()) return@flatMapLatest flowOf(emptyList())
-
-        val blockedFlows = blockedStubs.map { stub ->
-            userRepository.observeUser(stub.uid).map { user ->
-                stub.copy(
-                    name = user.fullName,
-                    profilePicUrl = user.profilePicUrl
-                )
-            }.catch { emit(stub) }
-        }
-
-        combine(blockedFlows) { it.toList() }
     }
 
     override suspend fun sendFriendRequest(friendEmail: String): Result<Unit> = try {

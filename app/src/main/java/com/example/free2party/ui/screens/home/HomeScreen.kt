@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandMore
@@ -70,7 +71,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.free2party.R
@@ -103,6 +103,7 @@ fun HomeRoute(
     friendViewModel: FriendViewModel,
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
@@ -151,6 +152,7 @@ fun HomeRoute(
         gradientBackground = gradientBackground,
         onLogoutClick = { homeViewModel.logout(onLogout) },
         onNavigateToProfile = onNavigateToProfile,
+        onNavigateToBlockedUsers = onNavigateToBlockedUsers,
         onNavigateToSettings = onNavigateToSettings,
         onToggleAvailability = { homeViewModel.toggleAvailability() },
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
@@ -174,6 +176,7 @@ fun HomeScreen(
     gradientBackground: Boolean,
     onLogoutClick: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
@@ -313,6 +316,19 @@ fun HomeScreen(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Person,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_blocked_users)) },
+                                onClick = {
+                                    showUserMenu = false
+                                    onNavigateToBlockedUsers()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Block,
                                         contentDescription = null
                                     )
                                 }
@@ -816,8 +832,7 @@ fun FriendItem(
                         DropdownMenu(
                             expanded = showContactMenu,
                             onDismissRequest = { showContactMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            offset = DpOffset(x = (-16).dp, y = 0.dp)
+                            containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             if (friend.email.isNotBlank()) {
                                 DropdownMenuItem(

@@ -10,12 +10,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
-import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
-import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.AuthException
@@ -39,7 +36,6 @@ sealed interface ProfileUiState {
     object Loading : ProfileUiState
     data class Success(
         val user: User,
-        val blockedUsers: List<BlockedUser> = emptyList(),
         val isSaving: Boolean = false,
         val isUploadingImage: Boolean = false
     ) : ProfileUiState
@@ -53,8 +49,7 @@ sealed class ProfileUiEvent {
 }
 
 class ProfileViewModel(
-    private val userRepository: UserRepository,
-    private val socialRepository: SocialRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<ProfileUiState>(ProfileUiState.Loading)
@@ -147,11 +142,8 @@ class ProfileViewModel(
                 xUsername != user.socials.xUsername
     }
 
-    private var blockedUsersList = emptyList<BlockedUser>()
-
     init {
         loadProfile()
-        loadBlockedUsers()
     }
 
     private fun loadProfile() {
@@ -169,9 +161,9 @@ class ProfileViewModel(
                     if (currentState !is ProfileUiState.Success) {
                         initializeFields(user)
                         uiState =
-                            ProfileUiState.Success(user = user, blockedUsers = blockedUsersList)
+                            ProfileUiState.Success(user = user)
                     } else {
-                        uiState = currentState.copy(user = user, blockedUsers = blockedUsersList)
+                        uiState = currentState.copy(user = user)
                     }
                 }
         }
@@ -337,41 +329,6 @@ class ProfileViewModel(
         }
     }
 
-    private fun loadBlockedUsers() {
-        viewModelScope.launch {
-            socialRepository.getBlockedUsers()
-                .catch { e ->
-                    if (e is UserNotFoundException || e is UnauthorizedException) {
-                        return@catch
-                    }
-                    _uiEvent.emit(
-                        ProfileUiEvent.ShowToast(
-                            mapToUiText(e, R.string.error_database_operation)
-                        )
-                    )
-                }
-                .collect { blockedUsers ->
-                    blockedUsersList = blockedUsers
-                    (uiState as? ProfileUiState.Success)?.let {
-                        uiState = it.copy(blockedUsers = blockedUsers)
-                    }
-                }
-        }
-    }
-
-    fun unblockUser(userId: String) {
-        viewModelScope.launch {
-            socialRepository.unblockUser(userId)
-                .onFailure { e ->
-                    _uiEvent.emit(
-                        ProfileUiEvent.ShowToast(
-                            mapToUiText(e, R.string.error_unblocking_user)
-                        )
-                    )
-                }
-        }
-    }
-
     fun deleteAccount() {
         val currentState = uiState as? ProfileUiState.Success ?: return
         uiState = currentState.copy(isSaving = true)
@@ -409,21 +366,15 @@ class ProfileViewModel(
 
     companion object {
         fun provideFactory(
-            context: Context,
             userRepository: UserRepository = UserRepositoryImpl(
                 auth = Firebase.auth,
                 db = Firebase.firestore,
                 storage = Firebase.storage
-            ),
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = userRepository,
-                context = context
             )
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProfileViewModel(userRepository, socialRepository) as T
+                return ProfileViewModel(userRepository) as T
             }
         }
     }

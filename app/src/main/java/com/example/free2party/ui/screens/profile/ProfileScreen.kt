@@ -32,7 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.R
-import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.ui.components.ProfileContent
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.TopBar
@@ -45,7 +44,7 @@ fun ProfileRoute(
 ) {
     val context = LocalContext.current
     val viewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModel.provideFactory(context)
+        factory = ProfileViewModel.provideFactory()
     )
     val deleteMsg = stringResource(R.string.account_deleted)
 
@@ -101,8 +100,6 @@ fun ProfileRoute(
         onTiktokUsernameChange = { viewModel.tiktokUsername = it },
         xUsername = viewModel.xUsername,
         onXUsernameChange = { viewModel.xUsername = it },
-        onUnblockUser = { viewModel.unblockUser(it) },
-        blockedUsers = (viewModel.uiState as? ProfileUiState.Success)?.blockedUsers ?: emptyList(),
         hasChanges = viewModel.hasChanges,
         isFormValid = viewModel.isFormValid(context),
         onDiscardChanges = { viewModel.discardChanges() },
@@ -145,8 +142,6 @@ fun ProfileScreen(
     onTiktokUsernameChange: (String) -> Unit,
     xUsername: String,
     onXUsernameChange: (String) -> Unit,
-    onUnblockUser: (String) -> Unit,
-    blockedUsers: List<BlockedUser>,
     hasChanges: Boolean,
     isFormValid: Boolean,
     onDiscardChanges: () -> Unit,
@@ -210,8 +205,6 @@ fun ProfileScreen(
                     onTiktokUsernameChange = onTiktokUsernameChange,
                     xUsername = xUsername,
                     onXUsernameChange = onXUsernameChange,
-                    onUnblockUser = onUnblockUser,
-                    blockedUsers = blockedUsers,
                     hasChanges = hasChanges,
                     isFormValid = isFormValid,
                     onDiscardChanges = onDiscardChanges,
@@ -256,8 +249,6 @@ fun ProfileScreenContent(
     onTiktokUsernameChange: (String) -> Unit,
     xUsername: String,
     onXUsernameChange: (String) -> Unit,
-    onUnblockUser: (String) -> Unit,
-    blockedUsers: List<BlockedUser>,
     hasChanges: Boolean,
     isFormValid: Boolean,
     onDiscardChanges: () -> Unit,
@@ -325,8 +316,6 @@ fun ProfileScreenContent(
             onTiktokUsernameChange = onTiktokUsernameChange,
             xUsername = xUsername,
             onXUsernameChange = onXUsernameChange,
-            blockedUsers = blockedUsers,
-            onUnblockUser = onUnblockUser,
             confirmButtons = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),

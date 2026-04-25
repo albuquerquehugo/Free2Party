@@ -103,7 +103,6 @@
     <string name="bio">Bio</string>
     <string name="bio_placeholder">Escreva sobre você…</string>
     <string name="birthday">Data de Nascimento</string>
-    <string name="blocked_users">Usuários Bloqueados</string>
     <string name="delete_account">Excluir Conta</string>
     <string name="delete_account_confirmation_message">Tem certeza que deseja excluir sua conta? Esta ação é permanente e todos os seus dados (perfil, planos e amigos) serão perdidos para sempre.</string>
     <string name="discard_changes">Descartar Alterações</string>
@@ -134,6 +133,10 @@
     <string name="whatsapp_number">Número do WhatsApp</string>
     <string name="whatsapp_same_as_phone_number">Mesmo número do telefone</string>
     <string name="x_username">Usuário do X/Twitter</string>
+
+    <!-- Blocked Users Screen -->
+    <string name="title_blocked_users">Usuários Bloqueados</string>
+    <string name="toast_user_unblocked">Usuário desbloqueado</string>
 
     <!-- Settings Screen -->
     <string name="button_save_settings">Salvar Configurações</string>
