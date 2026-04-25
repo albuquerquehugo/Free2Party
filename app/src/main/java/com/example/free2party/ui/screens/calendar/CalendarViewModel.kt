@@ -20,6 +20,9 @@ import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
+import com.example.free2party.exception.InvalidPlanDataException
+import com.example.free2party.exception.OverlappingPlanException
+import com.example.free2party.exception.PastDateTimeException
 import com.example.free2party.util.UiText
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
@@ -97,7 +100,7 @@ class CalendarViewModel(
     private fun observeUserSettings() {
         val uid = userRepository.currentUserId
         if (uid.isBlank()) return
-        
+
         userRepository.observeUser(uid)
             .onEach { user ->
                 gradientBackground = user.settings.gradientBackground
@@ -114,7 +117,7 @@ class CalendarViewModel(
         if (isViewingOwnCalendar) {
             planRepository.getOwnPlans()
                 .onEach { plansList = it }
-                .catch { e -> 
+                .catch { e ->
                     Log.e("CalendarViewModel", "Error observing own plans", e)
                     plansList = emptyList()
                 }
@@ -154,10 +157,14 @@ class CalendarViewModel(
         viewModelScope.launch {
             planRepository.savePlan(plan)
                 .onSuccess { onSuccess() }
-                .onFailure { _ ->
-                    onValidationError(
-                        UiText.StringResource(R.string.error_failed_save_plan)
-                    )
+                .onFailure { error ->
+                    val message = when (error) {
+                        is OverlappingPlanException -> UiText.StringResource(R.string.error_overlapping_plan)
+                        is PastDateTimeException -> UiText.StringResource(R.string.error_past_date_time)
+                        is InvalidPlanDataException -> UiText.StringResource(R.string.error_invalid_plan_data)
+                        else -> UiText.StringResource(R.string.error_failed_save_plan)
+                    }
+                    onValidationError(message)
                 }
         }
     }
@@ -188,7 +195,15 @@ class CalendarViewModel(
         viewModelScope.launch {
             planRepository.updatePlan(updatedPlan)
                 .onSuccess { onSuccess() }
-                .onFailure { _ -> onError(UiText.StringResource(R.string.error_failed_update_plan)) }
+                .onFailure { error ->
+                    val message = when (error) {
+                        is OverlappingPlanException -> UiText.StringResource(R.string.error_overlapping_plan)
+                        is PastDateTimeException -> UiText.StringResource(R.string.error_past_date_time)
+                        is InvalidPlanDataException -> UiText.StringResource(R.string.error_invalid_plan_data)
+                        else -> UiText.StringResource(R.string.error_failed_update_plan)
+                    }
+                    onError(message)
+                }
         }
     }
 

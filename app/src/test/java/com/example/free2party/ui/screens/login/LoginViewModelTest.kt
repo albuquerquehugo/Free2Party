@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -67,11 +68,7 @@ class LoginViewModelTest {
 
         assertTrue(viewModel.uiState is LoginUiState.Error)
         val state = viewModel.uiState as LoginUiState.Error
-        assertTrue(state.message is UiText.DynamicString)
-        assertEquals(
-            "Email and password cannot be empty",
-            (state.message as UiText.DynamicString).value
-        )
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -107,20 +104,17 @@ class LoginViewModelTest {
         val password = "wrong_password"
         viewModel.email = email
         viewModel.password = password
-        val errorMessage = "Invalid credentials"
 
         coEvery { authRepository.login(email, password) } returns Result.failure(
-            Exception(
-                errorMessage
-            )
+            Exception("Error")
         )
 
         viewModel.onLoginClick {}
+        runCurrent()
 
         assertTrue(viewModel.uiState is LoginUiState.Error)
         val state = viewModel.uiState as LoginUiState.Error
-        assertTrue(state.message is UiText.DynamicString)
-        assertEquals(errorMessage, (state.message as UiText.DynamicString).value)
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -144,16 +138,13 @@ class LoginViewModelTest {
             }
 
             viewModel.onForgotPasswordConfirm(email)
+            runCurrent()
 
             assertEquals(LoginUiState.Idle, viewModel.uiState)
             val event = events.firstOrNull()
             assertTrue("Expected ShowToast but was $event", event is LoginUiEvent.ShowToast)
             val toastEvent = event as LoginUiEvent.ShowToast
-            assertTrue(toastEvent.message is UiText.DynamicString)
-            assertEquals(
-                "Password reset email sent! Please check your inbox.",
-                (toastEvent.message as UiText.DynamicString).value
-            )
+            assertTrue(toastEvent.message is UiText.StringResource)
 
             collectJob.cancel()
         }

@@ -5,6 +5,7 @@ import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSettings
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.UserRepository
+import com.example.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -92,7 +93,7 @@ class SettingsViewModelTest {
         assertEquals(false, state.isSaving)
         val event = events.firstOrNull()
         assertTrue(event is SettingsUiEvent.ShowToast)
-        assertEquals("Settings updated successfully!", (event as SettingsUiEvent.ShowToast).message)
+        assertTrue((event as SettingsUiEvent.ShowToast).message is UiText.StringResource)
         coVerify { userRepository.updateUser(updatedUser) }
     }
 
@@ -118,6 +119,6 @@ class SettingsViewModelTest {
         assertEquals(false, state.isSaving)
         val event = events.firstOrNull()
         assertTrue(event is SettingsUiEvent.ShowToast)
-        assertEquals("Error: $errorMessage", (event as SettingsUiEvent.ShowToast).message)
+        assertTrue((event as SettingsUiEvent.ShowToast).message is UiText.StringResource)
     }
 }

@@ -42,11 +42,7 @@ class FriendViewModelTest {
 
         assertTrue(viewModel.uiState is InviteFriendUiState.Error)
         val state = viewModel.uiState as InviteFriendUiState.Error
-        assertTrue(state.message is UiText.DynamicString)
-        assertEquals(
-            "Please enter a valid email address.",
-            (state.message as UiText.DynamicString).value
-        )
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
@@ -71,11 +67,8 @@ class FriendViewModelTest {
     @Test
     fun `inviteFriend failure updates error state`() = runTest {
         val email = "friend@example.com"
-        val errorMessage = "User not found"
         coEvery { socialRepository.sendFriendRequest(email) } returns Result.failure(
-            Exception(
-                errorMessage
-            )
+            Exception("Error")
         )
 
         viewModel.inviteFriend(email)
@@ -83,8 +76,7 @@ class FriendViewModelTest {
 
         assertTrue(viewModel.uiState is InviteFriendUiState.Error)
         val state = viewModel.uiState as InviteFriendUiState.Error
-        assertTrue(state.message is UiText.DynamicString)
-        assertEquals(errorMessage, (state.message as UiText.DynamicString).value)
+        assertTrue(state.message is UiText.StringResource)
     }
 
     @Test

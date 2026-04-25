@@ -8,6 +8,7 @@ import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
+import com.example.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -166,9 +167,7 @@ class HomeViewModelTest {
 
         val event = events.firstOrNull()
         assertTrue("Expected ShowToast but got $event", event is HomeUiEvent.ShowToast)
-        assertEquals("Friend removed successfully", (event as HomeUiEvent.ShowToast).message.let { 
-            if (it is com.example.free2party.util.UiText.DynamicString) it.value else ""
-        })
+        assertTrue((event as HomeUiEvent.ShowToast).message is UiText.StringResource)
     }
 
     @Test
@@ -188,8 +187,6 @@ class HomeViewModelTest {
 
         val event = events.firstOrNull()
         assertTrue("Expected ShowToast but got $event", event is HomeUiEvent.ShowToast)
-        assertEquals("Invite cancelled successfully", (event as HomeUiEvent.ShowToast).message.let {
-             if (it is com.example.free2party.util.UiText.DynamicString) it.value else ""
-        })
+        assertTrue((event as HomeUiEvent.ShowToast).message is UiText.StringResource)
     }
 }

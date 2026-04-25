@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import com.example.free2party.R
 import com.example.free2party.data.model.User
-import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -31,7 +30,6 @@ class ProfileViewModelTest {
 
     private lateinit var viewModel: ProfileViewModel
     private val userRepository: UserRepository = mockk(relaxed = true)
-    private val socialRepository: SocialRepository = mockk(relaxed = true)
     private val context: Context = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val userFlow = MutableStateFlow(User(uid = "me", firstName = "John", lastName = "Doe"))
@@ -54,7 +52,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `init loads user profile and initializes fields`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         assertTrue(viewModel.uiState is ProfileUiState.Success)
@@ -66,7 +64,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `field changes update hasChanges and isFormValid`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         viewModel.firstName = "Jane"
@@ -95,7 +93,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `discardChanges resets fields to original values`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         viewModel.firstName = "Jane"
@@ -113,7 +111,7 @@ class ProfileViewModelTest {
     fun `updateProfile success updates state and emits toast with navigateBack true`() = runTest {
         coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
 
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         val events = mutableListOf<ProfileUiEvent>()
@@ -141,7 +139,7 @@ class ProfileViewModelTest {
         val errorMessage = "Update failed"
         coEvery { userRepository.updateUser(any()) } returns Result.failure(Exception(errorMessage))
 
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         val events = mutableListOf<ProfileUiEvent>()
@@ -165,7 +163,7 @@ class ProfileViewModelTest {
         coEvery { userRepository.uploadProfilePicture(uri) } returns Result.success(downloadUrl)
         coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
 
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         val events = mutableListOf<ProfileUiEvent>()
@@ -185,7 +183,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `uiState transitions during updateProfile`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository)
         runCurrent()
 
         coEvery { userRepository.updateUser(any()) } coAnswers {
