@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 
 class MainViewModel(
@@ -102,16 +103,27 @@ class MainViewModel(
                     val localTheme = settingsRepository.themeModeFlow.first()
                     val localBackground = settingsRepository.gradientBackgroundFlow.first()
 
-                    val initialUser = userRepository.observeUser(uid).first()
-                    if (initialUser.settings.themeMode != localTheme || initialUser.settings.gradientBackground != localBackground) {
-                        Log.d("MainViewModel", "Pushing local settings to Cloud at login/startup")
-                        val updatedUser = initialUser.copy(
-                            settings = initialUser.settings.copy(
-                                themeMode = localTheme,
-                                gradientBackground = localBackground
+                    // Wait for user document to be created (max 10 seconds)
+                    val initialUser = withTimeoutOrNull(10000) {
+                        userRepository.observeUser(uid).first()
+                    }
+
+                    if (initialUser != null) {
+                        if (initialUser.settings.themeMode != localTheme || initialUser.settings.gradientBackground != localBackground) {
+                            Log.d(
+                                "MainViewModel",
+                                "Pushing local settings to Cloud at login/startup"
                             )
-                        )
-                        userRepository.updateUser(updatedUser)
+                            val updatedUser = initialUser.copy(
+                                settings = initialUser.settings.copy(
+                                    themeMode = localTheme,
+                                    gradientBackground = localBackground
+                                )
+                            )
+                            userRepository.updateUser(updatedUser)
+                        }
+                    } else {
+                        Log.e("MainViewModel", "Timeout waiting for user $uid document")
                     }
 
                     // Continuous Pull Sync: Only from Cloud to Local

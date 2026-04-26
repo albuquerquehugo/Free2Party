@@ -74,7 +74,7 @@ class UserRepositoryImpl(
                 if (user != null) {
                     trySend(user.copy(uid = snapshot.id))
                 } else {
-                    close(UserNotFoundException())
+                    Log.d("UserRepository", "observeUser: User $uid not found yet, waiting...")
                 }
             }
         awaitClose { listener.remove() }
