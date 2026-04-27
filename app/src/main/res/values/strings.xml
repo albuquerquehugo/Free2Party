@@ -74,6 +74,7 @@
     <string name="section_title_invited">Invited</string>
     <string name="send_invite">Send invite</string>
     <string name="title_home">Home</string>
+    <string name="title_profile">Profile</string>
     <string name="title_your_friends">Your Friends</string>
     <string name="toast_friend_removed">Friend removed</string>
     <string name="toast_invite_cancelled">Invite cancelled</string>
@@ -238,7 +239,6 @@
     <string name="developer_name">Hugo Albuquerque</string>
     <string name="email_subject_feedback">Free2Party App Feedback</string>
     <string name="title_about">About</string>
-    <string name="title_profile">Profile</string>
     <string name="version_label">Version %1$s</string>
 
     <!-- Errors & Exceptions -->

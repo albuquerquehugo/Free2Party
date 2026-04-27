@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -38,11 +39,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -65,12 +68,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.free2party.R
@@ -224,27 +229,53 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val successState = homeUiState as? HomeUiState.Success
+                    val profilePicUrl = successState?.profilePicUrl
+                    val isUserFree = successState?.isUserFree ?: false
+                    val statusColor =
+                        if (isUserFree) MaterialTheme.colorScheme.available else MaterialTheme.colorScheme.busy
+
                     if (successState != null) {
-                        Text(
-                            text = successState.userName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.ExtraBold
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Text(
+                                text = successState.userName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                            Text(
+                                text =
+                                    if (isUserFree) stringResource(R.string.label_status_free)
+                                    else stringResource(R.string.label_status_busy),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = statusColor,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                                        shape = CircleShape
+                                    )
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Box {
-                        val profilePicUrl = (homeUiState as? HomeUiState.Success)?.profilePicUrl
-                        val isUserFree = (homeUiState as? HomeUiState.Success)?.isUserFree ?: false
-
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .border(3.dp, statusColor, CircleShape)
+                            .padding(3.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         if (!profilePicUrl.isNullOrBlank()) {
                             AsyncImage(
                                 model = profilePicUrl,
                                 contentDescription = stringResource(R.string.description_user_menu),
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(36.dp)
                                     .clip(CircleShape),
                                 contentScale = ContentScale.Crop
                             )
@@ -253,23 +284,7 @@ fun HomeScreen(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = stringResource(R.string.description_user_menu),
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(40.dp)
-                            )
-                        }
-
-                        // Status Circle Badge
-                        if (homeUiState is HomeUiState.Success) {
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .align(Alignment.BottomEnd)
-                                    .background(
-                                        color =
-                                            if (isUserFree) MaterialTheme.colorScheme.available
-                                            else MaterialTheme.colorScheme.busy,
-                                        CircleShape
-                                    )
-                                    .border(1.dp, MaterialTheme.colorScheme.background, CircleShape)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
 
@@ -278,35 +293,6 @@ fun HomeScreen(
                             onDismissRequest = { showUserMenu = false },
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
-                            if (homeUiState is HomeUiState.Success) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Row {
-                                                Text(
-                                                    text = stringResource(R.string.label_status),
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(
-                                                    text =
-                                                        if (isUserFree) stringResource(R.string.label_status_free)
-                                                        else stringResource(R.string.label_status_busy),
-                                                    color =
-                                                        if (isUserFree) MaterialTheme.colorScheme.available
-                                                        else MaterialTheme.colorScheme.busy
-                                                )
-                                            }
-                                        }
-                                    },
-                                    onClick = { },
-                                    enabled = false
-                                )
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                            }
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.title_profile)) },
                                 onClick = {
@@ -359,7 +345,9 @@ fun HomeScreen(
                                     )
                                 }
                             )
-                            HorizontalDivider()
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.text_logout)) },
                                 onClick = {
@@ -496,6 +484,8 @@ fun HomeContent(
     onInviteFriendClick: () -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -508,58 +498,67 @@ fun HomeContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            val logoScale by animateFloatAsState(targetValue = if (!isUserFree) 1.0f else 0.9f)
+            val logoScale by animateFloatAsState(targetValue = if (isUserFree) 1.0f else 0.9f)
             val glowColor =
-                if (!isUserFree) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                if (!isUserFree) MaterialTheme.colorScheme.available else MaterialTheme.colorScheme.busy
+            val containerColor =
+                if (!isUserFree) MaterialTheme.colorScheme.availableContainer else MaterialTheme.colorScheme.busyContainer
+            val onContainerColor =
+                if (!isUserFree) MaterialTheme.colorScheme.onAvailableContainer else MaterialTheme.colorScheme.onBusyContainer
 
-            Card(
+            ElevatedButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onToggleAvailability()
+                },
+                enabled = !isActionLoading,
                 modifier = Modifier
                     .padding(bottom = 24.dp)
+                    .height(64.dp)
+                    .wrapContentWidth()
                     .shadow(
-                        elevation = if (!isUserFree) 20.dp else 10.dp,
+                        elevation = if (!isUserFree) 16.dp else 8.dp,
                         spotColor = glowColor,
                         shape = CircleShape,
                         ambientColor = glowColor,
                         clip = false
-                    )
-                    .clip(CircleShape)
-                    .clickable(
-                        enabled = !isActionLoading,
-                        onClick = onToggleAvailability
                     ),
                 shape = CircleShape,
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = if (!isUserFree) 8.dp else 4.dp
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = containerColor,
+                    contentColor = onContainerColor
                 ),
-                colors = CardDefaults.cardColors(
-                    containerColor =
-                        if (!isUserFree) MaterialTheme.colorScheme.availableContainer
-                        else MaterialTheme.colorScheme.busyContainer
-                )
+                contentPadding = PaddingValues(horizontal = 24.dp)
             ) {
                 Box(
-                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 18.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.free2party_full_transparent),
-                        contentDescription = stringResource(R.string.description_logo_content),
-                        modifier = Modifier
-                            .height(32.dp)
-                            .graphicsLayer(
-                                scaleX = logoScale,
-                                scaleY = logoScale
-                            ),
-                        contentScale = ContentScale.Fit
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = if (isActionLoading) 0f else 1f
+                        }
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.free2party_full_transparent),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(28.dp)
+                                .graphicsLayer(
+                                    scaleX = logoScale,
+                                    scaleY = logoScale
+                                ),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
 
                     if (isActionLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             strokeWidth = 2.dp,
-                            color =
-                                if (!isUserFree) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.busy
+                            color = onContainerColor
                         )
                     }
                 }
