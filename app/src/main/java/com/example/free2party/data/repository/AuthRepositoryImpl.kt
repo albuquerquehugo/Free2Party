@@ -2,6 +2,7 @@ package com.example.free2party.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.exception.*
@@ -32,6 +33,7 @@ class AuthRepositoryImpl(
         phoneNumber: String,
         birthday: String,
         bio: String,
+        gender: Gender,
         socials: UserSocials
     ): Result<FirebaseUser> = try {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
@@ -53,6 +55,7 @@ class AuthRepositoryImpl(
             countryCode = countryCode,
             phoneNumber = phoneNumber,
             birthday = birthday,
+            gender = gender,
             socials = socials,
             bio = bio,
             isFreeNow = false

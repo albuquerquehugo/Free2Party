@@ -28,6 +28,12 @@ enum class ThemeMode(val labelResId: Int) {
     DARK(R.string.label_theme_mode_dark)
 }
 
+enum class Gender(val labelResId: Int) {
+    MAN(R.string.label_gender_man),
+    WOMAN(R.string.label_gender_woman),
+    OTHER(R.string.label_gender_other)
+}
+
 data class UserSettings(
     val themeMode: ThemeMode = ThemeMode.AUTOMATIC,
     val gradientBackground: Boolean = true,
@@ -59,6 +65,7 @@ data class User(
     val phoneNumber: String = "",
     val birthday: String = "",
     val bio: String = "",
+    val gender: Gender = Gender.OTHER,
     val socials: UserSocials = UserSocials(),
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,

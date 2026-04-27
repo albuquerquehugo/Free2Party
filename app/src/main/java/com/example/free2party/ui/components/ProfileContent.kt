@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Checkbox
@@ -44,6 +46,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -56,31 +60,36 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
+import com.example.free2party.data.model.Gender
 import com.example.free2party.ui.components.dialogs.CountryPickerDialog
 import com.example.free2party.util.DateVisualTransformation
 import com.example.free2party.util.PhoneVisualTransformation
 import com.example.free2party.util.isValidDateDigits
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,6 +116,8 @@ fun ProfileContent(
     onWhatsappNumberChange: (String) -> Unit,
     isWhatsappSameAsPhone: Boolean,
     onWhatsappSameAsPhoneChange: (Boolean) -> Unit,
+    gender: Gender,
+    onGenderChange: (Gender) -> Unit,
     birthday: String,
     onBirthdayChange: (String) -> Unit,
     datePattern: DatePattern = DatePattern.YYYY_MM_DD,
@@ -130,12 +141,14 @@ fun ProfileContent(
         uri?.let { onProfilePicChange(it) }
     }
     val focusManager = LocalFocusManager.current
+    val locale = LocalConfiguration.current.locales[0]
     val birthdayPattern = stringResource(datePattern.patternResId).replace("-", "")
 
     val (showDatePicker, setShowDatePicker) = remember { mutableStateOf(false) }
 
     val (showCountryDialog, setShowCountryDialog) = remember { mutableStateOf(false) }
     val (showWhatsappCountryDialog, setShowWhatsappCountryDialog) = remember { mutableStateOf(false) }
+    val (showGenderTooltip, setShowGenderTooltip) = remember { mutableStateOf(false) }
 
     val selectedCountry = Countries.find { it.code == countryCode }
     val selectedWhatsappCountry = Countries.find { it.code == whatsappCountryCode }
@@ -314,7 +327,7 @@ fun ProfileContent(
                 if (hasImage) {
                     AsyncImage(
                         model = profilePicture,
-                        contentDescription = stringResource(R.string.profile_picture_content_description),
+                        contentDescription = stringResource(R.string.description_profile_picture),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
@@ -336,17 +349,24 @@ fun ProfileContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,
-                    contentDescription = stringResource(R.string.edit_photo_content_description),
+                    contentDescription = stringResource(R.string.description_edit_photo),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
 
+        Text(
+            text = stringResource(R.string.text_required_fields_notice),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
         InputTextField(
             value = firstName,
             onValueChange = onFirstNameChange,
-            label = stringResource(R.string.first_name_required),
+            label = stringResource(R.string.label_first_name_required),
             icon = Icons.Default.AccountCircle,
             modifier = Modifier.testTag("first_name_field"),
             enabled = !isLoading,
@@ -362,7 +382,7 @@ fun ProfileContent(
         InputTextField(
             value = lastName,
             onValueChange = onLastNameChange,
-            label = stringResource(R.string.last_name_required),
+            label = stringResource(R.string.label_last_name_required),
             icon = Icons.Default.AccountCircle,
             modifier = Modifier.testTag("last_name_field"),
             enabled = !isLoading,
@@ -378,7 +398,7 @@ fun ProfileContent(
         InputTextField(
             value = email,
             onValueChange = onEmailChange,
-            label = stringResource(R.string.email_required),
+            label = stringResource(R.string.label_email_required),
             icon = Icons.Default.Email,
             modifier = Modifier.testTag("email_field"),
             enabled = !isLoading && isEmailEnabled,
@@ -414,6 +434,88 @@ fun ProfileContent(
             Color.Unspecified
         }
 
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.label_gender),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Box {
+                    IconButton(
+                        onClick = { setShowGenderTooltip(!showGenderTooltip) },
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Gender Info",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+
+                    if (showGenderTooltip) {
+                        Popup(
+                            alignment = Alignment.TopStart,
+                            offset = IntOffset(x = 40, y = 0),
+                            onDismissRequest = { setShowGenderTooltip(false) }
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                tonalElevation = 4.dp,
+                                modifier = Modifier
+                                    .width(240.dp)
+                                    .shadow(4.dp, RoundedCornerShape(8.dp))
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.text_gender_tooltip),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(12.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Gender.entries.forEach { option ->
+                    val isSelected = gender == option
+                    Row(
+                        modifier = Modifier.clickable { onGenderChange(option) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = isSelected,
+                            onClick = null
+                        )
+                        Text(
+                            text = stringResource(option.labelResId).split(" (")[0],
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         InputTextField(
             value = phoneNumber,
             onValueChange = { newValue ->
@@ -427,13 +529,13 @@ fun ProfileContent(
                     }
                 }
             },
-            label = stringResource(R.string.phone_number),
+            label = stringResource(R.string.label_phone_number),
             isError = isPhoneError,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedLabelColor = phoneLabelColor
             ),
             placeholder = selectedCountry?.phoneMask
-                ?: stringResource(R.string.phone_mask_placeholder),
+                ?: stringResource(R.string.text_phone_mask_placeholder),
             placeholderColor =
                 if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -462,7 +564,7 @@ fun ProfileContent(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Public,
-                                contentDescription = stringResource(R.string.select_country),
+                                contentDescription = stringResource(R.string.label_select_country),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -503,7 +605,7 @@ fun ProfileContent(
                     onBirthdayChange(newValue)
                 }
             },
-            label = stringResource(R.string.birthday),
+            label = stringResource(R.string.label_birthday),
             placeholder = stringResource(datePattern.labelResId),
             icon = Icons.Default.Cake,
             modifier = Modifier.testTag("birthday_field"),
@@ -522,7 +624,7 @@ fun ProfileContent(
                 IconButton(onClick = { setShowDatePicker(true) }) {
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
-                        contentDescription = stringResource(R.string.select_birthday)
+                        contentDescription = stringResource(R.string.label_select_birthday)
                     )
                 }
             },
@@ -539,8 +641,8 @@ fun ProfileContent(
         InputTextField(
             value = bio,
             onValueChange = onBioChange,
-            label = stringResource(R.string.bio),
-            placeholder = stringResource(R.string.bio_placeholder),
+            label = stringResource(R.string.label_bio),
+            placeholder = stringResource(R.string.text_bio_placeholder),
             icon = Icons.AutoMirrored.Filled.Notes,
             modifier = Modifier.testTag("bio_field"),
             minLines = 1,
@@ -562,8 +664,9 @@ fun ProfileContent(
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                text = stringResource(R.string.section_socials),
-                style = MaterialTheme.typography.titleSmall,
+                text = stringResource(R.string.label_section_socials),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -587,13 +690,13 @@ fun ProfileContent(
                     }
                 }
             },
-            label = stringResource(R.string.whatsapp_number),
+            label = stringResource(R.string.label_whatsapp_number),
             isError = isWhatsappError,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedLabelColor = whatsappLabelColor
             ),
             placeholder = selectedWhatsappCountry?.phoneMask
-                ?: stringResource(R.string.phone_mask_placeholder),
+                ?: stringResource(R.string.text_phone_mask_placeholder),
             placeholderColor =
                 if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -624,7 +727,7 @@ fun ProfileContent(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Public,
-                                contentDescription = stringResource(R.string.select_country),
+                                contentDescription = stringResource(R.string.label_select_country),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -667,7 +770,7 @@ fun ProfileContent(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.whatsapp_same_as_phone_number),
+                        text = stringResource(R.string.label_whatsapp_same_as_phone_number),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (phoneNumber.isNotEmpty()) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.38f
@@ -697,7 +800,7 @@ fun ProfileContent(
         InputTextField(
             value = telegramUsername,
             onValueChange = onTelegramUsernameChange,
-            label = stringResource(R.string.telegram_username),
+            label = stringResource(R.string.label_telegram_username),
             painter = painterResource(id = R.drawable.telegram),
             modifier = Modifier.testTag("telegram_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -711,7 +814,7 @@ fun ProfileContent(
         InputTextField(
             value = facebookUsername,
             onValueChange = onFacebookUsernameChange,
-            label = stringResource(R.string.messenger_username),
+            label = stringResource(R.string.label_messenger_username),
             painter = painterResource(id = R.drawable.messenger),
             modifier = Modifier.testTag("facebook_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -725,7 +828,7 @@ fun ProfileContent(
         InputTextField(
             value = instagramUsername,
             onValueChange = onInstagramUsernameChange,
-            label = stringResource(R.string.instagram_username),
+            label = stringResource(R.string.label_instagram_username),
             painter = painterResource(id = R.drawable.instagram),
             modifier = Modifier.testTag("instagram_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -739,7 +842,7 @@ fun ProfileContent(
         InputTextField(
             value = tiktokUsername,
             onValueChange = onTiktokUsernameChange,
-            label = stringResource(R.string.tiktok_username),
+            label = stringResource(R.string.label_tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
             modifier = Modifier.testTag("tiktok_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -753,7 +856,7 @@ fun ProfileContent(
         InputTextField(
             value = xUsername,
             onValueChange = onXUsernameChange,
-            label = stringResource(R.string.x_username),
+            label = stringResource(R.string.label_x_username),
             painter = painterResource(id = R.drawable.x),
             modifier = Modifier.testTag("x_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -804,7 +907,7 @@ fun ProfileContent(
             val sdf =
                 SimpleDateFormat(
                     birthdayPattern,
-                    Locale.getDefault()
+                    locale
                 ).apply {
                     timeZone = TimeZone.getTimeZone("UTC")
                 }
@@ -818,7 +921,7 @@ fun ProfileContent(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).apply {
+                        val sdf = SimpleDateFormat("yyyyMMdd", locale).apply {
                             timeZone = TimeZone.getTimeZone("UTC")
                         }
                         onBirthdayChange(sdf.format(Date(millis)))
@@ -840,7 +943,7 @@ fun ProfileContent(
                 colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
-                        text = stringResource(R.string.select_birthday),
+                        text = stringResource(R.string.label_select_birthday),
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )

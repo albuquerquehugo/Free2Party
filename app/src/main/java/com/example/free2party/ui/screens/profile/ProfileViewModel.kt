@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.Countries
+import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.UserRepository
@@ -78,6 +79,7 @@ class ProfileViewModel(
         }
     var birthday by mutableStateOf("")
     var bio by mutableStateOf("")
+    var gender by mutableStateOf(Gender.OTHER)
     var whatsappCountryCode by mutableStateOf("")
     private var _whatsappNumber by mutableStateOf("")
     var whatsappNumber: String
@@ -133,6 +135,7 @@ class ProfileViewModel(
                 phoneNumber != user.phoneNumber ||
                 birthday != user.birthday ||
                 bio != user.bio ||
+                gender != user.gender ||
                 whatsappCountryCode != user.socials.whatsappCountryCode ||
                 whatsappNumber != user.socials.whatsappNumber ||
                 telegramUsername != user.socials.telegramUsername ||
@@ -176,6 +179,7 @@ class ProfileViewModel(
         phoneNumber = user.phoneNumber
         birthday = user.birthday
         bio = user.bio
+        gender = user.gender
         whatsappCountryCode = user.socials.whatsappCountryCode
         whatsappNumber = user.socials.whatsappNumber
         telegramUsername = user.socials.telegramUsername
@@ -249,6 +253,7 @@ class ProfileViewModel(
             phoneNumber = phoneNumber,
             birthday = birthday,
             bio = bio,
+            gender = gender,
             socials = UserSocials(
                 whatsappNumber = whatsappNumber,
                 whatsappCountryCode = whatsappCountryCode,
@@ -269,7 +274,7 @@ class ProfileViewModel(
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
                     _uiEvent.emit(
                         ProfileUiEvent.ShowToast(
-                            UiText.StringResource(R.string.profile_updated_successfully),
+                            UiText.StringResource(R.string.toast_profile_updated),
                             navigateBack = true
                         )
                     )
@@ -299,7 +304,7 @@ class ProfileViewModel(
                             uiState =
                                 (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                                     ?: uiState
-                            _uiEvent.emit(ProfileUiEvent.ShowToast(UiText.StringResource(R.string.profile_picture_updated)))
+                            _uiEvent.emit(ProfileUiEvent.ShowToast(UiText.StringResource(R.string.toast_profile_picture_updated)))
                         }
                         .onFailure { e ->
                             uiState =

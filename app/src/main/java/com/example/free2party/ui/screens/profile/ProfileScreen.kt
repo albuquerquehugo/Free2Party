@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.free2party.R
+import com.example.free2party.data.model.Gender
 import com.example.free2party.ui.components.ProfileContent
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.TopBar
@@ -46,7 +47,7 @@ fun ProfileRoute(
     val viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.provideFactory()
     )
-    val deleteMsg = stringResource(R.string.account_deleted)
+    val deleteMsg = stringResource(R.string.toast_account_deleted)
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -84,6 +85,8 @@ fun ProfileRoute(
         onBirthdayChange = { viewModel.birthday = it },
         bio = viewModel.bio,
         onBioChange = { viewModel.bio = it },
+        gender = viewModel.gender,
+        onGenderChange = { viewModel.gender = it },
         whatsappCountryCode = viewModel.whatsappCountryCode,
         onWhatsappCountryCodeChange = { viewModel.whatsappCountryCode = it },
         whatsappNumber = viewModel.whatsappNumber,
@@ -126,6 +129,8 @@ fun ProfileScreen(
     onBirthdayChange: (String) -> Unit,
     bio: String,
     onBioChange: (String) -> Unit,
+    gender: Gender,
+    onGenderChange: (Gender) -> Unit,
     whatsappCountryCode: String,
     onWhatsappCountryCodeChange: (String) -> Unit,
     whatsappNumber: String,
@@ -152,7 +157,7 @@ fun ProfileScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_your_profile),
+                title = stringResource(R.string.label_your_profile),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack,
                 enabled = uiState !is ProfileUiState.Loading
@@ -189,6 +194,8 @@ fun ProfileScreen(
                     onBirthdayChange = onBirthdayChange,
                     bio = bio,
                     onBioChange = onBioChange,
+                    gender = gender,
+                    onGenderChange = onGenderChange,
                     whatsappCountryCode = whatsappCountryCode,
                     onWhatsappCountryCodeChange = onWhatsappCountryCodeChange,
                     whatsappNumber = whatsappNumber,
@@ -233,6 +240,8 @@ fun ProfileScreenContent(
     onBirthdayChange: (String) -> Unit,
     bio: String,
     onBioChange: (String) -> Unit,
+    gender: Gender,
+    onGenderChange: (Gender) -> Unit,
     whatsappCountryCode: String,
     onWhatsappCountryCodeChange: (String) -> Unit,
     whatsappNumber: String,
@@ -262,8 +271,8 @@ fun ProfileScreenContent(
 
     if (showDeleteDialog) {
         ConfirmationDialog(
-            title = stringResource(R.string.delete_account),
-            text = stringResource(R.string.delete_account_confirmation_message),
+            title = stringResource(R.string.label_delete_account),
+            text = stringResource(R.string.text_delete_account_confirmation),
             confirmButtonText = stringResource(R.string.text_delete),
             onConfirm = {
                 setShowDeleteDialog(false)
@@ -300,6 +309,8 @@ fun ProfileScreenContent(
             datePattern = user.settings.datePattern,
             bio = bio,
             onBioChange = onBioChange,
+            gender = gender,
+            onGenderChange = onGenderChange,
             whatsappCountryCode = whatsappCountryCode,
             onWhatsappCountryCodeChange = onWhatsappCountryCodeChange,
             whatsappNumber = whatsappNumber,
@@ -333,7 +344,7 @@ fun ProfileScreenContent(
                             enabled = !isSaving
                         ) {
                             Text(
-                                text = stringResource(R.string.discard_changes),
+                                text = stringResource(R.string.label_discard_changes),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
@@ -358,7 +369,7 @@ fun ProfileScreenContent(
                             )
                         } else {
                             Text(
-                                stringResource(R.string.save_changes),
+                                stringResource(R.string.label_save_changes),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
@@ -375,7 +386,7 @@ fun ProfileScreenContent(
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
                         Text(
-                            text = stringResource(R.string.delete_account),
+                            text = stringResource(R.string.label_delete_account),
                             style = MaterialTheme.typography.titleMedium
                         )
                     }

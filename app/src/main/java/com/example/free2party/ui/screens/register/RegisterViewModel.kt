@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.Countries
 import com.example.free2party.data.model.DatePattern
+import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.AuthRepository
 import com.example.free2party.data.repository.AuthRepositoryImpl
@@ -69,6 +70,7 @@ class RegisterViewModel(
         }
     var birthday by mutableStateOf("")
     var bio by mutableStateOf("")
+    var gender by mutableStateOf(Gender.OTHER)
     var whatsappCountryCode by mutableStateOf("")
     private var _whatsappNumber by mutableStateOf("")
     var whatsappNumber: String
@@ -208,6 +210,7 @@ class RegisterViewModel(
                 countryCode = countryCode,
                 birthday = birthday,
                 bio = bio,
+                gender = gender,
                 socials = UserSocials(
                     whatsappNumber = whatsappNumber,
                     whatsappCountryCode = whatsappCountryCode,
@@ -248,6 +251,7 @@ class RegisterViewModel(
         countryCode = ""
         birthday = ""
         bio = ""
+        gender = Gender.OTHER
         whatsappNumber = ""
         whatsappCountryCode = ""
         isWhatsappSameAsPhone = false

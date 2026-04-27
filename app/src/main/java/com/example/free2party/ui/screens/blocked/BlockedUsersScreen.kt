@@ -133,7 +133,7 @@ private fun BlockedUsersContent(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(R.string.no_results_found),
+                text = stringResource(R.string.text_no_results_found),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -225,7 +225,7 @@ private fun BlockedUserItem(
             IconButton(onClick = { showMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.more_options),
+                    contentDescription = stringResource(R.string.description_more_options),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -236,7 +236,7 @@ private fun BlockedUserItem(
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.unblock)) },
+                    text = { Text(stringResource(R.string.label_unblock)) },
                     onClick = {
                         onUnblock()
                         showMenu = false

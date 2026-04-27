@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import android.net.Uri
+import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.UserSocials
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseUser
@@ -17,6 +18,7 @@ interface AuthRepository {
         phoneNumber: String = "",
         birthday: String = "",
         bio: String = "",
+        gender: Gender = Gender.OTHER,
         socials: UserSocials = UserSocials()
     ): Result<FirebaseUser>
 

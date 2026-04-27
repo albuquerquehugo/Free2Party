@@ -86,7 +86,7 @@ fun CountryPickerDialog(
                 .fillMaxWidth()
         ) {
             Text(
-                text = stringResource(R.string.select_country),
+                text = stringResource(R.string.label_select_country),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 8.dp)
@@ -100,7 +100,7 @@ fun CountryPickerDialog(
                     .padding(horizontal = 8.dp),
                 placeholder = {
                     Text(
-                        stringResource(R.string.placeholder_search_country),
+                        stringResource(R.string.text_placeholder_search_country),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
@@ -125,7 +125,7 @@ fun CountryPickerDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                stringResource(R.string.no_results_found),
+                                stringResource(R.string.text_no_results_found),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

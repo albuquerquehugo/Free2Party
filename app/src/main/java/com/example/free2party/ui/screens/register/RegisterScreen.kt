@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.free2party.R
+import com.example.free2party.data.model.Gender
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.components.ProfileContent
 import com.example.free2party.ui.components.TopBar
@@ -75,6 +76,7 @@ fun RegisterRoute(
         phoneNumber = viewModel.phoneNumber,
         birthday = viewModel.birthday,
         bio = viewModel.bio,
+        gender = viewModel.gender,
         whatsappCountryCode = viewModel.whatsappCountryCode,
         whatsappNumber = viewModel.whatsappNumber,
         isWhatsappSameAsPhone = viewModel.isWhatsappSameAsPhone,
@@ -102,6 +104,7 @@ fun RegisterRoute(
         onInstagramUsernameChange = { viewModel.instagramUsername = it },
         onTiktokUsernameChange = { viewModel.tiktokUsername = it },
         onXUsernameChange = { viewModel.xUsername = it },
+        onGenderChange = { viewModel.gender = it },
         onProfilePicChange = { viewModel.profilePicUri = it },
         onRegisterClick = { viewModel.onRegisterClick(context) },
         onBackToLogin = {
@@ -124,6 +127,8 @@ fun RegisterScreen(
     phoneNumber: String,
     birthday: String,
     bio: String,
+    gender: Gender,
+    onGenderChange: (Gender) -> Unit,
     whatsappCountryCode: String,
     whatsappNumber: String,
     isWhatsappSameAsPhone: Boolean,
@@ -247,6 +252,8 @@ fun RegisterScreen(
                 onPhoneNumberChange = onPhoneNumberChange,
                 birthday = birthday,
                 onBirthdayChange = onBirthdayChange,
+                gender = gender,
+                onGenderChange = onGenderChange,
                 bio = bio,
                 onBioChange = onBioChange,
                 whatsappCountryCode = whatsappCountryCode,
