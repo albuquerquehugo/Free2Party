@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -30,9 +29,6 @@ import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +66,7 @@ import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.Notification
+import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.util.formatTimeAgo
 import com.example.free2party.util.matchNameAndEmail
 import kotlinx.coroutines.flow.collectLatest
@@ -375,53 +372,16 @@ fun DeclineFriendRequestDialog(
     onDeclineOnly: () -> Unit,
     onDeclineAndBlock: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = stringResource(R.string.title_decline_friend_request_dialog))
-        },
-        text = {
-            Text(text = stringResource(R.string.text_decline_friend_request_dialog))
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = onDeclineOnly,
-                    modifier = Modifier.wrapContentWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(text = stringResource(R.string.label_decline_only))
-                }
-                Button(
-                    onClick = onDeclineAndBlock,
-                    modifier = Modifier.wrapContentWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text(text = stringResource(R.string.label_decline_and_block))
-                }
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.wrapContentWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                ) {
-                    Text(text = stringResource(R.string.button_cancel))
-                }
-            }
-        }
+    ConfirmationDialog(
+        title = stringResource(R.string.title_decline_friend_request_dialog),
+        text = stringResource(R.string.text_decline_friend_request_dialog),
+        confirmButtonText = stringResource(R.string.label_decline_only),
+        onConfirm = onDeclineOnly,
+        secondaryButtonText = stringResource(R.string.label_decline_and_block),
+        onSecondaryAction = onDeclineAndBlock,
+        dismissButtonText = stringResource(R.string.button_cancel),
+        onDismiss = onDismiss,
+        isDestructive = true
     )
 }
 

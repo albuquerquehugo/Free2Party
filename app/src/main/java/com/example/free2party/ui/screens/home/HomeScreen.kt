@@ -161,6 +161,7 @@ fun HomeRoute(
         onNavigateToSettings = onNavigateToSettings,
         onToggleAvailability = { homeViewModel.toggleAvailability() },
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
+        onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
         onInviteFriendClick = { setShowInviteFriendDialog(true) },
         onInviteFriendConfirm = { email -> friendViewModel.inviteFriend(email) },
@@ -185,6 +186,7 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
+    onRemoveAndBlockFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     onInviteFriendConfirm: (String) -> Unit,
@@ -406,7 +408,7 @@ fun HomeScreen(
         if (showLogoutDialog) {
             ConfirmationDialog(
                 title = stringResource(R.string.text_logout),
-                text = stringResource(R.string.logout_confirmation_text),
+                text = stringResource(R.string.text_logout_confirmation),
                 confirmButtonText = stringResource(R.string.text_logout),
                 onConfirm = {
                     showLogoutDialog = false
@@ -420,12 +422,18 @@ fun HomeScreen(
 
         if (showRemoveFriendDialog) {
             ConfirmationDialog(
-                title = stringResource(R.string.remove_friend),
-                text = stringResource(R.string.remove_friend_confirmation_text),
+                title = stringResource(R.string.title_remove_friend),
+                text = stringResource(R.string.text_remove_friend_confirmation),
                 confirmButtonText = stringResource(R.string.button_remove),
                 onConfirm = {
                     showRemoveFriendDialog = false
                     friendIdToRemove?.let { onRemoveFriend(it) }
+                    friendIdToRemove = null
+                },
+                secondaryButtonText = stringResource(R.string.title_remove_and_block_friend),
+                onSecondaryAction = {
+                    showRemoveFriendDialog = false
+                    friendIdToRemove?.let { onRemoveAndBlockFriend(it) }
                     friendIdToRemove = null
                 },
                 dismissButtonText = stringResource(R.string.button_cancel),
@@ -444,8 +452,8 @@ fun HomeScreen(
         if (showInviteFriendDialog) {
             var inviteEmail by remember { mutableStateOf("") }
             EmailDialog(
-                title = stringResource(R.string.invite_friend),
-                description = stringResource(R.string.invite_friend_description),
+                title = stringResource(R.string.title_invite_friend),
+                description = stringResource(R.string.text_invite_friend),
                 email = inviteEmail,
                 onValueChange = {
                     inviteEmail = it
@@ -458,7 +466,7 @@ fun HomeScreen(
                     if (inviteFriendUiState is InviteFriendUiState.Error) {
                         inviteFriendUiState.message.asString()
                     } else null,
-                confirmButtonLabel = stringResource(R.string.send_invite)
+                confirmButtonLabel = stringResource(R.string.label_send_invite)
             )
         }
 
@@ -602,7 +610,7 @@ fun FriendsListSection(
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = stringResource(R.string.invite_friend),
+                contentDescription = stringResource(R.string.title_invite_friend),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -617,14 +625,14 @@ fun FriendsListSection(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = stringResource(R.string.no_friends_yet),
+                text = stringResource(R.string.text_no_friends_yet),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.add_friends_message),
+                text = stringResource(R.string.text_add_friends),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -643,7 +651,7 @@ fun FriendsListSection(
         ) {
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.section_title_free),
+                    title = stringResource(R.string.title_friend_section_free),
                     friends = freeFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
@@ -653,7 +661,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.section_title_busy),
+                    title = stringResource(R.string.title_friend_section_busy),
                     friends = busyFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
@@ -663,7 +671,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.section_title_invited),
+                    title = stringResource(R.string.title_friend_section_invited),
                     friends = invitedFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
@@ -703,7 +711,7 @@ fun ExpandableFriendSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.friend_section_title, title, friends.size),
+                text = stringResource(R.string.title_friend_section, title, friends.size),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
@@ -722,7 +730,7 @@ fun ExpandableFriendSection(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (friends.isEmpty()) {
                     Text(
-                        text = stringResource(R.string.no_friends_in_section),
+                        text = stringResource(R.string.text_no_friends_in_section),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
@@ -822,7 +830,7 @@ fun FriendItem(
                         IconButton(onClick = { showContactMenu = true }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = stringResource(R.string.contact_options),
+                                contentDescription = stringResource(R.string.description_contact_options),
                                 tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
                                 else MaterialTheme.colorScheme.onBusyContainer
                             )
@@ -1028,8 +1036,8 @@ fun FriendItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    if (isInvited) stringResource(R.string.cancel_invite) else stringResource(
-                                        R.string.remove_friend
+                                    if (isInvited) stringResource(R.string.label_cancel_invite) else stringResource(
+                                        R.string.title_remove_friend
                                     ),
                                     color = MaterialTheme.colorScheme.error
                                 )

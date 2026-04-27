@@ -479,6 +479,43 @@ class SocialRepositoryImpl(
         Result.failure(mapToSocialException(e))
     }
 
+    override suspend fun removeAndBlockFriend(friendId: String): Result<Unit> = try {
+        validateSession()
+
+        val friendDoc = db.collection("users").document(currentUserId)
+            .collection("friends").document(friendId).get().await()
+        val friendName = friendDoc.getString("name") ?: "Someone"
+
+        db.runTransaction { transaction ->
+            transaction.delete(
+                db.collection("users").document(currentUserId).collection("friends")
+                    .document(friendId)
+            )
+            transaction.delete(
+                db.collection("users").document(friendId).collection("friends")
+                    .document(currentUserId)
+            )
+            transaction.delete(
+                db.collection("friendRequests").document("${currentUserId}_${friendId}")
+            )
+            transaction.delete(
+                db.collection("friendRequests").document("${friendId}_${currentUserId}")
+            )
+            val blockedRef = db.collection("users").document(currentUserId)
+                .collection("blocked").document(friendId)
+            transaction.set(
+                blockedRef, mapOf(
+                    "uid" to friendId,
+                    "name" to friendName,
+                    "blockedAt" to FieldValue.serverTimestamp()
+                )
+            )
+        }.await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
     override suspend fun markNotificationAsRead(notificationId: String): Result<Unit> = try {
         validateSession()
         db.collection("users").document(currentUserId)

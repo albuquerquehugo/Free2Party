@@ -194,6 +194,31 @@ class HomeViewModel(
         }
     }
 
+    fun removeAndBlockFriend(friendUid: String) {
+        viewModelScope.launch {
+            socialRepository.removeAndBlockFriend(friendUid)
+                .onSuccess {
+                    Log.d("HomeViewModel", "Friend removed and blocked successfully")
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_removed)))
+                }
+                .onFailure { e ->
+                    Log.e("HomeViewModel", "Error removing and blocking friend", e)
+                    val errorText = when (e) {
+                        is InfrastructureException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.StringResource(R.string.error_infrastructure)
+
+                        is SocialException ->
+                            if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                            else UiText.StringResource(R.string.error_social)
+
+                        else -> UiText.StringResource(R.string.error_removing_friend)
+                    }
+                    _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
+                }
+        }
+    }
+
     fun cancelFriendInvite(friendUid: String) {
         viewModelScope.launch {
             socialRepository.cancelFriendRequest(friendUid)

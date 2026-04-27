@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +28,8 @@ fun ConfirmationDialog(
     onConfirm: () -> Unit,
     dismissButtonText: String = stringResource(R.string.button_cancel),
     onDismiss: () -> Unit,
+    secondaryButtonText: String? = null,
+    onSecondaryAction: (() -> Unit)? = null,
     isDestructive: Boolean = false
 ) {
     BaseDialog(onDismissRequest = onDismiss) {
@@ -47,29 +49,86 @@ fun ConfirmationDialog(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(onClick = onDismiss) {
-                    Text(dismissButtonText)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onConfirm,
-                    colors = if (isDestructive) {
-                        MaterialTheme.colorScheme.run {
-                            androidx.compose.material3.ButtonDefaults.buttonColors(
-                                containerColor = error,
-                                contentColor = onError
+            val hasSecondary = secondaryButtonText != null && onSecondaryAction != null
+
+            if (hasSecondary) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        Text(dismissButtonText)
+                    }
+
+                    Button(
+                        onClick = onSecondaryAction,
+                        colors = if (isDestructive) {
+                            ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        } else {
+                            ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                    } else {
-                        androidx.compose.material3.ButtonDefaults.buttonColors()
+                    ) {
+                        Text(secondaryButtonText)
                     }
+
+                    Button(
+                        onClick = onConfirm,
+                        colors = if (isDestructive) {
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
+                        } else {
+                            ButtonDefaults.buttonColors()
+                        }
+                    ) {
+                        Text(confirmButtonText)
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(confirmButtonText)
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        Text(dismissButtonText)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = onConfirm,
+                        colors = if (isDestructive) {
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
+                        } else {
+                            ButtonDefaults.buttonColors()
+                        }
+                    ) {
+                        Text(confirmButtonText)
+                    }
                 }
             }
         }

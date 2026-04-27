@@ -52,28 +52,29 @@
     <string name="text_hang_out_message">Ei! Vi que você está livre no Free2Party, vamos marcar alguma coisa?</string>
 
     <!-- Home Screen -->
-    <string name="add_friends_message">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
-    <string name="ad_banner_placeholder">BANNER DE PUBLICIDADE (A SER ADICIONADO DEPOIS)</string>
-    <string name="cancel_invite">Cancelar Convite</string>
-    <string name="contact_options">Opções de Contato</string>
     <string name="description_collapse">Recolher</string>
+    <string name="description_contact_options">Opções de Contato</string>
     <string name="description_expand">Expandir</string>
     <string name="description_friend_options">Opções do Amigo</string>
     <string name="description_logo_content">Logo do Free2Party</string>
     <string name="description_user_menu">Menu do Usuário</string>
-    <string name="friend_section_title">%1$s (%2$d)</string>
-    <string name="invite_friend">Convidar Amigo</string>
-    <string name="invite_friend_description">Digite o e-mail do seu amigo para enviar um convite.</string>
-    <string name="logout_confirmation_text">Tem certeza que deseja sair?</string>
-    <string name="no_friends_in_section">Nenhum amigo nesta seção</string>
-    <string name="no_friends_yet">Você ainda não tem amigos!</string>
-    <string name="remove_friend">Remover Amigo</string>
-    <string name="remove_friend_confirmation_text">Tem certeza que deseja remover este amigo?</string>
-    <string name="section_title_busy">Ocupados</string>
-    <string name="section_title_free">Livres</string>
-    <string name="section_title_invited">Convidados</string>
-    <string name="send_invite">Enviar convite</string>
+    <string name="label_cancel_invite">Cancelar Convite</string>
+    <string name="label_send_invite">Enviar convite</string>
+    <string name="text_ad_banner_placeholder">BANNER DE PUBLICIDADE (A SER ADICIONADO DEPOIS)</string>
+    <string name="text_add_friends">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
+    <string name="text_invite_friend">Digite o e-mail do seu amigo para enviar um convite.</string>
+    <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>
+    <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
+    <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
+    <string name="text_remove_friend_confirmation">Tem certeza que deseja remover este amigo?</string>
+    <string name="title_friend_section">%1$s (%2$d)</string>
+    <string name="title_friend_section_busy">Ocupados</string>
+    <string name="title_friend_section_free">Livres</string>
+    <string name="title_friend_section_invited">Convidados</string>
     <string name="title_home">Início</string>
+    <string name="title_invite_friend">Convidar Amigo</string>
+    <string name="title_remove_and_block_friend">Remover e Bloquear</string>
+    <string name="title_remove_friend">Remover Amigo</string>
     <string name="title_your_friends">Seus Amigos</string>
     <string name="toast_friend_removed">Amigo removido</string>
     <string name="toast_invite_cancelled">Convite cancelado</string>
@@ -214,7 +215,7 @@
     <string name="notification_friend_request_received_body">%1$s (%2$s) enviou um pedido de amizade!</string>
     <string name="notification_friend_request_received_title">Novo Pedido de Amizade</string>
     <string name="text_all_caught_up">Você está em dia!</string>
-    <string name="text_decline_friend_request_dialog">Escolha como deseja recusar este pedido</string>
+    <string name="text_decline_friend_request_dialog">Como você deseja recusar este pedido?</string>
     <string name="title_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
     <string name="title_friend_request">Pedido de Amizade</string>
     <string name="title_friend_request_accepted">Pedido de Amizade Aceito</string>
@@ -232,7 +233,7 @@
     </string-array>
 
     <!-- About Screen -->
-    <string name="app_description">Uma maneira simples de sincronizar a disponibilidade com seus amigos e nunca mais perder um encontro.</string>
+    <string name="app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos e nunca mais perder um encontro.</string>
     <string name="copyright_template">© %1$d Todos os Direitos Reservados</string>
     <string name="developed_by">Desenvolvido por</string>
     <string name="developer_name">Hugo Albuquerque</string>

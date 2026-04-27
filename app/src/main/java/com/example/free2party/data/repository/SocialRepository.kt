@@ -25,6 +25,7 @@ interface SocialRepository {
     suspend fun unblockUser(userId: String): Result<Unit>
 
     suspend fun removeFriend(friendId: String): Result<Unit>
+    suspend fun removeAndBlockFriend(friendId: String): Result<Unit>
 
     suspend fun markNotificationAsRead(notificationId: String): Result<Unit>
     suspend fun markNotificationAsUnread(notificationId: String): Result<Unit>

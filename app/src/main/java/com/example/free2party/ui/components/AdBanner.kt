@@ -47,7 +47,7 @@ fun AdBanner(
             )
 
             Text(
-                text = stringResource(R.string.ad_banner_placeholder),
+                text = stringResource(R.string.text_ad_banner_placeholder),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 fontWeight = FontWeight.Medium,
