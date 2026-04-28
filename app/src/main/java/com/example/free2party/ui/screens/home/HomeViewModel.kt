@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
+import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.AuthRepository
@@ -39,6 +40,7 @@ sealed interface HomeUiState {
     object Loading : HomeUiState
     data class Success(
         val userName: String = "",
+        val userGender: Gender = Gender.OTHER,
         val profilePicUrl: String = "",
         val isUserFree: Boolean = false,
         val use24HourFormat: Boolean = true,
@@ -104,6 +106,7 @@ class HomeViewModel(
             )
             HomeUiState.Success(
                 userName = user.firstName,
+                userGender = user.gender,
                 profilePicUrl = user.profilePicUrl,
                 isUserFree = user.isFreeNow,
                 use24HourFormat = user.settings.use24HourFormat,

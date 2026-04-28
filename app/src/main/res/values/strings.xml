@@ -40,6 +40,7 @@
     <string name="label_sms">SMS</string>
     <string name="label_status">Status:</string>
     <string name="label_status_busy">Busy</string>
+    <string name="label_status_busy_woman">Busy</string>
     <string name="label_status_free">Free</string>
     <string name="label_status_pending">Pending</string>
     <string name="label_telegram">Telegram</string>

@@ -40,6 +40,7 @@
     <string name="label_sms">SMS</string>
     <string name="label_status">Status:</string>
     <string name="label_status_busy">Ocupado</string>
+    <string name="label_status_busy_woman">Ocupada</string>
     <string name="label_status_free">Livre</string>
     <string name="label_status_pending">Pendente</string>
     <string name="label_telegram">Telegram</string>
@@ -132,7 +133,7 @@
     <string name="label_your_profile">Seu Perfil</string>
     <string name="text_bio_placeholder">Escreva sobre você…</string>
     <string name="text_delete_account_confirmation">Tem certeza que deseja excluir sua conta? Esta ação é permanente e todos os seus dados (perfil, planos e amigos) serão perdidos para sempre.</string>
-    <string name="text_gender_tooltip">Apenas usamos esta informação para garantir que os nossos termos usem a gramática correta para o seu idioma</string>
+    <string name="text_gender_tooltip">Apenas usamos esta informação para garantir que nossos termos usem a gramática correta para seu idioma</string>
     <string name="text_no_results_found">Nenhum resultado encontrado</string>
     <string name="text_phone_mask_placeholder">Por favor, selecione um país primeiro</string>
     <string name="text_placeholder_search_country">Pesquisar país ou código…</string>

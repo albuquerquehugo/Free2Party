@@ -244,12 +244,15 @@ fun HomeScreen(
                                 text = successState.userName,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.ExtraBold
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.padding(end = 4.dp)
                             )
                             Text(
                                 text =
                                     if (isUserFree) stringResource(R.string.label_status_free)
-                                    else stringResource(R.string.label_status_busy),
+                                    else stringResource(
+                                        successState.userGender.getStringRes(R.string.label_status_busy)
+                                    ),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = statusColor,
                                 fontWeight = FontWeight.Bold,

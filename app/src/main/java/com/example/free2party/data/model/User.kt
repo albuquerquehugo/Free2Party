@@ -31,7 +31,20 @@ enum class ThemeMode(val labelResId: Int) {
 enum class Gender(val labelResId: Int) {
     MAN(R.string.label_gender_man),
     WOMAN(R.string.label_gender_woman),
-    OTHER(R.string.label_gender_other)
+    OTHER(R.string.label_gender_other);
+
+    /**
+     * Maps a base resource ID to its gendered variant without using reflection.
+     * Add new gender-sensitive strings here.
+     */
+    fun getStringRes(baseResId: Int): Int {
+        if (this != WOMAN) return baseResId
+
+        return when (baseResId) {
+            R.string.label_status_busy -> R.string.label_status_busy_woman
+            else -> baseResId
+        }
+    }
 }
 
 data class UserSettings(
