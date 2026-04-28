@@ -1,5 +1,10 @@
 package com.example.free2party.ui.navigation
 
+import androidx.annotation.StringRes
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
@@ -29,7 +34,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -62,7 +71,6 @@ import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
-import androidx.annotation.StringRes
 
 sealed class Screen(
     val route: String,
@@ -143,6 +151,8 @@ fun AppNavigation(
     val currentDestination = navBackStackEntry?.destination
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
     val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(mainViewModel) {
         mainViewModel.navigateToRoute.collectLatest { route ->
@@ -165,13 +175,25 @@ fun AppNavigation(
                 }
             }
         ) { innerPadding ->
-            Free2PartyNavGraph(
-                navController = navController,
-                settingsRepository = settingsRepository,
-                notificationsViewModel = notificationsViewModel,
-                modifier = Modifier.padding(innerPadding),
-                startDestinationOverride = startDestination
-            )
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            awaitFirstDown(pass = PointerEventPass.Initial)
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
+                        }
+                    }
+                    .focusable()
+            ) {
+                Free2PartyNavGraph(
+                    navController = navController,
+                    settingsRepository = settingsRepository,
+                    notificationsViewModel = notificationsViewModel,
+                    startDestinationOverride = startDestination
+                )
+            }
         }
     }
 }
