@@ -22,6 +22,7 @@ import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.UiText
+import com.example.free2party.util.getCountryFromNanpAreaCode
 import com.example.free2party.util.isBirthdayFieldValid
 import com.example.free2party.util.isPhoneValid
 import com.google.firebase.Firebase
@@ -71,9 +72,7 @@ class ProfileViewModel(
             if (value.length >= 3) {
                 val isNanp = Countries.find { it.code == countryCode }?.phoneCode == "+1"
                 if (countryCode.isEmpty() || isNanp) {
-                    com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
-                        countryCode = it
-                    }
+                    getCountryFromNanpAreaCode(value)?.let { countryCode = it }
                 }
             }
         }
@@ -89,9 +88,7 @@ class ProfileViewModel(
             if (value.length >= 3) {
                 val isNanp = Countries.find { it.code == whatsappCountryCode }?.phoneCode == "+1"
                 if (whatsappCountryCode.isEmpty() || isNanp) {
-                    com.example.free2party.util.getCountryFromNanpAreaCode(value)?.let {
-                        whatsappCountryCode = it
-                    }
+                    getCountryFromNanpAreaCode(value)?.let { whatsappCountryCode = it }
                 }
             }
         }

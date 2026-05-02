@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -88,6 +89,7 @@ import com.example.free2party.ui.components.dialogs.CountryPickerDialog
 import com.example.free2party.util.DateVisualTransformation
 import com.example.free2party.util.PhoneVisualTransformation
 import com.example.free2party.util.isValidDateDigits
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
@@ -141,6 +143,7 @@ fun ProfileContent(
         uri?.let { onProfilePicChange(it) }
     }
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val locale = LocalConfiguration.current.locales[0]
     val birthdayPattern = stringResource(datePattern.patternResId).replace("-", "")
 
@@ -152,6 +155,26 @@ fun ProfileContent(
 
     val selectedCountry = Countries.find { it.code == countryCode }
     val selectedWhatsappCountry = Countries.find { it.code == whatsappCountryCode }
+
+    fun clearPhoneAndCountry() {
+        if (countryCode.isNotEmpty()) {
+            onPhoneNumberChange("")
+            onCountryCodeChange("")
+            if (isWhatsappSameAsPhone) {
+                onWhatsappNumberChange("")
+                onWhatsappCountryCodeChange("")
+            }
+            focusManager.clearFocus()
+        }
+    }
+
+    fun clearWhatsappAndCountry() {
+        if (whatsappCountryCode.isNotEmpty() && !isWhatsappSameAsPhone) {
+            onWhatsappNumberChange("")
+            onWhatsappCountryCodeChange("")
+            focusManager.clearFocus()
+        }
+    }
 
     val phoneFocusRequester = remember { FocusRequester() }
     val whatsappFocusRequester = remember { FocusRequester() }
@@ -240,6 +263,22 @@ fun ProfileContent(
 
         if (phoneNumber.isEmpty() && countryCode.isEmpty() && isWhatsappSameAsPhone) {
             onWhatsappSameAsPhoneChange(false)
+        }
+    }
+
+    LaunchedEffect(showCountryDialog) {
+        if (!showCountryDialog && countryCode.isNotEmpty() && phoneNumber.isEmpty()) {
+            delay(200)
+            phoneFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
+
+    LaunchedEffect(showWhatsappCountryDialog) {
+        if (!showWhatsappCountryDialog && whatsappCountryCode.isNotEmpty() && whatsappNumber.isEmpty()) {
+            delay(200)
+            whatsappFocusRequester.requestFocus()
+            keyboardController?.show()
         }
     }
 
@@ -577,17 +616,7 @@ fun ProfileContent(
                 }
             },
             visualTransformation = PhoneVisualTransformation(selectedCountry?.phoneMask ?: ""),
-            onClear = if (selectedCountry != null) {
-                {
-                    onCountryCodeChange("")
-                    onPhoneNumberChange("")
-                    if (isWhatsappSameAsPhone) {
-                        onWhatsappSameAsPhoneChange(false)
-                        onWhatsappCountryCodeChange("")
-                        onWhatsappNumberChange("")
-                    }
-                }
-            } else null,
+            onClear = { clearPhoneAndCountry() },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
@@ -781,12 +810,7 @@ fun ProfileContent(
             visualTransformation = PhoneVisualTransformation(
                 selectedWhatsappCountry?.phoneMask ?: ""
             ),
-            onClear = if (selectedWhatsappCountry != null && !isWhatsappSameAsPhone) {
-                {
-                    onWhatsappCountryCodeChange("")
-                    onWhatsappNumberChange("")
-                }
-            } else null,
+            onClear = { clearWhatsappAndCountry() },
             enabled = !isLoading && !isWhatsappSameAsPhone,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
@@ -885,7 +909,6 @@ fun ProfileContent(
                     onWhatsappNumberChange("")
                 }
                 setShowCountryDialog(false)
-                phoneFocusRequester.requestFocus()
             }
         )
     }
@@ -897,7 +920,6 @@ fun ProfileContent(
                 onWhatsappCountryCodeChange(country.code)
                 onWhatsappNumberChange("")
                 setShowWhatsappCountryDialog(false)
-                whatsappFocusRequester.requestFocus()
             }
         )
     }

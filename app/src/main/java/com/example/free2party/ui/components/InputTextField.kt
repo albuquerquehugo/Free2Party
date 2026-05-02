@@ -2,6 +2,7 @@ package com.example.free2party.ui.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -29,10 +30,13 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -79,6 +83,18 @@ fun InputTextField(
 
     val isMultiLine = maxLines > 1
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val clearButtonInteractionSource = remember { MutableInteractionSource() }
+    val isClearButtonPressed by clearButtonInteractionSource.collectIsPressedAsState()
+
+    var isFocusedBuffered by remember { mutableStateOf(false) }
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            isFocusedBuffered = true
+        } else {
+            delay(150)
+            isFocusedBuffered = false
+        }
+    }
 
     val labelColor = if (value.isEmpty() && !isFocused) {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -102,7 +118,9 @@ fun InputTextField(
 
     LaunchedEffect(isFocused) {
         if (isFocused) {
-            delay(200)
+            delay(100)
+            keyboardController?.show()
+            delay(100)
             bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
         }
     }
@@ -169,8 +187,15 @@ fun InputTextField(
         },
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (showClearIcon && (value.isNotEmpty() || onClear != null) && isFocused) {
-                    IconButton(onClick = { onClear?.invoke() ?: onValueChange("") }) {
+                if (showClearIcon &&
+                    (isFocusedBuffered || isClearButtonPressed) &&
+                    (value.isNotEmpty() || onClear != null)
+                ) {
+                    IconButton(
+                        onClick = { onClear?.invoke() ?: onValueChange("") },
+                        modifier = Modifier.focusProperties { canFocus = false },
+                        interactionSource = clearButtonInteractionSource
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Clear",
