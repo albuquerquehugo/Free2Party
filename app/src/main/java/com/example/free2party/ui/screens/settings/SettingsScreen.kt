@@ -240,7 +240,7 @@ fun SettingsScreenContent(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     SettingsOption(
-                        label = stringResource(R.string.option_mesh_gradient),
+                        label = stringResource(R.string.option_gradient),
                         selected = gradientBackground,
                         onClick = { onSetGradientBackground(true) },
                         enabled = !isSaving

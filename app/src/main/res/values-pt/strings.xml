@@ -65,6 +65,7 @@
     <string name="text_add_friends">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
     <string name="text_invite_friend">Digite o e-mail do seu amigo para enviar um convite.</string>
     <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>
+    <string name="text_send_invite_confirmation">Confirma o envio do convite de amizade para %1$s (%2$s)?</string>
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
     <string name="text_placeholder_search_user">Pesquisar por nome ou e-mail…</string>
@@ -156,7 +157,7 @@
     <string name="label_time_format">Formato da Hora:</string>
     <string name="message_settings_updated">Configurações atualizadas com sucesso!</string>
     <string name="option_am_pm">AM/PM</string>
-    <string name="option_mesh_gradient">Gradiente Mesh</string>
+    <string name="option_gradient">Gradiente</string>
     <string name="option_solid">Sólido</string>
     <string name="option_twenty_four_hour">24 horas</string>
     <string name="title_appearance">Aparência</string>

@@ -314,7 +314,7 @@ fun LoginScreen(
                 )
 
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.option_mesh_gradient)) },
+                    text = { Text(stringResource(R.string.option_gradient)) },
                     onClick = {
                         onSetGradientBackground(true)
                         showThemeMenu = false

@@ -48,6 +48,7 @@ import com.example.free2party.R
 import com.example.free2party.data.model.UserRelationship
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.components.TopBar
+import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -110,6 +111,11 @@ fun InviteFriendScreen(
     gradientBackground: Boolean
 ) {
     var query by remember { mutableStateOf("") }
+    var userToInvite by remember {
+        mutableStateOf<com.example.free2party.data.model.UserSearchResult?>(
+            null
+        )
+    }
 
     Scaffold(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
@@ -159,9 +165,11 @@ fun InviteFriendScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                LazyColumn(modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
                     items(searchResults) { user ->
                         ListItem(
                             headlineContent = { Text(user.fullName, fontWeight = FontWeight.Bold) },
@@ -219,14 +227,38 @@ fun InviteFriendScreen(
                                 .padding(vertical = 4.dp)
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable(
-                                    enabled = user.relationship == UserRelationship.NONE ||
-                                            user.relationship == UserRelationship.INVITED ||
-                                            user.relationship == UserRelationship.BLOCKED
-                                ) { onUserSelected(user) }
+                                    enabled = ((user.relationship == UserRelationship.NONE) ||
+                                            (user.relationship == UserRelationship.INVITED) ||
+                                            (user.relationship == UserRelationship.BLOCKED))
+                                ) {
+                                    if (user.relationship == UserRelationship.NONE) {
+                                        userToInvite = user
+                                    } else {
+                                        onUserSelected(user)
+                                    }
+                                }
                         )
                     }
                 }
             }
+        }
+
+        if (userToInvite != null) {
+            ConfirmationDialog(
+                title = stringResource(R.string.title_invite_friend),
+                text = stringResource(
+                    R.string.text_send_invite_confirmation,
+                    userToInvite!!.fullName,
+                    userToInvite!!.email
+                ),
+                confirmButtonText = stringResource(R.string.button_confirm),
+                onConfirm = {
+                    onUserSelected(userToInvite!!)
+                    userToInvite = null
+                },
+                dismissButtonText = stringResource(R.string.button_cancel),
+                onDismiss = { userToInvite = null }
+            )
         }
     }
 }

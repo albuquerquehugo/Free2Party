@@ -65,6 +65,7 @@
     <string name="text_add_friends">Add friends to see their availability and share your plans!</string>
     <string name="text_invite_friend">Enter your friend\'s email to send an invite.</string>
     <string name="text_logout_confirmation">Are you sure you want to log out?</string>
+    <string name="text_send_invite_confirmation">Do you confirm sending a friend invite to %1$s (%2$s)?</string>
     <string name="text_no_friends_in_section">No friends in this section</string>
     <string name="text_no_friends_yet">You don\'t have any friends yet!</string>
     <string name="text_placeholder_search_user">Search by name or email…</string>
@@ -157,7 +158,7 @@
     <string name="label_time_format">Time Format:</string>
     <string name="message_settings_updated">Settings updated successfully!</string>
     <string name="option_am_pm">AM/PM</string>
-    <string name="option_mesh_gradient">Mesh Gradient</string>
+    <string name="option_gradient">Gradient</string>
     <string name="option_solid">Solid</string>
     <string name="option_twenty_four_hour">24-hour</string>
     <string name="title_appearance">Appearance</string>
