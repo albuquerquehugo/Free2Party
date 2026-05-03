@@ -13,10 +13,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -32,11 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.free2party.R
+import com.example.free2party.data.model.UserRelationship
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
@@ -49,6 +58,7 @@ fun InviteFriendRoute(
 ) {
     val context = LocalContext.current
     val inviteSentTemplate = stringResource(R.string.toast_invite_sent)
+    val unblockToInviteTemplate = stringResource(R.string.error_unblock_to_invite)
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -74,7 +84,13 @@ fun InviteFriendRoute(
         searchResults = viewModel.searchResults,
         isSearching = viewModel.isSearchingUsers,
         onQueryChange = { viewModel.searchUsers(it) },
-        onUserSelected = { user -> viewModel.inviteFriend(user.email) },
+        onUserSelected = { user ->
+            if (user.relationship == UserRelationship.BLOCKED) {
+                Toast.makeText(context, unblockToInviteTemplate, Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.inviteFriend(user.email)
+            }
+        },
         onBack = onBack,
         onResetState = { viewModel.resetState() },
         gradientBackground = gradientBackground
@@ -143,11 +159,55 @@ fun InviteFriendScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize().weight(1f)) {
+                LazyColumn(modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)) {
                     items(searchResults) { user ->
                         ListItem(
                             headlineContent = { Text(user.fullName, fontWeight = FontWeight.Bold) },
                             supportingContent = { Text(user.email) },
+                            leadingContent = {
+                                if (user.profilePicUrl.isNotBlank()) {
+                                    AsyncImage(
+                                        model = user.profilePicUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.AccountCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                }
+                            },
+                            trailingContent = {
+                                when (user.relationship) {
+                                    UserRelationship.FRIEND -> Icon(
+                                        imageVector = Icons.Default.Group,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+
+                                    UserRelationship.INVITED -> Icon(
+                                        imageVector = Icons.Default.Mail,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+
+                                    UserRelationship.BLOCKED -> Icon(
+                                        imageVector = Icons.Default.Block,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+
+                                    UserRelationship.NONE -> {}
+                                }
+                            },
                             colors = ListItemDefaults.colors(
                                 containerColor = if (gradientBackground) {
                                     MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
@@ -158,7 +218,11 @@ fun InviteFriendScreen(
                             modifier = Modifier
                                 .padding(vertical = 4.dp)
                                 .clip(MaterialTheme.shapes.medium)
-                                .clickable { onUserSelected(user) }
+                                .clickable(
+                                    enabled = user.relationship == UserRelationship.NONE ||
+                                            user.relationship == UserRelationship.INVITED ||
+                                            user.relationship == UserRelationship.BLOCKED
+                                ) { onUserSelected(user) }
                         )
                     }
                 }

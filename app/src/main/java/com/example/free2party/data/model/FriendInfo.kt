@@ -16,9 +16,11 @@ data class FriendInfo(
 @IgnoreExtraProperties
 data class UserSearchResult(
     val uid: String = "",
+    val profilePicUrl: String = "",
     val firstName: String = "",
     val lastName: String = "",
-    val email: String = ""
+    val email: String = "",
+    val relationship: UserRelationship = UserRelationship.NONE
 ) {
     val fullName: String get() = "$firstName $lastName".trim()
 }
@@ -26,4 +28,11 @@ data class UserSearchResult(
 enum class InviteStatus {
     INVITED,
     ACCEPTED
+}
+
+enum class UserRelationship {
+    NONE,
+    FRIEND,
+    INVITED,
+    BLOCKED
 }

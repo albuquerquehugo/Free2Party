@@ -7,6 +7,7 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.data.model.UserRelationship
 import com.example.free2party.data.model.Notification
 import com.example.free2party.data.model.UserSearchResult
 import com.example.free2party.data.model.NotificationType
@@ -204,8 +205,35 @@ class SocialRepositoryImpl(
                 .limit(20)
                 .get().await()
 
+            val friendsSnapshot = db.collection("users").document(currentUserId)
+                .collection("friends").get().await()
+            val friendsMap = friendsSnapshot.documents.associateBy(
+                { it.id },
+                { it.getString("inviteStatus") ?: InviteStatus.ACCEPTED.name }
+            )
+
+            val blockedSnapshot = db.collection("users").document(currentUserId)
+                .collection("blocked").get().await()
+            val blockedIds = blockedSnapshot.documents.map { it.id }.toSet()
+
             val results = querySnapshot.documents
-                .mapNotNull { it.toObject(UserSearchResult::class.java)?.copy(uid = it.id) }
+                .mapNotNull { doc ->
+                    val uid = doc.id
+                    val relationship = when {
+                        uid in blockedIds -> UserRelationship.BLOCKED
+                        friendsMap.containsKey(uid) -> {
+                            if (friendsMap[uid] == InviteStatus.INVITED.name) UserRelationship.INVITED
+                            else UserRelationship.FRIEND
+                        }
+                        else -> UserRelationship.NONE
+                    }
+
+                    doc.toObject(UserSearchResult::class.java)?.copy(
+                        uid = uid,
+                        profilePicUrl = doc.getString("profilePicUrl") ?: "",
+                        relationship = relationship
+                    )
+                }
                 .filter { it.uid != currentUserId }
                 .take(10)
 

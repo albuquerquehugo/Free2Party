@@ -304,6 +304,7 @@
     <string name="error_settings_not_found">User settings not found. Please try logging out and in again.</string>
     <string name="error_social">Social error</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
+    <string name="error_unblock_to_invite">Unblock this user before inviting them.</string>
     <string name="error_unblocking_user">Error unblocking user</string>
     <string name="error_unknown">An error occurred</string>
     <string name="error_unknown_auth">An unexpected authentication error occurred</string>

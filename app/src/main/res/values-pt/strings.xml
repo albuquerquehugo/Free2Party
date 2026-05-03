@@ -304,6 +304,7 @@
     <string name="error_sending_invite">Erro ao enviar convite.</string>
     <string name="error_settings_not_found">Configurações do usuário não encontradas. Por favor, tente sair e entrar novamente.</string>
     <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
+    <string name="error_unblock_to_invite">Desbloqueie este usuário antes de convidá-lo.</string>
     <string name="error_unblocking_user">Erro ao desbloquear usuário</string>
     <string name="error_unknown">Ocorreu um erro</string>
     <string name="error_unknown_auth">Ocorreu um erro de autenticação inesperado</string>
