@@ -34,6 +34,7 @@ sealed interface InviteFriendUiState {
 
 sealed class FriendUiEvent {
     object InviteSentSuccessfully : FriendUiEvent()
+    data class ShowToast(val message: UiText) : FriendUiEvent()
 }
 
 class FriendViewModel(
@@ -107,6 +108,7 @@ class FriendViewModel(
                         else -> UiText.StringResource(R.string.error_sending_invite)
                     }
                     uiState = InviteFriendUiState.Error(errorText)
+                    _uiEvent.emit(FriendUiEvent.ShowToast(errorText))
                 }
         }
     }

@@ -1,8 +1,6 @@
 package com.example.free2party.ui.screens.home
 
 import android.widget.Toast
-import com.example.free2party.ui.screens.friends.FriendViewModel
-import com.example.free2party.ui.screens.friends.FriendUiEvent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -106,7 +104,6 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeRoute(
     homeViewModel: HomeViewModel,
-    friendViewModel: FriendViewModel,
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit,
@@ -114,8 +111,6 @@ fun HomeRoute(
     onNavigateToInviteFriend: () -> Unit
 ) {
     val context = LocalContext.current
-
-    val inviteSentTemplate = stringResource(R.string.toast_invite_sent)
 
     LaunchedEffect(Unit) {
         homeViewModel.uiEvent.collectLatest { event ->
@@ -129,20 +124,6 @@ fun HomeRoute(
                 }
 
                 is HomeUiEvent.Logout -> onLogout()
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        friendViewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is FriendUiEvent.InviteSentSuccessfully -> {
-                    Toast.makeText(
-                        context,
-                        inviteSentTemplate,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
             }
         }
     }

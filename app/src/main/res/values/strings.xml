@@ -268,6 +268,7 @@
     <string name="error_failed_update_plan">Failed to update the plan.</string>
     <string name="error_friend_request_already_accepted">This user is already your friend.</string>
     <string name="error_friend_request_already_sent">An invite has already been sent to this user.</string>
+    <string name="error_friend_request_pending">You have a pending invite from this user. Please check your notifications.</string>
     <string name="error_friend_request_blocked">You cannot send a friend request to this user.</string>
     <string name="error_friend_request_not_found">The friend request was not found</string>
     <string name="error_google_config">Google Sign-In configuration error. Please try again later.</string>

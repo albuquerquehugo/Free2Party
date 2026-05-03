@@ -338,11 +338,6 @@ fun Free2PartyNavGraph(
                         settingsRepository = settingsRepository
                     )
                 ),
-                friendViewModel = viewModel(
-                    factory = FriendViewModel.provideFactory(
-                        context = context
-                    )
-                ),
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }

@@ -14,6 +14,7 @@ import com.example.free2party.exception.CannotAddSelfException
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.FriendRequestAlreadyAcceptedException
 import com.example.free2party.exception.FriendRequestAlreadySentException
+import com.example.free2party.exception.FriendRequestPendingException
 import com.example.free2party.exception.FriendRequestBlockedException
 import com.example.free2party.exception.FriendRequestNotFoundException
 import com.example.free2party.exception.InfrastructureException
@@ -244,6 +245,10 @@ class SocialRepositoryImpl(
                 .collection("friends").document(receiver.uid)
             val existingFriendDoc = transaction.get(existingFriendRef)
 
+            // Check if there's a pending incoming request from this user
+            val incomingRequestRef = db.collection("friendRequests").document("${receiver.uid}_$currentUserId")
+            val incomingRequestDoc = transaction.get(incomingRequestRef)
+
             // Check if receiver has blocked current user
             if (blockedByReceiverDoc.exists()) {
                 throw FriendRequestBlockedException()
@@ -252,6 +257,10 @@ class SocialRepositoryImpl(
             // If current user has blocked receiver, unblock them first
             if (blockedByCurrentUserDoc.exists()) {
                 transaction.delete(blockedByCurrentUserRef)
+            }
+
+            if (incomingRequestDoc.exists()) {
+                throw FriendRequestPendingException()
             }
 
             if (existingFriendDoc.exists()) {

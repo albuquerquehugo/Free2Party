@@ -57,6 +57,14 @@ fun InviteFriendRoute(
                     Toast.makeText(context, inviteSentTemplate, Toast.LENGTH_SHORT).show()
                     onBack()
                 }
+
+                is FriendUiEvent.ShowToast -> {
+                    Toast.makeText(
+                        context,
+                        event.message.asString(context),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -135,7 +143,7 @@ fun InviteFriendScreen(
                     modifier = Modifier.padding(16.dp)
                 )
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(modifier = Modifier.fillMaxSize().weight(1f)) {
                     items(searchResults) { user ->
                         ListItem(
                             headlineContent = { Text(user.fullName, fontWeight = FontWeight.Bold) },
@@ -154,15 +162,6 @@ fun InviteFriendScreen(
                         )
                     }
                 }
-            }
-
-            if (uiState is InviteFriendUiState.Error) {
-                Text(
-                    text = uiState.message.asString(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
             }
         }
     }
