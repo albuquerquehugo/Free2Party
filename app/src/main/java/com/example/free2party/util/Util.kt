@@ -79,6 +79,16 @@ fun String.capitalizeWords(): String {
 }
 
 /**
+ * Removes accents (diacritics) from the string.
+ * @return A new string without accents.
+ */
+fun String.removeAccents(): String {
+    val normalized = java.text.Normalizer.normalize(this, java.text.Normalizer.Form.NFD)
+    val pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+")
+    return pattern.matcher(normalized).replaceAll("")
+}
+
+/**
  * Capitalizes the first letter of a string using the system's default locale.
  * Useful for month names and other localized strings that might be lowercase by default.
  * @return The string with the first character converted to title case, or the original string

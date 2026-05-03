@@ -67,6 +67,7 @@
     <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
+    <string name="text_placeholder_search_user">Pesquisar por nome ou e-mail…</string>
     <string name="text_remove_friend_confirmation">Tem certeza que deseja remover este amigo?</string>
     <string name="title_friend_section">%1$s (%2$d)</string>
     <string name="title_friend_section_busy">Ocupados</string>
@@ -76,6 +77,7 @@
     <string name="title_invite_friend">Convidar Amigo</string>
     <string name="title_remove_and_block_friend">Remover e Bloquear</string>
     <string name="title_remove_friend">Remover Amigo</string>
+    <string name="title_search">Pesquisar</string>
     <string name="title_your_friends">Seus Amigos</string>
     <string name="toast_friend_removed">Amigo removido</string>
     <string name="toast_invite_cancelled">Convite cancelado</string>

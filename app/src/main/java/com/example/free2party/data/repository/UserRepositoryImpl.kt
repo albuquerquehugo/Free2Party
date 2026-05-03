@@ -8,6 +8,7 @@ import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.exception.RecentLoginRequiredException
+import com.example.free2party.util.removeAccents
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
@@ -99,7 +100,8 @@ class UserRepositoryImpl(
 
     override suspend fun getUserByEmail(email: String): Result<User> = try {
         validateSession()
-        val query = db.collection("users").whereEqualTo("email", email).get().await()
+        val normalizedEmail = email.lowercase().removeAccents()
+        val query = db.collection("users").whereEqualTo("emailLowercase", normalizedEmail).get().await()
         val doc = query.documents.firstOrNull() ?: throw UserNotFoundException()
         val user = doc.toObject(User::class.java) ?: throw UserNotFoundException()
         Result.success(user.copy(uid = doc.id))

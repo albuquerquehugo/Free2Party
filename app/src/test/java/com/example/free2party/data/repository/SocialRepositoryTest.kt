@@ -26,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import com.google.firebase.firestore.QuerySnapshot
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SocialRepositoryTest {
@@ -44,6 +45,7 @@ class SocialRepositoryTest {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
+        every { Log.d(any(), any()) } returns 0
         
         every { userRepository.currentUserId } returns "me123"
         every { db.collection("users") } returns usersCollection
@@ -240,5 +242,29 @@ class SocialRepositoryTest {
             result.exceptionOrNull()?.printStackTrace()
         }
         assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `searchUsers normalizes query and calls firestore with searchKeywords array-contains`() = runTest {
+        val query = "João"
+        val normalizedQuery = "joao"
+        
+        val querySnapshot: QuerySnapshot = mockk {
+            every { documents } returns emptyList()
+            every { size() } returns 0
+        }
+
+        val mockQuery = mockk<com.google.firebase.firestore.Query> {
+            every { whereArrayContains("searchKeywords", normalizedQuery) } returns this
+            every { limit(any()) } returns this
+            every { get() } returns Tasks.forResult(querySnapshot)
+        }
+
+        every { usersCollection.whereArrayContains("searchKeywords", normalizedQuery) } returns mockQuery
+
+        val result = repository.searchUsers(query)
+
+        assertTrue(result.isSuccess)
+        verify { usersCollection.whereArrayContains("searchKeywords", normalizedQuery) }
     }
 }

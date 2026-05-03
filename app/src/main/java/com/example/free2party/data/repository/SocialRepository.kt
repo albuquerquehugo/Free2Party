@@ -5,6 +5,7 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
+import com.example.free2party.data.model.UserSearchResult
 import kotlinx.coroutines.flow.Flow
 
 interface SocialRepository {
@@ -14,6 +15,7 @@ interface SocialRepository {
     fun getOutgoingFriendRequests(): Flow<List<FriendRequest>>
     fun getBlockedUsers(): Flow<List<BlockedUser>>
 
+    suspend fun searchUsers(query: String): Result<List<UserSearchResult>>
     suspend fun sendFriendRequest(friendEmail: String): Result<Unit>
     suspend fun cancelFriendRequest(friendId: String): Result<Unit>
     suspend fun updateFriendRequestStatus(

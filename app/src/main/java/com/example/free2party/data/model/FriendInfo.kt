@@ -1,5 +1,7 @@
 package com.example.free2party.data.model
 
+import com.google.firebase.firestore.IgnoreExtraProperties
+
 data class FriendInfo(
     val uid: String = "",
     val name: String = "",
@@ -10,6 +12,16 @@ data class FriendInfo(
     val phoneNumber: String = "",
     val socials: UserSocials = UserSocials()
 )
+
+@IgnoreExtraProperties
+data class UserSearchResult(
+    val uid: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val email: String = ""
+) {
+    val fullName: String get() = "$firstName $lastName".trim()
+}
 
 enum class InviteStatus {
     INVITED,

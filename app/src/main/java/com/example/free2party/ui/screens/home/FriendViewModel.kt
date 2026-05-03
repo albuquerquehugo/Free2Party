@@ -4,9 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import android.util.Log
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
+import com.example.free2party.data.model.UserSearchResult
 import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepositoryImpl
@@ -17,6 +19,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -33,14 +37,45 @@ sealed class FriendUiEvent {
 }
 
 class FriendViewModel(
-    private val socialRepository: SocialRepository
+    private val socialRepository: SocialRepository,
 ) : ViewModel() {
 
     var uiState by mutableStateOf<InviteFriendUiState>(InviteFriendUiState.Idle)
         private set
 
+    var searchResults by mutableStateOf<List<UserSearchResult>>(emptyList())
+        private set
+
+    var isSearchingUsers by mutableStateOf(value = false)
+        private set
+
     private val _uiEvent = MutableSharedFlow<FriendUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
+
+    private var searchJob: Job? = null
+
+    fun searchUsers(query: String) {
+        searchJob?.cancel()
+        if (query.isBlank()) {
+            searchResults = emptyList()
+            isSearchingUsers = false
+            return
+        }
+
+        searchJob = viewModelScope.launch {
+            delay(300) // Debounce
+            isSearchingUsers = true
+            socialRepository.searchUsers(query)
+                .onSuccess { results ->
+                    searchResults = results
+                }
+                .onFailure { e ->
+                    Log.e("FriendViewModel", "Search users failed", e)
+                    searchResults = emptyList()
+                }
+            isSearchingUsers = false
+        }
+    }
 
     fun inviteFriend(email: String) {
         val normalizedEmail = email.trim().lowercase()
@@ -78,6 +113,9 @@ class FriendViewModel(
 
     fun resetState() {
         uiState = InviteFriendUiState.Idle
+        searchResults = emptyList()
+        isSearchingUsers = false
+        searchJob?.cancel()
     }
 
     companion object {

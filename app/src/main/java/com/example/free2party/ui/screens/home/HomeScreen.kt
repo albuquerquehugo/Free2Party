@@ -81,10 +81,11 @@ import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
+import com.example.free2party.data.model.UserSearchResult
 import com.example.free2party.ui.components.AdBanner
 import com.example.free2party.ui.components.dialogs.AboutDialog
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
-import com.example.free2party.ui.components.dialogs.EmailDialog
+import com.example.free2party.ui.components.dialogs.InviteFriendDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
@@ -153,6 +154,8 @@ fun HomeRoute(
     HomeScreen(
         homeUiState = homeViewModel.uiState,
         inviteFriendUiState = friendViewModel.uiState,
+        searchResults = friendViewModel.searchResults,
+        isSearchingUsers = friendViewModel.isSearchingUsers,
         showInviteFriendDialog = showInviteFriendDialog,
         gradientBackground = gradientBackground,
         onLogoutClick = { homeViewModel.logout(onLogout) },
@@ -164,6 +167,7 @@ fun HomeRoute(
         onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
         onInviteFriendClick = { setShowInviteFriendDialog(true) },
+        onSearchQueryChange = { query -> friendViewModel.searchUsers(query) },
         onInviteFriendConfirm = { email -> friendViewModel.inviteFriend(email) },
         onInviteFriendDismiss = {
             friendViewModel.resetState()
@@ -178,6 +182,8 @@ fun HomeRoute(
 fun HomeScreen(
     homeUiState: HomeUiState,
     inviteFriendUiState: InviteFriendUiState,
+    searchResults: List<UserSearchResult>,
+    isSearchingUsers: Boolean,
     showInviteFriendDialog: Boolean,
     gradientBackground: Boolean,
     onLogoutClick: () -> Unit,
@@ -189,6 +195,7 @@ fun HomeScreen(
     onRemoveAndBlockFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
     onInviteFriendConfirm: (String) -> Unit,
     onInviteFriendDismiss: () -> Unit,
     onInviteFriendResetState: () -> Unit
@@ -453,23 +460,19 @@ fun HomeScreen(
         }
 
         if (showInviteFriendDialog) {
-            var inviteEmail by remember { mutableStateOf("") }
-            EmailDialog(
-                title = stringResource(R.string.title_invite_friend),
-                description = stringResource(R.string.text_invite_friend),
-                email = inviteEmail,
-                onValueChange = {
-                    inviteEmail = it
+            var searchQuery by remember { mutableStateOf("") }
+            InviteFriendDialog(
+                query = searchQuery,
+                onQueryChange = {
+                    searchQuery = it
+                    onSearchQueryChange(it)
                     if (inviteFriendUiState is InviteFriendUiState.Error) onInviteFriendResetState()
                 },
+                searchResults = searchResults,
+                isSearching = isSearchingUsers,
+                onUserSelected = { user -> onInviteFriendConfirm(user.email) },
                 onDismiss = onInviteFriendDismiss,
-                onConfirm = { onInviteFriendConfirm(inviteEmail) },
-                isLoading = inviteFriendUiState is InviteFriendUiState.Searching,
-                errorMessage =
-                    if (inviteFriendUiState is InviteFriendUiState.Error) {
-                        inviteFriendUiState.message.asString()
-                    } else null,
-                confirmButtonLabel = stringResource(R.string.label_send_invite)
+                uiState = inviteFriendUiState
             )
         }
 

@@ -102,7 +102,7 @@ class UserRepositoryTest {
         val email = "john@test.com"
         val user = User(uid = "target", email = email)
         val querySnapshot: QuerySnapshot = mockk()
-        every { usersCollection.whereEqualTo("email", email).get() } returns Tasks.forResult(querySnapshot)
+        every { usersCollection.whereEqualTo("emailLowercase", email).get() } returns Tasks.forResult(querySnapshot)
         every { querySnapshot.documents } returns listOf(mockk {
             every { toObject(User::class.java) } returns user
             every { id } returns "target"

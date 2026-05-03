@@ -67,6 +67,7 @@
     <string name="text_logout_confirmation">Are you sure you want to log out?</string>
     <string name="text_no_friends_in_section">No friends in this section</string>
     <string name="text_no_friends_yet">You don\'t have any friends yet!</string>
+    <string name="text_placeholder_search_user">Search by name or email…</string>
     <string name="text_remove_friend_confirmation">Are you sure you want to remove this friend?</string>
     <string name="title_friend_section">%1$s (%2$d)</string>
     <string name="title_friend_section_busy">Busy</string>
@@ -77,6 +78,7 @@
     <string name="title_profile">Profile</string>
     <string name="title_remove_friend">Remove Friend</string>
     <string name="title_remove_and_block_friend">Remove and Block</string>
+    <string name="title_search">Search</string>
     <string name="title_your_friends">Your Friends</string>
     <string name="toast_friend_removed">Friend removed</string>
     <string name="toast_invite_cancelled">Invite cancelled</string>

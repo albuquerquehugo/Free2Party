@@ -1,6 +1,7 @@
 package com.example.free2party.data.model
 
 import com.example.free2party.R
+import com.example.free2party.util.removeAccents
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
@@ -86,6 +87,56 @@ data class User(
     @ServerTimestamp
     val createdAt: Date? = null
 ) {
+    @get:PropertyName("firstNameLowercase")
+    @Suppress("unused")
+    val firstNameLowercase: String get() = firstName.lowercase().removeAccents()
+
+    @get:PropertyName("lastNameLowercase")
+    @Suppress("unused")
+    val lastNameLowercase: String get() = lastName.lowercase().removeAccents()
+
+    @get:PropertyName("emailLowercase")
+    @Suppress("unused")
+    val emailLowercase: String get() = email.lowercase().removeAccents()
+
+    @get:PropertyName("searchKeywords")
+    @Suppress("unused")
+    val searchKeywords: List<String> get() {
+        val keywords = mutableSetOf<String>()
+        val normalizedFirstName = firstName.lowercase().removeAccents()
+        val normalizedLastName = lastName.lowercase().removeAccents()
+        val normalizedEmail = email.lowercase().removeAccents()
+
+        val allWords = (normalizedFirstName + " " + normalizedLastName + " " + normalizedEmail.split("@").firstOrNull().orEmpty())
+            .split(Regex("[\\s.\\-_@]+"))
+            .filter { it.isNotBlank() }
+
+        // Individual word prefixes
+        for (word in allWords) {
+            for (i in 1..word.length) {
+                keywords.add(word.take(i))
+            }
+        }
+
+        // Full name prefixes (FirstName LastName)
+        val fullName = ("$normalizedFirstName $normalizedLastName").trim()
+        if (fullName.isNotEmpty()) {
+            for (i in 1..fullName.length) {
+                keywords.add(fullName.take(i))
+            }
+        }
+
+        // Full name prefixes (LastName FirstName)
+        val reversedFullName = ("$normalizedLastName $normalizedFirstName").trim()
+        if (reversedFullName.isNotEmpty()) {
+            for (i in 1..reversedFullName.length) {
+                keywords.add(reversedFullName.take(i))
+            }
+        }
+
+        return keywords.toList()
+    }
+
     @get:Exclude
     val fullName: String get() = "$firstName $lastName".trim()
 }

@@ -8,6 +8,7 @@ import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.Notification
+import com.example.free2party.data.model.UserSearchResult
 import com.example.free2party.data.model.NotificationType
 import com.example.free2party.exception.CannotAddSelfException
 import com.example.free2party.exception.DatabaseOperationException
@@ -19,6 +20,7 @@ import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.NetworkUnavailableException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
+import com.example.free2party.util.removeAccents
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -188,6 +190,33 @@ class SocialRepositoryImpl(
         awaitClose { listener.remove() }
     }
 
+    override suspend fun searchUsers(query: String): Result<List<UserSearchResult>> = try {
+        validateSession()
+        if (query.isBlank()) {
+            Result.success(emptyList())
+        } else {
+            val normalizedQuery = query.trim().lowercase().removeAccents()
+            Log.d("SocialRepository", "Searching users with normalized query: $normalizedQuery")
+
+            val querySnapshot = db.collection("users")
+                .whereArrayContains("searchKeywords", normalizedQuery)
+                .limit(20)
+                .get().await()
+
+            val results = querySnapshot.documents
+                .mapNotNull { it.toObject(UserSearchResult::class.java)?.copy(uid = it.id) }
+                .filter { it.uid != currentUserId }
+                .take(10)
+
+            Log.d("SocialRepository", "Total results found: ${results.size}")
+            Result.success(results)
+        }
+    } catch (e: Exception) {
+        if (e is kotlinx.coroutines.CancellationException) throw e
+        Log.e("SocialRepository", "Error searching users", e)
+        Result.failure(mapToSocialException(e))
+    }
+
     override suspend fun sendFriendRequest(friendEmail: String): Result<Unit> = try {
         validateSession()
         val receiverResult = userRepository.getUserByEmail(friendEmail)
@@ -264,7 +293,7 @@ class SocialRepositoryImpl(
 
     override suspend fun cancelFriendRequest(friendId: String): Result<Unit> = try {
         validateSession()
-        val requestId = "${currentUserId}_${friendId}"
+        val requestId = "${currentUserId}_$friendId"
         db.runTransaction { transaction ->
             transaction.delete(db.collection("friendRequests").document(requestId))
             transaction.delete(
