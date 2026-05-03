@@ -55,9 +55,10 @@ import com.example.free2party.MainViewModel
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.components.AppBackground
 import com.example.free2party.ui.screens.calendar.CalendarRoute
-import com.example.free2party.ui.screens.home.FriendViewModel
 import com.example.free2party.ui.screens.home.HomeRoute
 import com.example.free2party.ui.screens.home.HomeViewModel
+import com.example.free2party.ui.screens.friends.InviteFriendRoute
+import com.example.free2party.ui.screens.friends.FriendViewModel
 import com.example.free2party.ui.screens.login.LoginRoute
 import com.example.free2party.ui.screens.login.LoginViewModel
 import com.example.free2party.ui.screens.notifications.NotificationsRoute
@@ -125,6 +126,11 @@ sealed class Screen(
         labelResId = R.string.title_notifications,
         icon = Icons.Outlined.Notifications,
         iconSelected = Icons.Filled.Notifications
+    )
+
+    object InviteFriend : Screen(
+        route = "invite_friend",
+        labelResId = R.string.title_invite_friend
     )
 }
 
@@ -350,7 +356,31 @@ fun Free2PartyNavGraph(
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onNavigateToInviteFriend = {
+                    navController.navigate(Screen.InviteFriend.route)
                 }
+            )
+        }
+
+        composable(Screen.InviteFriend.route) {
+            val context = LocalContext.current
+            val mainViewModel: MainViewModel = viewModel(
+                factory = MainViewModel.provideFactory(
+                    context = context,
+                    settingsRepository = settingsRepository
+                )
+            )
+            val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
+
+            InviteFriendRoute(
+                viewModel = viewModel(
+                    factory = FriendViewModel.provideFactory(
+                        context = context
+                    )
+                ),
+                onBack = { navController.popBackStack() },
+                gradientBackground = gradientBackground
             )
         }
 

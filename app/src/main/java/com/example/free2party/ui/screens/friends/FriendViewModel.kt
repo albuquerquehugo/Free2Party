@@ -1,4 +1,4 @@
-package com.example.free2party.ui.screens.home
+package com.example.free2party.ui.screens.friends
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

@@ -1,6 +1,8 @@
 package com.example.free2party.ui.screens.home
 
 import android.widget.Toast
+import com.example.free2party.ui.screens.friends.FriendViewModel
+import com.example.free2party.ui.screens.friends.FriendUiEvent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -81,11 +83,9 @@ import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
-import com.example.free2party.data.model.UserSearchResult
 import com.example.free2party.ui.components.AdBanner
 import com.example.free2party.ui.components.dialogs.AboutDialog
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
-import com.example.free2party.ui.components.dialogs.InviteFriendDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
@@ -110,10 +110,10 @@ fun HomeRoute(
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToInviteFriend: () -> Unit
 ) {
     val context = LocalContext.current
-    val (showInviteFriendDialog, setShowInviteFriendDialog) = remember { mutableStateOf(false) }
 
     val inviteSentTemplate = stringResource(R.string.toast_invite_sent)
 
@@ -142,7 +142,6 @@ fun HomeRoute(
                         inviteSentTemplate,
                         Toast.LENGTH_SHORT
                     ).show()
-                    setShowInviteFriendDialog(false)
                 }
             }
         }
@@ -153,10 +152,6 @@ fun HomeRoute(
 
     HomeScreen(
         homeUiState = homeViewModel.uiState,
-        inviteFriendUiState = friendViewModel.uiState,
-        searchResults = friendViewModel.searchResults,
-        isSearchingUsers = friendViewModel.isSearchingUsers,
-        showInviteFriendDialog = showInviteFriendDialog,
         gradientBackground = gradientBackground,
         onLogoutClick = { homeViewModel.logout(onLogout) },
         onNavigateToProfile = onNavigateToProfile,
@@ -166,14 +161,7 @@ fun HomeRoute(
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
         onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
-        onInviteFriendClick = { setShowInviteFriendDialog(true) },
-        onSearchQueryChange = { query -> friendViewModel.searchUsers(query) },
-        onInviteFriendConfirm = { email -> friendViewModel.inviteFriend(email) },
-        onInviteFriendDismiss = {
-            friendViewModel.resetState()
-            setShowInviteFriendDialog(false)
-        },
-        onInviteFriendResetState = { friendViewModel.resetState() }
+        onInviteFriendClick = onNavigateToInviteFriend
     )
 }
 
@@ -181,10 +169,6 @@ fun HomeRoute(
 @Composable
 fun HomeScreen(
     homeUiState: HomeUiState,
-    inviteFriendUiState: InviteFriendUiState,
-    searchResults: List<UserSearchResult>,
-    isSearchingUsers: Boolean,
-    showInviteFriendDialog: Boolean,
     gradientBackground: Boolean,
     onLogoutClick: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -194,11 +178,7 @@ fun HomeScreen(
     onRemoveFriend: (String) -> Unit,
     onRemoveAndBlockFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit,
-    onSearchQueryChange: (String) -> Unit,
-    onInviteFriendConfirm: (String) -> Unit,
-    onInviteFriendDismiss: () -> Unit,
-    onInviteFriendResetState: () -> Unit
+    onInviteFriendClick: () -> Unit
 ) {
     var showUserMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -457,23 +437,6 @@ fun HomeScreen(
 
         if (showAboutDialog) {
             AboutDialog(onDismiss = { showAboutDialog = false })
-        }
-
-        if (showInviteFriendDialog) {
-            var searchQuery by remember { mutableStateOf("") }
-            InviteFriendDialog(
-                query = searchQuery,
-                onQueryChange = {
-                    searchQuery = it
-                    onSearchQueryChange(it)
-                    if (inviteFriendUiState is InviteFriendUiState.Error) onInviteFriendResetState()
-                },
-                searchResults = searchResults,
-                isSearching = isSearchingUsers,
-                onUserSelected = { user -> onInviteFriendConfirm(user.email) },
-                onDismiss = onInviteFriendDismiss,
-                uiState = inviteFriendUiState
-            )
         }
 
         selectedFriend?.let { friend ->

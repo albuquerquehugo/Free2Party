@@ -1,0 +1,169 @@
+package com.example.free2party.ui.screens.friends
+
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.example.free2party.R
+import com.example.free2party.ui.components.InputTextField
+import com.example.free2party.ui.components.TopBar
+import kotlinx.coroutines.flow.collectLatest
+
+@Composable
+fun InviteFriendRoute(
+    viewModel: FriendViewModel,
+    onBack: () -> Unit,
+    gradientBackground: Boolean = true
+) {
+    val context = LocalContext.current
+    val inviteSentTemplate = stringResource(R.string.toast_invite_sent)
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is FriendUiEvent.InviteSentSuccessfully -> {
+                    Toast.makeText(context, inviteSentTemplate, Toast.LENGTH_SHORT).show()
+                    onBack()
+                }
+            }
+        }
+    }
+
+    InviteFriendScreen(
+        uiState = viewModel.uiState,
+        searchResults = viewModel.searchResults,
+        isSearching = viewModel.isSearchingUsers,
+        onQueryChange = { viewModel.searchUsers(it) },
+        onUserSelected = { user -> viewModel.inviteFriend(user.email) },
+        onBack = onBack,
+        onResetState = { viewModel.resetState() },
+        gradientBackground = gradientBackground
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InviteFriendScreen(
+    uiState: InviteFriendUiState,
+    searchResults: List<com.example.free2party.data.model.UserSearchResult>,
+    isSearching: Boolean,
+    onQueryChange: (String) -> Unit,
+    onUserSelected: (com.example.free2party.data.model.UserSearchResult) -> Unit,
+    onBack: () -> Unit,
+    onResetState: () -> Unit,
+    gradientBackground: Boolean
+) {
+    var query by remember { mutableStateOf("") }
+
+    Scaffold(
+        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
+        topBar = {
+            TopBar(
+                title = stringResource(R.string.title_invite_friend),
+                color = MaterialTheme.colorScheme.onSurface,
+                onBack = onBack
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+                .padding(horizontal = 24.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            InputTextField(
+                value = query,
+                onValueChange = {
+                    query = it
+                    onQueryChange(it)
+                    if (uiState is InviteFriendUiState.Error) onResetState()
+                },
+                label = stringResource(R.string.title_search),
+                placeholder = stringResource(R.string.text_placeholder_search_user),
+                icon = Icons.Default.Search,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (isSearching) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                }
+            } else if (query.isNotBlank() && searchResults.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.text_no_results_found),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(searchResults) { user ->
+                        ListItem(
+                            headlineContent = { Text(user.fullName, fontWeight = FontWeight.Bold) },
+                            supportingContent = { Text(user.email) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = if (gradientBackground) {
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
+                                } else {
+                                    MaterialTheme.colorScheme.surface
+                                }
+                            ),
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable { onUserSelected(user) }
+                        )
+                    }
+                }
+            }
+
+            if (uiState is InviteFriendUiState.Error) {
+                Text(
+                    text = uiState.message.asString(),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
+    }
+}
