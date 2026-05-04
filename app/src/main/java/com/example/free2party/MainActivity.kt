@@ -2,6 +2,7 @@ package com.example.free2party
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -9,11 +10,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.adaptive.currentWindowSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.free2party.data.model.Notification
@@ -100,6 +105,19 @@ class MainActivity : ComponentActivity() {
             }
 
             Free2PartyTheme(themeMode = mainViewModel.themeMode) {
+                // Lock orientation to portrait on phones (width < 600dp), allow rotation on tablets
+                val windowSize = currentWindowSize()
+                val density = LocalDensity.current
+                val widthDp = with(density) { windowSize.toSize().width.toDp() }
+
+                LaunchedEffect(widthDp) {
+                    requestedOrientation = if (widthDp < 600.dp) {
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    } else {
+                        ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+                    }
+                }
+
                 AppNavigation(
                     mainViewModel = mainViewModel,
                     startDestination = initialStartDestination
