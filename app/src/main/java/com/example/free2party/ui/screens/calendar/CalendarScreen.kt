@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.free2party.BuildConfig
 import com.example.free2party.R
 import com.example.free2party.data.model.FuturePlan
@@ -58,9 +58,7 @@ import java.util.TimeZone
 @Composable
 fun CalendarRoute() {
     val context = LocalContext.current
-    val viewModel: CalendarViewModel = viewModel(
-        factory = CalendarViewModel.provideFactory(context, null)
-    )
+    val viewModel: CalendarViewModel = hiltViewModel()
     val use24HourFormat = viewModel.use24HourFormat
 
     val startDatePickerState = rememberDatePickerState()

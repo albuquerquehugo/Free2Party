@@ -14,9 +14,10 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import javax.inject.Inject
 import kotlinx.coroutines.tasks.await
 
-class AuthRepositoryImpl(
+class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val userRepository: UserRepository
 ) : AuthRepository {

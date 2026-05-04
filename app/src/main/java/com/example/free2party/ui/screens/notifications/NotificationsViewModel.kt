@@ -1,9 +1,7 @@
 package com.example.free2party.ui.screens.notifications
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.FriendRequest
@@ -11,14 +9,10 @@ import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.util.UiText
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +50,8 @@ sealed class NotificationsUiEvent {
     data class ShowToast(val message: UiText) : NotificationsUiEvent()
 }
 
-class NotificationsViewModel(
+@HiltViewModel
+class NotificationsViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
     private val userRepository: UserRepository,
     settingsRepository: SettingsRepository
@@ -177,32 +172,6 @@ class NotificationsViewModel(
     fun deleteNotification(notificationId: String) {
         viewModelScope.launch {
             socialRepository.deleteNotification(notificationId)
-        }
-    }
-
-    companion object {
-        fun provideFactory(
-            context: Context,
-            settingsRepository: SettingsRepository,
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            ),
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = userRepository,
-                context = context
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NotificationsViewModel(
-                    socialRepository,
-                    userRepository,
-                    settingsRepository
-                ) as T
-            }
         }
     }
 }

@@ -1,27 +1,21 @@
 package com.example.free2party.ui.screens.blocked
 
-import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.BlockedUser
 import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.UiText
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -42,7 +36,8 @@ sealed class BlockedUsersUiEvent {
     data class ShowToast(val message: UiText) : BlockedUsersUiEvent()
 }
 
-class BlockedUsersViewModel(
+@HiltViewModel
+class BlockedUsersViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val socialRepository: SocialRepository
 ) : ViewModel() {
@@ -133,27 +128,6 @@ class BlockedUsersViewModel(
                 ?: UiText.StringResource(R.string.error_social)
 
             else -> UiText.StringResource(defaultRes)
-        }
-    }
-
-    companion object {
-        fun provideFactory(
-            context: Context,
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            ),
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = userRepository,
-                context = context
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return BlockedUsersViewModel(userRepository, socialRepository) as T
-            }
         }
     }
 }

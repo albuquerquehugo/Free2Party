@@ -1,13 +1,11 @@
 package com.example.free2party.ui.screens.calendar
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.DatePattern
@@ -15,11 +13,8 @@ import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.PlanRepository
-import com.example.free2party.data.repository.PlanRepositoryImpl
 import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.InvalidPlanDataException
 import com.example.free2party.exception.OverlappingPlanException
 import com.example.free2party.exception.PastDateTimeException
@@ -29,8 +24,8 @@ import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -43,13 +38,20 @@ import java.time.YearMonth
 import java.util.Calendar
 import java.util.TimeZone
 
-class CalendarViewModel(
+@HiltViewModel
+class CalendarViewModel @Inject constructor(
     private val planRepository: PlanRepository,
     private val userRepository: UserRepository,
-    private val socialRepository: SocialRepository,
-    targetUserId: String? = null,
-    currentUserId: String = ""
+    socialRepository: SocialRepository
 ) : ViewModel() {
+
+    private var targetUserId: String? = null
+    private var currentUserId: String = Firebase.auth.currentUser?.uid ?: ""
+
+    fun setTargetUser(uid: String?) {
+        targetUserId = uid
+        observePlans()
+    }
 
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
     val filteredPlans: List<FuturePlan>
@@ -84,8 +86,8 @@ class CalendarViewModel(
     var datePattern by mutableStateOf(DatePattern.YYYY_MM_DD)
         private set
 
-    val userIdToObserve = targetUserId ?: currentUserId
-    val isViewingOwnCalendar = targetUserId == null || targetUserId == currentUserId
+    private val userIdToObserve get() = targetUserId ?: currentUserId
+    val isViewingOwnCalendar get() = targetUserId == null || targetUserId == currentUserId
 
     val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
         .catch { e -> Log.e("CalendarViewModel", "Error in friendsList flow", e) }
@@ -112,7 +114,8 @@ class CalendarViewModel(
     }
 
     private fun observePlans() {
-        if (userIdToObserve.isBlank()) return
+        val uid = userIdToObserve
+        if (uid.isBlank()) return
 
         if (isViewingOwnCalendar) {
             planRepository.getOwnPlans()
@@ -123,7 +126,7 @@ class CalendarViewModel(
                 }
                 .launchIn(viewModelScope)
         } else {
-            planRepository.getPublicPlans(userIdToObserve)
+            planRepository.getPublicPlans(uid)
                 .onEach { plansList = it }
                 .catch { e ->
                     Log.e("CalendarViewModel", "Error observing public plans", e)
@@ -289,40 +292,5 @@ class CalendarViewModel(
             set(Calendar.MILLISECOND, 0)
         }
         selectedDateMillis = calendar.timeInMillis
-    }
-
-    companion object {
-        fun provideFactory(
-            context: Context,
-            targetUserId: String?,
-            planRepository: PlanRepository = PlanRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore
-            ),
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            ),
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = userRepository,
-                context = context
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
-                    return CalendarViewModel(
-                        planRepository = planRepository,
-                        userRepository = userRepository,
-                        socialRepository = socialRepository,
-                        targetUserId = targetUserId,
-                        currentUserId = Firebase.auth.currentUser?.uid ?: ""
-                    ) as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
-        }
     }
 }

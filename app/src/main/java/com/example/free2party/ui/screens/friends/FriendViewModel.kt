@@ -5,20 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import android.util.Log
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.UserSearchResult
 import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.util.UiText
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,7 +32,8 @@ sealed class FriendUiEvent {
     data class ShowToast(val message: UiText) : FriendUiEvent()
 }
 
-class FriendViewModel(
+@HiltViewModel
+class FriendViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
 
@@ -118,25 +114,5 @@ class FriendViewModel(
         searchResults = emptyList()
         isSearchingUsers = false
         searchJob?.cancel()
-    }
-
-    companion object {
-        fun provideFactory(
-            context: android.content.Context,
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = UserRepositoryImpl(
-                    auth = Firebase.auth,
-                    db = Firebase.firestore,
-                    storage = Firebase.storage
-                ),
-                context = context
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return FriendViewModel(socialRepository) as T
-            }
-        }
     }
 }

@@ -1,12 +1,10 @@
 package com.example.free2party
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.data.model.FriendRequestStatus
 import com.example.free2party.data.model.Notification
@@ -14,14 +12,10 @@ import com.example.free2party.data.model.NotificationType
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.ui.navigation.Screen
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,12 +28,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val socialRepository: SocialRepository,
-    private val userRepository: UserRepository,
-    initialHandledNotificationId: String? = null
+    private val userRepository: UserRepository
 ) : ViewModel() {
+    private var initialHandledNotificationId: String? = null
+
+    fun setInitialNotificationId(id: String?) {
+        initialHandledNotificationId = id
+        if (id != null) {
+            activeSystemNotifications.value = setOf(id)
+        }
+    }
 
     var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
         private set
@@ -109,7 +111,7 @@ class MainViewModel(
                     }
 
                     if (initialUser != null) {
-                        if (initialUser.settings.themeMode != localTheme || initialUser.settings.gradientBackground != localBackground) {
+                        if ((initialUser.settings.themeMode != localTheme) || (initialUser.settings.gradientBackground != localBackground)) {
                             Log.d(
                                 "MainViewModel",
                                 "Pushing local settings to Cloud at login/startup"
@@ -286,31 +288,4 @@ class MainViewModel(
         }
     }
 
-    companion object {
-        fun provideFactory(
-            context: Context,
-            settingsRepository: SettingsRepository,
-            initialHandledNotificationId: String? = null,
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            ),
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = userRepository,
-                context = context
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return MainViewModel(
-                    settingsRepository,
-                    socialRepository,
-                    userRepository,
-                    initialHandledNotificationId
-                ) as T
-            }
-        }
-    }
 }

@@ -28,6 +28,8 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -39,10 +41,10 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
-class SocialRepositoryImpl(
+class SocialRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
     private val userRepository: UserRepository,
-    private val context: android.content.Context
+    @param:ApplicationContext private val context: android.content.Context
 ) : SocialRepository {
 
     private val currentUserId: String

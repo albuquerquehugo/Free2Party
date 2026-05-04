@@ -5,22 +5,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.repository.AuthRepository
-import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.SettingsRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.AuthException
 import com.example.free2party.exception.EmailNotVerifiedException
 import com.example.free2party.util.UiText
-import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthCredential
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -37,7 +32,8 @@ sealed class LoginUiEvent {
     data class ShowToast(val message: UiText) : LoginUiEvent()
 }
 
-class LoginViewModel(
+@HiltViewModel
+class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
@@ -202,24 +198,5 @@ class LoginViewModel(
         email = ""
         password = ""
         uiState = LoginUiState.Idle
-    }
-
-    companion object {
-        fun provideFactory(
-            settingsRepository: SettingsRepository,
-            authRepository: AuthRepository = AuthRepositoryImpl(
-                auth = Firebase.auth,
-                userRepository = UserRepositoryImpl(
-                    auth = Firebase.auth,
-                    db = Firebase.firestore,
-                    storage = Firebase.storage
-                )
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return LoginViewModel(authRepository, settingsRepository) as T
-            }
-        }
     }
 }

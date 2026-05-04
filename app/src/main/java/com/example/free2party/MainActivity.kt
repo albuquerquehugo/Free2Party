@@ -15,10 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.free2party.data.model.Notification
 import com.example.free2party.data.model.NotificationType
-import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.navigation.AppNavigation
 import com.example.free2party.ui.navigation.Screen
 import com.example.free2party.ui.theme.Free2PartyTheme
@@ -26,8 +25,10 @@ import com.example.free2party.util.NotificationHelper
 import com.example.free2party.util.matchNameAndEmail
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val notificationIdState = mutableStateOf<String?>(null)
 
@@ -47,25 +48,25 @@ class MainActivity : ComponentActivity() {
         notificationIdState.value =
             intent.getStringExtra("NOTIFICATION_ID") ?: intent.getStringExtra("notificationId")
 
-        val settingsRepository = SettingsRepository(applicationContext)
         setContent {
             var currentNotificationId by notificationIdState
 
+            val mainViewModel: MainViewModel = hiltViewModel()
+
+            // Pass initial notification ID to ViewModel
+            LaunchedEffect(Unit) {
+                if (currentNotificationId != null) {
+                    mainViewModel.setInitialNotificationId(currentNotificationId)
+                }
+            }
+
             val initialStartDestination = remember {
-                if (currentNotificationId != null && Firebase.auth.currentUser != null) {
+                if ((currentNotificationId != null) && (Firebase.auth.currentUser != null)) {
                     Screen.Notifications.route
                 } else {
                     null
                 }
             }
-
-            val mainViewModel: MainViewModel = viewModel(
-                factory = MainViewModel.provideFactory(
-                    context = applicationContext,
-                    settingsRepository = settingsRepository,
-                    initialHandledNotificationId = currentNotificationId
-                )
-            )
 
             // Handle notification clicks (from both startup and onNewIntent)
             LaunchedEffect(currentNotificationId) {
@@ -100,7 +101,6 @@ class MainActivity : ComponentActivity() {
 
             Free2PartyTheme(themeMode = mainViewModel.themeMode) {
                 AppNavigation(
-                    settingsRepository = settingsRepository,
                     mainViewModel = mainViewModel,
                     startDestination = initialStartDestination
                 )

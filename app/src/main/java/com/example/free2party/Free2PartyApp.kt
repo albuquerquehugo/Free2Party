@@ -22,16 +22,19 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.messaging.messaging
 import com.google.firebase.storage.storage
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+@HiltAndroidApp
 class Free2PartyApp : Application() {
 
-    private lateinit var userRepository: UserRepository
-    private lateinit var planRepository: PlanRepository
+    @Inject lateinit var userRepository: UserRepository
+    @Inject lateinit var planRepository: PlanRepository
     private var automationJob: Job? = null
     private var currentAutomationUid: String? = null
 

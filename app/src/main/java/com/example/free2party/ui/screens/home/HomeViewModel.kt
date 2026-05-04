@@ -1,33 +1,26 @@
 package com.example.free2party.ui.screens.home
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.repository.AuthRepository
-import com.example.free2party.data.repository.AuthRepositoryImpl
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.data.repository.SocialRepository
-import com.example.free2party.data.repository.SocialRepositoryImpl
 import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.util.UiText
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
@@ -57,7 +50,8 @@ sealed class HomeUiEvent {
     object Logout : HomeUiEvent()
 }
 
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val socialRepository: SocialRepository,
     private val authRepository: AuthRepository,
@@ -247,34 +241,4 @@ class HomeViewModel(
         }
     }
 
-    companion object {
-        fun provideFactory(
-            context: Context,
-            settingsRepository: SettingsRepository,
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            ),
-            socialRepository: SocialRepository = SocialRepositoryImpl(
-                db = Firebase.firestore,
-                userRepository = userRepository,
-                context = context
-            ),
-            authRepository: AuthRepository = AuthRepositoryImpl(
-                auth = Firebase.auth,
-                userRepository = userRepository
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return HomeViewModel(
-                    userRepository,
-                    socialRepository,
-                    authRepository,
-                    settingsRepository
-                ) as T
-            }
-        }
-    }
 }

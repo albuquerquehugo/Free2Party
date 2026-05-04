@@ -18,10 +18,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
 import com.example.free2party.R
 import com.example.free2party.BuildConfig
@@ -40,11 +40,13 @@ fun FriendCalendarDialog(
     friend: FriendInfo,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
-    val viewModel: CalendarViewModel = viewModel(
-        key = "calendar_${friend.uid}",
-        factory = CalendarViewModel.provideFactory(context, friend.uid)
+    val viewModel: CalendarViewModel = hiltViewModel(
+        key = "calendar_${friend.uid}"
     )
+
+    LaunchedEffect(friend.uid) {
+        viewModel.setTargetUser(friend.uid)
+    }
 
     val use24HourFormat = viewModel.use24HourFormat
     val friends by viewModel.friendsList.collectAsState()

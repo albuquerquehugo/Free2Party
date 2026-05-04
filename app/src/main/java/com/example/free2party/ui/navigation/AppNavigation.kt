@@ -36,12 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -52,23 +51,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.res.stringResource
 import com.example.free2party.R
 import com.example.free2party.MainViewModel
-import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.ui.components.AppBackground
 import com.example.free2party.ui.screens.calendar.CalendarRoute
 import com.example.free2party.ui.screens.home.HomeRoute
-import com.example.free2party.ui.screens.home.HomeViewModel
 import com.example.free2party.ui.screens.friends.InviteFriendRoute
-import com.example.free2party.ui.screens.friends.FriendViewModel
 import com.example.free2party.ui.screens.login.LoginRoute
-import com.example.free2party.ui.screens.login.LoginViewModel
 import com.example.free2party.ui.screens.notifications.NotificationsRoute
 import com.example.free2party.ui.screens.notifications.NotificationsViewModel
 import com.example.free2party.ui.screens.profile.ProfileRoute
 import com.example.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.example.free2party.ui.screens.register.RegisterRoute
-import com.example.free2party.ui.screens.register.RegisterViewModel
 import com.example.free2party.ui.screens.settings.SettingsRoute
-import com.example.free2party.ui.screens.settings.SettingsViewModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
@@ -142,14 +135,8 @@ val BottomNavItems = listOf(
 
 @Composable
 fun AppNavigation(
-    settingsRepository: SettingsRepository,
-    mainViewModel: MainViewModel,
-    notificationsViewModel: NotificationsViewModel = viewModel(
-        factory = NotificationsViewModel.provideFactory(
-            context = LocalContext.current,
-            settingsRepository = settingsRepository
-        )
-    ),
+    mainViewModel: MainViewModel = hiltViewModel(),
+    notificationsViewModel: NotificationsViewModel = hiltViewModel(),
     startDestination: String? = null
 ) {
     val navController = rememberNavController()
@@ -195,7 +182,6 @@ fun AppNavigation(
             ) {
                 Free2PartyNavGraph(
                     navController = navController,
-                    settingsRepository = settingsRepository,
                     notificationsViewModel = notificationsViewModel,
                     startDestinationOverride = startDestination
                 )
@@ -222,7 +208,7 @@ fun BottomNavigationBar(
 
             NavigationBarItem(
                 icon = {
-                    if (screen is Screen.Notifications && totalUnread > 0) {
+                    if ((screen is Screen.Notifications) && (totalUnread > 0)) {
                         BadgedBox(
                             badge = {
                                 Badge {
@@ -280,7 +266,6 @@ fun BottomNavigationBar(
 @Composable
 fun Free2PartyNavGraph(
     navController: NavHostController,
-    settingsRepository: SettingsRepository,
     notificationsViewModel: NotificationsViewModel,
     modifier: Modifier = Modifier,
     startDestinationOverride: String? = null
@@ -297,9 +282,7 @@ fun Free2PartyNavGraph(
     ) {
         composable(Screen.Login.route) {
             LoginRoute(
-                viewModel = viewModel(
-                    factory = LoginViewModel.provideFactory(settingsRepository)
-                ),
+                viewModel = hiltViewModel(),
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -315,9 +298,7 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Register.route) {
             RegisterRoute(
-                viewModel = viewModel(
-                    factory = RegisterViewModel.provideFactory(settingsRepository)
-                ),
+                viewModel = hiltViewModel(),
                 onRegisterSuccess = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
@@ -330,14 +311,8 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Home.route) {
-            val context = LocalContext.current
             HomeRoute(
-                homeViewModel = viewModel(
-                    factory = HomeViewModel.provideFactory(
-                        context = context,
-                        settingsRepository = settingsRepository
-                    )
-                ),
+                homeViewModel = hiltViewModel(),
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -359,21 +334,11 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.InviteFriend.route) {
-            val context = LocalContext.current
-            val mainViewModel: MainViewModel = viewModel(
-                factory = MainViewModel.provideFactory(
-                    context = context,
-                    settingsRepository = settingsRepository
-                )
-            )
+            val mainViewModel: MainViewModel = hiltViewModel()
             val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
 
             InviteFriendRoute(
-                viewModel = viewModel(
-                    factory = FriendViewModel.provideFactory(
-                        context = context
-                    )
-                ),
+                viewModel = hiltViewModel(),
                 onBack = { navController.popBackStack() },
                 gradientBackground = gradientBackground
             )
@@ -406,9 +371,7 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Settings.route) {
             SettingsRoute(
-                viewModel = viewModel(
-                    factory = SettingsViewModel.provideFactory(settingsRepository)
-                ),
+                viewModel = hiltViewModel(),
                 onBack = { navController.popBackStack() }
             )
         }

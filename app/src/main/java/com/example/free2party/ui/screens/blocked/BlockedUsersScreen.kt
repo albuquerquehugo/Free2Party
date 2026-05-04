@@ -43,7 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.BlockedUser
@@ -53,9 +53,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun BlockedUsersRoute(onBack: () -> Unit) {
     val context = LocalContext.current
-    val viewModel: BlockedUsersViewModel = viewModel(
-        factory = BlockedUsersViewModel.provideFactory(context)
-    )
+    val viewModel: BlockedUsersViewModel = hiltViewModel()
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->

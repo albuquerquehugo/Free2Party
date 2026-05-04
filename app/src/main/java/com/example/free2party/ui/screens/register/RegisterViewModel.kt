@@ -14,18 +14,14 @@ import com.example.free2party.data.model.DatePattern
 import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.AuthRepository
-import com.example.free2party.data.repository.AuthRepositoryImpl
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.data.repository.SettingsRepository
 import com.example.free2party.exception.AuthException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.util.UiText
 import com.example.free2party.util.isBirthdayFieldValid
 import com.example.free2party.util.isPhoneValid
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -36,16 +32,10 @@ sealed interface RegisterUiState {
     object Success : RegisterUiState
 }
 
-class RegisterViewModel(
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val authRepository: AuthRepository = AuthRepositoryImpl(
-        auth = Firebase.auth,
-        userRepository = UserRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore,
-            storage = Firebase.storage
-        )
-    )
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     var firstName by mutableStateOf("")
     var lastName by mutableStateOf("")
@@ -261,25 +251,5 @@ class RegisterViewModel(
         tiktokUsername = ""
         xUsername = ""
         uiState = RegisterUiState.Idle
-    }
-
-    companion object {
-        fun provideFactory(
-            settingsRepository: SettingsRepository,
-            authRepository: AuthRepository = AuthRepositoryImpl(
-                auth = Firebase.auth,
-                userRepository = UserRepositoryImpl(
-                    auth = Firebase.auth,
-                    db = Firebase.firestore,
-                    storage = Firebase.storage
-                )
-            )
-        ): androidx.lifecycle.ViewModelProvider.Factory =
-            object : androidx.lifecycle.ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return RegisterViewModel(settingsRepository, authRepository) as T
-                }
-            }
     }
 }

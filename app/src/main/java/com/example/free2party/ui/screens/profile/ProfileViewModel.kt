@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
 import com.example.free2party.data.model.Countries
@@ -15,7 +14,6 @@ import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.UserSocials
 import com.example.free2party.data.repository.UserRepository
-import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.AuthException
 import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
@@ -25,10 +23,8 @@ import com.example.free2party.util.UiText
 import com.example.free2party.util.getCountryFromNanpAreaCode
 import com.example.free2party.util.isBirthdayFieldValid
 import com.example.free2party.util.isPhoneValid
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
@@ -50,7 +46,8 @@ sealed class ProfileUiEvent {
     object AccountDeleted : ProfileUiEvent()
 }
 
-class ProfileViewModel(
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
@@ -363,21 +360,6 @@ class ProfileViewModel(
                 ?: UiText.StringResource(R.string.error_auth)
 
             else -> UiText.StringResource(defaultRes)
-        }
-    }
-
-    companion object {
-        fun provideFactory(
-            userRepository: UserRepository = UserRepositoryImpl(
-                auth = Firebase.auth,
-                db = Firebase.firestore,
-                storage = Firebase.storage
-            )
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProfileViewModel(userRepository) as T
-            }
         }
     }
 }
