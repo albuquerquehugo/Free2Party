@@ -11,12 +11,12 @@ plugins {
 
 android {
     namespace = "com.example.free2party"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.free2party"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 5
         versionName = "0.4.1"
 
@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
