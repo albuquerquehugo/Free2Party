@@ -100,14 +100,17 @@ class SocialRepositoryTest {
         val blockedByReceiverRef = mockk<DocumentReference>()
         val blockedByCurrentUserRef = mockk<DocumentReference>()
         val existingFriendRef = mockk<DocumentReference>()
+        val incomingRequestRef = mockk<DocumentReference>()
         
         every { db.collection("users").document("friend123").collection("blocked").document("me123") } returns blockedByReceiverRef
         every { db.collection("users").document("me123").collection("blocked").document("friend123") } returns blockedByCurrentUserRef
         every { db.collection("users").document("me123").collection("friends").document("friend123") } returns existingFriendRef
+        every { db.collection("friendRequests").document("friend123_me123") } returns incomingRequestRef
         
         val blockedByReceiverDoc = mockk<DocumentSnapshot>()
         val blockedByCurrentUserDoc = mockk<DocumentSnapshot>()
         val existingFriendDoc = mockk<DocumentSnapshot>()
+        val incomingRequestDoc = mockk<DocumentSnapshot>()
         
         val transaction = mockk<Transaction>()
         every { db.runTransaction<Unit>(any()) } answers {
@@ -116,11 +119,13 @@ class SocialRepositoryTest {
             every { transaction.get(blockedByReceiverRef) } returns blockedByReceiverDoc
             every { transaction.get(blockedByCurrentUserRef) } returns blockedByCurrentUserDoc
             every { transaction.get(existingFriendRef) } returns existingFriendDoc
+            every { transaction.get(incomingRequestRef) } returns incomingRequestDoc
             
             every { blockedByReceiverDoc.exists() } returns false
             every { blockedByCurrentUserDoc.exists() } returns false
             every { existingFriendDoc.exists() } returns true
             every { existingFriendDoc.getString("inviteStatus") } returns InviteStatus.ACCEPTED.name
+            every { incomingRequestDoc.exists() } returns false
             
             function.apply(transaction)
             Tasks.forResult(Unit)
@@ -144,14 +149,17 @@ class SocialRepositoryTest {
         val blockedByReceiverRef = mockk<DocumentReference>()
         val blockedByCurrentUserRef = mockk<DocumentReference>()
         val existingFriendRef = mockk<DocumentReference>()
+        val incomingRequestRef = mockk<DocumentReference>()
         
         every { db.collection("users").document("friend123").collection("blocked").document("me123") } returns blockedByReceiverRef
         every { db.collection("users").document("me123").collection("blocked").document("friend123") } returns blockedByCurrentUserRef
         every { db.collection("users").document("me123").collection("friends").document("friend123") } returns existingFriendRef
+        every { db.collection("friendRequests").document("friend123_me123") } returns incomingRequestRef
         
         val blockedByReceiverDoc = mockk<DocumentSnapshot>()
         val blockedByCurrentUserDoc = mockk<DocumentSnapshot>()
         val existingFriendDoc = mockk<DocumentSnapshot>()
+        val incomingRequestDoc = mockk<DocumentSnapshot>()
         
         val transaction = mockk<Transaction>()
         every { db.runTransaction<Unit>(any()) } answers {
@@ -160,11 +168,13 @@ class SocialRepositoryTest {
             every { transaction.get(blockedByReceiverRef) } returns blockedByReceiverDoc
             every { transaction.get(blockedByCurrentUserRef) } returns blockedByCurrentUserDoc
             every { transaction.get(existingFriendRef) } returns existingFriendDoc
+            every { transaction.get(incomingRequestRef) } returns incomingRequestDoc
             
             every { blockedByReceiverDoc.exists() } returns false
             every { blockedByCurrentUserDoc.exists() } returns false
             every { existingFriendDoc.exists() } returns true
             every { existingFriendDoc.getString("inviteStatus") } returns InviteStatus.INVITED.name
+            every { incomingRequestDoc.exists() } returns false
             
             function.apply(transaction)
             Tasks.forResult(Unit)
@@ -261,6 +271,18 @@ class SocialRepositoryTest {
         }
 
         every { usersCollection.whereArrayContains("searchKeywords", normalizedQuery) } returns mockQuery
+
+        // Mock friends and blocked sub-collections for the current user
+        val friendsSubCollection = mockk<CollectionReference>()
+        val blockedSubCollection = mockk<CollectionReference>()
+        val emptySnapshot = mockk<QuerySnapshot> {
+            every { documents } returns emptyList()
+        }
+
+        every { userDoc.collection("friends") } returns friendsSubCollection
+        every { userDoc.collection("blocked") } returns blockedSubCollection
+        every { friendsSubCollection.get() } returns Tasks.forResult(emptySnapshot)
+        every { blockedSubCollection.get() } returns Tasks.forResult(emptySnapshot)
 
         val result = repository.searchUsers(query)
 

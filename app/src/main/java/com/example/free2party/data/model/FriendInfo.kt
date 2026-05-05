@@ -11,6 +11,7 @@ data class FriendInfo(
     val inviteStatus: InviteStatus = InviteStatus.ACCEPTED,
     val phoneCode: String = "",
     val phoneNumber: String = "",
+    val profilePicUrl: String = "",
     val socials: UserSocials = UserSocials()
 )
 

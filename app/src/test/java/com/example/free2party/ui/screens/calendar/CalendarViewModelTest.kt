@@ -53,8 +53,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
     }
 
@@ -79,8 +78,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         viewModel.displayedMonth = Calendar.DECEMBER
         viewModel.displayedYear = 2025
@@ -96,8 +94,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         viewModel.displayedMonth = Calendar.FEBRUARY
         viewModel.displayedYear = 2026
@@ -113,8 +110,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         viewModel.displayedMonth = Calendar.JANUARY
         viewModel.displayedYear = 2026
@@ -146,8 +142,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
 
         val plannedDays = viewModel.getPlannedDaysForMonth(2026, Calendar.MAY)
@@ -169,8 +164,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
 
         val plannedDays = viewModel.getPlannedDaysForMonth(2026, Calendar.MAY)
@@ -208,8 +202,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
 
         // Set selected date to 2026-05-10 in UTC
@@ -232,8 +225,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         var successCalled = false
 
@@ -266,8 +258,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         var errorReceived = ""
 
@@ -292,8 +283,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         var successCalled = false
 
@@ -328,8 +318,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         var errorReceived = ""
 
@@ -355,8 +344,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         var successCalled = false
 
@@ -375,8 +363,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         viewModel.displayedYear = 2026
         viewModel.displayedMonth = Calendar.JUNE
@@ -397,8 +384,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         // Move to some other date first
         viewModel.displayedYear = 2000
@@ -425,8 +411,7 @@ class CalendarViewModelTest {
         viewModel = CalendarViewModel(
             planRepository,
             userRepository,
-            socialRepository,
-            currentUserId = "testUser"
+            socialRepository
         )
         viewModel.selectedDateMillis = null
 

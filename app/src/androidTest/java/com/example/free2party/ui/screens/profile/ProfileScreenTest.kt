@@ -9,7 +9,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.free2party.TestActivity
+import com.example.free2party.data.model.Gender
 import com.example.free2party.data.model.User
 import com.example.free2party.ui.theme.Free2PartyTheme
 import org.junit.Assert.assertEquals
@@ -42,6 +43,7 @@ class ProfileScreenTest {
         val firstName = remember { mutableStateOf(initialUser.firstName) }
         val lastName = remember { mutableStateOf(initialUser.lastName) }
         val bio = remember { mutableStateOf(initialUser.bio) }
+        val gender = remember { mutableStateOf(initialUser.gender) }
         val isWhatsappSameAsPhone = remember { mutableStateOf(false) }
 
         val uiState = ProfileUiState.Success(user = initialUser)
@@ -49,6 +51,7 @@ class ProfileScreenTest {
         val hasChanges = firstName.value != initialUser.firstName ||
                 lastName.value != initialUser.lastName ||
                 bio.value != initialUser.bio ||
+                gender.value != initialUser.gender ||
                 isWhatsappSameAsPhone.value
 
         val isFormValid = firstName.value.isNotBlank() && lastName.value.isNotBlank()
@@ -71,6 +74,8 @@ class ProfileScreenTest {
                     onBirthdayChange = {},
                     bio = bio.value,
                     onBioChange = { bio.value = it },
+                    gender = gender.value,
+                    onGenderChange = { gender.value = it },
                     whatsappCountryCode = initialUser.socials.whatsappCountryCode,
                     onWhatsappCountryCodeChange = {},
                     whatsappNumber = initialUser.socials.whatsappNumber,
@@ -93,6 +98,7 @@ class ProfileScreenTest {
                         firstName.value = initialUser.firstName
                         lastName.value = initialUser.lastName
                         bio.value = initialUser.bio
+                        gender.value = initialUser.gender
                         isWhatsappSameAsPhone.value = false
                     },
                     onUpdateProfile = {
@@ -100,7 +106,8 @@ class ProfileScreenTest {
                             initialUser.copy(
                                 firstName = firstName.value,
                                 lastName = lastName.value,
-                                bio = bio.value
+                                bio = bio.value,
+                                gender = gender.value
                             )
                         )
                     },
@@ -117,7 +124,8 @@ class ProfileScreenTest {
             firstName = "John",
             lastName = "Doe",
             email = "john@example.com",
-            bio = "Initial bio"
+            bio = "Initial bio",
+            gender = Gender.OTHER
         )
 
         composeTestRule.setContent {
@@ -155,7 +163,8 @@ class ProfileScreenTest {
             firstName = "John",
             lastName = "Doe",
             email = "john@example.com",
-            bio = "Initial bio"
+            bio = "Initial bio",
+            gender = Gender.OTHER
         )
 
         composeTestRule.setContent {
@@ -186,7 +195,8 @@ class ProfileScreenTest {
             firstName = "John",
             lastName = "Doe",
             email = "john@example.com",
-            bio = "Initial bio"
+            bio = "Initial bio",
+            gender = Gender.OTHER
         )
         var updatedUser: User? = null
 

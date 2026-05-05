@@ -11,6 +11,7 @@ data class FriendRequest(
     val senderEmail: String = "",
     val receiverId: String = "",
     val receiverName: String = "",
+    val receiverProfilePicUrl: String = "",
     @ServerTimestamp
     val timestamp: Date? = null,
     val friendRequestStatus: FriendRequestStatus = FriendRequestStatus.PENDING

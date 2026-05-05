@@ -22,8 +22,6 @@ import com.example.free2party.util.UiText
 import com.example.free2party.util.parseDateToMillis
 import com.example.free2party.util.parseTimeToMillis
 import com.example.free2party.util.parseTimeToMinutes
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +44,7 @@ class CalendarViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var targetUserId: String? = null
-    private var currentUserId: String = Firebase.auth.currentUser?.uid ?: ""
+    private val currentUserId: String get() = userRepository.currentUserId
 
     fun setTargetUser(uid: String?) {
         targetUserId = uid

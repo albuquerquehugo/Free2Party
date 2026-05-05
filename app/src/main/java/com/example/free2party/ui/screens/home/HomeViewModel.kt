@@ -83,6 +83,7 @@ class HomeViewModel @Inject constructor(
                     FriendInfo(
                         uid = request.receiverId,
                         name = request.receiverName,
+                        profilePicUrl = request.receiverProfilePicUrl,
                         inviteStatus = InviteStatus.INVITED
                     )
                 }

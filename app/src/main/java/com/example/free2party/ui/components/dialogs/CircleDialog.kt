@@ -4,23 +4,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.free2party.R
 import com.example.free2party.data.model.Circle
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.ui.components.InputTextField
 import com.example.free2party.util.capitalizeFirstLetter
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun CircleDialog(
@@ -33,6 +39,14 @@ fun CircleDialog(
     var name by remember { mutableStateOf(circle?.name ?: "") }
     var selectedFriendIds by remember { mutableStateOf(circle?.friendIds?.toSet() ?: emptySet()) }
     val focusManager = LocalFocusManager.current
+
+    val hasChanges by remember(name, selectedFriendIds, circle) {
+        derivedStateOf {
+            val initialName = circle?.name ?: ""
+            val initialFriendIds = circle?.friendIds?.toSet() ?: emptySet()
+            name.trim() != initialName || selectedFriendIds != initialFriendIds
+        }
+    }
 
     BaseDialog(onDismissRequest = onDismiss) {
         Column(
@@ -113,12 +127,40 @@ fun CircleDialog(
                                 },
                                 enabled = !isLoading
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = friend.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+
+                            if (friend.profilePicUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = friend.profilePicUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = friend.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = friend.email,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -141,7 +183,7 @@ fun CircleDialog(
                             selectedFriendIds.toList()
                         )
                     },
-                    enabled = name.isNotBlank() && !isLoading
+                    enabled = name.isNotBlank() && !isLoading && (circle == null || hasChanges)
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(

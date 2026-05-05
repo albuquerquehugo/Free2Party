@@ -118,7 +118,8 @@ class SocialRepositoryImpl @Inject constructor(
                     email = user.email,
                     isFreeNow = user.isFreeNow,
                     socials = user.socials,
-                    phoneNumber = user.phoneNumber
+                    phoneNumber = user.phoneNumber,
+                    profilePicUrl = user.profilePicUrl
                 )
             }.catch { emit(stub) } // Fallback to stub if user doc can't be read
         }
@@ -310,6 +311,7 @@ class SocialRepositoryImpl @Inject constructor(
                     "senderProfilePicUrl" to sender.profilePicUrl,
                     "receiverId" to receiver.uid,
                     "receiverName" to receiver.fullName,
+                    "receiverProfilePicUrl" to receiver.profilePicUrl,
                     "friendRequestStatus" to FriendRequestStatus.PENDING.name,
                     "timestamp" to FieldValue.serverTimestamp()
                 )
@@ -321,6 +323,8 @@ class SocialRepositoryImpl @Inject constructor(
                 senderFriendRef, mapOf(
                     "uid" to receiver.uid,
                     "name" to receiver.fullName,
+                    "email" to receiver.email,
+                    "profilePicUrl" to receiver.profilePicUrl,
                     "inviteStatus" to InviteStatus.INVITED.name,
                     "addedAt" to FieldValue.serverTimestamp()
                 )
@@ -382,6 +386,8 @@ class SocialRepositoryImpl @Inject constructor(
                     receiverFriendRef, mapOf(
                         "uid" to request.senderId,
                         "name" to request.senderName,
+                        "email" to request.senderEmail,
+                        "profilePicUrl" to request.senderProfilePicUrl,
                         "inviteStatus" to InviteStatus.ACCEPTED.name,
                         "addedAt" to FieldValue.serverTimestamp()
                     )
