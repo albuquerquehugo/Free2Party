@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -378,6 +380,20 @@ fun ProfileContent(
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
+
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
             }
             Box(
                 modifier = Modifier
@@ -479,23 +495,29 @@ fun ProfileContent(
                 .padding(top = 8.dp)
         ) {
             Row(
+                modifier = Modifier.padding(start = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = stringResource(R.string.label_gender),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color =
+                        if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Box {
                     IconButton(
                         onClick = { setShowGenderTooltip(!showGenderTooltip) },
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
+                        enabled = !isLoading
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = "Gender Info",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint =
+                                if (isLoading) MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
+                                else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -526,6 +548,8 @@ fun ProfileContent(
                 }
             }
 
+            Spacer(modifier = Modifier.height(4.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -536,24 +560,32 @@ fun ProfileContent(
                 Gender.entries.forEach { option ->
                     val isSelected = gender == option
                     Row(
-                        modifier = Modifier.clickable { onGenderChange(option) },
+                        modifier = Modifier.clickable(enabled = !isLoading) { onGenderChange(option) },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = isSelected,
-                            onClick = null
+                            onClick = null,
+                            enabled = !isLoading
                         )
                         Text(
                             text = stringResource(option.labelResId).split(" (")[0],
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface,
+                            color = if (isSelected) {
+                                if (isLoading) MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
+                                else MaterialTheme.colorScheme.primary
+                            } else {
+                                if (isLoading) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                else MaterialTheme.colorScheme.onSurface
+                            },
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         InputTextField(
             value = phoneNumber,
@@ -696,7 +728,9 @@ fun ProfileContent(
                 text = stringResource(R.string.label_section_socials),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color =
+                    if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 

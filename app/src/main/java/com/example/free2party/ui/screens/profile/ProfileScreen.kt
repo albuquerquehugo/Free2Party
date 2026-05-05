@@ -380,7 +380,7 @@ fun ProfileScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        enabled = !isSaving,
+                        enabled = !isSaving && !isUploadingImage,
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
                         Text(
