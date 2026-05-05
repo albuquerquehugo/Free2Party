@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import com.example.free2party.data.model.BlockedUser
+import com.example.free2party.data.model.Circle
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -33,4 +34,9 @@ interface SocialRepository {
     suspend fun markNotificationAsUnread(notificationId: String): Result<Unit>
     suspend fun markNotificationsAsRead(notificationIds: List<String>): Result<Unit>
     suspend fun deleteNotification(notificationId: String): Result<Unit>
+
+    fun getCircles(): Flow<List<Circle>>
+    suspend fun createCircle(name: String, friendIds: List<String>): Result<String>
+    suspend fun updateCircle(circleId: String, name: String, friendIds: List<String>): Result<Unit>
+    suspend fun deleteCircle(circleId: String): Result<Unit>
 }

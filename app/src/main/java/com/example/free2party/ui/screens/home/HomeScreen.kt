@@ -3,6 +3,7 @@ package com.example.free2party.ui.screens.home
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,9 +30,12 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
@@ -77,12 +81,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.free2party.R
+import com.example.free2party.data.model.Circle
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.ui.components.AdBanner
 import com.example.free2party.ui.components.dialogs.AboutDialog
+import com.example.free2party.ui.components.dialogs.CircleDialog
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.example.free2party.ui.theme.available
@@ -104,6 +111,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeRoute(
     homeViewModel: HomeViewModel,
+    circleViewModel: CircleViewModel = hiltViewModel(),
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit,
@@ -128,6 +136,28 @@ fun HomeRoute(
         }
     }
 
+    val (activeCircleId, setActiveCircleId) = remember { mutableStateOf<String?>(null) }
+    var onCircleActionSuccessTrigger by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        circleViewModel.uiEvent.collect { event ->
+            when (event) {
+                is CircleUiEvent.ShowToast -> {
+                    Toast.makeText(
+                        context,
+                        event.message.asString(context),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                is CircleUiEvent.CircleActionSuccess -> {
+                    setActiveCircleId(event.circleId)
+                    onCircleActionSuccessTrigger = !onCircleActionSuccessTrigger
+                }
+            }
+        }
+    }
+
     val gradientBackground =
         (homeViewModel.uiState as? HomeUiState.Success)?.gradientBackground ?: true
 
@@ -142,11 +172,19 @@ fun HomeRoute(
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
         onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
-        onInviteFriendClick = onNavigateToInviteFriend
+        onInviteFriendClick = onNavigateToInviteFriend,
+        circles = circleViewModel.circles,
+        isCircleActionLoading = circleViewModel.isActionLoading,
+        onCreateCircle = { name, friends -> circleViewModel.createCircle(name, friends) },
+        onUpdateCircle = { id, name, friends -> circleViewModel.updateCircle(id, name, friends) },
+        onDeleteCircle = { id -> circleViewModel.deleteCircle(id) },
+        selectedCircleId = activeCircleId,
+        onCircleSelected = { setActiveCircleId(it) },
+        onCircleActionSuccessTrigger = onCircleActionSuccessTrigger
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     homeUiState: HomeUiState,
@@ -159,7 +197,15 @@ fun HomeScreen(
     onRemoveFriend: (String) -> Unit,
     onRemoveAndBlockFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit
+    onInviteFriendClick: () -> Unit,
+    circles: List<Circle>,
+    isCircleActionLoading: Boolean,
+    onCreateCircle: (String, List<String>) -> Unit,
+    onUpdateCircle: (String, String, List<String>) -> Unit,
+    onDeleteCircle: (String) -> Unit,
+    selectedCircleId: String?,
+    onCircleSelected: (String?) -> Unit,
+    onCircleActionSuccessTrigger: Boolean
 ) {
     var showUserMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -168,6 +214,16 @@ fun HomeScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
+
+    var showCircleDialog by remember { mutableStateOf(false) }
+    var editingCircle by remember { mutableStateOf<Circle?>(null) }
+    var showDeleteCircleDialog by remember { mutableStateOf(false) }
+    var circleToDelete by remember { mutableStateOf<Circle?>(null) }
+
+    LaunchedEffect(onCircleActionSuccessTrigger) {
+        showCircleDialog = false
+        showDeleteCircleDialog = false
+    }
 
     LaunchedEffect(Unit) {
         // Redirect initial focus to the root container to avoid highlighting the user menu
@@ -357,12 +413,40 @@ fun HomeScreen(
                 }
 
                 is HomeUiState.Success -> {
+                    val filteredFriends =
+                        remember(homeUiState.friendsList, selectedCircleId, circles) {
+                            if (selectedCircleId == null) {
+                                homeUiState.friendsList
+                            } else {
+                                val circle = circles.find { it.id == selectedCircleId }
+                                val circleFriendIds = circle?.friendIds ?: emptyList()
+                                homeUiState.friendsList.filter { friend ->
+                                    friend.uid in circleFriendIds
+                                }
+                            }
+                        }
+
                     HomeContent(
                         paddingValues = paddingValues,
                         isUserFree = homeUiState.isUserFree,
-                        friendsList = homeUiState.friendsList,
+                        friendsList = filteredFriends,
                         isActionLoading = homeUiState.isActionLoading,
                         gradientBackground = gradientBackground,
+                        circles = circles,
+                        selectedCircleId = selectedCircleId,
+                        onCircleSelected = onCircleSelected,
+                        onAddCircleClick = {
+                            editingCircle = null
+                            showCircleDialog = true
+                        },
+                        onEditCircleClick = { circle ->
+                            editingCircle = circle
+                            showCircleDialog = true
+                        },
+                        onDeleteCircleClick = { circle ->
+                            circleToDelete = circle
+                            showDeleteCircleDialog = true
+                        },
                         onToggleAvailability = onToggleAvailability,
                         onRemoveFriend = { uid ->
                             friendIdToRemove = uid
@@ -373,6 +457,47 @@ fun HomeScreen(
                         onFriendItemClick = { friend -> selectedFriend = friend }
                     )
                 }
+            }
+        }
+
+        if (showCircleDialog) {
+            CircleDialog(
+                circle = editingCircle,
+                friends = (homeUiState as? HomeUiState.Success)?.friendsList ?: emptyList(),
+                onDismiss = { showCircleDialog = false },
+                onConfirm = { name, friends ->
+                    val circle = editingCircle
+                    if (circle == null) {
+                        onCreateCircle(name, friends)
+                    } else {
+                        onUpdateCircle(circle.id, name, friends)
+                    }
+                },
+                isLoading = isCircleActionLoading
+            )
+        }
+
+        if (showDeleteCircleDialog) {
+            val circle = circleToDelete
+            if (circle != null) {
+                ConfirmationDialog(
+                    title = stringResource(R.string.title_delete_circle),
+                    text = stringResource(R.string.text_delete_circle_confirmation),
+                    confirmButtonText = stringResource(R.string.text_delete),
+                    onConfirm = {
+                        onDeleteCircle(circle.id)
+                        if (selectedCircleId == circle.id) {
+                            onCircleSelected(null)
+                        }
+                        circleToDelete = null
+                    },
+                    dismissButtonText = stringResource(R.string.button_cancel),
+                    onDismiss = {
+                        showDeleteCircleDialog = false
+                        circleToDelete = null
+                    },
+                    isDestructive = true
+                )
             }
         }
 
@@ -436,6 +561,12 @@ fun HomeContent(
     friendsList: List<FriendInfo>,
     isActionLoading: Boolean,
     gradientBackground: Boolean,
+    circles: List<Circle>,
+    selectedCircleId: String?,
+    onCircleSelected: (String?) -> Unit,
+    onAddCircleClick: () -> Unit,
+    onEditCircleClick: (Circle) -> Unit,
+    onDeleteCircleClick: (Circle) -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
@@ -522,9 +653,17 @@ fun HomeContent(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             FriendsListSection(
                 friends = friendsList,
                 gradientBackground = gradientBackground,
+                circles = circles,
+                selectedCircleId = selectedCircleId,
+                onCircleSelected = onCircleSelected,
+                onAddCircleClick = onAddCircleClick,
+                onEditCircleClick = onEditCircleClick,
+                onDeleteCircleClick = onDeleteCircleClick,
                 onRemoveFriend = onRemoveFriend,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
@@ -540,12 +679,121 @@ fun HomeContent(
 fun FriendsListSection(
     friends: List<FriendInfo>,
     gradientBackground: Boolean,
+    circles: List<Circle>,
+    selectedCircleId: String?,
+    onCircleSelected: (String?) -> Unit,
+    onAddCircleClick: () -> Unit,
+    onEditCircleClick: (Circle) -> Unit,
+    onDeleteCircleClick: (Circle) -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit
 ) {
+    var showFilterMenu by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            IconButton(onClick = { showFilterMenu = true }) {
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = stringResource(R.string.title_circles),
+                    tint =
+                        if (selectedCircleId != null) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            DropdownMenu(
+                expanded = showFilterMenu,
+                onDismissRequest = { showFilterMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(R.string.everyone),
+                            fontWeight =
+                                if (selectedCircleId == null) FontWeight.Bold
+                                else FontWeight.Normal,
+                            color =
+                                if (selectedCircleId == null) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    onClick = {
+                        onCircleSelected(null)
+                        showFilterMenu = false
+                    }
+                )
+
+                if (circles.isNotEmpty()) {
+                    circles.forEach { circle ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = circle.name,
+                                    fontWeight =
+                                        if (selectedCircleId == circle.id) FontWeight.Bold
+                                        else FontWeight.Normal,
+                                    color =
+                                        if (selectedCircleId == circle.id) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            onClick = {
+                                onCircleSelected(circle.id)
+                                showFilterMenu = false
+                            },
+                            trailingIcon = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(
+                                        onClick = {
+                                            showFilterMenu = false
+                                            onEditCircleClick(circle)
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            showFilterMenu = false
+                                            onDeleteCircleClick(circle)
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.title_create_circle)) },
+                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    onClick = {
+                        showFilterMenu = false
+                        onAddCircleClick()
+                    }
+                )
+            }
+        }
+
         Text(
             text = stringResource(R.string.title_your_friends),
             color = MaterialTheme.colorScheme.onSurface,
@@ -574,19 +822,28 @@ fun FriendsListSection(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            val emptyMessage = if (selectedCircleId == null) {
+                stringResource(R.string.text_no_friends_yet)
+            } else {
+                stringResource(R.string.text_no_friends_in_circle)
+            }
+
             Text(
-                text = stringResource(R.string.text_no_friends_yet),
+                text = emptyMessage,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.text_add_friends),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+
+            if (selectedCircleId == null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.text_add_friends),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     } else {
         val freeFriends =

@@ -3,6 +3,7 @@ package com.example.free2party.data.repository
 import android.util.Log
 import com.example.free2party.R
 import com.example.free2party.data.model.BlockedUser
+import com.example.free2party.data.model.Circle
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FriendRequest
 import com.example.free2party.data.model.FriendRequestStatus
@@ -626,6 +627,72 @@ class SocialRepositoryImpl @Inject constructor(
         validateSession()
         db.collection("users").document(currentUserId)
             .collection("notifications").document(notificationId)
+            .delete().await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override fun getCircles(): Flow<List<Circle>> {
+        if (currentUserId.isBlank()) return flowOf(emptyList())
+
+        return db.collection("users").document(currentUserId)
+            .collection("circles")
+            .orderBy("name", Query.Direction.ASCENDING)
+            .addSnapshotListenerFlowCircles()
+    }
+
+    private fun Query.addSnapshotListenerFlowCircles(): Flow<List<Circle>> = callbackFlow {
+        val listener = addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(mapToSocialException(error))
+                return@addSnapshotListener
+            }
+            val circlesList = snapshot?.documents?.mapNotNull { doc ->
+                doc.toObject(Circle::class.java)?.copy(id = doc.id)
+            } ?: emptyList()
+            trySend(circlesList)
+        }
+        awaitClose { listener.remove() }
+    }
+
+    override suspend fun createCircle(name: String, friendIds: List<String>): Result<String> = try {
+        validateSession()
+        val circleRef = db.collection("users").document(currentUserId)
+            .collection("circles").document()
+        
+        val circle = Circle(
+            id = circleRef.id,
+            name = name,
+            ownerId = currentUserId,
+            friendIds = friendIds
+        )
+        
+        circleRef.set(circle).await()
+        Result.success(circleRef.id)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun updateCircle(circleId: String, name: String, friendIds: List<String>): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("circles").document(circleId)
+            .update(
+                mapOf(
+                    "name" to name,
+                    "friendIds" to friendIds
+                )
+            ).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun deleteCircle(circleId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("circles").document(circleId)
             .delete().await()
         Result.success(Unit)
     } catch (e: Exception) {

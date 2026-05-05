@@ -155,36 +155,42 @@ fun InputTextField(
         },
         prefix = prefix,
         colors = colors ?: defaultColors,
-        leadingIcon = {
-            Row(
-                modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,
-                verticalAlignment = if (isMultiLine) Alignment.Top else Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                if (icon != null || painter != null) {
-                    Box(
-                        modifier = Modifier.padding(
-                            top = if (isMultiLine) 16.dp else 0.dp,
-                            start = 12.dp,
-                            end = if (leadingIconExtra != null) 0.dp else 12.dp
-                        ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (painter != null) {
-                            Icon(
-                                painter,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else if (icon != null) {
-                            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
+        leadingIcon = if (icon != null || painter != null || leadingIconExtra != null) {
+            {
+                Row(
+                    modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,
+                    verticalAlignment = if (isMultiLine) Alignment.Top else Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    if (icon != null || painter != null) {
+                        Box(
+                            modifier = Modifier.padding(
+                                top = if (isMultiLine) 16.dp else 0.dp,
+                                start = 12.dp,
+                                end = if (leadingIconExtra != null) 0.dp else 12.dp
+                            ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (painter != null) {
+                                Icon(
+                                    painter,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else if (icon != null) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
-                }
 
-                leadingIconExtra?.invoke()
+                    leadingIconExtra?.invoke()
+                }
             }
-        },
+        } else null,
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (showClearIcon &&

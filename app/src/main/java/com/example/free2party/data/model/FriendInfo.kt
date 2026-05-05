@@ -2,6 +2,7 @@ package com.example.free2party.data.model
 
 import com.google.firebase.firestore.IgnoreExtraProperties
 
+@IgnoreExtraProperties
 data class FriendInfo(
     val uid: String = "",
     val name: String = "",
