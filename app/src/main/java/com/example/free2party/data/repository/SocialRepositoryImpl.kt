@@ -117,6 +117,7 @@ class SocialRepositoryImpl @Inject constructor(
                     name = user.fullName,
                     email = user.email,
                     isFreeNow = user.isFreeNow,
+                    isStatusFromPlan = user.isStatusFromPlan,
                     socials = user.socials,
                     phoneNumber = user.phoneNumber,
                     profilePicUrl = user.profilePicUrl

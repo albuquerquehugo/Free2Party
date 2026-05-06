@@ -120,10 +120,13 @@ class UserRepositoryImpl @Inject constructor(
         Result.failure(mapToUserException(e))
     }
 
-    override suspend fun toggleAvailability(isFree: Boolean): Result<Unit> = try {
+    override suspend fun toggleAvailability(isFree: Boolean, fromPlan: Boolean): Result<Unit> = try {
         val uid = validateSession()
         db.collection("users").document(uid)
-            .set(mapOf("isFreeNow" to isFree), SetOptions.merge())
+            .set(mapOf(
+                "isFreeNow" to isFree,
+                "isStatusFromPlan" to fromPlan
+            ), SetOptions.merge())
             .await()
         Result.success(Unit)
     } catch (e: Exception) {

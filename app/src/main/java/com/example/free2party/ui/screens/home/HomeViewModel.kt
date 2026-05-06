@@ -18,7 +18,9 @@ import com.example.free2party.exception.InfrastructureException
 import com.example.free2party.exception.SocialException
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
+import com.example.free2party.data.repository.PlanRepository
 import com.example.free2party.util.UiText
+import com.example.free2party.util.isPlanActive
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,6 +38,8 @@ sealed interface HomeUiState {
         val userGender: Gender = Gender.OTHER,
         val profilePicUrl: String = "",
         val isUserFree: Boolean = false,
+        val isStatusFromPlan: Boolean = false,
+        val isWithinPlanPeriod: Boolean = false,
         val use24HourFormat: Boolean = true,
         val gradientBackground: Boolean = true,
         val friendsList: List<FriendInfo> = emptyList(),
@@ -55,7 +59,8 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val socialRepository: SocialRepository,
     private val authRepository: AuthRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val planRepository: PlanRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
@@ -72,9 +77,11 @@ class HomeViewModel @Inject constructor(
         combine(
             userRepository.observeUser(userRepository.currentUserId),
             socialRepository.getFriendsList(),
-            socialRepository.getOutgoingFriendRequests()
-        ) { user, friends, outgoingRequests ->
+            socialRepository.getOutgoingFriendRequests(),
+            planRepository.getOwnPlans()
+        ) { user, friends, outgoingRequests, plans ->
             val currentUserId = userRepository.currentUserId
+            val isWithinPlanPeriod = plans.any { isPlanActive(it) }
 
             // Map outgoing requests to FriendInfo with INVITED status
             val invitedFriends = outgoingRequests
@@ -104,6 +111,8 @@ class HomeViewModel @Inject constructor(
                 userGender = user.gender,
                 profilePicUrl = user.profilePicUrl,
                 isUserFree = user.isFreeNow,
+                isStatusFromPlan = user.isStatusFromPlan,
+                isWithinPlanPeriod = isWithinPlanPeriod,
                 use24HourFormat = user.settings.use24HourFormat,
                 gradientBackground = user.settings.gradientBackground,
                 friendsList = sortedFriends
@@ -147,10 +156,12 @@ class HomeViewModel @Inject constructor(
 
     fun toggleAvailability() {
         val currentState = uiState as? HomeUiState.Success ?: return
+        val nextIsFree = !currentState.isUserFree
+        val fromPlan = nextIsFree && currentState.isWithinPlanPeriod
 
         uiState = currentState.copy(isActionLoading = true)
         viewModelScope.launch {
-            userRepository.toggleAvailability(!currentState.isUserFree)
+            userRepository.toggleAvailability(nextIsFree, fromPlan = fromPlan)
                 .onSuccess {
                     Log.d("HomeViewModel", "Availability updated successfully")
                 }

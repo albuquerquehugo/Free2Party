@@ -13,7 +13,7 @@ interface UserRepository {
     suspend fun getUserById(uid: String): Result<User>
     suspend fun getUserByEmail(email: String): Result<User>
     suspend fun updateUser(user: User): Result<Unit>
-    suspend fun toggleAvailability(isFree: Boolean): Result<Unit>
+    suspend fun toggleAvailability(isFree: Boolean, fromPlan: Boolean = false): Result<Unit>
     suspend fun uploadProfilePicture(uri: Uri): Result<String>
     suspend fun updateFcmToken(token: String): Result<Unit>
     suspend fun deleteAccount(): Result<Unit>

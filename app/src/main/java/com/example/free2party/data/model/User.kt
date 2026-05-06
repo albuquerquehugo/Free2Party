@@ -83,6 +83,8 @@ data class User(
     val socials: UserSocials = UserSocials(),
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,
+    @get:PropertyName("isStatusFromPlan")
+    val isStatusFromPlan: Boolean = false,
     val settings: UserSettings = UserSettings(),
     @ServerTimestamp
     val createdAt: Date? = null

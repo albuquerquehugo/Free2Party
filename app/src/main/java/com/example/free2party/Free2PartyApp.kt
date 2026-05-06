@@ -141,6 +141,12 @@ class Free2PartyApp : Application() {
             var lastAutomatedStatus: Boolean? = null
 
             try {
+                // Initial sync: check if the stored status is from a plan that's no longer active
+                val user = userRepository.getUserById(uid).getOrNull()
+                if (user != null) {
+                    lastAutomatedStatus = user.isStatusFromPlan
+                }
+
                 planRepository.getOwnPlans().collectLatest { plans ->
                     Log.d("Automation", "Plans updated, count: ${plans.size}")
                     while (true) {
@@ -153,7 +159,7 @@ class Free2PartyApp : Application() {
                             )
 
                             if (lastAutomatedStatus != null || shouldBeFree) {
-                                userRepository.toggleAvailability(shouldBeFree)
+                                userRepository.toggleAvailability(shouldBeFree, fromPlan = shouldBeFree)
                                     .onFailure { e ->
                                         if (e is UnauthorizedException || e is UserNotFoundException) {
                                             Log.d("Automation", "User no longer valid, stopping.")

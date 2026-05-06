@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -256,8 +257,10 @@ fun HomeScreen(
                     val successState = homeUiState as? HomeUiState.Success
                     val profilePicUrl = successState?.profilePicUrl
                     val isUserFree = successState?.isUserFree ?: false
+                    val isStatusFromPlan = successState?.isStatusFromPlan ?: false
                     val statusColor =
-                        if (isUserFree) MaterialTheme.colorScheme.available else MaterialTheme.colorScheme.busy
+                        if (isUserFree) MaterialTheme.colorScheme.available
+                        else MaterialTheme.colorScheme.busy
 
                     if (successState != null) {
                         Column(
@@ -292,27 +295,45 @@ fun HomeScreen(
                     }
 
                     Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .border(3.dp, statusColor, CircleShape)
-                            .padding(6.dp),
+                        modifier = Modifier.size(46.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (!profilePicUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = profilePicUrl,
-                                contentDescription = stringResource(R.string.description_user_menu),
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .border(3.dp, statusColor, CircleShape)
+                                .padding(6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (!profilePicUrl.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = profilePicUrl,
+                                    contentDescription = stringResource(R.string.description_user_menu),
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = stringResource(R.string.description_user_menu),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+
+                        if (isStatusFromPlan) {
                             Icon(
-                                imageVector = Icons.Default.AccountCircle,
-                                contentDescription = stringResource(R.string.description_user_menu),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(36.dp)
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                    .padding(1.dp),
+                                tint = statusColor
                             )
                         }
 
@@ -1065,6 +1086,17 @@ fun FriendItem(
                     if (isInvited) {
                         Icon(
                             imageVector = Icons.Default.HourglassEmpty,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(16.dp)
+                                .align(Alignment.BottomEnd)
+                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .padding(1.dp),
+                            tint = statusColor
+                        )
+                    } else if (friend.isStatusFromPlan) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp)
