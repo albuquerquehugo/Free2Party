@@ -68,6 +68,7 @@
     <string name="label_send_invite">Enviar convite</string>
     <string name="text_ad_banner_placeholder">BANNER DE PUBLICIDADE (A SER ADICIONADO DEPOIS)</string>
     <string name="text_add_friends">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
+    <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
     <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
     <string name="text_invite_friend">Digite o e-mail do seu amigo para enviar um convite.</string>
     <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>

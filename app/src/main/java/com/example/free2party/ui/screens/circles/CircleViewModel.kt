@@ -1,22 +1,27 @@
-package com.example.free2party.ui.screens.home
+package com.example.free2party.ui.screens.circles
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.free2party.R
 import com.example.free2party.data.model.Circle
 import com.example.free2party.data.repository.SocialRepository
+import com.example.free2party.R
 import com.example.free2party.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.free2party.data.model.FriendInfo
 
 sealed class CircleUiEvent {
     data class ShowToast(val message: UiText) : CircleUiEvent()
@@ -32,10 +37,17 @@ class CircleViewModel @Inject constructor(
     var circles by mutableStateOf<List<Circle>>(emptyList())
         private set
 
+    val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
+        .catch { e -> Log.e("CircleViewModel", "Error in friendsList flow", e) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     var selectedCircleId by mutableStateOf<String?>(null)
         private set
 
     var isActionLoading by mutableStateOf(false)
+        private set
+
+    var gradientBackground by mutableStateOf(true)
         private set
 
     private val _uiEvent = MutableSharedFlow<CircleUiEvent>(extraBufferCapacity = 10)
@@ -44,6 +56,15 @@ class CircleViewModel @Inject constructor(
     init {
         observeCircles()
         observeLastUsedFilter()
+        observeUserSettings()
+    }
+
+    private fun observeUserSettings() {
+        viewModelScope.launch {
+            settingsRepository.gradientBackgroundFlow.collect {
+                gradientBackground = it
+            }
+        }
     }
 
     private fun observeCircles() {

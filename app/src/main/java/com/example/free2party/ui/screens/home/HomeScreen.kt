@@ -31,12 +31,11 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
@@ -90,9 +89,10 @@ import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.InviteStatus
 import com.example.free2party.ui.components.AdBanner
 import com.example.free2party.ui.components.dialogs.AboutDialog
-import com.example.free2party.ui.components.dialogs.CircleDialog
 import com.example.free2party.ui.components.dialogs.ConfirmationDialog
 import com.example.free2party.ui.components.dialogs.FriendCalendarDialog
+import com.example.free2party.ui.screens.circles.CircleViewModel
+import com.example.free2party.ui.screens.circles.CircleUiEvent
 import com.example.free2party.ui.theme.available
 import com.example.free2party.ui.theme.availableContainer
 import com.example.free2party.ui.theme.busy
@@ -117,7 +117,8 @@ fun HomeRoute(
     onNavigateToProfile: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToInviteFriend: () -> Unit
+    onNavigateToInviteFriend: () -> Unit,
+    onNavigateToCircles: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -137,8 +138,6 @@ fun HomeRoute(
         }
     }
 
-    var onCircleActionSuccessTrigger by remember { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         circleViewModel.uiEvent.collect { event ->
             when (event) {
@@ -151,8 +150,7 @@ fun HomeRoute(
                 }
 
                 is CircleUiEvent.CircleActionSuccess -> {
-                    circleViewModel.updateSelectedCircleId(event.circleId)
-                    onCircleActionSuccessTrigger = !onCircleActionSuccessTrigger
+                    // Handled via repository observation
                 }
             }
         }
@@ -174,13 +172,9 @@ fun HomeRoute(
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
         onInviteFriendClick = onNavigateToInviteFriend,
         circles = circleViewModel.circles,
-        isCircleActionLoading = circleViewModel.isActionLoading,
-        onCreateCircle = { name, friends -> circleViewModel.createCircle(name, friends) },
-        onUpdateCircle = { id, name, friends -> circleViewModel.updateCircle(id, name, friends) },
-        onDeleteCircle = { id -> circleViewModel.deleteCircle(id) },
         selectedCircleId = circleViewModel.selectedCircleId,
         onCircleSelected = { circleViewModel.updateSelectedCircleId(it) },
-        onCircleActionSuccessTrigger = onCircleActionSuccessTrigger
+        onNavigateToCircles = onNavigateToCircles
     )
 }
 
@@ -199,13 +193,9 @@ fun HomeScreen(
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     circles: List<Circle>,
-    isCircleActionLoading: Boolean,
-    onCreateCircle: (String, List<String>) -> Unit,
-    onUpdateCircle: (String, String, List<String>) -> Unit,
-    onDeleteCircle: (String) -> Unit,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
-    onCircleActionSuccessTrigger: Boolean
+    onNavigateToCircles: () -> Unit
 ) {
     var showUserMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -214,16 +204,6 @@ fun HomeScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
-
-    var showCircleDialog by remember { mutableStateOf(false) }
-    var editingCircle by remember { mutableStateOf<Circle?>(null) }
-    var showDeleteCircleDialog by remember { mutableStateOf(false) }
-    var circleToDelete by remember { mutableStateOf<Circle?>(null) }
-
-    LaunchedEffect(onCircleActionSuccessTrigger) {
-        showCircleDialog = false
-        showDeleteCircleDialog = false
-    }
 
     LaunchedEffect(Unit) {
         // Redirect initial focus to the root container to avoid highlighting the user menu
@@ -455,18 +435,7 @@ fun HomeScreen(
                         circles = circles,
                         selectedCircleId = selectedCircleId,
                         onCircleSelected = onCircleSelected,
-                        onAddCircleClick = {
-                            editingCircle = null
-                            showCircleDialog = true
-                        },
-                        onEditCircleClick = { circle ->
-                            editingCircle = circle
-                            showCircleDialog = true
-                        },
-                        onDeleteCircleClick = { circle ->
-                            circleToDelete = circle
-                            showDeleteCircleDialog = true
-                        },
+                        onManageCirclesClick = onNavigateToCircles,
                         onToggleAvailability = onToggleAvailability,
                         onRemoveFriend = { uid ->
                             friendIdToRemove = uid
@@ -477,47 +446,6 @@ fun HomeScreen(
                         onFriendItemClick = { friend -> selectedFriend = friend }
                     )
                 }
-            }
-        }
-
-        if (showCircleDialog) {
-            CircleDialog(
-                circle = editingCircle,
-                friends = (homeUiState as? HomeUiState.Success)?.friendsList ?: emptyList(),
-                onDismiss = { showCircleDialog = false },
-                onConfirm = { name, friends ->
-                    val circle = editingCircle
-                    if (circle == null) {
-                        onCreateCircle(name, friends)
-                    } else {
-                        onUpdateCircle(circle.id, name, friends)
-                    }
-                },
-                isLoading = isCircleActionLoading
-            )
-        }
-
-        if (showDeleteCircleDialog) {
-            val circle = circleToDelete
-            if (circle != null) {
-                ConfirmationDialog(
-                    title = stringResource(R.string.title_delete_circle),
-                    text = stringResource(R.string.text_delete_circle_confirmation),
-                    confirmButtonText = stringResource(R.string.text_delete),
-                    onConfirm = {
-                        onDeleteCircle(circle.id)
-                        if (selectedCircleId == circle.id) {
-                            onCircleSelected(null)
-                        }
-                        circleToDelete = null
-                    },
-                    dismissButtonText = stringResource(R.string.button_cancel),
-                    onDismiss = {
-                        showDeleteCircleDialog = false
-                        circleToDelete = null
-                    },
-                    isDestructive = true
-                )
             }
         }
 
@@ -584,9 +512,7 @@ fun HomeContent(
     circles: List<Circle>,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
-    onAddCircleClick: () -> Unit,
-    onEditCircleClick: (Circle) -> Unit,
-    onDeleteCircleClick: (Circle) -> Unit,
+    onManageCirclesClick: () -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
@@ -681,9 +607,7 @@ fun HomeContent(
                 circles = circles,
                 selectedCircleId = selectedCircleId,
                 onCircleSelected = onCircleSelected,
-                onAddCircleClick = onAddCircleClick,
-                onEditCircleClick = onEditCircleClick,
-                onDeleteCircleClick = onDeleteCircleClick,
+                onManageCirclesClick = onManageCirclesClick,
                 onRemoveFriend = onRemoveFriend,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
@@ -702,9 +626,7 @@ fun FriendsListSection(
     circles: List<Circle>,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
-    onAddCircleClick: () -> Unit,
-    onEditCircleClick: (Circle) -> Unit,
-    onDeleteCircleClick: (Circle) -> Unit,
+    onManageCirclesClick: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
@@ -793,40 +715,6 @@ fun FriendsListSection(
                             onClick = {
                                 onCircleSelected(circle.id)
                                 showFilterMenu = false
-                            },
-                            trailingIcon = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    IconButton(
-                                        onClick = {
-                                            showFilterMenu = false
-                                            onEditCircleClick(circle)
-                                        },
-                                        modifier = Modifier.size(24.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                    IconButton(
-                                        onClick = {
-                                            showFilterMenu = false
-                                            onDeleteCircleClick(circle)
-                                        },
-                                        modifier = Modifier.size(24.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
                             }
                         )
                     }
@@ -835,11 +723,11 @@ fun FriendsListSection(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.title_create_circle)) },
-                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.title_circles)) },
+                    leadingIcon = { Icon(Icons.Default.Groups, contentDescription = null) },
                     onClick = {
                         showFilterMenu = false
-                        onAddCircleClick()
+                        onManageCirclesClick()
                     }
                 )
             }

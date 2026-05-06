@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import com.example.free2party.R
 import com.example.free2party.MainViewModel
 import com.example.free2party.ui.components.AppBackground
+import com.example.free2party.ui.screens.circles.CirclesRoute
 import com.example.free2party.ui.screens.calendar.CalendarRoute
 import com.example.free2party.ui.screens.home.HomeRoute
 import com.example.free2party.ui.screens.friends.InviteFriendRoute
@@ -124,6 +125,11 @@ sealed class Screen(
     object InviteFriend : Screen(
         route = "invite_friend",
         labelResId = R.string.title_invite_friend
+    )
+
+    object Circles : Screen(
+        route = "circles",
+        labelResId = R.string.title_circles
     )
 }
 
@@ -329,6 +335,9 @@ fun Free2PartyNavGraph(
                 },
                 onNavigateToInviteFriend = {
                     navController.navigate(Screen.InviteFriend.route)
+                },
+                onNavigateToCircles = {
+                    navController.navigate(Screen.Circles.route)
                 }
             )
         }
@@ -341,6 +350,12 @@ fun Free2PartyNavGraph(
                 viewModel = hiltViewModel(),
                 onBack = { navController.popBackStack() },
                 gradientBackground = gradientBackground
+            )
+        }
+
+        composable(Screen.Circles.route) {
+            CirclesRoute(
+                onBack = { navController.popBackStack() }
             )
         }
 
