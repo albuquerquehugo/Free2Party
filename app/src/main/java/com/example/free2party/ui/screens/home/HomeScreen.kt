@@ -295,7 +295,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(46.dp)
                             .border(3.dp, statusColor, CircleShape)
-                            .padding(3.dp),
+                            .padding(6.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         if (!profilePicUrl.isNullOrBlank()) {
@@ -1036,11 +1036,11 @@ fun FriendItem(
                         modifier = Modifier
                             .fillMaxSize()
                             .border(
-                                width = 2.dp,
+                                width = 3.dp,
                                 color = statusColor,
                                 shape = CircleShape
                             )
-                            .padding(3.dp),
+                            .padding(6.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         if (friend.profilePicUrl.isNotBlank()) {
