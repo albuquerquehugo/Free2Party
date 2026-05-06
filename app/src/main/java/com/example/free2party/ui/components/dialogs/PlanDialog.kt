@@ -93,12 +93,14 @@ fun PlanDialog(
     }
 
     var exceptFriendIds by remember {
-        val initialIds = if (editingPlan?.visibility == PlanVisibility.EXCEPT) editingPlan.friendsSelection else emptyList()
+        val initialIds =
+            if (editingPlan?.visibility == PlanVisibility.EXCEPT) editingPlan.friendsSelection else emptyList()
         val currentFriendIds = friends.map { it.uid }.toSet()
         mutableStateOf(initialIds.filter { it in currentFriendIds })
     }
     var onlyFriendIds by remember {
-        val initialIds = if (editingPlan?.visibility == PlanVisibility.ONLY) editingPlan.friendsSelection else emptyList()
+        val initialIds =
+            if (editingPlan?.visibility == PlanVisibility.ONLY) editingPlan.friendsSelection else emptyList()
         val currentFriendIds = friends.map { it.uid }.toSet()
         mutableStateOf(initialIds.filter { it in currentFriendIds })
     }
@@ -172,7 +174,7 @@ fun PlanDialog(
             visibility = plan.visibility
             val currentFriendIds = friends.map { it.uid }.toSet()
             val filteredSelection = plan.friendsSelection.filter { id -> id in currentFriendIds }
-            
+
             if (plan.visibility == PlanVisibility.EXCEPT) {
                 exceptFriendIds = filteredSelection
             } else if (plan.visibility == PlanVisibility.ONLY) {
@@ -271,7 +273,8 @@ fun PlanDialog(
             val currentEndTime = formatTime(endTimeState.hour, endTimeState.minute)
 
             val currentFriendIds = friends.map { it.uid }.toSet()
-            val filteredOriginalSelection = editingPlan.friendsSelection.filter { it in currentFriendIds }
+            val filteredOriginalSelection =
+                editingPlan.friendsSelection.filter { it in currentFriendIds }
 
             currentStartDate != editingPlan.startDate ||
                     currentEndDate != editingPlan.endDate ||
@@ -786,17 +789,26 @@ fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(checked = isSelected, onCheckedChange = null)
-        Text(
-            text = friend.name,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 8.dp)
-        )
-        if (isInvited) {
+        Column(modifier = Modifier.padding(start = 8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = friend.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+                if (isInvited) {
+                    Text(
+                        text = " " + stringResource(R.string.label_invited_observation),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+            }
             Text(
-                text = " " + stringResource(R.string.label_invited_observation),
+                text = friend.email,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Normal
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
