@@ -33,6 +33,7 @@
     <string name="label_facebook_messenger">Facebook Messenger</string>
     <string name="label_friends_picture">Foto do Amigo</string>
     <string name="label_instagram">Instagram</string>
+    <string name="label_invited_observation">(Convidado)</string>
     <string name="label_mark_all_as_read">Marcar tudo como lido</string>
     <string name="label_mark_as_read">Marcar como lido</string>
     <string name="label_mark_as_unread">Marcar como não lido</string>

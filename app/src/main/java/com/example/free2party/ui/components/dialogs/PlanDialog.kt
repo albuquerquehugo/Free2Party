@@ -92,25 +92,31 @@ fun PlanDialog(
         )
     }
 
-    val acceptedFriends = remember(friends) {
-        friends.filter { it.inviteStatus == InviteStatus.ACCEPTED }
-    }
-
     var exceptFriendIds by remember {
-        mutableStateOf(
-            if (editingPlan?.visibility == PlanVisibility.EXCEPT) editingPlan.friendsSelection else emptyList()
-        )
+        val initialIds = if (editingPlan?.visibility == PlanVisibility.EXCEPT) editingPlan.friendsSelection else emptyList()
+        val currentFriendIds = friends.map { it.uid }.toSet()
+        mutableStateOf(initialIds.filter { it in currentFriendIds })
     }
     var onlyFriendIds by remember {
-        mutableStateOf(
-            if (editingPlan?.visibility == PlanVisibility.ONLY) editingPlan.friendsSelection else emptyList()
-        )
+        val initialIds = if (editingPlan?.visibility == PlanVisibility.ONLY) editingPlan.friendsSelection else emptyList()
+        val currentFriendIds = friends.map { it.uid }.toSet()
+        mutableStateOf(initialIds.filter { it in currentFriendIds })
     }
 
     val (showStartDatePicker, setShowStartDatePicker) = remember { mutableStateOf(false) }
     val (showEndDatePicker, setShowEndDatePicker) = remember { mutableStateOf(false) }
     val (showStartTimePicker, setShowStartTimePicker) = remember { mutableStateOf(false) }
     val (showEndTimePicker, setShowEndTimePicker) = remember { mutableStateOf(false) }
+
+    LaunchedEffect(friends) {
+        val currentFriendIds = friends.map { it.uid }.toSet()
+        if (exceptFriendIds.any { it !in currentFriendIds }) {
+            exceptFriendIds = exceptFriendIds.filter { it in currentFriendIds }
+        }
+        if (onlyFriendIds.any { it !in currentFriendIds }) {
+            onlyFriendIds = onlyFriendIds.filter { it in currentFriendIds }
+        }
+    }
 
     val format = remember {
         SimpleDateFormat("EEE, MMM dd, yyyy", Locale.getDefault()).apply {
@@ -152,22 +158,25 @@ fun PlanDialog(
     } ?: false
 
     LaunchedEffect(editingPlan) {
-        editingPlan?.let {
-            val start = unformatTime(it.startTime)
-            val end = unformatTime(it.endTime)
+        editingPlan?.let { plan ->
+            val start = unformatTime(plan.startTime)
+            val end = unformatTime(plan.endTime)
             startTimeState.hour = start.first
             startTimeState.minute = start.second
             endTimeState.hour = end.first
             endTimeState.minute = end.second
 
-            startDatePickerState.selectedDateMillis = parseDateToMillis(it.startDate)
-            endDatePickerState.selectedDateMillis = parseDateToMillis(it.endDate)
+            startDatePickerState.selectedDateMillis = parseDateToMillis(plan.startDate)
+            endDatePickerState.selectedDateMillis = parseDateToMillis(plan.endDate)
 
-            visibility = it.visibility
-            if (it.visibility == PlanVisibility.EXCEPT) {
-                exceptFriendIds = it.friendsSelection
-            } else if (it.visibility == PlanVisibility.ONLY) {
-                onlyFriendIds = it.friendsSelection
+            visibility = plan.visibility
+            val currentFriendIds = friends.map { it.uid }.toSet()
+            val filteredSelection = plan.friendsSelection.filter { id -> id in currentFriendIds }
+            
+            if (plan.visibility == PlanVisibility.EXCEPT) {
+                exceptFriendIds = filteredSelection
+            } else if (plan.visibility == PlanVisibility.ONLY) {
+                onlyFriendIds = filteredSelection
             }
         }
     }
@@ -247,7 +256,8 @@ fun PlanDialog(
         endDatePickerState.selectedDateMillis,
         startTimeState.hour, startTimeState.minute,
         endTimeState.hour, endTimeState.minute,
-        editingPlan
+        editingPlan,
+        friends
     ) {
         if (editingPlan == null) true
         else {
@@ -260,13 +270,16 @@ fun PlanDialog(
             val currentStartTime = formatTime(startTimeState.hour, startTimeState.minute)
             val currentEndTime = formatTime(endTimeState.hour, endTimeState.minute)
 
+            val currentFriendIds = friends.map { it.uid }.toSet()
+            val filteredOriginalSelection = editingPlan.friendsSelection.filter { it in currentFriendIds }
+
             currentStartDate != editingPlan.startDate ||
                     currentEndDate != editingPlan.endDate ||
                     currentStartTime != editingPlan.startTime ||
                     currentEndTime != editingPlan.endTime ||
                     note != editingPlan.note ||
                     visibility != editingPlan.visibility ||
-                    currentSelectedIds != editingPlan.friendsSelection
+                    currentSelectedIds != filteredOriginalSelection
         }
     }
 
@@ -459,7 +472,7 @@ fun PlanDialog(
                     ) { visibility = PlanVisibility.EXCEPT }
                     AnimatedVisibility(visible = visibility == PlanVisibility.EXCEPT) {
                         FriendSelector(
-                            acceptedFriends,
+                            friends,
                             circles,
                             exceptFriendIds,
                             { id ->
@@ -472,7 +485,7 @@ fun PlanDialog(
                             { ids ->
                                 exceptFriendIds = exceptFriendIds - ids.toSet()
                             },
-                            { exceptFriendIds = acceptedFriends.map { it.uid } },
+                            { exceptFriendIds = friends.map { it.uid } },
                             { exceptFriendIds = emptyList() })
                     }
                     VisibilityOption(
@@ -482,7 +495,7 @@ fun PlanDialog(
                     ) { visibility = PlanVisibility.ONLY }
                     AnimatedVisibility(visible = visibility == PlanVisibility.ONLY) {
                         FriendSelector(
-                            acceptedFriends,
+                            friends,
                             circles,
                             onlyFriendIds,
                             { id ->
@@ -495,7 +508,7 @@ fun PlanDialog(
                             { ids ->
                                 onlyFriendIds = onlyFriendIds - ids.toSet()
                             },
-                            { onlyFriendIds = acceptedFriends.map { it.uid } },
+                            { onlyFriendIds = friends.map { it.uid } },
                             { onlyFriendIds = emptyList() })
                     }
                 }
@@ -700,19 +713,24 @@ fun FriendSelector(
                 LazyColumn(modifier = Modifier.padding(4.dp)) {
                     if (circles.isNotEmpty()) {
                         items(circles) { circle ->
-                            val isEnabled = circle.friendIds.isNotEmpty()
+                            val validCircleFriendIds = remember(circle, friends) {
+                                val currentIds = friends.map { it.uid }.toSet()
+                                circle.friendIds.filter { it in currentIds }
+                            }
+                            val isEnabled = validCircleFriendIds.isNotEmpty()
                             val isCircleSelected = isEnabled &&
-                                    circle.friendIds.all { it in selectedFriendIds }
+                                    validCircleFriendIds.all { it in selectedFriendIds }
 
                             CircleSelectorItem(
-                                circle = circle,
+                                circleName = circle.name,
+                                memberCount = validCircleFriendIds.size,
                                 isSelected = isCircleSelected,
                                 enabled = isEnabled,
                                 onToggle = {
                                     if (isCircleSelected) {
-                                        onRemoveFriends(circle.friendIds)
+                                        onRemoveFriends(validCircleFriendIds)
                                     } else {
-                                        onAddFriends(circle.friendIds)
+                                        onAddFriends(validCircleFriendIds)
                                     }
                                 }
                             )
@@ -759,6 +777,7 @@ fun FriendSelector(
 
 @Composable
 fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> Unit) {
+    val isInvited = friend.inviteStatus == InviteStatus.INVITED
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -772,12 +791,21 @@ fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> 
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 8.dp)
         )
+        if (isInvited) {
+            Text(
+                text = " " + stringResource(R.string.label_invited_observation),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Normal
+            )
+        }
     }
 }
 
 @Composable
 fun CircleSelectorItem(
-    circle: Circle,
+    circleName: String,
+    memberCount: Int,
     isSelected: Boolean,
     enabled: Boolean = true,
     onToggle: () -> Unit
@@ -797,12 +825,12 @@ fun CircleSelectorItem(
         )
         Column(modifier = Modifier.padding(start = 8.dp)) {
             Text(
-                text = circle.name,
+                text = circleName,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = stringResource(R.string.label_circle_member_count, circle.friendIds.size),
+                text = stringResource(R.string.label_circle_member_count, memberCount),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
