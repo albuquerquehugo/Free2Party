@@ -711,11 +711,12 @@ fun FriendsListSection(
                 onDismissRequest = { showFilterMenu = false }
             ) {
                 DropdownMenuItem(
+                    modifier = Modifier.padding(start = 8.dp),
                     text = {
                         Text(
                             text = stringResource(R.string.everyone),
                             fontWeight =
-                                if (selectedCircleId == null) FontWeight.Bold
+                                if (selectedCircleId == null) FontWeight.ExtraBold
                                 else FontWeight.Normal,
                             color =
                                 if (selectedCircleId == null) MaterialTheme.colorScheme.primary
@@ -731,11 +732,12 @@ fun FriendsListSection(
                 if (circles.isNotEmpty()) {
                     circles.forEach { circle ->
                         DropdownMenuItem(
+                            modifier = Modifier.padding(start = 8.dp),
                             text = {
                                 Text(
                                     text = circle.name,
                                     fontWeight =
-                                        if (selectedCircleId == circle.id) FontWeight.Bold
+                                        if (selectedCircleId == circle.id) FontWeight.ExtraBold
                                         else FontWeight.Normal,
                                     color =
                                         if (selectedCircleId == circle.id) MaterialTheme.colorScheme.primary
@@ -747,7 +749,10 @@ fun FriendsListSection(
                                 showFilterMenu = false
                             },
                             trailingIcon = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
                                     IconButton(
                                         onClick = {
                                             showFilterMenu = false
@@ -971,6 +976,11 @@ fun FriendItem(
     val isInvited = friend.inviteStatus == InviteStatus.INVITED
     val context = LocalContext.current
     val hangOutMessage = stringResource(R.string.text_hang_out_message)
+    val statusColor = when {
+        isInvited -> MaterialTheme.colorScheme.outline // Or inactiveContainer
+        friend.isFreeNow -> MaterialTheme.colorScheme.available
+        else -> MaterialTheme.colorScheme.busy
+    }
 
     Box {
         Card(
@@ -994,27 +1004,49 @@ fun FriendItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(start = 8.dp),
+                    modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .border(
+                                width = 2.dp,
+                                color = statusColor,
+                                shape = CircleShape
+                            )
+                            .padding(3.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (friend.profilePicUrl.isNotBlank()) {
+                            AsyncImage(
+                                model = friend.profilePicUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                tint = statusColor.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+
                     if (isInvited) {
                         Icon(
                             imageVector = Icons.Default.HourglassEmpty,
-                            contentDescription = stringResource(R.string.label_status_pending),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onInactiveContainer
-                        )
-                    } else {
-                        Box(
+                            contentDescription = null,
                             modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (friend.isFreeNow) MaterialTheme.colorScheme.available
-                                    else MaterialTheme.colorScheme.busy
-                                )
+                                .size(16.dp)
+                                .align(Alignment.BottomEnd)
+                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .padding(1.dp),
+                            tint = statusColor
                         )
                     }
                 }
