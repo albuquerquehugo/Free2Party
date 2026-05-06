@@ -61,6 +61,7 @@
     <string name="description_logo_content">Free2Party Logo</string>
     <string name="description_user_menu">User Menu</string>
     <string name="label_cancel_invite">Cancel Invite</string>
+    <string name="label_circle_member_count">%1$d members</string>
     <string name="label_circle_name">Circle Name</string>
     <string name="label_select_friends">Select Friends</string>
     <string name="label_send_invite">Send invite</string>

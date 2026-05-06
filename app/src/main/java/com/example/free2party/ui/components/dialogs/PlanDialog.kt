@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -45,11 +46,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.free2party.R
+import com.example.free2party.data.model.Circle
 import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.FuturePlan
 import com.example.free2party.data.model.InviteStatus
@@ -74,6 +77,7 @@ fun PlanDialog(
     editingPlan: FuturePlan?,
     use24HourFormat: Boolean,
     friends: List<FriendInfo>,
+    circles: List<Circle>,
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String, String, PlanVisibility, List<String>) -> Unit,
     startDatePickerState: DatePickerState,
@@ -273,9 +277,9 @@ fun PlanDialog(
     BaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(horizontal = 24.dp, vertical = 20.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text =
@@ -283,7 +287,9 @@ fun PlanDialog(
                     else stringResource(R.string.edit_plan),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
                 textAlign = TextAlign.Center
             )
 
@@ -291,92 +297,98 @@ fun PlanDialog(
                 modifier = Modifier
                     .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Start Section
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
                         text = stringResource(R.string.start_label),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(60.dp)
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedCard(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp),
-                            onClick = { setShowStartDatePicker(true) }
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = startDateText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
-                                )
-                            }
+                    OutlinedCard(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp),
+                        onClick = { setShowStartDatePicker(true) }
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = startDateText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                            )
                         }
-                        OutlinedCard(
-                            modifier = Modifier
-                                .weight(0.6f)
-                                .height(48.dp),
-                            onClick = { setShowStartTimePicker(true) }
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = formatTimeForDisplay(
-                                        formatTime(
-                                            startTimeState.hour,
-                                            startTimeState.minute
-                                        ), use24HourFormat
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
-                                )
-                            }
+                    }
+                    OutlinedCard(
+                        modifier = Modifier
+                            .weight(0.6f)
+                            .height(44.dp),
+                        onClick = { setShowStartTimePicker(true) }
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = formatTimeForDisplay(
+                                    formatTime(
+                                        startTimeState.hour,
+                                        startTimeState.minute
+                                    ), use24HourFormat
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                            )
                         }
                     }
                 }
 
                 // End Section
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
                         text = stringResource(R.string.end_label),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(60.dp)
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedCard(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp),
-                            onClick = { setShowEndDatePicker(true) }
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = endDateText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
-                                )
-                            }
+                    OutlinedCard(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp),
+                        onClick = { setShowEndDatePicker(true) }
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = endDateText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                            )
                         }
-                        OutlinedCard(
-                            modifier = Modifier
-                                .weight(0.6f)
-                                .height(48.dp),
-                            onClick = { setShowEndTimePicker(true) }
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = formatTimeForDisplay(
-                                        formatTime(
-                                            endTimeState.hour,
-                                            endTimeState.minute
-                                        ), use24HourFormat
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
-                                )
-                            }
+                    }
+                    OutlinedCard(
+                        modifier = Modifier
+                            .weight(0.6f)
+                            .height(44.dp),
+                        onClick = { setShowEndTimePicker(true) }
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = formatTimeForDisplay(
+                                    formatTime(
+                                        endTimeState.hour,
+                                        endTimeState.minute
+                                    ), use24HourFormat
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                            )
                         }
                     }
                 }
@@ -448,10 +460,17 @@ fun PlanDialog(
                     AnimatedVisibility(visible = visibility == PlanVisibility.EXCEPT) {
                         FriendSelector(
                             acceptedFriends,
+                            circles,
                             exceptFriendIds,
                             { id ->
                                 exceptFriendIds =
                                     if (id in exceptFriendIds) exceptFriendIds - id else exceptFriendIds + id
+                            },
+                            { ids ->
+                                exceptFriendIds = (exceptFriendIds + ids).distinct()
+                            },
+                            { ids ->
+                                exceptFriendIds = exceptFriendIds - ids.toSet()
                             },
                             { exceptFriendIds = acceptedFriends.map { it.uid } },
                             { exceptFriendIds = emptyList() })
@@ -464,10 +483,17 @@ fun PlanDialog(
                     AnimatedVisibility(visible = visibility == PlanVisibility.ONLY) {
                         FriendSelector(
                             acceptedFriends,
+                            circles,
                             onlyFriendIds,
                             { id ->
                                 onlyFriendIds =
                                     if (id in onlyFriendIds) onlyFriendIds - id else onlyFriendIds + id
+                            },
+                            { ids ->
+                                onlyFriendIds = (onlyFriendIds + ids).distinct()
+                            },
+                            { ids ->
+                                onlyFriendIds = onlyFriendIds - ids.toSet()
                             },
                             { onlyFriendIds = acceptedFriends.map { it.uid } },
                             { onlyFriendIds = emptyList() })
@@ -624,14 +650,18 @@ fun VisibilityOption(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(selected = selected, onClick = null)
+        RadioButton(
+            selected = selected,
+            onClick = null,
+            modifier = Modifier.size(36.dp)
+        )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = 8.dp)
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 4.dp)
         )
     }
 }
@@ -639,8 +669,11 @@ fun VisibilityOption(
 @Composable
 fun FriendSelector(
     friends: List<FriendInfo>,
+    circles: List<Circle>,
     selectedFriendIds: List<String>,
     onToggleFriend: (String) -> Unit,
+    onAddFriends: (List<String>) -> Unit,
+    onRemoveFriends: (List<String>) -> Unit,
     onSelectAll: () -> Unit,
     onUnselectAll: () -> Unit
 ) {
@@ -649,7 +682,7 @@ fun FriendSelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
-                .heightIn(max = 150.dp)
+                .heightIn(max = 200.dp)
         ) {
             if (friends.isEmpty()) {
                 Box(
@@ -665,6 +698,28 @@ fun FriendSelector(
                 }
             } else {
                 LazyColumn(modifier = Modifier.padding(4.dp)) {
+                    if (circles.isNotEmpty()) {
+                        items(circles) { circle ->
+                            val isEnabled = circle.friendIds.isNotEmpty()
+                            val isCircleSelected = isEnabled &&
+                                    circle.friendIds.all { it in selectedFriendIds }
+
+                            CircleSelectorItem(
+                                circle = circle,
+                                isSelected = isCircleSelected,
+                                enabled = isEnabled,
+                                onToggle = {
+                                    if (isCircleSelected) {
+                                        onRemoveFriends(circle.friendIds)
+                                    } else {
+                                        onAddFriends(circle.friendIds)
+                                    }
+                                }
+                            )
+                        }
+                        item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+                    }
+
                     items(friends) { friend ->
                         FriendSelectorItem(
                             friend = friend,
@@ -678,7 +733,7 @@ fun FriendSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp, bottom = 4.dp, end = 16.dp),
+                .padding(top = 8.dp, bottom = 8.dp, end = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Text(
@@ -717,5 +772,40 @@ fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> 
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 8.dp)
         )
+    }
+}
+
+@Composable
+fun CircleSelectorItem(
+    circle: Circle,
+    isSelected: Boolean,
+    enabled: Boolean = true,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (enabled) Modifier.clickable { onToggle() } else Modifier)
+            .padding(8.dp)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.5f },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = null,
+            enabled = enabled
+        )
+        Column(modifier = Modifier.padding(start = 8.dp)) {
+            Text(
+                text = circle.name,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = stringResource(R.string.label_circle_member_count, circle.friendIds.size),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }

@@ -61,6 +61,7 @@
     <string name="description_logo_content">Logo do Free2Party</string>
     <string name="description_user_menu">Menu do Usuário</string>
     <string name="label_cancel_invite">Cancelar Convite</string>
+    <string name="label_circle_member_count">%1$d membros</string>
     <string name="label_circle_name">Nome do Círculo</string>
     <string name="label_select_friends">Selecionar Amigos</string>
     <string name="label_send_invite">Enviar convite</string>
@@ -207,7 +208,7 @@
 
     <!-- Plan Dialog -->
     <string name="edit_plan">Edite seu plano</string>
-    <string name="end_label">Término:</string>
+    <string name="end_label">Fim:</string>
     <string name="everyone">Todos</string>
     <string name="everyone_except">Todos, exceto: %1$s</string>
     <string name="everyone_except_label">Todos, exceto…</string>
@@ -219,7 +220,7 @@
     <string name="plan_note_label">O que você está planejando?</string>
     <string name="plan_note_placeholder">Digite uma breve nota…</string>
     <string name="schedule_plan">Agendar seu plano</string>
-    <string name="select_all">Selecionar todos</string>
+    <string name="select_all">Marcar todos</string>
     <string name="select_end_time">Selecionar hora de término</string>
     <string name="select_start_time">Selecionar hora de início</string>
     <string name="start_label">Início:</string>

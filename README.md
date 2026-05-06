@@ -78,7 +78,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
 
 ## 📝 MVP Roadmap (Sprint 2) -- PLANNED --
 - [ ] Phase 5: Groups & Circles
-    - [ ] Create "Circles" (e.g., Close Friends, Coworkers, Family) to filter availability.
+    - [x] Create "Circles" (e.g., Close Friends, Coworkers, Family) to filter availability.
     - [ ] Group privacy settings (choose which circles see your "Free" status).
 - [ ] Phase 6: Plan Proposals (RSVP System)
     - [ ] Propose a specific plan (e.g., "Beer at 7pm @ The Local Pub").

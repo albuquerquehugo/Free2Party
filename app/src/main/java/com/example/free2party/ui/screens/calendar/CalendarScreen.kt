@@ -177,6 +177,7 @@ fun CalendarScreen(
 ) {
     val use24HourFormat = viewModel.use24HourFormat
     val friends by viewModel.friendsList.collectAsState()
+    val circles by viewModel.circles.collectAsState()
 
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
@@ -349,6 +350,7 @@ fun CalendarScreen(
             editingPlan = editingPlan,
             use24HourFormat = use24HourFormat,
             friends = friends,
+            circles = circles,
             onDismiss = { setShowPlanDialog(false) },
             onConfirm = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection ->
                 onSavePlan(

@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +19,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.ui.window.DialogProperties
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaseDialog(
@@ -25,7 +28,13 @@ fun BaseDialog(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    BasicAlertDialog(onDismissRequest = onDismissRequest, modifier = modifier.fillMaxWidth()) {
+    BasicAlertDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp),
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surface) {
             val focusManager = LocalFocusManager.current
             val keyboardController = LocalSoftwareKeyboardController.current

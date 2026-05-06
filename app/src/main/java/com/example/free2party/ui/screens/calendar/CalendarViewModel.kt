@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.free2party.data.model.Circle
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Calendar
@@ -88,6 +89,10 @@ class CalendarViewModel @Inject constructor(
         private set
 
     private val userIdToObserve get() = targetUserId.value ?: currentUserId
+
+    val circles: StateFlow<List<Circle>> = socialRepository.getCircles()
+        .catch { e -> Log.e("CalendarViewModel", "Error in circles flow", e) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
         .catch { e -> Log.e("CalendarViewModel", "Error in friendsList flow", e) }
