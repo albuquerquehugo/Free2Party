@@ -136,7 +136,6 @@ fun HomeRoute(
         }
     }
 
-    val (activeCircleId, setActiveCircleId) = remember { mutableStateOf<String?>(null) }
     var onCircleActionSuccessTrigger by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -151,7 +150,7 @@ fun HomeRoute(
                 }
 
                 is CircleUiEvent.CircleActionSuccess -> {
-                    setActiveCircleId(event.circleId)
+                    circleViewModel.updateSelectedCircleId(event.circleId)
                     onCircleActionSuccessTrigger = !onCircleActionSuccessTrigger
                 }
             }
@@ -178,8 +177,8 @@ fun HomeRoute(
         onCreateCircle = { name, friends -> circleViewModel.createCircle(name, friends) },
         onUpdateCircle = { id, name, friends -> circleViewModel.updateCircle(id, name, friends) },
         onDeleteCircle = { id -> circleViewModel.deleteCircle(id) },
-        selectedCircleId = activeCircleId,
-        onCircleSelected = { setActiveCircleId(it) },
+        selectedCircleId = circleViewModel.selectedCircleId,
+        onCircleSelected = { circleViewModel.updateSelectedCircleId(it) },
         onCircleActionSuccessTrigger = onCircleActionSuccessTrigger
     )
 }
@@ -697,13 +696,39 @@ fun FriendsListSection(
             modifier = Modifier.align(Alignment.CenterStart)
         ) {
             IconButton(onClick = { showFilterMenu = true }) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = stringResource(R.string.title_circles),
-                    tint =
-                        if (selectedCircleId != null) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    if (selectedCircleId != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    CircleShape
+                                )
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                    CircleShape
+                                )
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = stringResource(R.string.title_circles),
+                        tint =
+                            if (selectedCircleId != null) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface
+                    )
+                    if (selectedCircleId != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .align(Alignment.TopEnd)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                        )
+                    }
+                }
             }
 
             DropdownMenu(

@@ -25,10 +25,14 @@ sealed class CircleUiEvent {
 
 @HiltViewModel
 class CircleViewModel @Inject constructor(
-    private val socialRepository: SocialRepository
+    private val socialRepository: SocialRepository,
+    private val settingsRepository: com.example.free2party.data.repository.SettingsRepository
 ) : ViewModel() {
 
     var circles by mutableStateOf<List<Circle>>(emptyList())
+        private set
+
+    var selectedCircleId by mutableStateOf<String?>(null)
         private set
 
     var isActionLoading by mutableStateOf(false)
@@ -39,6 +43,7 @@ class CircleViewModel @Inject constructor(
 
     init {
         observeCircles()
+        observeLastUsedFilter()
     }
 
     private fun observeCircles() {
@@ -46,6 +51,20 @@ class CircleViewModel @Inject constructor(
             .onEach { circles = it }
             .catch { /* Handle error */ }
             .launchIn(viewModelScope)
+    }
+
+    private fun observeLastUsedFilter() {
+        viewModelScope.launch {
+            settingsRepository.lastUsedCircleIdFlow.collect { id ->
+                selectedCircleId = id
+            }
+        }
+    }
+
+    fun updateSelectedCircleId(id: String?) {
+        viewModelScope.launch {
+            settingsRepository.setLastUsedCircleId(id)
+        }
     }
 
     fun createCircle(name: String, selectedFriends: List<String>) {

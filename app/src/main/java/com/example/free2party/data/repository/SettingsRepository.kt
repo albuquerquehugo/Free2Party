@@ -19,6 +19,7 @@ class SettingsRepository(private val context: Context) {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val GRADIENT_BACKGROUND = booleanPreferencesKey("gradient_background")
         val SHOWN_NOTIFICATION_IDS = stringSetPreferencesKey("shown_notification_ids")
+        val LAST_USED_CIRCLE_ID = stringPreferencesKey("last_used_circle_id")
     }
 
     val themeModeFlow: Flow<ThemeMode> = context.dataStore.data
@@ -32,6 +33,11 @@ class SettingsRepository(private val context: Context) {
             preferences[PreferencesKeys.GRADIENT_BACKGROUND] ?: true
         }
 
+    val lastUsedCircleIdFlow: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.LAST_USED_CIRCLE_ID]
+        }
+
     suspend fun setThemeMode(themeMode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.THEME_MODE] = themeMode.name
@@ -41,6 +47,16 @@ class SettingsRepository(private val context: Context) {
     suspend fun setGradientBackground(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GRADIENT_BACKGROUND] = enabled
+        }
+    }
+
+    suspend fun setLastUsedCircleId(circleId: String?) {
+        context.dataStore.edit { preferences ->
+            if (circleId == null) {
+                preferences.remove(PreferencesKeys.LAST_USED_CIRCLE_ID)
+            } else {
+                preferences[PreferencesKeys.LAST_USED_CIRCLE_ID] = circleId
+            }
         }
     }
 
