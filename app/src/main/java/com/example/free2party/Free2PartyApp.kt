@@ -12,6 +12,7 @@ import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.data.repository.UserRepositoryImpl
 import com.example.free2party.exception.UnauthorizedException
 import com.example.free2party.exception.UserNotFoundException
+import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.util.NotificationHelper
 import com.example.free2party.util.isPlanActive
 import com.google.firebase.Firebase
@@ -33,8 +34,10 @@ import kotlinx.coroutines.tasks.await
 @HiltAndroidApp
 class Free2PartyApp : Application() {
 
-    @Inject lateinit var userRepository: UserRepository
-    @Inject lateinit var planRepository: PlanRepository
+    @Inject
+    lateinit var userRepository: UserRepository
+    @Inject
+    lateinit var planRepository: PlanRepository
     private var automationJob: Job? = null
     private var currentAutomationUid: String? = null
 
@@ -150,16 +153,22 @@ class Free2PartyApp : Application() {
                 planRepository.getOwnPlans().collectLatest { plans ->
                     Log.d("Automation", "Plans updated, count: ${plans.size}")
                     while (true) {
-                        val shouldBeFree = plans.any { isPlanActive(it) }
+                        val activePlans = plans.filter { isPlanActive(it) }
+                        val shouldBeFreePublicly =
+                            activePlans.any { it.visibility == PlanVisibility.EVERYONE }
+                        val hasAnyActivePlan = activePlans.isNotEmpty()
 
-                        if (lastAutomatedStatus != shouldBeFree) {
+                        if (lastAutomatedStatus != hasAnyActivePlan) {
                             Log.d(
                                 "Automation",
-                                "Status transition detected: $lastAutomatedStatus -> $shouldBeFree"
+                                "Status transition detected. Any plan: $hasAnyActivePlan, Public plan: $shouldBeFreePublicly"
                             )
 
-                            if (lastAutomatedStatus != null || shouldBeFree) {
-                                userRepository.toggleAvailability(shouldBeFree, fromPlan = shouldBeFree)
+                            if (lastAutomatedStatus != null || hasAnyActivePlan) {
+                                userRepository.toggleAvailability(
+                                    shouldBeFreePublicly,
+                                    fromPlan = hasAnyActivePlan
+                                )
                                     .onFailure { e ->
                                         if (e is UnauthorizedException || e is UserNotFoundException) {
                                             Log.d("Automation", "User no longer valid, stopping.")
@@ -169,7 +178,7 @@ class Free2PartyApp : Application() {
                                     }
                             }
 
-                            lastAutomatedStatus = shouldBeFree
+                            lastAutomatedStatus = hasAnyActivePlan
                         }
 
                         delay(BuildConfig.updateFrequency)

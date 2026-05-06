@@ -81,7 +81,10 @@ class HomeViewModel @Inject constructor(
             planRepository.getOwnPlans()
         ) { user, friends, outgoingRequests, plans ->
             val currentUserId = userRepository.currentUserId
-            val isWithinPlanPeriod = plans.any { isPlanActive(it) }
+
+            val isAnyPlanActiveNow = plans.any { isPlanActive(it) }
+            val effectiveIsFree = if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
+            val effectiveFromPlan = user.isStatusFromPlan && isAnyPlanActiveNow
 
             // Map outgoing requests to FriendInfo with INVITED status
             val invitedFriends = outgoingRequests
@@ -110,9 +113,9 @@ class HomeViewModel @Inject constructor(
                 userName = user.firstName,
                 userGender = user.gender,
                 profilePicUrl = user.profilePicUrl,
-                isUserFree = user.isFreeNow,
-                isStatusFromPlan = user.isStatusFromPlan,
-                isWithinPlanPeriod = isWithinPlanPeriod,
+                isUserFree = effectiveIsFree,
+                isStatusFromPlan = effectiveFromPlan,
+                isWithinPlanPeriod = isAnyPlanActiveNow,
                 use24HourFormat = user.settings.use24HourFormat,
                 gradientBackground = user.settings.gradientBackground,
                 friendsList = sortedFriends
@@ -156,14 +159,37 @@ class HomeViewModel @Inject constructor(
 
     fun toggleAvailability() {
         val currentState = uiState as? HomeUiState.Success ?: return
-        val nextIsFree = !currentState.isUserFree
-        val fromPlan = nextIsFree && currentState.isWithinPlanPeriod
+        val isCurrentlyFree = currentState.isUserFree
+        val isAnyPlanActiveNow = currentState.isWithinPlanPeriod
+
+        val (nextIsFree, fromPlan) = if (isCurrentlyFree) {
+            // Transitions to Busy
+            if (isAnyPlanActiveNow) {
+                // Manually overriding an active plan to be busy
+                false to false
+            } else {
+                // Was manually free, now returning to automatic (which is busy since no plan active)
+                false to true
+            }
+        } else {
+            // Transitions to Free
+            if (isAnyPlanActiveNow) {
+                // Returning to automatic (which is free since a plan is active)
+                true to true
+            } else {
+                // Manually setting to free
+                true to false
+            }
+        }
 
         uiState = currentState.copy(isActionLoading = true)
         viewModelScope.launch {
             userRepository.toggleAvailability(nextIsFree, fromPlan = fromPlan)
                 .onSuccess {
-                    Log.d("HomeViewModel", "Availability updated successfully")
+                    Log.d(
+                        "HomeViewModel",
+                        "Availability updated successfully: isFree=$nextIsFree, fromPlan=$fromPlan"
+                    )
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error updating availability", e)

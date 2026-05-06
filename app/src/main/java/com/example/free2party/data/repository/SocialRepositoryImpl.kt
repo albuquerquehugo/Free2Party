@@ -37,14 +37,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import com.example.free2party.util.isPlanActive
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 class SocialRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
     private val userRepository: UserRepository,
+    private val planRepository: PlanRepository,
     @param:ApplicationContext private val context: android.content.Context
 ) : SocialRepository {
 
@@ -110,19 +113,36 @@ class SocialRepositoryImpl @Inject constructor(
     }.flatMapLatest { friendStubs ->
         if (friendStubs.isEmpty()) return@flatMapLatest flowOf(emptyList())
 
-        // For each friend, observe their actual user document to get real-time status
+        // Create a clock flow that emits every minute to trigger status updates based on time passing
+        val clockFlow = flow {
+            while (true) {
+                emit(System.currentTimeMillis())
+                delay(60000L) // Refresh every minute
+            }
+        }
+
+        // For each friend, observe their user document and their public plans
         val friendFlows = friendStubs.map { stub ->
-            userRepository.observeUser(stub.uid).map { user ->
+            combine(
+                userRepository.observeUser(stub.uid),
+                planRepository.getPublicPlans(stub.uid),
+                clockFlow
+            ) { user, plans, now ->
+                val isPlanActiveNow = plans.any { isPlanActive(it, now) }
+                
+                val effectiveIsFree = if (user.isStatusFromPlan) isPlanActiveNow else user.isFreeNow
+                val effectiveFromPlan = user.isStatusFromPlan && isPlanActiveNow
+
                 stub.copy(
                     name = user.fullName,
                     email = user.email,
-                    isFreeNow = user.isFreeNow,
-                    isStatusFromPlan = user.isStatusFromPlan,
+                    isFreeNow = effectiveIsFree,
+                    isStatusFromPlan = effectiveFromPlan,
                     socials = user.socials,
                     phoneNumber = user.phoneNumber,
                     profilePicUrl = user.profilePicUrl
                 )
-            }.catch { emit(stub) } // Fallback to stub if user doc can't be read
+            }.catch { emit(stub) }
         }
 
         combine(friendFlows) { it.toList() }
