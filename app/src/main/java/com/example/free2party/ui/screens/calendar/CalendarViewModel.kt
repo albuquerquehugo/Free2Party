@@ -31,6 +31,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Calendar
@@ -43,12 +47,11 @@ class CalendarViewModel @Inject constructor(
     socialRepository: SocialRepository
 ) : ViewModel() {
 
-    private var targetUserId: String? = null
+    private var targetUserId = MutableStateFlow<String?>(null)
     private val currentUserId: String get() = userRepository.currentUserId
 
     fun setTargetUser(uid: String?) {
-        targetUserId = uid
-        observePlans()
+        targetUserId.value = uid
     }
 
     var plansList by mutableStateOf<List<FuturePlan>>(emptyList())
@@ -84,8 +87,7 @@ class CalendarViewModel @Inject constructor(
     var datePattern by mutableStateOf(DatePattern.YYYY_MM_DD)
         private set
 
-    private val userIdToObserve get() = targetUserId ?: currentUserId
-    val isViewingOwnCalendar get() = targetUserId == null || targetUserId == currentUserId
+    private val userIdToObserve get() = targetUserId.value ?: currentUserId
 
     val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
         .catch { e -> Log.e("CalendarViewModel", "Error in friendsList flow", e) }
@@ -93,15 +95,17 @@ class CalendarViewModel @Inject constructor(
 
     init {
         goToToday()
-        observePlans()
         observeUserSettings()
+        observePlans()
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun observeUserSettings() {
-        val uid = userRepository.currentUserId
-        if (uid.isBlank()) return
-
-        userRepository.observeUser(uid)
+        userRepository.userIdFlow
+            .flatMapLatest { uid ->
+                if (uid.isBlank()) emptyFlow()
+                else userRepository.observeUser(uid)
+            }
             .onEach { user ->
                 gradientBackground = user.settings.gradientBackground
                 use24HourFormat = user.settings.use24HourFormat
@@ -111,27 +115,31 @@ class CalendarViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun observePlans() {
-        val uid = userIdToObserve
-        if (uid.isBlank()) return
-
-        if (isViewingOwnCalendar) {
-            planRepository.getOwnPlans()
-                .onEach { plansList = it }
-                .catch { e ->
-                    Log.e("CalendarViewModel", "Error observing own plans", e)
-                    plansList = emptyList()
-                }
-                .launchIn(viewModelScope)
-        } else {
-            planRepository.getPublicPlans(uid)
-                .onEach { plansList = it }
-                .catch { e ->
-                    Log.e("CalendarViewModel", "Error observing public plans", e)
-                    plansList = emptyList()
-                }
-                .launchIn(viewModelScope)
+        combine(userRepository.userIdFlow, targetUserId) { currentUid, targetUid ->
+            currentUid to targetUid
         }
+            .flatMapLatest { (currentUid, targetUid) ->
+                val uid = targetUid ?: currentUid
+                if (uid.isBlank()) {
+                    plansList = emptyList()
+                    emptyFlow()
+                } else {
+                    val isOwn = targetUid == null || targetUid == currentUid
+                    if (isOwn) {
+                        planRepository.getOwnPlans()
+                    } else {
+                        planRepository.getPublicPlans(uid)
+                    }
+                }
+            }
+            .onEach { plansList = it }
+            .catch { e ->
+                Log.e("CalendarViewModel", "Error observing plans", e)
+                plansList = emptyList()
+            }
+            .launchIn(viewModelScope)
     }
 
     fun savePlan(
