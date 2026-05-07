@@ -45,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.free2party.R
 import com.example.free2party.data.model.DatePattern
-import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
 import com.example.free2party.data.model.Circle
 import com.example.free2party.data.model.FriendInfo
@@ -79,11 +78,8 @@ fun SettingsRoute(
 
     SettingsScreen(
         uiState = viewModel.uiState,
-        currentThemeMode = viewModel.themeMode,
         gradientBackground = viewModel.gradientBackground,
         onBack = onBack,
-        onSetThemeMode = { viewModel.updateThemeMode(it) },
-        onSetGradientBackground = { viewModel.updateGradientBackground(it) },
         onUpdateSettings = { viewModel.updateSettings(it) },
         friends = friends,
         circles = circles
@@ -93,11 +89,8 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
-    currentThemeMode: ThemeMode,
     gradientBackground: Boolean,
     onBack: () -> Unit,
-    onSetThemeMode: (ThemeMode) -> Unit,
-    onSetGradientBackground: (Boolean) -> Unit,
     onUpdateSettings: (User) -> Unit,
     friends: List<FriendInfo>,
     circles: List<Circle>
@@ -130,11 +123,8 @@ fun SettingsScreen(
                 SettingsScreenContent(
                     paddingValues = paddingValues,
                     user = uiState.user,
-                    currentThemeMode = currentThemeMode,
                     gradientBackground = gradientBackground,
                     isSaving = uiState.isSaving,
-                    onSetThemeMode = onSetThemeMode,
-                    onSetGradientBackground = onSetGradientBackground,
                     onUpdateSettings = onUpdateSettings,
                     friends = friends,
                     circles = circles
@@ -148,11 +138,8 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     paddingValues: PaddingValues,
     user: User,
-    currentThemeMode: ThemeMode,
     gradientBackground: Boolean,
     isSaving: Boolean,
-    onSetThemeMode: (ThemeMode) -> Unit,
-    onSetGradientBackground: (Boolean) -> Unit,
     onUpdateSettings: (User) -> Unit,
     friends: List<FriendInfo>,
     circles: List<Circle>
@@ -223,92 +210,7 @@ fun SettingsScreenContent(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Section 1: Appearance (Auto-applied)
-        Text(
-            text = stringResource(R.string.title_appearance),
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        )
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            colors = cardColors
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.label_theme_mode),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .selectableGroup(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    ThemeMode.entries.forEach { mode ->
-                        SettingsOption(
-                            label = stringResource(mode.labelResId),
-                            selected = currentThemeMode == mode,
-                            onClick = { onSetThemeMode(mode) },
-                            enabled = true
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.label_background),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    SettingsOption(
-                        label = stringResource(R.string.option_gradient),
-                        selected = gradientBackground,
-                        onClick = { onSetGradientBackground(true) },
-                        enabled = !isSaving
-                    )
-                    SettingsOption(
-                        label = stringResource(R.string.option_solid),
-                        selected = !gradientBackground,
-                        onClick = { onSetGradientBackground(false) },
-                        enabled = !isSaving
-                    )
-                }
-            }
-        }
-
-        // Section 2: Privacy (Requires Save)
+        // Section 1: Privacy (Requires Save)
         Text(
             text = stringResource(R.string.title_privacy),
             color = MaterialTheme.colorScheme.onSurface,
@@ -399,7 +301,7 @@ fun SettingsScreenContent(
             }
         }
 
-        // Section 3: Preferences (Requires Save)
+        // Section 2: Preferences (Requires Save)
         Text(
             text = stringResource(R.string.title_preferences),
             color = MaterialTheme.colorScheme.onSurface,
@@ -519,9 +421,7 @@ fun SettingsScreenContent(
                         birthday = updatedBirthday,
                         settings = user.settings.copy(
                             use24HourFormat = use24HourFormat,
-                            datePattern = datePattern,
-                            themeMode = currentThemeMode,
-                            gradientBackground = gradientBackground
+                            datePattern = datePattern
                         ),
                         manualStatusVisibility = manualStatusVisibility,
                         manualStatusFriendsSelection = manualStatusFriendsSelection

@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Settings
@@ -118,7 +119,8 @@ fun HomeRoute(
     onNavigateToBlockedUsers: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToInviteFriend: () -> Unit,
-    onNavigateToCircles: () -> Unit
+    onNavigateToCircles: () -> Unit,
+    onNavigateToAppearance: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -174,7 +176,8 @@ fun HomeRoute(
         circles = circleViewModel.circles,
         selectedCircleId = circleViewModel.selectedCircleId,
         onCircleSelected = { circleViewModel.updateSelectedCircleId(it) },
-        onNavigateToCircles = onNavigateToCircles
+        onNavigateToCircles = onNavigateToCircles,
+        onNavigateToAppearance = onNavigateToAppearance
     )
 }
 
@@ -195,7 +198,8 @@ fun HomeScreen(
     circles: List<Circle>,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
-    onNavigateToCircles: () -> Unit
+    onNavigateToCircles: () -> Unit,
+    onNavigateToAppearance: () -> Unit
 ) {
     var showUserMenu by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -344,6 +348,19 @@ fun HomeScreen(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Block,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_appearance)) },
+                                onClick = {
+                                    showUserMenu = false
+                                    onNavigateToAppearance()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Palette,
                                         contentDescription = null
                                     )
                                 }
