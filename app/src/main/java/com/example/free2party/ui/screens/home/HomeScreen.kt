@@ -340,6 +340,19 @@ fun HomeScreen(
                                 }
                             )
                             DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_circles)) },
+                                onClick = {
+                                    showUserMenu = false
+                                    onNavigateToCircles()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Groups,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
                                 text = { Text(stringResource(R.string.title_blocked_users)) },
                                 onClick = {
                                     showUserMenu = false
@@ -452,7 +465,6 @@ fun HomeScreen(
                         circles = circles,
                         selectedCircleId = selectedCircleId,
                         onCircleSelected = onCircleSelected,
-                        onManageCirclesClick = onNavigateToCircles,
                         onToggleAvailability = onToggleAvailability,
                         onRemoveFriend = { uid ->
                             friendIdToRemove = uid
@@ -529,7 +541,6 @@ fun HomeContent(
     circles: List<Circle>,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
-    onManageCirclesClick: () -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
@@ -624,7 +635,6 @@ fun HomeContent(
                 circles = circles,
                 selectedCircleId = selectedCircleId,
                 onCircleSelected = onCircleSelected,
-                onManageCirclesClick = onManageCirclesClick,
                 onRemoveFriend = onRemoveFriend,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
@@ -643,7 +653,6 @@ fun FriendsListSection(
     circles: List<Circle>,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
-    onManageCirclesClick: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
@@ -674,7 +683,7 @@ fun FriendsListSection(
                     }
                     Icon(
                         imageVector = Icons.Default.FilterList,
-                        contentDescription = stringResource(R.string.title_circles),
+                        contentDescription = stringResource(R.string.description_filter),
                         tint =
                             if (selectedCircleId != null) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurface
@@ -736,17 +745,6 @@ fun FriendsListSection(
                         )
                     }
                 }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.title_circles)) },
-                    leadingIcon = { Icon(Icons.Default.Groups, contentDescription = null) },
-                    onClick = {
-                        showFilterMenu = false
-                        onManageCirclesClick()
-                    }
-                )
             }
         }
 
