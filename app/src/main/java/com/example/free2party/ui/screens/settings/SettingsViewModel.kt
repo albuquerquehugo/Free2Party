@@ -1,22 +1,29 @@
 package com.example.free2party.ui.screens.settings
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.free2party.R
+import com.example.free2party.data.model.Circle
+import com.example.free2party.data.model.FriendInfo
 import com.example.free2party.data.model.ThemeMode
 import com.example.free2party.data.model.User
 import com.example.free2party.data.repository.SettingsRepository
+import com.example.free2party.data.repository.SocialRepository
 import com.example.free2party.data.repository.UserRepository
 import com.example.free2party.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed interface SettingsUiState {
@@ -32,11 +39,20 @@ sealed class SettingsUiEvent {
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    socialRepository: SocialRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<SettingsUiState>(SettingsUiState.Loading)
         private set
+
+    val circles: StateFlow<List<Circle>> = socialRepository.getCircles()
+        .catch { e -> Log.e("SettingsViewModel", "Error in circles flow", e) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val friendsList: StateFlow<List<FriendInfo>> = socialRepository.getFriendsList()
+        .catch { e -> Log.e("SettingsViewModel", "Error in friendsList flow", e) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     var themeMode by mutableStateOf(ThemeMode.AUTOMATIC)
         private set

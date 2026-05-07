@@ -86,12 +86,12 @@
     <string name="title_friend_section_busy">Ocupados</string>
     <string name="title_friend_section_free">Livres</string>
     <string name="title_friend_section_invited">Convidados</string>
+    <string name="title_friends">Amigos</string>
     <string name="title_home">Início</string>
     <string name="title_invite_friend">Convidar Amigo</string>
     <string name="title_remove_and_block_friend">Remover e Bloquear</string>
     <string name="title_remove_friend">Remover Amigo</string>
     <string name="title_search">Pesquisar</string>
-    <string name="title_your_friends">Seus Amigos</string>
     <string name="toast_circle_created">Círculo criado com sucesso</string>
     <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
     <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
@@ -100,13 +100,13 @@
     <string name="toast_invite_sent">Convite enviado</string>
 
     <!-- Login & Register Screen -->
-    <string name="already_have_account_log_in">Já tem uma conta? Entre</string>
     <string name="button_login">Entrar</string>
     <string name="button_register">Registrar</string>
     <string name="button_send_link">Enviar link</string>
     <string name="button_sign_in_with_google">Entrar com Google</string>
     <string name="confirm_password_required">Confirmar Senha *</string>
     <string name="description_reset_password">Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.\n\n(Lembre-se de verificar a pasta de SPAM no seu e-mail)</string>
+    <string name="label_already_have_account_log_in">Já tem uma conta? Entre</string>
     <string name="link_forgot_password">Esqueceu a senha?</string>
     <string name="link_sign_up">Não tem uma conta? Cadastre-se</string>
     <string name="message_resend_verification_success">E-mail de verificação reenviado! Verifique sua caixa de entrada.</string>
@@ -148,7 +148,6 @@
     <string name="label_whatsapp_number">Número do WhatsApp</string>
     <string name="label_whatsapp_same_as_phone_number">Mesmo número do telefone</string>
     <string name="label_x_username">Usuário do X/Twitter</string>
-    <string name="label_your_profile">Seu Perfil</string>
     <string name="text_bio_placeholder">Escreva sobre você…</string>
     <string name="text_delete_account_confirmation">Tem certeza que deseja excluir sua conta? Esta ação é permanente e todos os seus dados (perfil, planos e amigos) serão perdidos para sempre.</string>
     <string name="text_gender_tooltip">Apenas usamos esta informação para garantir que nossos termos usem a gramática correta para seu idioma</string>
@@ -156,6 +155,7 @@
     <string name="text_phone_mask_placeholder">Por favor, selecione um país primeiro</string>
     <string name="text_placeholder_search_country">Pesquisar país ou código…</string>
     <string name="text_required_fields_notice">Os campos marcados com * são obrigatórios</string>
+    <string name="title_profile">Perfil</string>
     <string name="toast_account_deleted">Conta excluída!</string>
     <string name="toast_profile_picture_updated">Foto de perfil atualizada!</string>
     <string name="toast_profile_updated">Perfil atualizado com sucesso!</string>
@@ -178,9 +178,9 @@
     <string name="title_appearance">Aparência</string>
     <string name="title_background">Plano de Fundo</string>
     <string name="title_preferences">Preferências</string>
+    <string name="title_privacy">Privacidade</string>
     <string name="title_settings">Configurações</string>
     <string name="title_theme_mode">Modo do Tema</string>
-    <string name="title_your_settings">Suas Configurações</string>
 
     <!-- Calendar Screen -->
     <string name="add_plan">Adicionar Plano</string>
@@ -229,6 +229,7 @@
     <string name="unselect_all">Desmarcar todos</string>
     <string name="visibility_label">Quem pode ver este plano?</string>
     <string name="visibility_label_discretion">(Isso não é visível para os outros)</string>
+    <string name="visibility_manual_free_status">Quem pode ver o seu status \"Livre\" manual?</string>
 
     <!-- Notifications -->
     <string name="notification_friend_removed_body">%1$s (%2$s) não é mais seu amigo.</string>
@@ -264,7 +265,6 @@
     <string name="developer_name">Hugo Albuquerque</string>
     <string name="email_subject_feedback">Feedback do App Free2Party</string>
     <string name="title_about">Sobre</string>
-    <string name="title_profile">Perfil</string>
     <string name="version_label">Versão %1$s</string>
 
     <!-- Errors & Exceptions -->

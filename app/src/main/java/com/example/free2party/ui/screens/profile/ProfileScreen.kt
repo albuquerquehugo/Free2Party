@@ -155,7 +155,7 @@ fun ProfileScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.label_your_profile),
+                title = stringResource(R.string.title_profile),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack,
                 enabled = uiState !is ProfileUiState.Loading

@@ -734,7 +734,7 @@ fun FriendsListSection(
         }
 
         Text(
-            text = stringResource(R.string.title_your_friends),
+            text = stringResource(R.string.title_friends),
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold

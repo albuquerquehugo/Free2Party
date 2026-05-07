@@ -2,6 +2,7 @@ package com.example.free2party.data.repository
 
 import android.net.Uri
 import android.util.Log
+import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.data.model.User
 import com.example.free2party.exception.DatabaseOperationException
 import com.example.free2party.exception.NetworkUnavailableException
@@ -120,13 +121,22 @@ class UserRepositoryImpl @Inject constructor(
         Result.failure(mapToUserException(e))
     }
 
-    override suspend fun toggleAvailability(isFree: Boolean, fromPlan: Boolean): Result<Unit> = try {
+    override suspend fun toggleAvailability(
+        isFree: Boolean,
+        fromPlan: Boolean,
+        visibility: PlanVisibility?,
+        friendsSelection: List<String>?
+    ): Result<Unit> = try {
         val uid = validateSession()
+        val updates = mutableMapOf<String, Any>(
+            "isFreeNow" to isFree,
+            "isStatusFromPlan" to fromPlan
+        )
+        visibility?.let { updates["manualStatusVisibility"] = it.name }
+        friendsSelection?.let { updates["manualStatusFriendsSelection"] = it }
+
         db.collection("users").document(uid)
-            .set(mapOf(
-                "isFreeNow" to isFree,
-                "isStatusFromPlan" to fromPlan
-            ), SetOptions.merge())
+            .set(updates, SetOptions.merge())
             .await()
         Result.success(Unit)
     } catch (e: Exception) {

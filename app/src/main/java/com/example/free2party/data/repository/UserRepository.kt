@@ -1,6 +1,7 @@
 package com.example.free2party.data.repository
 
 import android.net.Uri
+import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.data.model.User
 import kotlinx.coroutines.flow.Flow
 
@@ -13,7 +14,12 @@ interface UserRepository {
     suspend fun getUserById(uid: String): Result<User>
     suspend fun getUserByEmail(email: String): Result<User>
     suspend fun updateUser(user: User): Result<Unit>
-    suspend fun toggleAvailability(isFree: Boolean, fromPlan: Boolean = false): Result<Unit>
+    suspend fun toggleAvailability(
+        isFree: Boolean,
+        fromPlan: Boolean = false,
+        visibility: PlanVisibility? = null,
+        friendsSelection: List<String>? = null
+    ): Result<Unit>
     suspend fun uploadProfilePicture(uri: Uri): Result<String>
     suspend fun updateFcmToken(token: String): Result<Unit>
     suspend fun deleteAccount(): Result<Unit>

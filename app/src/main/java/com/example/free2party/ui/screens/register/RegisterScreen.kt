@@ -314,7 +314,7 @@ fun RegisterScreen(
 
                             TextButton(onClick = onBackToLogin) {
                                 Text(
-                                    stringResource(R.string.already_have_account_log_in),
+                                    stringResource(R.string.label_already_have_account_log_in),
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }

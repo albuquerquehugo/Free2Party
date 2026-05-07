@@ -85,6 +85,8 @@ data class User(
     val isFreeNow: Boolean = false,
     @get:PropertyName("isStatusFromPlan")
     val isStatusFromPlan: Boolean = false,
+    val manualStatusVisibility: PlanVisibility = PlanVisibility.EVERYONE,
+    val manualStatusFriendsSelection: List<String> = emptyList(),
     val settings: UserSettings = UserSettings(),
     @ServerTimestamp
     val createdAt: Date? = null

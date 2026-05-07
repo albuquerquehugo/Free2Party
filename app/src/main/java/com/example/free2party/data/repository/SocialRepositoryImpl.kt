@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.util.isPlanActive
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flatMapLatest
@@ -130,7 +131,23 @@ class SocialRepositoryImpl @Inject constructor(
             ) { user, plans, now ->
                 val isPlanActiveNow = plans.any { isPlanActive(it, now) }
                 
-                val effectiveIsFree = if (user.isStatusFromPlan) isPlanActiveNow else user.isFreeNow
+                // Privacy-aware status derivation:
+                val effectiveIsFree = if (user.isStatusFromPlan) {
+                    // Following Plan: status depends on plan activity
+                    isPlanActiveNow
+                } else {
+                    // Manual Status: check manual visibility settings
+                    if (user.isFreeNow) {
+                        when (user.manualStatusVisibility) {
+                            PlanVisibility.EVERYONE -> true
+                            PlanVisibility.EXCEPT -> currentUserId !in user.manualStatusFriendsSelection
+                            PlanVisibility.ONLY -> currentUserId in user.manualStatusFriendsSelection
+                        }
+                    } else {
+                        false
+                    }
+                }
+
                 val effectiveFromPlan = user.isStatusFromPlan && isPlanActiveNow
 
                 stub.copy(
