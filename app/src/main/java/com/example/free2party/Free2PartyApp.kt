@@ -15,6 +15,7 @@ import com.example.free2party.exception.UserNotFoundException
 import com.example.free2party.data.model.PlanVisibility
 import com.example.free2party.util.NotificationHelper
 import com.example.free2party.util.isPlanActive
+import com.google.android.gms.ads.MobileAds
 import com.google.firebase.Firebase
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
@@ -72,6 +73,8 @@ class Free2PartyApp : Application() {
         }
 
         NotificationHelper.createNotificationChannel(this)
+
+        MobileAds.initialize(this) {}
 
         userRepository = UserRepositoryImpl(
             auth = Firebase.auth,

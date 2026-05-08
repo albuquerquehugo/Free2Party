@@ -102,6 +102,9 @@ dependencies {
     // --- Image Loading ---
     implementation(libs.coil.compose)
 
+    // --- Ads ---
+    implementation(libs.play.services.ads)
+
     // --- Desugaring ---
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
