@@ -22,11 +22,24 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val frequency = System.getenv("updateFrequency") ?: "5000"
+        val frequency = System.getenv("updateFrequency") ?: "10000"
         buildConfigField("long", "updateFrequency", "${frequency}L")
     }
 
+    signingConfigs {
+        create("release") {
+            // These should be set via environment variables or a local.properties file for security
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release.jks")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
+        val adUnitId = "\"ca-app-pub-3940256099942544/6300978111\""
+        val adMobAppId = "ca-app-pub-3940256099942544~3347511713"
+
         debug {
             isMinifyEnabled = false
             isDebuggable = true
@@ -34,13 +47,23 @@ android {
             val virtualDeviceEmulator = false
             val computerIp = if (virtualDeviceEmulator) "10.0.2.2" else getLocalIpAddress()
             buildConfigField("String", "COMPUTER_IP", "\"$computerIp\"")
+            buildConfigField("String", "AD_UNIT_ID", adUnitId)
+            manifestPlaceholders["adMobAppId"] = adMobAppId
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Ensure no debug IP is leaked in release
+            buildConfigField("String", "COMPUTER_IP", "\"\"")
+            // Production Ad Unit ID (Currently using test ID, user must replace)
+            buildConfigField("String", "AD_UNIT_ID", adUnitId)
+            // Production AdMob App ID (Currently using test ID, user must replace)
+            manifestPlaceholders["adMobAppId"] = adMobAppId
         }
     }
 

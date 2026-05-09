@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.free2party.BuildConfig
 import com.example.free2party.R
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -25,8 +26,8 @@ import com.google.android.gms.ads.AdView
 fun AdBanner(
     modifier: Modifier = Modifier
 ) {
-    // Google Test Ad Unit ID for Banners
-    val testAdUnitId = "ca-app-pub-3940256099942544/6300978111"
+    // Production Ad Unit ID is now pulled from build.gradle.kts (BuildConfig)
+    val adUnitId = BuildConfig.AD_UNIT_ID
 
     Column(modifier = modifier.fillMaxWidth()) {
         HorizontalDivider(
@@ -45,7 +46,7 @@ fun AdBanner(
                 factory = { context ->
                     AdView(context).apply {
                         setAdSize(AdSize.BANNER)
-                        adUnitId = testAdUnitId
+                        this.adUnitId = adUnitId
                         loadAd(AdRequest.Builder().build())
                     }
                 }

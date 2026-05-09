@@ -68,10 +68,10 @@
         android:theme="@style/Theme.Free2Party"
         android:usesCleartextTraffic="true">
 
-        <!-- AdMob App ID (Sample ID for testing) -->
+        <!-- AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="${adMobAppId}"/>
 
         <activity
             android:name=".MainActivity"
