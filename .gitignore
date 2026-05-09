@@ -18,7 +18,10 @@
 /.idea/workspace.xml
 /.windsurf
 .DS_Store
+/app/release.jks
 /build
+*.apk
+*.aab
 /captures
 /Logos
 /Test Builds

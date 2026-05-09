@@ -13,3 +13,11 @@
 -keepattributes Signature, InnerClasses, EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
 -keepattributes AnnotationDefault
+
+# --- WorkManager & Room ---
+# WorkManager uses Room internally. R8 can strip generated Room implementations
+# leading to "Failed to create an instance of androidx.work.impl.WorkDatabase".
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keep class androidx.work.impl.model.** { *; }
+-keep class * extends androidx.room.RoomDatabase
+-dontwarn androidx.work.impl.**

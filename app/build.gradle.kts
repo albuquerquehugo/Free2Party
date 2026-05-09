@@ -1,5 +1,6 @@
 import java.net.Inet4Address
 import java.net.NetworkInterface
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -26,20 +27,28 @@ android {
         buildConfigField("long", "updateFrequency", "${frequency}L")
     }
 
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(localPropertiesFile.inputStream())
+    }
+
     signingConfigs {
         create("release") {
             // These should be set via environment variables or a local.properties file for security
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "release.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("KEY_ALIAS") ?: ""
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            storeFile = file(
+                localProperties.getProperty("KEYSTORE_PATH") ?: System.getenv("KEYSTORE_PATH")
+                ?: "release.jks"
+            )
+            storePassword = localProperties.getProperty("KEYSTORE_PASSWORD")
+                ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = localProperties.getProperty("KEY_ALIAS") ?: System.getenv("KEY_ALIAS") ?: ""
+            keyPassword =
+                localProperties.getProperty("KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
     buildTypes {
-        val adUnitId = "\"ca-app-pub-3940256099942544/6300978111\""
-        val adMobAppId = "ca-app-pub-3940256099942544~3347511713"
-
         debug {
             isMinifyEnabled = false
             isDebuggable = true
@@ -47,8 +56,8 @@ android {
             val virtualDeviceEmulator = false
             val computerIp = if (virtualDeviceEmulator) "10.0.2.2" else getLocalIpAddress()
             buildConfigField("String", "COMPUTER_IP", "\"$computerIp\"")
-            buildConfigField("String", "AD_UNIT_ID", adUnitId)
-            manifestPlaceholders["adMobAppId"] = adMobAppId
+            buildConfigField("String", "AD_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
+            manifestPlaceholders["adMobAppId"] = "ca-app-pub-3940256099942544~3347511713"
         }
         release {
             isMinifyEnabled = true
@@ -61,9 +70,9 @@ android {
             // Ensure no debug IP is leaked in release
             buildConfigField("String", "COMPUTER_IP", "\"\"")
             // Production Ad Unit ID (Currently using test ID, user must replace)
-            buildConfigField("String", "AD_UNIT_ID", adUnitId)
+            buildConfigField("String", "AD_UNIT_ID", "\"ca-app-pub-7524164703051075/1196798688\"")
             // Production AdMob App ID (Currently using test ID, user must replace)
-            manifestPlaceholders["adMobAppId"] = adMobAppId
+            manifestPlaceholders["adMobAppId"] = "ca-app-pub-7524164703051075~5678969176"
         }
     }
 
@@ -85,6 +94,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.work.runtime.ktx)
 
     // --- Jetpack Compose (UI) ---
     implementation(platform(libs.androidx.compose.bom))
@@ -153,7 +164,7 @@ fun getLocalIpAddress(): String {
     try {
         val interfaces = NetworkInterface.getNetworkInterfaces()
         val addresses = mutableListOf<String>()
-        
+
         for (networkInterface in interfaces) {
             if (networkInterface.isLoopback || !networkInterface.isUp) continue
 
