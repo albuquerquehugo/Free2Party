@@ -561,13 +561,13 @@ fun HomeContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            val logoScale by animateFloatAsState(targetValue = if (isUserFree) 1.0f else 0.9f)
+            val logoScale by animateFloatAsState(targetValue = if (isUserFree) 0.9f else 1.0f)
             val glowColor =
-                if (!isUserFree) MaterialTheme.colorScheme.available else MaterialTheme.colorScheme.busy
+                if (isUserFree) MaterialTheme.colorScheme.busy else MaterialTheme.colorScheme.available
             val containerColor =
-                if (!isUserFree) MaterialTheme.colorScheme.availableContainer else MaterialTheme.colorScheme.busyContainer
+                if (isUserFree) MaterialTheme.colorScheme.busyContainer else MaterialTheme.colorScheme.availableContainer
             val onContainerColor =
-                if (!isUserFree) MaterialTheme.colorScheme.onAvailableContainer else MaterialTheme.colorScheme.onBusyContainer
+                if (isUserFree) MaterialTheme.colorScheme.onBusyContainer else MaterialTheme.colorScheme.onAvailableContainer
 
             ElevatedButton(
                 onClick = {
@@ -580,7 +580,7 @@ fun HomeContent(
                     .height(64.dp)
                     .wrapContentWidth()
                     .shadow(
-                        elevation = if (!isUserFree) 16.dp else 8.dp,
+                        elevation = if (isUserFree) 8.dp else 16.dp,
                         spotColor = glowColor,
                         shape = CircleShape,
                         ambientColor = glowColor,
@@ -605,10 +605,10 @@ fun HomeContent(
                         }
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.free2party_full_transparent),
+                            painter = painterResource(id = R.drawable.free2party_full_foreground_color),
                             contentDescription = null,
                             modifier = Modifier
-                                .height(28.dp)
+                                .height(32.dp)
                                 .graphicsLayer(
                                     scaleX = logoScale,
                                     scaleY = logoScale

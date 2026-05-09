@@ -73,7 +73,7 @@ object NotificationHelper {
         val largeIcon = BitmapFactory.decodeResource(context.resources, R.mipmap.free2party_foreground)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.free2party_noborder_transparent)
+            .setSmallIcon(R.drawable.free2party_notification_white)
             .setLargeIcon(largeIcon)
             .setContentTitle(title)
             .setContentText(message)

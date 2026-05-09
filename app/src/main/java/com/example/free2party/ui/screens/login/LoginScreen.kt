@@ -357,7 +357,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.free2party_full_transparent),
+                painter = painterResource(id = R.drawable.free2party_full_foreground_color),
                 contentDescription = stringResource(R.string.description_logo_content),
                 modifier = Modifier
                     .fillMaxWidth()
