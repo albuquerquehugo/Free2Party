@@ -63,7 +63,13 @@ class AuthRepositoryImpl @Inject constructor(
             // createdAt is handled by @ServerTimestamp in User model
         )
 
-        userRepository.createUserProfile(newUser).getOrThrow()
+        try {
+            userRepository.createUserProfile(newUser).getOrThrow()
+        } catch (e: Exception) {
+            // Rollback: Delete the auth user if profile creation fails
+            firebaseUser.delete().await()
+            throw e
+        }
 
         // Sign out the user immediately after registration so they have to log in and verify
         auth.signOut()
