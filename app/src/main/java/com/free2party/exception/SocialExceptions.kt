@@ -47,3 +47,7 @@ class CannotAddSelfException(
 class FriendRequestNotFoundException(
     message: String? = null
 ) : SocialException(message ?: "FriendRequestNotFoundException", R.string.error_friend_request_not_found)
+
+class UserAlreadyReportedException(
+    message: String? = null
+) : SocialException(message ?: "UserAlreadyReportedException", R.string.toast_user_already_reported)

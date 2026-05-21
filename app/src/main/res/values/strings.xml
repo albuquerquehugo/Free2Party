@@ -161,7 +161,18 @@
     <string name="toast_profile_updated">Profile updated</string>
 
     <!-- Blocked Users Screen -->
+    <string name="label_report">Report</string>
+    <string name="label_report_reason_harassment">Harassment or bullying</string>
+    <string name="label_report_reason_impersonation">Impersonation</string>
+    <string name="label_report_reason_inappropriate_content">Inappropriate content or profile picture</string>
+    <string name="label_report_reason_other">Other</string>
+    <string name="label_report_reason_spam">Spam or scam</string>
+    <string name="placeholder_report_reason_other">Briefly describe the reason…</string>
+    <string name="text_report_user_reason">Why are you reporting this user?</string>
     <string name="title_blocked_users">Blocked Users</string>
+    <string name="title_report_user">Report User</string>
+    <string name="toast_user_reported">User reported successfully</string>
+    <string name="toast_user_already_reported">You have already reported this user</string>
     <string name="toast_user_unblocked">User unblocked</string>
 
     <!-- Settings Screen -->
@@ -313,6 +324,7 @@
     <string name="error_recent_login_required">For security reasons, you must have logged in recently to delete your account. Please log out, log in, then try again.</string>
     <string name="error_registration_failed">Registration failed</string>
     <string name="error_removing_friend">Error removing friend</string>
+    <string name="error_reporting_user">Error reporting user</string>
     <string name="error_required_fields">Required fields (*) must be filled</string>
     <string name="error_resend_verification_empty_fields">Please enter your email and password to resend verification</string>
     <string name="error_resend_verification_failed">Failed to resend verification email</string>

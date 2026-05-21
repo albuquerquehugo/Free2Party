@@ -161,7 +161,18 @@
     <string name="toast_profile_updated">Perfil atualizado com sucesso!</string>
 
     <!-- Blocked Users Screen -->
+    <string name="label_report">Denunciar</string>
+    <string name="label_report_reason_harassment">Assédio ou bullying</string>
+    <string name="label_report_reason_impersonation">Falsificação de identidade</string>
+    <string name="label_report_reason_inappropriate_content">Conteúdo ou foto de perfil inapropriada</string>
+    <string name="label_report_reason_other">Outro</string>
+    <string name="label_report_reason_spam">Spam ou golpe</string>
+    <string name="placeholder_report_reason_other">Descreva brevemente o motivo…</string>
+    <string name="text_report_user_reason">Por que você está denunciando este usuário?</string>
     <string name="title_blocked_users">Usuários Bloqueados</string>
+    <string name="title_report_user">Denunciar Usuário</string>
+    <string name="toast_user_reported">Usuário denunciado com sucesso</string>
+    <string name="toast_user_already_reported">Você já denunciou este usuário</string>
     <string name="toast_user_unblocked">Usuário desbloqueado</string>
 
     <!-- Settings Screen -->
@@ -314,6 +325,7 @@
     <string name="error_recent_login_required">Por razões de segurança, você deve ter entrado recentemente para excluir sua conta. Por favor, saia, entre novamente e tente de novo.</string>
     <string name="error_registration_failed">Falha no registro</string>
     <string name="error_removing_friend">Erro ao remover amigo</string>
+    <string name="error_reporting_user">Erro ao denunciar usuário</string>
     <string name="error_required_fields">Campos obrigatórios (*) devem ser preenchidos</string>
     <string name="error_resend_verification_empty_fields">Por favor, insira seu e-mail e senha para reenviar a verificação</string>
     <string name="error_resend_verification_failed">Falha ao reenviar e-mail de verificação</string>

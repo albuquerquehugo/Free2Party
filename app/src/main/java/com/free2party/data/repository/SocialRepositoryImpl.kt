@@ -19,6 +19,7 @@ import com.free2party.exception.FriendRequestAlreadySentException
 import com.free2party.exception.FriendRequestPendingException
 import com.free2party.exception.FriendRequestBlockedException
 import com.free2party.exception.FriendRequestNotFoundException
+import com.free2party.exception.UserAlreadyReportedException
 import com.free2party.exception.InfrastructureException
 import com.free2party.exception.NetworkUnavailableException
 import com.free2party.exception.SocialException
@@ -549,6 +550,31 @@ class SocialRepositoryImpl @Inject constructor(
         Result.failure(mapToSocialException(e))
     }
 
+    override suspend fun reportUser(userId: String, reason: String): Result<Unit> = try {
+        validateSession()
+        val reportId = "${currentUserId}_${userId}"
+        val reportRef = db.collection("reports").document(reportId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(reportRef)
+            if (snapshot.exists()) {
+                throw UserAlreadyReportedException()
+            }
+
+            transaction.set(
+                reportRef, mapOf(
+                    "reporterId" to currentUserId,
+                    "reportedUserId" to userId,
+                    "reason" to reason,
+                    "timestamp" to FieldValue.serverTimestamp()
+                )
+            )
+        }.await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
     override suspend fun removeFriend(friendId: String): Result<Unit> = try {
         validateSession()
 
@@ -752,7 +778,16 @@ class SocialRepositoryImpl @Inject constructor(
             is FirebaseNetworkException -> NetworkUnavailableException()
             is FirebaseFirestoreException -> {
                 when (e.code) {
-                    FirebaseFirestoreException.Code.PERMISSION_DENIED -> UnauthorizedException("You don't have permission for this social action")
+                    FirebaseFirestoreException.Code.PERMISSION_DENIED -> {
+                        if (currentUserId.isBlank()) {
+                            UnauthorizedException()
+                        } else {
+                            DatabaseOperationException(
+                                e.localizedMessage ?: "Social permission denied"
+                            )
+                        }
+                    }
+
                     FirebaseFirestoreException.Code.UNAVAILABLE -> NetworkUnavailableException()
                     else -> DatabaseOperationException(
                         e.localizedMessage ?: "Social database error"

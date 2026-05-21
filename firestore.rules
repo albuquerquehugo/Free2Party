@@ -45,6 +45,17 @@ service cloud.firestore {
       }
     }
 
+    // Reports: Any authenticated user can create a report.
+    // They cannot update or delete reports.
+    // They can only read (get) their own reports to check for duplicates.
+    match /reports/{reportId} {
+      allow create: if request.auth != null &&
+        request.resource.data.reporterId == request.auth.uid &&
+        reportId == request.auth.uid + '_' + request.resource.data.reportedUserId;
+      allow get: if request.auth != null && reportId.matches('^' + request.auth.uid + '_.*');
+      allow list, update, delete: if false;
+    }
+
     // Rules for friend requests
     match /friendRequests/{requestId} {
       // Allow reading or deleting a request if the user is the sender or receiver.

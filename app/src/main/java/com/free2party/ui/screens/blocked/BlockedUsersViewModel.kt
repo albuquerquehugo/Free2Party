@@ -119,6 +119,26 @@ class BlockedUsersViewModel @Inject constructor(
         }
     }
 
+    fun reportUser(userId: String, reason: String) {
+        viewModelScope.launch {
+            socialRepository.reportUser(userId, reason)
+                .onSuccess {
+                    _uiEvent.emit(
+                        BlockedUsersUiEvent.ShowToast(
+                            UiText.StringResource(R.string.toast_user_reported)
+                        )
+                    )
+                }
+                .onFailure { e ->
+                    _uiEvent.emit(
+                        BlockedUsersUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_reporting_user)
+                        )
+                    )
+                }
+        }
+    }
+
     private fun mapToUiText(e: Throwable, defaultRes: Int): UiText {
         return when (e) {
             is InfrastructureException -> e.messageRes?.let { UiText.StringResource(it) }

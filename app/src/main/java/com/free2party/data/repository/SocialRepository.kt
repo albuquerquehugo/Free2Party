@@ -27,6 +27,8 @@ interface SocialRepository {
     suspend fun declineAndBlockFriendRequest(requestId: String): Result<Unit>
     suspend fun unblockUser(userId: String): Result<Unit>
 
+    suspend fun reportUser(userId: String, reason: String): Result<Unit>
+
     suspend fun removeFriend(friendId: String): Result<Unit>
     suspend fun removeAndBlockFriend(friendId: String): Result<Unit>
 
