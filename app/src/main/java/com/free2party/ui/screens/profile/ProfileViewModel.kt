@@ -1,0 +1,365 @@
+package com.free2party.ui.screens.profile
+
+import android.content.Context
+import android.net.Uri
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.free2party.R
+import com.free2party.data.model.Countries
+import com.free2party.data.model.Gender
+import com.free2party.data.model.User
+import com.free2party.data.model.UserSocials
+import com.free2party.data.repository.UserRepository
+import com.free2party.exception.AuthException
+import com.free2party.exception.InfrastructureException
+import com.free2party.exception.SocialException
+import com.free2party.exception.UnauthorizedException
+import com.free2party.exception.UserNotFoundException
+import com.free2party.util.UiText
+import com.free2party.util.getCountryFromNanpAreaCode
+import com.free2party.util.isBirthdayFieldValid
+import com.free2party.util.isPhoneValid
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+
+sealed interface ProfileUiState {
+    object Loading : ProfileUiState
+    data class Success(
+        val user: User,
+        val isSaving: Boolean = false,
+        val isUploadingImage: Boolean = false
+    ) : ProfileUiState
+
+    data class Error(val message: UiText) : ProfileUiState
+}
+
+sealed class ProfileUiEvent {
+    data class ShowToast(val message: UiText, val navigateBack: Boolean = false) : ProfileUiEvent()
+    object AccountDeleted : ProfileUiEvent()
+}
+
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
+
+    var uiState by mutableStateOf<ProfileUiState>(ProfileUiState.Loading)
+        internal set
+
+    private val _uiEvent = MutableSharedFlow<ProfileUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    // Edited fields
+    var firstName by mutableStateOf("")
+    var lastName by mutableStateOf("")
+    var countryCode by mutableStateOf("")
+    private var _phoneNumber by mutableStateOf("")
+    var phoneNumber: String
+        get() = _phoneNumber
+        set(value) {
+            _phoneNumber = value
+            if (value.length >= 3) {
+                val isNanp = Countries.find { it.code == countryCode }?.phoneCode == "+1"
+                if (countryCode.isEmpty() || isNanp) {
+                    getCountryFromNanpAreaCode(value)?.let { countryCode = it }
+                }
+            }
+        }
+    var birthday by mutableStateOf("")
+    var bio by mutableStateOf("")
+    var gender by mutableStateOf(Gender.OTHER)
+    var whatsappCountryCode by mutableStateOf("")
+    private var _whatsappNumber by mutableStateOf("")
+    var whatsappNumber: String
+        get() = _whatsappNumber
+        set(value) {
+            _whatsappNumber = value
+            if (value.length >= 3) {
+                val isNanp = Countries.find { it.code == whatsappCountryCode }?.phoneCode == "+1"
+                if (whatsappCountryCode.isEmpty() || isNanp) {
+                    getCountryFromNanpAreaCode(value)?.let { whatsappCountryCode = it }
+                }
+            }
+        }
+    var telegramUsername by mutableStateOf("")
+    var facebookUsername by mutableStateOf("")
+    var instagramUsername by mutableStateOf("")
+    var tiktokUsername by mutableStateOf("")
+    var xUsername by mutableStateOf("")
+
+    var isWhatsappSameAsPhone by mutableStateOf(false)
+
+    var gradientBackground by mutableStateOf(true)
+        private set
+
+    private val isPhoneNumberValid by derivedStateOf {
+        isPhoneValid(phoneNumber, countryCode)
+    }
+
+    fun isBirthdayValid(context: Context): Boolean {
+        val pattern = (uiState as? ProfileUiState.Success)?.user?.settings?.datePattern
+        return isBirthdayFieldValid(birthday, context, pattern?.patternResId)
+    }
+
+    private val isWhatsappNumberValid by derivedStateOf {
+        isPhoneValid(whatsappNumber, whatsappCountryCode)
+    }
+
+    fun isFormValid(context: Context): Boolean {
+        return firstName.isNotBlank() &&
+                lastName.isNotBlank() &&
+                isPhoneNumberValid &&
+                isBirthdayValid(context) &&
+                isWhatsappNumberValid
+    }
+
+    val hasChanges by derivedStateOf {
+        val user = (uiState as? ProfileUiState.Success)?.user ?: return@derivedStateOf false
+        firstName != user.firstName ||
+                lastName != user.lastName ||
+                countryCode != user.countryCode ||
+                phoneNumber != user.phoneNumber ||
+                birthday != user.birthday ||
+                bio != user.bio ||
+                gender != user.gender ||
+                whatsappCountryCode != user.socials.whatsappCountryCode ||
+                whatsappNumber != user.socials.whatsappNumber ||
+                telegramUsername != user.socials.telegramUsername ||
+                facebookUsername != user.socials.facebookUsername ||
+                instagramUsername != user.socials.instagramUsername ||
+                tiktokUsername != user.socials.tiktokUsername ||
+                xUsername != user.socials.xUsername
+    }
+
+    init {
+        loadProfile()
+    }
+
+    private fun loadProfile() {
+        viewModelScope.launch {
+            userRepository.observeUser(userRepository.currentUserId)
+                .catch { e ->
+                    if (e is UserNotFoundException || e is UnauthorizedException) {
+                        return@catch
+                    }
+                    uiState = ProfileUiState.Error(mapToUiText(e, R.string.error_profile_not_found))
+                }
+                .collect { user ->
+                    val currentState = uiState
+                    gradientBackground = user.settings.gradientBackground
+                    if (currentState !is ProfileUiState.Success) {
+                        initializeFields(user)
+                        uiState =
+                            ProfileUiState.Success(user = user)
+                    } else {
+                        uiState = currentState.copy(user = user)
+                    }
+                }
+        }
+    }
+
+    private fun initializeFields(user: User) {
+        firstName = user.firstName
+        lastName = user.lastName
+        countryCode = user.countryCode
+        phoneNumber = user.phoneNumber
+        birthday = user.birthday
+        bio = user.bio
+        gender = user.gender
+        whatsappCountryCode = user.socials.whatsappCountryCode
+        whatsappNumber = user.socials.whatsappNumber
+        telegramUsername = user.socials.telegramUsername
+        facebookUsername = user.socials.facebookUsername
+        instagramUsername = user.socials.instagramUsername
+        tiktokUsername = user.socials.tiktokUsername
+        xUsername = user.socials.xUsername
+
+        isWhatsappSameAsPhone = whatsappNumber == phoneNumber &&
+                whatsappCountryCode == countryCode &&
+                phoneNumber.isNotEmpty()
+    }
+
+    fun onWhatsappSameAsPhoneChange(checked: Boolean) {
+        isWhatsappSameAsPhone = checked
+        if (checked) {
+            whatsappNumber = phoneNumber
+            whatsappCountryCode = countryCode
+        }
+    }
+
+    fun discardChanges() {
+        val user = (uiState as? ProfileUiState.Success)?.user ?: return
+        initializeFields(user)
+    }
+
+    fun updateProfile(context: Context) {
+        val currentState = uiState as? ProfileUiState.Success ?: return
+
+        firstName = firstName.trim()
+        lastName = lastName.trim()
+        bio = bio.trim()
+        telegramUsername = telegramUsername.trim()
+        facebookUsername = facebookUsername.trim()
+        instagramUsername = instagramUsername.trim()
+        tiktokUsername = tiktokUsername.trim()
+        xUsername = xUsername.trim()
+
+        if (firstName.isBlank() || lastName.isBlank()) {
+            uiState = ProfileUiState.Error(UiText.StringResource(R.string.error_required_fields))
+            return
+        }
+
+        if (!isPhoneNumberValid) {
+            uiState =
+                ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
+            return
+        }
+
+        if (!isBirthdayValid(context)) {
+            uiState = ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_date))
+            return
+        }
+
+        if (!isWhatsappNumberValid) {
+            uiState =
+                ProfileUiState.Error(UiText.StringResource(R.string.error_invalid_whatsapp))
+            return
+        }
+
+        val whatsappFullNumber = if (whatsappNumber.isNotBlank()) {
+            val country = Countries.find { it.code == whatsappCountryCode }
+            val code = country?.phoneCode?.filter { it.isDigit() } ?: ""
+            code + whatsappNumber
+        } else ""
+
+        val updatedUser = currentState.user.copy(
+            firstName = firstName,
+            lastName = lastName,
+            countryCode = countryCode,
+            phoneNumber = phoneNumber,
+            birthday = birthday,
+            bio = bio,
+            gender = gender,
+            socials = UserSocials(
+                whatsappNumber = whatsappNumber,
+                whatsappCountryCode = whatsappCountryCode,
+                whatsappFullNumber = whatsappFullNumber,
+                telegramUsername = telegramUsername,
+                facebookUsername = facebookUsername,
+                instagramUsername = instagramUsername,
+                tiktokUsername = tiktokUsername,
+                xUsername = xUsername
+            )
+        )
+
+        uiState = currentState.copy(isSaving = true)
+        viewModelScope.launch {
+            userRepository.updateUser(updatedUser)
+                .onSuccess {
+                    uiState =
+                        (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            UiText.StringResource(R.string.toast_profile_updated),
+                            navigateBack = true
+                        )
+                    )
+                }
+                .onFailure { e ->
+                    uiState =
+                        (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_updating_profile)
+                        )
+                    )
+                }
+        }
+    }
+
+    fun uploadProfilePicture(uri: Uri) {
+        val currentState = uiState as? ProfileUiState.Success ?: return
+        uiState = currentState.copy(isUploadingImage = true)
+
+        viewModelScope.launch {
+            userRepository.uploadProfilePicture(uri)
+                .onSuccess { downloadUrl ->
+                    val updatedUser = currentState.user.copy(profilePicUrl = downloadUrl)
+                    userRepository.updateUser(updatedUser)
+                        .onSuccess {
+                            uiState =
+                                (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
+                                    ?: uiState
+                            _uiEvent.emit(ProfileUiEvent.ShowToast(UiText.StringResource(R.string.toast_profile_picture_updated)))
+                        }
+                        .onFailure { e ->
+                            uiState =
+                                (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
+                                    ?: uiState
+                            _uiEvent.emit(
+                                ProfileUiEvent.ShowToast(
+                                    mapToUiText(e, R.string.error_updating_profile)
+                                )
+                            )
+                        }
+                }
+                .onFailure { e ->
+                    uiState = (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
+                        ?: uiState
+                    val errorText = when {
+                        e is InfrastructureException && e.messageRes != null -> UiText.StringResource(
+                            e.messageRes
+                        )
+
+                        else -> UiText.StringResource(R.string.error_uploading_image)
+                    }
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(errorText)
+                    )
+                }
+        }
+    }
+
+    fun deleteAccount() {
+        val currentState = uiState as? ProfileUiState.Success ?: return
+        uiState = currentState.copy(isSaving = true)
+        viewModelScope.launch {
+            userRepository.deleteAccount()
+                .onSuccess {
+                    _uiEvent.emit(ProfileUiEvent.AccountDeleted)
+                }
+                .onFailure { e ->
+                    uiState =
+                        (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
+                    _uiEvent.emit(
+                        ProfileUiEvent.ShowToast(
+                            mapToUiText(e, R.string.error_database_operation)
+                        )
+                    )
+                }
+        }
+    }
+
+    private fun mapToUiText(e: Throwable, defaultRes: Int): UiText {
+        return when (e) {
+            is InfrastructureException -> e.messageRes?.let { UiText.StringResource(it) }
+                ?: UiText.StringResource(R.string.error_infrastructure)
+
+            is SocialException -> e.messageRes?.let { UiText.StringResource(it) }
+                ?: UiText.StringResource(R.string.error_social)
+
+            is AuthException -> e.messageRes?.let { UiText.StringResource(it) }
+                ?: UiText.StringResource(R.string.error_auth)
+
+            else -> UiText.StringResource(defaultRes)
+        }
+    }
+}

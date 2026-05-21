@@ -1,7 +1,7 @@
 # --- Firebase & Firestore ---
 # Keep your data models to prevent R8 from renaming fields,
 # which would break Firestore's automatic mapping.
--keepclassmembers class com.example.free2party.data.model.** { *; }
+-keepclassmembers class com.free2party.data.model.** { *; }
 
 # --- Hilt / Dagger ---
 # Usually handled by Hilt's own rules, but good to have if issues arise.

@@ -5,7 +5,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name">
         <activity
-            android:name="com.example.free2party.TestActivity"
+            android:name="com.free2party.TestActivity"
             android:exported="true"
             android:theme="@style/Theme.Free2Party" />
     </application>

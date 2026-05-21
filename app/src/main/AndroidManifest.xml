@@ -73,6 +73,17 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${adMobAppId}"/>
 
+        <!-- Firebase Cloud Messaging Default Icon/Color -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/free2party_notification_white" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/white" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="f2p_social" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

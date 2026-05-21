@@ -1,0 +1,132 @@
+package com.free2party.ui.components.dialogs
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.res.stringResource
+import com.free2party.BuildConfig
+import com.free2party.data.model.FriendInfo
+import com.free2party.R
+import com.free2party.ui.components.MonthCalendar
+import com.free2party.ui.components.PlanResults
+import com.free2party.ui.screens.calendar.CalendarViewModel
+import com.free2party.util.capitalizeFirstLetter
+import kotlinx.coroutines.delay
+import java.text.DateFormat
+import java.util.Date
+import java.util.TimeZone
+
+@Composable
+fun FriendCalendarDialog(
+    friend: FriendInfo,
+    onDismiss: () -> Unit
+) {
+    val viewModel: CalendarViewModel = hiltViewModel(
+        key = "calendar_${friend.uid}"
+    )
+
+    LaunchedEffect(friend.uid) {
+        viewModel.setTargetUser(friend.uid)
+    }
+
+    val use24HourFormat = viewModel.use24HourFormat
+    val friends by viewModel.friendsList.collectAsState()
+
+    val handleDismiss = {
+        viewModel.goToToday()
+        onDismiss()
+    }
+
+    val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
+        while (true) {
+            delay(BuildConfig.updateFrequency)
+            value = System.currentTimeMillis()
+        }
+    }
+
+    BaseDialog(onDismissRequest = handleDismiss, modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, bottom = 8.dp, end = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val title = if (friend.name.endsWith("s")) {
+                    stringResource(R.string.title_friend_calendar_s, friend.name)
+                } else {
+                    stringResource(R.string.title_friend_calendar, friend.name)
+                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val plannedDays = viewModel.getPlannedDaysForMonth(
+                viewModel.displayedYear,
+                viewModel.displayedMonth
+            )
+            MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val selectedDateText = viewModel.selectedDateMillis?.let {
+                val format = DateFormat.getDateInstance()
+                format.timeZone = TimeZone.getTimeZone("UTC")
+                format.format(Date(it)).capitalizeFirstLetter()
+            } ?: ""
+
+            PlanResults(
+                plans = viewModel.filteredPlans,
+                isDateSelected = viewModel.selectedDateMillis != null,
+                selectedDateText = selectedDateText,
+                currentTimeMillis = currentTimeMillis,
+                use24HourFormat = use24HourFormat,
+                friends = friends,
+                onEdit = null,
+                onDelete = null,
+                modifier = Modifier.weight(1f)
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = handleDismiss) {
+                    Text(stringResource(R.string.button_close))
+                }
+            }
+        }
+    }
+}

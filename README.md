@@ -79,7 +79,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
 ## 📝 MVP Roadmap (Sprint 2) -- PLANNED --
 - [ ] Phase 5: Groups & Circles
     - [x] Create "Circles" (e.g., Close Friends, Coworkers, Family) to filter availability.
-    - [ ] Group privacy settings (choose which circles see your "Free" status).
+    - [x] Group privacy settings (choose which circles see your "Free" status).
 - [ ] Phase 6: Plan Proposals (RSVP System)
     - [ ] Propose a specific plan (e.g., "Beer at 7pm @ The Local Pub").
     - [ ] Friends can RSVP "In", "Out", or "Maybe" directly in the app.
@@ -108,7 +108,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
 2. **Firebase Configuration**:
     - Go to the [Firebase Console](https://console.firebase.google.com/).
     - Create a new project named "Free2Party".
-    - Add an Android app with the package name `com.example.free2party`.
+    - Add an Android app with the package name `com.free2party`.
     - Download the `google-services.json` and place it in the `app/` directory.
     - Enable **Email/Password** authentication in the Firebase Auth tab.
     - Create a **Firestore Database** in test mode (or setup appropriate security rules).

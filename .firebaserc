@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "free2party-ce5eb"
-  }
+    "default": "free2party"
+  },
+  "targets": {},
+  "etags": {}
 }

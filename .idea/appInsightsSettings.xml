@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.example.free2party" />
-                  <option name="mobileSdkAppId" value="1:233616711840:android:091da1a8752de13a3b29c5" />
-                  <option name="projectId" value="free2party-ce5eb" />
-                  <option name="projectNumber" value="233616711840" />
+                  <option name="appId" value="com.free2party" />
+                  <option name="mobileSdkAppId" value="1:326579292433:android:54923182079f2c4c03e4b0" />
+                  <option name="projectId" value="free2party" />
+                  <option name="projectNumber" value="326579292433" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

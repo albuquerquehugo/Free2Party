@@ -1,0 +1,391 @@
+package com.free2party.ui.screens.calendar
+
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.DatePickerState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TimePickerState
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.free2party.BuildConfig
+import com.free2party.R
+import com.free2party.data.model.FuturePlan
+import com.free2party.data.model.PlanVisibility
+import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.MonthCalendar
+import com.free2party.ui.components.dialogs.PlanDialog
+import com.free2party.ui.components.PlanResults
+import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.util.formatPlanDateInFull
+import com.free2party.util.isDateTimeInPast
+import com.free2party.util.UiText
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CalendarRoute() {
+    val context = LocalContext.current
+    val viewModel: CalendarViewModel = hiltViewModel()
+    val use24HourFormat = viewModel.use24HourFormat
+
+    val startDatePickerState = rememberDatePickerState()
+    val endDatePickerState = rememberDatePickerState()
+
+    // Recreate time picker states whenever the 24-hour format preference changes
+    val startTimeState = key(use24HourFormat) {
+        rememberTimePickerState(
+            initialHour = 12,
+            initialMinute = 0,
+            is24Hour = use24HourFormat
+        )
+    }
+    val endTimeState = key(use24HourFormat) {
+        rememberTimePickerState(
+            initialHour = 13,
+            initialMinute = 0,
+            is24Hour = use24HourFormat
+        )
+    }
+
+    val plannedDays =
+        viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
+
+    val gradientBackground = viewModel.gradientBackground
+
+    LaunchedEffect(viewModel.selectedDateMillis) {
+        if (viewModel.selectedDateMillis != startDatePickerState.selectedDateMillis) {
+            startDatePickerState.selectedDateMillis = viewModel.selectedDateMillis
+        }
+    }
+    LaunchedEffect(startDatePickerState.selectedDateMillis) {
+        if (startDatePickerState.selectedDateMillis != viewModel.selectedDateMillis) {
+            viewModel.selectedDateMillis = startDatePickerState.selectedDateMillis
+        }
+    }
+
+    val planAddedMessage = stringResource(R.string.plan_added_successfully)
+    val planUpdatedMessage = stringResource(R.string.plan_updated_successfully)
+    val planDeletedMessage = stringResource(R.string.plan_deleted)
+
+    CalendarScreen(
+        viewModel = viewModel,
+        plannedDays = plannedDays,
+        gradientBackground = gradientBackground,
+        startDatePickerState = startDatePickerState,
+        endDatePickerState = endDatePickerState,
+        startTimeState = startTimeState,
+        endTimeState = endTimeState,
+        onSavePlan = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection, editingPlanId ->
+            val onError = { errorMessage: UiText ->
+                Toast.makeText(context, errorMessage.asString(context), Toast.LENGTH_LONG).show()
+            }
+            val onSuccess = { message: String ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+
+            if (editingPlanId == null) {
+                viewModel.savePlan(
+                    startDate = startDate,
+                    endDate = endDate,
+                    startTime = startTime,
+                    endTime = endTime,
+                    note = note,
+                    visibility = visibility,
+                    friendsSelection = friendsSelection,
+                    onValidationError = onError,
+                    onSuccess = { onSuccess(planAddedMessage) }
+                )
+            } else {
+                viewModel.updatePlan(
+                    planId = editingPlanId,
+                    startDate = startDate,
+                    endDate = endDate,
+                    startTime = startTime,
+                    endTime = endTime,
+                    note = note,
+                    visibility = visibility,
+                    friendsSelection = friendsSelection,
+                    onError = onError,
+                    onSuccess = { onSuccess(planUpdatedMessage) }
+                )
+            }
+        },
+        onDeletePlan = { planId ->
+            viewModel.deletePlan(
+                planId = planId,
+                onError = { errorMessage: UiText ->
+                    Toast.makeText(context, errorMessage.asString(context), Toast.LENGTH_LONG)
+                        .show()
+                },
+                onSuccess = {
+                    Toast.makeText(context, planDeletedMessage, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CalendarScreen(
+    viewModel: CalendarViewModel,
+    plannedDays: Set<Int>,
+    gradientBackground: Boolean,
+    startDatePickerState: DatePickerState,
+    endDatePickerState: DatePickerState,
+    startTimeState: TimePickerState,
+    endTimeState: TimePickerState,
+    onSavePlan: (String, String, String, String, String, PlanVisibility, List<String>, String?) -> Unit,
+    onDeletePlan: (String) -> Unit
+) {
+    val use24HourFormat = viewModel.use24HourFormat
+    val friends by viewModel.friendsList.collectAsState()
+    val circles by viewModel.circles.collectAsState()
+
+    val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
+        while (true) {
+            delay(BuildConfig.updateFrequency)
+            value = System.currentTimeMillis()
+        }
+    }
+
+    val (showPlanDialog, setShowPlanDialog) = remember { mutableStateOf(false) }
+    var editingPlan by remember { mutableStateOf<FuturePlan?>(null) }
+    val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
+    var planToDelete by remember { mutableStateOf<FuturePlan?>(null) }
+
+    val selectedDateText = startDatePickerState.selectedDateMillis?.let {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        formatPlanDateInFull(sdf.format(Date(it)))
+    } ?: ""
+
+    val isSelectedDateInPast = viewModel.selectedDateMillis?.let { isDateTimeInPast(it) } ?: false
+    val configuration = LocalConfiguration.current
+    val isLandscape =
+        configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.free2party_full_foreground_color),
+                contentDescription = stringResource(R.string.description_logo_content),
+                modifier = Modifier.height(20.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        if (isLandscape) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+
+                    IconButton(
+                        onClick = {
+                            editingPlan = null
+                            setShowPlanDialog(true)
+                        },
+                        enabled = !isSelectedDateInPast,
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .background(
+                                if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
+                                else MaterialTheme.colorScheme.primary,
+                                CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.add_plan),
+                            tint = if (isSelectedDateInPast) {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            } else MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 16.dp)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    PlanResults(
+                        plans = viewModel.filteredPlans,
+                        isDateSelected = viewModel.selectedDateMillis != null,
+                        selectedDateText = selectedDateText,
+                        currentTimeMillis = currentTimeMillis,
+                        use24HourFormat = use24HourFormat,
+                        friends = friends,
+                        gradientBackground = gradientBackground,
+                        onEdit = { plan ->
+                            editingPlan = plan
+                            setShowPlanDialog(true)
+                        },
+                        onDelete = { plan ->
+                            planToDelete = plan
+                            setShowDeleteDialog(true)
+                        }
+                    )
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+
+                IconButton(
+                    onClick = {
+                        editingPlan = null
+                        setShowPlanDialog(true)
+                    },
+                    enabled = !isSelectedDateInPast,
+                    modifier = Modifier
+                        .padding(top = 8.dp, bottom = 16.dp)
+                        .background(
+                            if (isSelectedDateInPast) MaterialTheme.colorScheme.surfaceVariant
+                            else MaterialTheme.colorScheme.primary,
+                            CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.add_plan),
+                        tint = if (isSelectedDateInPast) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                        } else MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+
+                PlanResults(
+                    plans = viewModel.filteredPlans,
+                    isDateSelected = viewModel.selectedDateMillis != null,
+                    selectedDateText = selectedDateText,
+                    currentTimeMillis = currentTimeMillis,
+                    use24HourFormat = use24HourFormat,
+                    friends = friends,
+                    gradientBackground = gradientBackground,
+                    onEdit = { plan ->
+                        editingPlan = plan
+                        setShowPlanDialog(true)
+                    },
+                    onDelete = { plan ->
+                        planToDelete = plan
+                        setShowDeleteDialog(true)
+                    }
+                )
+            }
+        }
+
+        AdBanner()
+    }
+
+    if (showPlanDialog) {
+        PlanDialog(
+            editingPlan = editingPlan,
+            use24HourFormat = use24HourFormat,
+            friends = friends,
+            circles = circles,
+            onDismiss = { setShowPlanDialog(false) },
+            onConfirm = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection ->
+                onSavePlan(
+                    startDate,
+                    endDate,
+                    startTime,
+                    endTime,
+                    note,
+                    visibility,
+                    friendsSelection,
+                    editingPlan?.id
+                )
+                setShowPlanDialog(false)
+            },
+            startDatePickerState = startDatePickerState,
+            endDatePickerState = endDatePickerState,
+            startTimeState = startTimeState,
+            endTimeState = endTimeState
+        )
+    }
+
+    if (showDeleteDialog && planToDelete != null) {
+        ConfirmationDialog(
+            title = stringResource(R.string.delete_plan),
+            text = stringResource(R.string.delete_plan_confirmation_text),
+            confirmButtonText = stringResource(R.string.text_delete),
+            onConfirm = {
+                onDeletePlan(planToDelete!!.id)
+                setShowDeleteDialog(false)
+            },
+            dismissButtonText = stringResource(R.string.button_cancel),
+            onDismiss = { setShowDeleteDialog(false) },
+            isDestructive = true
+        )
+    }
+}

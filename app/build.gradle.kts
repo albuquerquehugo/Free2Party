@@ -11,11 +11,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.free2party"
+    namespace = "com.free2party"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.free2party"
+        applicationId = "com.free2party"
         minSdk = 24
         targetSdk = 37
         versionCode = 6

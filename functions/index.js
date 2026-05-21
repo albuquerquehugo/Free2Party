@@ -9,7 +9,7 @@ const logger = require("firebase-functions/logger");
 
 admin.initializeApp();
 
-setGlobalOptions({maxInstances: 10});
+setGlobalOptions({region: "us-east1", maxInstances: 10});
 
 /**
  * Triggers when a new document is created in the 'friendRequests' collection.

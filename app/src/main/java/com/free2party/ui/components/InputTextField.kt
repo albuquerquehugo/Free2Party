@@ -1,0 +1,231 @@
+package com.free2party.ui.components
+
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+
+@Composable
+fun InputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+    placeholderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+    icon: ImageVector? = null,
+    painter: Painter? = null,
+    leadingIconExtra: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    changeVisibility: () -> Unit = {},
+    enabled: Boolean = true,
+    isError: Boolean = false,
+    showClearIcon: Boolean = true,
+    onClear: (() -> Unit)? = null,
+    minLines: Int = 1,
+    maxLines: Int = 1,
+    supportingText: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    focusRequester: FocusRequester = remember { FocusRequester() },
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    colors: TextFieldColors? = null
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val isMultiLine = maxLines > 1
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val clearButtonInteractionSource = remember { MutableInteractionSource() }
+    val isClearButtonPressed by clearButtonInteractionSource.collectIsPressedAsState()
+
+    var isFocusedBuffered by remember { mutableStateOf(false) }
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            isFocusedBuffered = true
+        } else {
+            delay(150)
+            isFocusedBuffered = false
+        }
+    }
+
+    val labelColor = if (value.isEmpty() && !isFocused) {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    } else {
+        Color.Unspecified
+    }
+
+    val defaultColors = OutlinedTextFieldDefaults.colors(
+        unfocusedLabelColor = labelColor
+    )
+
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    val finalKeyboardActions = if (keyboardOptions.imeAction == ImeAction.Done) {
+        KeyboardActions(onDone = {
+            keyboardController?.hide()
+        })
+    } else {
+        keyboardActions
+    }
+
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            delay(100)
+            keyboardController?.show()
+            delay(100)
+            bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
+        }
+    }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
+        textStyle = MaterialTheme.typography.bodyMedium,
+        placeholder = placeholder?.let {
+            {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = placeholderColor
+                )
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester)
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier),
+        enabled = enabled,
+        isError = isError,
+        supportingText = supportingText,
+        interactionSource = interactionSource,
+        visualTransformation = if (isPassword && !passwordVisible) {
+            PasswordVisualTransformation()
+        } else {
+            visualTransformation
+        },
+        prefix = prefix,
+        colors = colors ?: defaultColors,
+        leadingIcon = if (icon != null || painter != null || leadingIconExtra != null) {
+            {
+                Row(
+                    modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,
+                    verticalAlignment = if (isMultiLine) Alignment.Top else Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    if (icon != null || painter != null) {
+                        Box(
+                            modifier = Modifier.padding(
+                                top = if (isMultiLine) 16.dp else 0.dp,
+                                start = 12.dp,
+                                end = if (leadingIconExtra != null) 0.dp else 12.dp
+                            ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (painter != null) {
+                                Icon(
+                                    painter,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else if (icon != null) {
+                                Icon(
+                                    icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    leadingIconExtra?.invoke()
+                }
+            }
+        } else null,
+        trailingIcon = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (showClearIcon &&
+                    (isFocusedBuffered || isClearButtonPressed) &&
+                    (value.isNotEmpty() || onClear != null)
+                ) {
+                    IconButton(
+                        onClick = { onClear?.invoke() ?: onValueChange("") },
+                        modifier = Modifier.focusProperties { canFocus = false },
+                        interactionSource = clearButtonInteractionSource
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                if (isPassword) {
+                    val image =
+                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+                    IconButton(onClick = changeVisibility) {
+                        Icon(imageVector = image, contentDescription = description)
+                    }
+                }
+
+                trailingIcon?.invoke()
+            }
+        },
+        singleLine = !isMultiLine,
+        minLines = minLines,
+        maxLines = maxLines,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = finalKeyboardActions
+    )
+}
