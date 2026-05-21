@@ -77,7 +77,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
     - [x] Deep-link to WhatsApp/SMS for chat.
 
 ## 📝 MVP Roadmap (Sprint 2) -- PLANNED --
-- [ ] Phase 5: Groups & Circles
+- [x] Phase 5: Groups & Circles
     - [x] Create "Circles" (e.g., Close Friends, Coworkers, Family) to filter availability.
     - [x] Group privacy settings (choose which circles see your "Free" status).
 - [ ] Phase 6: Plan Proposals (RSVP System)

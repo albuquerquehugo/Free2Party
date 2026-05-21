@@ -18,7 +18,7 @@ android {
         applicationId = "com.free2party"
         minSdk = 24
         targetSdk = 37
-        versionCode = 6
+        versionCode = 7
         versionName = "0.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -69,10 +69,14 @@ android {
             )
             // Ensure no debug IP is leaked in release
             buildConfigField("String", "COMPUTER_IP", "\"\"")
-            // Production Ad Unit ID (Currently using test ID, user must replace)
+            // Production Ad Unit ID
             buildConfigField("String", "AD_UNIT_ID", "\"ca-app-pub-7524164703051075/1196798688\"")
-            // Production AdMob App ID (Currently using test ID, user must replace)
+            // Production AdMob App ID
             manifestPlaceholders["adMobAppId"] = "ca-app-pub-7524164703051075~5678969176"
+
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
