@@ -104,34 +104,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateThemeMode(mode: ThemeMode) {
-        viewModelScope.launch {
-            settingsRepository.setThemeMode(mode)
-
-            // Also update the Firestore user settings if we are in Success state
-            (uiState as? SettingsUiState.Success)?.let { state ->
-                val updatedUser = state.user.copy(
-                    settings = state.user.settings.copy(themeMode = mode)
-                )
-                updateSettings(updatedUser, showToast = false)
-            }
-        }
-    }
-
-    fun updateGradientBackground(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setGradientBackground(enabled)
-
-            // Also update the Firestore user settings if we are in Success state
-            (uiState as? SettingsUiState.Success)?.let { state ->
-                val updatedUser = state.user.copy(
-                    settings = state.user.settings.copy(gradientBackground = enabled)
-                )
-                updateSettings(updatedUser, showToast = false)
-            }
-        }
-    }
-
     fun updateSettings(updatedUser: User, showToast: Boolean = true) {
         val currentState = uiState as? SettingsUiState.Success ?: return
         if (showToast) {
