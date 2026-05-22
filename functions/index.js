@@ -2,6 +2,7 @@ const {
   onDocumentCreated,
   onDocumentDeleted,
   onDocumentUpdated,
+  onDocumentWritten,
 } = require("firebase-functions/v2/firestore");
 const {setGlobalOptions} = require("firebase-functions");
 const admin = require("firebase-admin");
@@ -244,6 +245,97 @@ exports.onNotificationUpdated = onDocumentUpdated(
         await admin.messaging().send(message);
       } catch (error) {
         logger.error("Error sending dismissal:", error);
+      }
+    },
+);
+
+/**
+ * Triggers when a report is created or updated.
+ * Creates an email document in the 'mail' collection to be sent by the
+ * 'Trigger Email' extension.
+ */
+exports.onReportWritten = onDocumentWritten(
+    "reports/{reportId}",
+    async (event) => {
+      const snapshot = event.data.after;
+      if (!snapshot || !snapshot.exists) return;
+
+      const reportData = snapshot.data();
+      const reporterId = reportData.reporterId;
+      const reportedUserId = reportData.reportedUserId;
+      const reason = reportData.reason;
+
+      try {
+        // Fetch reporter and reported user details for a better email content
+        const [reporterDoc, reportedDoc] = await Promise.all([
+          admin.firestore().collection("users").doc(reporterId).get(),
+          admin.firestore().collection("users").doc(reportedUserId).get(),
+        ]);
+
+        const getFullName = (doc) => {
+          if (!doc.exists) return "Unknown User";
+          const data = doc.data();
+          return `${data.firstName || ""} ${data.lastName || ""}`.trim() ||
+            "Unknown User";
+        };
+
+        const reporterName = getFullName(reporterDoc);
+        const reporterEmail = reporterDoc.exists ?
+            reporterDoc.data().email : "N/A";
+        const reportedName = getFullName(reportedDoc);
+        const reportedEmail = reportedDoc.exists ?
+            reportedDoc.data().email : "N/A";
+
+        // Map Portuguese reasons to English for the support email
+        const reasonMap = {
+          "Spam ou golpe": "Spam or scam",
+          "Assédio ou bullying": "Harassment or bullying",
+          "Conteúdo ou foto de perfil inapropriada":
+            "Inappropriate content or profile picture",
+          "Falsificação de identidade": "Impersonation",
+          "Outro": "Other",
+        };
+        const englishReason = reasonMap[reason] || reason;
+
+        const isNewReport = !event.data.before.exists;
+
+        // Create the email document for the Trigger Email extension
+        await admin.firestore().collection("mail").add({
+          to: "support@free2party.app",
+          message: {
+            subject: `[${isNewReport ? "NEW" : "UPDATE"}] ` +
+              `User Report - ${reportedName}`,
+            html: `
+              <h1>User Report ${isNewReport ? "Received" : "Updated"}</h1>
+              <p>
+                A user report has been ${isNewReport ? "created" : "updated"}.
+              </p>
+              <hr>
+              <h3>Report Details:</h3>
+              <ul>
+                <li><strong>Reason:</strong> ${englishReason}</li>
+              </ul>
+              <h3>Reported User:</h3>
+              <ul>
+                <li><strong>Name:</strong> ${reportedName}</li>
+                <li><strong>Email:</strong> ${reportedEmail}</li>
+                <li><strong>UID:</strong> ${reportedUserId}</li>
+              </ul>
+              <h3>Reporter:</h3>
+              <ul>
+                <li><strong>Name:</strong> ${reporterName}</li>
+                <li><strong>Email:</strong> ${reporterEmail}</li>
+                <li><strong>UID:</strong> ${reporterId}</li>
+              </ul>
+            `,
+          },
+        });
+
+        logger.info(
+            `Report email task created for report ${event.params.reportId}`,
+        );
+      } catch (error) {
+        logger.error("Error processing report email:", error);
       }
     },
 );
