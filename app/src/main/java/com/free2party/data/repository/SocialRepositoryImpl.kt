@@ -19,7 +19,6 @@ import com.free2party.exception.FriendRequestAlreadySentException
 import com.free2party.exception.FriendRequestPendingException
 import com.free2party.exception.FriendRequestBlockedException
 import com.free2party.exception.FriendRequestNotFoundException
-import com.free2party.exception.UserAlreadyReportedException
 import com.free2party.exception.InfrastructureException
 import com.free2party.exception.NetworkUnavailableException
 import com.free2party.exception.SocialException
@@ -556,11 +555,6 @@ class SocialRepositoryImpl @Inject constructor(
         val reportRef = db.collection("reports").document(reportId)
 
         db.runTransaction { transaction ->
-            val snapshot = transaction.get(reportRef)
-            if (snapshot.exists()) {
-                throw UserAlreadyReportedException()
-            }
-
             transaction.set(
                 reportRef, mapOf(
                     "reporterId" to currentUserId,

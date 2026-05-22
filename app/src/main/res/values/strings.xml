@@ -173,7 +173,6 @@
     <string name="title_blocked_users">Blocked Users</string>
     <string name="title_report_user">Report User</string>
     <string name="toast_user_reported">User reported successfully</string>
-    <string name="toast_user_already_reported">You have already reported this user</string>
     <string name="toast_user_unblocked">User unblocked</string>
 
     <!-- Settings Screen -->

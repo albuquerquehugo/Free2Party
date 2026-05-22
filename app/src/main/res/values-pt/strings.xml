@@ -173,7 +173,6 @@
     <string name="title_blocked_users">Usuários Bloqueados</string>
     <string name="title_report_user">Denunciar Usuário</string>
     <string name="toast_user_reported">Usuário denunciado com sucesso</string>
-    <string name="toast_user_already_reported">Você já denunciou este usuário</string>
     <string name="toast_user_unblocked">Usuário desbloqueado</string>
 
     <!-- Settings Screen -->
