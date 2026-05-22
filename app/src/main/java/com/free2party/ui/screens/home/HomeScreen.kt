@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.ButtonDefaults
@@ -92,6 +93,7 @@ import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.ui.components.dialogs.FriendCalendarDialog
+import com.free2party.ui.components.dialogs.ReportUserDialog
 import com.free2party.ui.screens.circles.CircleViewModel
 import com.free2party.ui.screens.circles.CircleUiEvent
 import com.free2party.ui.theme.available
@@ -171,6 +173,7 @@ fun HomeRoute(
         onToggleAvailability = { homeViewModel.toggleAvailability() },
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
         onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
+        onReportUser = { uid, reason -> homeViewModel.reportUser(uid, reason) },
         onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
         onInviteFriendClick = onNavigateToInviteFriend,
         circles = circleViewModel.circles,
@@ -193,6 +196,7 @@ fun HomeScreen(
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onRemoveAndBlockFriend: (String) -> Unit,
+    onReportUser: (String, String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     circles: List<Circle>,
@@ -206,6 +210,8 @@ fun HomeScreen(
     var showRemoveFriendDialog by remember { mutableStateOf(false) }
     var friendIdToRemove by remember { mutableStateOf<String?>(null) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var friendIdToReport by remember { mutableStateOf<String?>(null) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
 
@@ -470,6 +476,10 @@ fun HomeScreen(
                             friendIdToRemove = uid
                             showRemoveFriendDialog = true
                         },
+                        onReportUser = { uid ->
+                            friendIdToReport = uid
+                            showReportDialog = true
+                        },
                         onCancelInvite = onCancelInvite,
                         onInviteFriendClick = onInviteFriendClick,
                         onFriendItemClick = { friend -> selectedFriend = friend }
@@ -522,6 +532,20 @@ fun HomeScreen(
             AboutDialog(onDismiss = { showAboutDialog = false })
         }
 
+        if (showReportDialog) {
+            ReportUserDialog(
+                onDismiss = {
+                    showReportDialog = false
+                    friendIdToReport = null
+                },
+                onReport = { reason ->
+                    friendIdToReport?.let { onReportUser(it, reason) }
+                    showReportDialog = false
+                    friendIdToReport = null
+                }
+            )
+        }
+
         selectedFriend?.let { friend ->
             FriendCalendarDialog(
                 friend = friend,
@@ -543,6 +567,7 @@ fun HomeContent(
     onCircleSelected: (String?) -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
+    onReportUser: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit
@@ -636,6 +661,7 @@ fun HomeContent(
                 selectedCircleId = selectedCircleId,
                 onCircleSelected = onCircleSelected,
                 onRemoveFriend = onRemoveFriend,
+                onReportUser = onReportUser,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
                 onFriendItemClick = onFriendItemClick
@@ -654,6 +680,7 @@ fun FriendsListSection(
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit,
     onRemoveFriend: (String) -> Unit,
+    onReportUser: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit
@@ -816,6 +843,7 @@ fun FriendsListSection(
                     friends = freeFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
+                    onReportUser = onReportUser,
                     onCancelInvite = onCancelInvite,
                     onClick = onFriendItemClick
                 )
@@ -826,6 +854,7 @@ fun FriendsListSection(
                     friends = busyFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
+                    onReportUser = onReportUser,
                     onCancelInvite = onCancelInvite,
                     onClick = onFriendItemClick
                 )
@@ -836,6 +865,7 @@ fun FriendsListSection(
                     friends = invitedFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
+                    onReportUser = onReportUser,
                     onCancelInvite = onCancelInvite,
                     onClick = onFriendItemClick
                 )
@@ -853,6 +883,7 @@ fun ExpandableFriendSection(
     friends: List<FriendInfo>,
     gradientBackground: Boolean,
     onRemoveFriend: (String) -> Unit,
+    onReportUser: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onClick: (FriendInfo) -> Unit
 ) {
@@ -902,6 +933,7 @@ fun ExpandableFriendSection(
                             friend = friend,
                             gradientBackground = gradientBackground,
                             onRemoveFriend = { onRemoveFriend(friend.uid) },
+                            onReportUser = { onReportUser(friend.uid) },
                             onCancelInvite = { onCancelInvite(friend.uid) },
                             onClick = { onClick(friend) }
                         )
@@ -917,6 +949,7 @@ fun FriendItem(
     friend: FriendInfo,
     gradientBackground: Boolean,
     onRemoveFriend: (String) -> Unit,
+    onReportUser: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onClick: () -> Unit
 ) {
@@ -1257,6 +1290,30 @@ fun FriendItem(
                                 }
                             }
                         )
+
+                        if (!isInvited) {
+                            DropdownMenuItem(
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            stringResource(R.string.label_report_and_block),
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Report,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    showFriendMenu = false
+                                    onReportUser(friend.uid)
+                                }
+                            )
+                        }
                     }
                 }
             }

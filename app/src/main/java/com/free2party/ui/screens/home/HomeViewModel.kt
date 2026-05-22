@@ -254,6 +254,56 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun reportUser(userId: String, reason: String) {
+        viewModelScope.launch {
+            socialRepository.reportUser(userId, reason)
+                .onSuccess {
+                    socialRepository.removeAndBlockFriend(userId)
+                        .onSuccess {
+                            _uiEvent.emit(
+                                HomeUiEvent.ShowToast(
+                                    UiText.StringResource(R.string.toast_user_reported)
+                                )
+                            )
+                        }
+                        .onFailure { e ->
+                            _uiEvent.emit(
+                                HomeUiEvent.ShowToast(
+                                    mapToUiText(
+                                        e,
+                                        R.string.error_reporting_user
+                                    )
+                                )
+                            )
+                        }
+                }
+                .onFailure { e ->
+                    _uiEvent.emit(
+                        HomeUiEvent.ShowToast(
+                            mapToUiText(
+                                e,
+                                R.string.error_reporting_user
+                            )
+                        )
+                    )
+                }
+        }
+    }
+
+    private fun mapToUiText(e: Throwable, defaultResId: Int): UiText {
+        return when (e) {
+            is InfrastructureException ->
+                if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                else UiText.StringResource(R.string.error_infrastructure)
+
+            is SocialException ->
+                if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                else UiText.StringResource(R.string.error_social)
+
+            else -> UiText.StringResource(defaultResId)
+        }
+    }
+
     fun cancelFriendInvite(friendUid: String) {
         viewModelScope.launch {
             socialRepository.cancelFriendRequest(friendUid)

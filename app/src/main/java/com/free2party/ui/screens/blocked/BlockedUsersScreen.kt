@@ -16,25 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,8 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -57,6 +48,7 @@ import coil.compose.AsyncImage
 import com.free2party.data.model.BlockedUser
 import com.free2party.R
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.dialogs.ReportUserDialog
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -278,96 +270,4 @@ private fun BlockedUserItem(
             }
         }
     }
-}
-
-@Composable
-private fun ReportUserDialog(
-    onDismiss: () -> Unit,
-    onReport: (String) -> Unit
-) {
-    val options = listOf(
-        stringResource(R.string.label_report_reason_spam),
-        stringResource(R.string.label_report_reason_harassment),
-        stringResource(R.string.label_report_reason_inappropriate_content),
-        stringResource(R.string.label_report_reason_impersonation),
-        stringResource(R.string.label_report_reason_other)
-    )
-    var selectedOption by remember { mutableStateOf(options[0]) }
-    var otherReason by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.title_report_user)) },
-        text = {
-            Column(
-                modifier = Modifier.selectableGroup(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.text_report_user_reason),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                options.forEach { text ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = (text == selectedOption),
-                                onClick = { selectedOption = text },
-                                role = Role.RadioButton
-                            )
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = (text == selectedOption),
-                            onClick = null // Selected by Row's selectable
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = text,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-
-                if (selectedOption == options.last()) {
-                    OutlinedTextField(
-                        value = otherReason,
-                        onValueChange = { otherReason = it },
-                        placeholder = { Text(stringResource(R.string.placeholder_report_reason_other)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        maxLines = 3,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            val isOtherSelected = selectedOption == options.last()
-            val isEnabled = !isOtherSelected || otherReason.isNotBlank()
-
-            TextButton(
-                onClick = {
-                    val finalReason = if (isOtherSelected) otherReason else selectedOption
-                    onReport(finalReason)
-                },
-                enabled = isEnabled
-            ) {
-                Text(stringResource(R.string.button_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.button_cancel))
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        titleContentColor = MaterialTheme.colorScheme.onSurface,
-        textContentColor = MaterialTheme.colorScheme.onSurface
-    )
 }

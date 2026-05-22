@@ -162,6 +162,7 @@
 
     <!-- Blocked Users Screen -->
     <string name="label_report">Report</string>
+    <string name="label_report_and_block">Report and block</string>
     <string name="label_report_reason_harassment">Harassment or bullying</string>
     <string name="label_report_reason_impersonation">Impersonation</string>
     <string name="label_report_reason_inappropriate_content">Inappropriate content or profile picture</string>
