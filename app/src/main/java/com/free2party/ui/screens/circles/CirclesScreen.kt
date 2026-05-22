@@ -301,7 +301,7 @@ private fun CircleListItem(
                         Text(
                             text = stringResource(
                                 R.string.label_circle_member_count,
-                                circle.friendIds.size
+                                circleFriends.size
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant

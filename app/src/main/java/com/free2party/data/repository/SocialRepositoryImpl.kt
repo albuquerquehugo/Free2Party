@@ -580,6 +580,12 @@ class SocialRepositoryImpl @Inject constructor(
 
         val sender = userRepository.getUserById(currentUserId).getOrThrow()
 
+        // Find circles containing this friend to clean them up
+        val circlesWithFriend = db.collection("users").document(currentUserId)
+            .collection("circles")
+            .whereArrayContains("friendIds", friendId)
+            .get().await()
+
         db.runTransaction { transaction ->
             transaction.delete(
                 db.collection("users").document(currentUserId).collection("friends")
@@ -595,6 +601,11 @@ class SocialRepositoryImpl @Inject constructor(
             transaction.delete(
                 db.collection("friendRequests").document("${friendId}_${currentUserId}")
             )
+
+            // Cleanup circles: remove the friend from all circles they were in
+            circlesWithFriend.documents.forEach { doc ->
+                transaction.update(doc.reference, "friendIds", FieldValue.arrayRemove(friendId))
+            }
 
             val receiverNotifRef = db.collection("users").document(friendId)
                 .collection("notifications").document()
@@ -625,6 +636,12 @@ class SocialRepositoryImpl @Inject constructor(
             .collection("friends").document(friendId).get().await()
         val friendName = friendDoc.getString("name") ?: "Someone"
 
+        // Find circles containing this friend to clean them up
+        val circlesWithFriend = db.collection("users").document(currentUserId)
+            .collection("circles")
+            .whereArrayContains("friendIds", friendId)
+            .get().await()
+
         db.runTransaction { transaction ->
             transaction.delete(
                 db.collection("users").document(currentUserId).collection("friends")
@@ -640,6 +657,12 @@ class SocialRepositoryImpl @Inject constructor(
             transaction.delete(
                 db.collection("friendRequests").document("${friendId}_${currentUserId}")
             )
+
+            // Cleanup circles: remove the friend from all circles they were in
+            circlesWithFriend.documents.forEach { doc ->
+                transaction.update(doc.reference, "friendIds", FieldValue.arrayRemove(friendId))
+            }
+
             val blockedRef = db.collection("users").document(currentUserId)
                 .collection("blocked").document(friendId)
             transaction.set(

@@ -7,9 +7,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.free2party.data.repository.PlanRepository
-import com.free2party.data.repository.PlanRepositoryImpl
 import com.free2party.data.repository.UserRepository
-import com.free2party.data.repository.UserRepositoryImpl
 import com.free2party.exception.UnauthorizedException
 import com.free2party.exception.UserNotFoundException
 import com.free2party.data.model.PlanVisibility
@@ -75,16 +73,6 @@ class Free2PartyApp : Application() {
         NotificationHelper.createNotificationChannel(this)
 
         MobileAds.initialize(this) {}
-
-        userRepository = UserRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore,
-            storage = Firebase.storage
-        )
-        planRepository = PlanRepositoryImpl(
-            auth = Firebase.auth,
-            db = Firebase.firestore
-        )
 
         setupUserStatusAutomation()
         setupForegroundTracking()

@@ -37,7 +37,11 @@ fun CircleDialog(
     isLoading: Boolean = false
 ) {
     var name by remember { mutableStateOf(circle?.name ?: "") }
-    var selectedFriendIds by remember { mutableStateOf(circle?.friendIds?.toSet() ?: emptySet()) }
+    var selectedFriendIds by remember {
+        mutableStateOf(
+            circle?.friendIds?.filter { id -> friends.any { it.uid == id } }?.toSet() ?: emptySet()
+        )
+    }
     val focusManager = LocalFocusManager.current
 
     val hasChanges by remember(name, selectedFriendIds, circle) {
