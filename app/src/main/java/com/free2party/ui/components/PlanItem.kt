@@ -249,6 +249,7 @@ fun PlanItem(
                     ) {
                         Text(
                             text = plan.note,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
                             overflow = TextOverflow.Ellipsis,

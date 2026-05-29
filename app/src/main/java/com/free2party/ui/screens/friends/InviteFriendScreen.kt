@@ -162,6 +162,7 @@ fun InviteFriendScreen(
             } else if (query.isNotBlank() && searchResults.isEmpty()) {
                 Text(
                     text = stringResource(R.string.text_no_results_found),
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(16.dp)
                 )

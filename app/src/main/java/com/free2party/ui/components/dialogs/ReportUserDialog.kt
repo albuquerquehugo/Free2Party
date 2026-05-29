@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.free2party.R
@@ -91,7 +92,10 @@ fun ReportUserDialog(
                             .fillMaxWidth()
                             .padding(top = 8.dp),
                         maxLines = 3,
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Sentences,
+                            imeAction = ImeAction.Done
+                        )
                     )
                 }
             }
