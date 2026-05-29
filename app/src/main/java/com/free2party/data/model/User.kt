@@ -48,6 +48,11 @@ enum class Gender(val labelResId: Int) {
     }
 }
 
+enum class Membership {
+    REGULAR,
+    PREMIUM
+}
+
 data class UserSettings(
     val themeMode: ThemeMode = ThemeMode.AUTOMATIC,
     val gradientBackground: Boolean = true,
@@ -80,6 +85,7 @@ data class User(
     val birthday: String = "",
     val bio: String = "",
     val gender: Gender = Gender.OTHER,
+    val membership: Membership = Membership.REGULAR,
     val socials: UserSocials = UserSocials(),
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,

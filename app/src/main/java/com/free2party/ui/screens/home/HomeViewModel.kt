@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.free2party.data.model.Gender
+import com.free2party.data.model.Membership
 import com.free2party.data.model.InviteStatus
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.repository.AuthRepository
@@ -43,7 +44,8 @@ sealed interface HomeUiState {
         val use24HourFormat: Boolean = true,
         val gradientBackground: Boolean = true,
         val friendsList: List<FriendInfo> = emptyList(),
-        val isActionLoading: Boolean = false
+        val isActionLoading: Boolean = false,
+        val membership: Membership = Membership.REGULAR
     ) : HomeUiState
 
     data class Error(val message: UiText) : HomeUiState
@@ -118,7 +120,8 @@ class HomeViewModel @Inject constructor(
                 isWithinPlanPeriod = isAnyPlanActiveNow,
                 use24HourFormat = user.settings.use24HourFormat,
                 gradientBackground = user.settings.gradientBackground,
-                friendsList = sortedFriends
+                friendsList = sortedFriends,
+                membership = user.membership
             )
         }.onEach { newState ->
             uiState = newState

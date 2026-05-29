@@ -87,6 +87,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
+import com.free2party.data.model.Membership
 import com.free2party.data.model.InviteStatus
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
@@ -482,7 +483,8 @@ fun HomeScreen(
                         },
                         onCancelInvite = onCancelInvite,
                         onInviteFriendClick = onInviteFriendClick,
-                        onFriendItemClick = { friend -> selectedFriend = friend }
+                        onFriendItemClick = { friend -> selectedFriend = friend },
+                        membership = homeUiState.membership
                     )
                 }
             }
@@ -570,7 +572,8 @@ fun HomeContent(
     onReportUser: (String) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
-    onFriendItemClick: (FriendInfo) -> Unit
+    onFriendItemClick: (FriendInfo) -> Unit,
+    membership: Membership = Membership.REGULAR
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -668,7 +671,9 @@ fun HomeContent(
             )
         }
 
-        AdBanner()
+        if (membership == Membership.REGULAR) {
+            AdBanner()
+        }
     }
 }
 

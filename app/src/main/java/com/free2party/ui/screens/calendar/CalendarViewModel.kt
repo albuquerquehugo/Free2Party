@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.free2party.R
 import com.free2party.data.model.Circle
 import com.free2party.data.model.DatePattern
+import com.free2party.data.model.Membership
 import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.PlanVisibility
 import com.free2party.data.model.FriendInfo
@@ -88,6 +89,9 @@ class CalendarViewModel @Inject constructor(
     var datePattern by mutableStateOf(DatePattern.YYYY_MM_DD)
         private set
 
+    var membership by mutableStateOf(Membership.REGULAR)
+        private set
+
     private val userIdToObserve get() = targetUserId.value ?: currentUserId
 
     val circles: StateFlow<List<Circle>> = socialRepository.getCircles()
@@ -115,6 +119,7 @@ class CalendarViewModel @Inject constructor(
                 gradientBackground = user.settings.gradientBackground
                 use24HourFormat = user.settings.use24HourFormat
                 datePattern = user.settings.datePattern
+                membership = user.membership
             }
             .catch { e -> Log.e("CalendarViewModel", "Error observing user settings", e) }
             .launchIn(viewModelScope)

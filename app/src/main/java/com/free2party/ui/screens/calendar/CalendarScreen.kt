@@ -45,6 +45,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.BuildConfig
 import com.free2party.R
 import com.free2party.data.model.FuturePlan
+import com.free2party.data.model.Membership
 import com.free2party.data.model.PlanVisibility
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.MonthCalendar
@@ -344,7 +345,9 @@ fun CalendarScreen(
             }
         }
 
-        AdBanner()
+        if (viewModel.membership == Membership.REGULAR) {
+            AdBanner()
+        }
     }
 
     if (showPlanDialog) {
