@@ -65,8 +65,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.FriendRequest
+import com.free2party.data.model.Membership
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
+import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
@@ -79,6 +81,7 @@ fun NotificationsRoute(viewModel: NotificationsViewModel) {
     val itemsUnreadCount by viewModel.itemsUnreadCount.collectAsState()
     val notificationsUnreadCount by viewModel.notificationsUnreadCount.collectAsState()
     val gradientBackground by viewModel.gradientBackground.collectAsState()
+    val membership by viewModel.membership.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
@@ -99,6 +102,7 @@ fun NotificationsRoute(viewModel: NotificationsViewModel) {
         itemsUnreadCount = itemsUnreadCount,
         notificationsUnreadCount = notificationsUnreadCount,
         gradientBackground = gradientBackground,
+        membership = membership,
         onAcceptRequest = { viewModel.acceptFriendRequest(it.id) },
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
         onDeclineAndBlockRequest = { viewModel.declineAndBlockFriendRequest(it.id) },
@@ -114,6 +118,7 @@ fun NotificationsScreen(
     itemsUnreadCount: Int,
     notificationsUnreadCount: Int,
     gradientBackground: Boolean,
+    membership: Membership = Membership.REGULAR,
     onAcceptRequest: (FriendRequest) -> Unit,
     onDeclineRequest: (FriendRequest) -> Unit,
     onDeclineAndBlockRequest: (FriendRequest) -> Unit,
@@ -127,7 +132,7 @@ fun NotificationsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface)
-            .padding(vertical = 16.dp),
+            .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -157,82 +162,92 @@ fun NotificationsScreen(
             fontWeight = FontWeight.Bold
         )
 
-        if (items.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Default.NotificationsNone,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.outline
-                )
-                Text(
-                    text = stringResource(R.string.text_all_caught_up),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            val requests = items.filterIsInstance<NotificationItem.Request>()
-            val notifications = items.filterIsInstance<NotificationItem.Info>()
-
-            LazyColumn(state = listState, horizontalAlignment = Alignment.CenterHorizontally) {
-                if (requests.isNotEmpty()) {
-                    item {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            thickness = 1.dp,
-                            modifier = Modifier.padding(top = 24.dp)
-                        )
-                    }
-                    items(requests, key = { it.id }) { item ->
-                        FriendRequestItem(
-                            request = item.friendRequest,
-                            gradientBackground = gradientBackground,
-                            onAccept = { onAcceptRequest(item.friendRequest) },
-                            onDecline = { onDeclineRequest(item.friendRequest) },
-                            onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            thickness = 1.dp
-                        )
-                    }
+        Box(modifier = Modifier.weight(1f)) {
+            if (items.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Default.NotificationsNone,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                    Text(
+                        text = stringResource(R.string.text_all_caught_up),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            } else {
+                val requests = items.filterIsInstance<NotificationItem.Request>()
+                val notifications = items.filterIsInstance<NotificationItem.Info>()
 
-                if (notifications.isNotEmpty()) {
-                    item {
-                        TextButton(
-                            enabled = notificationsUnreadCount > 0,
-                            onClick = onMarkAllAsRead,
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Text(stringResource(R.string.label_mark_all_as_read))
+                LazyColumn(
+                    state = listState,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (requests.isNotEmpty()) {
+                        item {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(top = 24.dp)
+                            )
+                        }
+                        items(requests, key = { it.id }) { item ->
+                            FriendRequestItem(
+                                request = item.friendRequest,
+                                gradientBackground = gradientBackground,
+                                onAccept = { onAcceptRequest(item.friendRequest) },
+                                onDecline = { onDeclineRequest(item.friendRequest) },
+                                onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
+                            )
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = 1.dp
+                            )
                         }
                     }
-                    item {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            thickness = 1.dp
-                        )
-                    }
-                    items(notifications, key = { it.id }) { item ->
-                        DismissibleNotificationItem(
-                            notification = item.notification,
-                            gradientBackground = gradientBackground,
-                            onToggleRead = { onToggleRead(item.notification) },
-                            onDelete = { onDelete(item.notification.id) }
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            thickness = 1.dp
-                        )
+
+                    if (notifications.isNotEmpty()) {
+                        item {
+                            TextButton(
+                                enabled = notificationsUnreadCount > 0,
+                                onClick = onMarkAllAsRead,
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text(stringResource(R.string.label_mark_all_as_read))
+                            }
+                        }
+                        item {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = 1.dp
+                            )
+                        }
+                        items(notifications, key = { it.id }) { item ->
+                            DismissibleNotificationItem(
+                                notification = item.notification,
+                                gradientBackground = gradientBackground,
+                                onToggleRead = { onToggleRead(item.notification) },
+                                onDelete = { onDelete(item.notification.id) }
+                            )
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = 1.dp
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        if (membership == Membership.REGULAR) {
+            AdBanner()
         }
     }
 }

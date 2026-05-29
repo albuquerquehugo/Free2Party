@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.free2party.R
 import com.free2party.data.model.FriendRequest
 import com.free2party.data.model.FriendRequestStatus
+import com.free2party.data.model.Membership
 import com.free2party.data.model.Notification
 import com.free2party.data.repository.SettingsRepository
 import com.free2party.data.repository.SocialRepository
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -59,6 +61,14 @@ class NotificationsViewModel @Inject constructor(
 
     val gradientBackground: StateFlow<Boolean> = settingsRepository.gradientBackgroundFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val membership: StateFlow<Membership> = userRepository.userIdFlow
+        .flatMapLatest { uid ->
+            if (uid.isBlank()) kotlinx.coroutines.flow.flowOf(Membership.REGULAR)
+            else userRepository.observeUser(uid).map { it.membership }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Membership.REGULAR)
 
     private val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
 

@@ -235,7 +235,7 @@ fun SettingsScreenContent(
                 Text(
                     text = stringResource(R.string.visibility_label_discretion),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.inactive
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
