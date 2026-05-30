@@ -18,8 +18,8 @@ android {
         applicationId = "com.free2party"
         minSdk = 24
         targetSdk = 37
-        versionCode = 8
-        versionName = "0.5.1"
+        versionCode = 9
+        versionName = "0.5.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -114,7 +114,6 @@ dependencies {
 
     // --- Architecture & Navigation ---
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.android)
@@ -133,8 +132,11 @@ dependencies {
     implementation(libs.play.integrity)
 
     // --- Google Authentication & Credentials Manager ---
+    //noinspection LoginCredentials
     implementation(libs.androidx.credentials)
+    //noinspection LoginCredentials
     implementation(libs.androidx.credentials.play.services.auth)
+    //noinspection LoginCredentials
     implementation(libs.googleid)
 
     // --- Image Loading ---
