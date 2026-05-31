@@ -78,10 +78,4 @@ class SettingsRepository(private val context: Context) {
             preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] = current - id
         }
     }
-
-    suspend fun clearAllShownNotifications() {
-        context.dataStore.edit { preferences ->
-            preferences.remove(PreferencesKeys.SHOWN_NOTIFICATION_IDS)
-        }
-    }
 }

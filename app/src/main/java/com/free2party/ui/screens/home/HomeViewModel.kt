@@ -12,7 +12,6 @@ import com.free2party.data.model.InviteStatus
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.repository.AuthRepository
 import com.free2party.data.repository.PlanRepository
-import com.free2party.data.repository.SettingsRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.InfrastructureException
@@ -61,7 +60,6 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val socialRepository: SocialRepository,
     private val authRepository: AuthRepository,
-    private val settingsRepository: SettingsRepository,
     private val planRepository: PlanRepository
 ) : ViewModel() {
 
@@ -153,7 +151,6 @@ class HomeViewModel @Inject constructor(
 
     fun logout(onLogoutSuccess: () -> Unit) {
         viewModelScope.launch {
-            settingsRepository.clearAllShownNotifications()
             authRepository.logout()
             onLogoutSuccess()
             _uiEvent.emit(HomeUiEvent.Logout)
