@@ -720,6 +720,59 @@ class SocialRepositoryImpl @Inject constructor(
         Result.failure(mapToSocialException(e))
     }
 
+    override suspend fun updateUserSocialContext(
+        newFullName: String?,
+        newProfilePicUrl: String?
+    ): Result<Unit> = try {
+        val uid = currentUserId
+        if (uid.isBlank()) throw UnauthorizedException()
+
+        if (newFullName == null && newProfilePicUrl == null) return Result.success(Unit)
+
+        Log.d("SocialRepository", "Updating social context for UID: $uid. Name: $newFullName, Pic: $newProfilePicUrl")
+
+        // Update friendRequests where user is sender or receiver
+        val senderRequests = db.collection("friendRequests").whereEqualTo("senderId", uid).get().await()
+        val receiverRequests = db.collection("friendRequests").whereEqualTo("receiverId", uid).get().await()
+
+        if (!senderRequests.isEmpty || !receiverRequests.isEmpty) {
+            val batch = db.batch()
+            for (doc in senderRequests) {
+                newFullName?.let { batch.update(doc.reference, "senderName", it) }
+                newProfilePicUrl?.let { batch.update(doc.reference, "senderProfilePicUrl", it) }
+            }
+            for (doc in receiverRequests) {
+                newFullName?.let { batch.update(doc.reference, "receiverName", it) }
+                newProfilePicUrl?.let { batch.update(doc.reference, "receiverProfilePicUrl", it) }
+            }
+            batch.commit().await()
+        }
+
+        // Update name and pic in friends' subcollections
+        val friendsSnapshot = db.collection("users").document(uid)
+            .collection("friends")
+            .get()
+            .await()
+
+        if (!friendsSnapshot.isEmpty) {
+            val batch = db.batch()
+            for (friendDoc in friendsSnapshot.documents) {
+                val friendId = friendDoc.id
+                val friendEntryInOtherUser = db.collection("users").document(friendId)
+                    .collection("friends").document(uid)
+                
+                newFullName?.let { batch.update(friendEntryInOtherUser, "name", it) }
+                newProfilePicUrl?.let { batch.update(friendEntryInOtherUser, "profilePicUrl", it) }
+            }
+            batch.commit().await()
+        }
+
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Log.e("SocialRepository", "Error updating user social context", e)
+        Result.failure(mapToSocialException(e))
+    }
+
     override fun getCircles(): Flow<List<Circle>> {
         if (currentUserId.isBlank()) return flowOf(emptyList())
 

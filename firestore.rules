@@ -58,10 +58,10 @@ service cloud.firestore {
 
     // Rules for friend requests
     match /friendRequests/{requestId} {
-      // Allow reading or deleting a request if the user is the sender or receiver.
+      // Allow reading, updating or deleting a request if the user is the sender or receiver.
       // We check document data (resource.data) to support collection-wide queries (list),
       // and we fallback to regex on requestId for cases where the document might not exist (get/delete).
-      allow read, delete: if request.auth != null && (
+      allow read, update, delete: if request.auth != null && (
         (resource != null && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid)) ||
         (resource == null && (requestId.matches('^' + request.auth.uid + '_.*') || requestId.matches('.*_' + request.auth.uid + '$')))
       );

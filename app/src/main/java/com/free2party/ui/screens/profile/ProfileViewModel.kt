@@ -13,6 +13,7 @@ import com.free2party.data.model.Countries
 import com.free2party.data.model.Gender
 import com.free2party.data.model.User
 import com.free2party.data.model.UserSocials
+import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.AuthException
 import com.free2party.exception.InfrastructureException
@@ -48,7 +49,8 @@ sealed class ProfileUiEvent {
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val socialRepository: SocialRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf<ProfileUiState>(ProfileUiState.Loading)
@@ -260,10 +262,15 @@ class ProfileViewModel @Inject constructor(
             )
         )
 
+        val nameChanged = firstName != currentState.user.firstName || lastName != currentState.user.lastName
+
         uiState = currentState.copy(isSaving = true)
         viewModelScope.launch {
             userRepository.updateUser(updatedUser)
                 .onSuccess {
+                    if (nameChanged) {
+                        socialRepository.updateUserSocialContext(newFullName = updatedUser.fullName)
+                    }
                     uiState =
                         (uiState as? ProfileUiState.Success)?.copy(isSaving = false) ?: uiState
                     _uiEvent.emit(
@@ -295,6 +302,9 @@ class ProfileViewModel @Inject constructor(
                     val updatedUser = currentState.user.copy(profilePicUrl = downloadUrl)
                     userRepository.updateUser(updatedUser)
                         .onSuccess {
+                            viewModelScope.launch {
+                                socialRepository.updateUserSocialContext(newProfilePicUrl = downloadUrl)
+                            }
                             uiState =
                                 (uiState as? ProfileUiState.Success)?.copy(isUploadingImage = false)
                                     ?: uiState

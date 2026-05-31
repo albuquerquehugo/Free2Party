@@ -37,6 +37,11 @@ interface SocialRepository {
     suspend fun markNotificationsAsRead(notificationIds: List<String>): Result<Unit>
     suspend fun deleteNotification(notificationId: String): Result<Unit>
 
+    suspend fun updateUserSocialContext(
+        newFullName: String? = null,
+        newProfilePicUrl: String? = null
+    ): Result<Unit>
+
     fun getCircles(): Flow<List<Circle>>
     suspend fun createCircle(name: String, friendIds: List<String>): Result<String>
     suspend fun updateCircle(circleId: String, name: String, friendIds: List<String>): Result<Unit>
