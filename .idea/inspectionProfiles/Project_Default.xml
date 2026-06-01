@@ -1,6 +1,20 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <inspection_tool class="AndroidLintAccessibilityPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintAdvertisingIdPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintAllFilesAccessPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintBackgroundLocationPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintExactAlarmPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintForegroundServicesPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintFullScreenIntentPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintHealthConnectPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintLoginCredentials" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintPackageVisibilityPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintPhotoAndVideoPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintRequestInstallPackagesPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintSmsAndCallLogPolicy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="AndroidLintVpnServicePolicy" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="ComposePreviewDimensionRespectsLimit" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="composableFile" value="true" />
     </inspection_tool>
@@ -25,7 +39,6 @@
     <inspection_tool class="GlancePreviewNotSupportedInUnitTestFiles" enabled="true" level="ERROR" enabled_by_default="true">
       <option name="composableFile" value="true" />
     </inspection_tool>
-    <inspection_tool class="JavaCollectionWithNullableTypeArgument" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PreviewAnnotationInFunctionWithParameters" enabled="true" level="ERROR" enabled_by_default="true">
       <option name="composableFile" value="true" />
     </inspection_tool>
@@ -47,6 +60,5 @@
     <inspection_tool class="PreviewPickerAnnotation" enabled="true" level="ERROR" enabled_by_default="true">
       <option name="composableFile" value="true" />
     </inspection_tool>
-    <inspection_tool class="UsePropertyAccessSyntax" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
   </profile>
 </component>

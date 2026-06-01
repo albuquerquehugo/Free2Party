@@ -132,11 +132,8 @@ dependencies {
     implementation(libs.play.integrity)
 
     // --- Google Authentication & Credentials Manager ---
-    //noinspection LoginCredentials
     implementation(libs.androidx.credentials)
-    //noinspection LoginCredentials
     implementation(libs.androidx.credentials.play.services.auth)
-    //noinspection LoginCredentials
     implementation(libs.googleid)
 
     // --- Image Loading ---
