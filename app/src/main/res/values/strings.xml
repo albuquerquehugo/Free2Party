@@ -155,6 +155,7 @@
     <string name="text_phone_mask_placeholder">Please select a country first</string>
     <string name="text_placeholder_search_country">Search country or code…</string>
     <string name="text_required_fields_notice">The fields marked with * are required</string>
+    <string name="text_socials_tooltip">Filling in your social app usernames allows friends to contact you directly through those apps</string>
     <string name="title_profile">Profile</string>
     <string name="toast_account_deleted">Account deleted!</string>
     <string name="toast_profile_picture_updated">Profile picture updated</string>

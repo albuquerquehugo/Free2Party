@@ -154,6 +154,7 @@ fun ProfileContent(
     val (showCountryDialog, setShowCountryDialog) = remember { mutableStateOf(false) }
     val (showWhatsappCountryDialog, setShowWhatsappCountryDialog) = remember { mutableStateOf(false) }
     val (showGenderTooltip, setShowGenderTooltip) = remember { mutableStateOf(false) }
+    val (showSocialsTooltip, setShowSocialsTooltip) = remember { mutableStateOf(false) }
 
     val selectedCountry = Countries.find { it.code == countryCode }
     val selectedWhatsappCountry = Countries.find { it.code == whatsappCountryCode }
@@ -507,20 +508,21 @@ fun ProfileContent(
                         else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Box {
-                    IconButton(
-                        onClick = { setShowGenderTooltip(!showGenderTooltip) },
-                        modifier = Modifier.size(16.dp),
-                        enabled = !isLoading
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Gender Info",
-                            tint =
-                                if (isLoading) MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
-                                else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(14.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Gender Info",
+                        tint =
+                            if (isLoading) MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
+                            else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(14.dp)
+                            .clickable(
+                                enabled = !isLoading,
+                                onClick = { setShowGenderTooltip(!showGenderTooltip) },
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            )
+                    )
 
                     if (showGenderTooltip) {
                         Popup(
@@ -721,11 +723,12 @@ fun ProfileContent(
             )
         )
 
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
-            contentAlignment = Alignment.CenterStart
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
                 text = stringResource(R.string.label_section_socials),
@@ -735,6 +738,47 @@ fun ProfileContent(
                     if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     else MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Box {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Socials Info",
+                    tint =
+                        if (isLoading) MaterialTheme.colorScheme.primary.copy(alpha = 0.38f)
+                        else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clickable(
+                            enabled = !isLoading,
+                            onClick = { setShowSocialsTooltip(!showSocialsTooltip) },
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        )
+                )
+
+                if (showSocialsTooltip) {
+                    Popup(
+                        alignment = Alignment.TopStart,
+                        offset = IntOffset(x = 40, y = 0),
+                        onDismissRequest = { setShowSocialsTooltip(false) }
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            tonalElevation = 4.dp,
+                            modifier = Modifier
+                                .width(260.dp)
+                                .shadow(4.dp, RoundedCornerShape(8.dp))
+                        ) {
+                            Text(
+                                text = stringResource(R.string.text_socials_tooltip),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(12.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         val whatsappLabelColor = if (whatsappNumber.isEmpty() && !isWhatsappFocused) {

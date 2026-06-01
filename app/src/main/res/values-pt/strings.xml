@@ -155,6 +155,7 @@
     <string name="text_phone_mask_placeholder">Por favor, selecione um país primeiro</string>
     <string name="text_placeholder_search_country">Pesquisar país ou código…</string>
     <string name="text_required_fields_notice">Os campos marcados com * são obrigatórios</string>
+    <string name="text_socials_tooltip">Preencher os seus nomes de usuário de redes sociais permite que seus amigos entrem em contato direto por meio desses aplicativos</string>
     <string name="title_profile">Perfil</string>
     <string name="toast_account_deleted">Conta excluída!</string>
     <string name="toast_profile_picture_updated">Foto de perfil atualizada!</string>
