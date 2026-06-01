@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -51,7 +52,6 @@ import com.free2party.data.model.PlanVisibility
 import com.free2party.R
 import com.free2party.ui.components.dialogs.FriendSelector
 import com.free2party.ui.components.TopBar
-import com.free2party.ui.theme.inactive
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -70,7 +70,8 @@ fun SettingsRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is SettingsUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -160,7 +161,8 @@ fun SettingsScreenContent(
     LaunchedEffect(friends) {
         val currentFriendIds = friends.map { it.uid }.toSet()
         if (manualStatusFriendsSelection.any { it !in currentFriendIds }) {
-            manualStatusFriendsSelection = manualStatusFriendsSelection.filter { it in currentFriendIds }
+            manualStatusFriendsSelection =
+                manualStatusFriendsSelection.filter { it in currentFriendIds }
         }
     }
 
@@ -263,10 +265,12 @@ fun SettingsScreenContent(
                                 manualStatusFriendsSelection - id else manualStatusFriendsSelection + id
                         },
                         onAddFriends = { ids ->
-                            manualStatusFriendsSelection = (manualStatusFriendsSelection + ids).distinct()
+                            manualStatusFriendsSelection =
+                                (manualStatusFriendsSelection + ids).distinct()
                         },
                         onRemoveFriends = { ids ->
-                            manualStatusFriendsSelection = manualStatusFriendsSelection - ids.toSet()
+                            manualStatusFriendsSelection =
+                                manualStatusFriendsSelection - ids.toSet()
                         },
                         onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
                         onUnselectAll = { manualStatusFriendsSelection = emptyList() }
@@ -289,10 +293,12 @@ fun SettingsScreenContent(
                                 manualStatusFriendsSelection - id else manualStatusFriendsSelection + id
                         },
                         onAddFriends = { ids ->
-                            manualStatusFriendsSelection = (manualStatusFriendsSelection + ids).distinct()
+                            manualStatusFriendsSelection =
+                                (manualStatusFriendsSelection + ids).distinct()
                         },
                         onRemoveFriends = { ids ->
-                            manualStatusFriendsSelection = manualStatusFriendsSelection - ids.toSet()
+                            manualStatusFriendsSelection =
+                                manualStatusFriendsSelection - ids.toSet()
                         },
                         onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
                         onUnselectAll = { manualStatusFriendsSelection = emptyList() }
@@ -458,12 +464,16 @@ fun SettingsOption(
     enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val focusManager = LocalFocusManager.current
     Row(
         modifier = modifier
             .height(40.dp)
             .selectable(
                 selected = selected,
-                onClick = onClick,
+                onClick = {
+                    focusManager.clearFocus()
+                    onClick()
+                },
                 role = Role.RadioButton,
                 enabled = enabled
             ),

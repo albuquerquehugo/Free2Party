@@ -21,8 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import com.free2party.util.TextFieldRegistry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -35,6 +39,14 @@ fun ReportUserDialog(
     onDismiss: () -> Unit,
     onReport: (String) -> Unit
 ) {
+    val key = remember { Any() }
+    DisposableEffect(key) {
+        onDispose {
+            TextFieldRegistry.unregister(key)
+        }
+    }
+
+    val focusManager = LocalFocusManager.current
     val options = listOf(
         stringResource(R.string.label_report_reason_spam),
         stringResource(R.string.label_report_reason_harassment),
@@ -65,7 +77,10 @@ fun ReportUserDialog(
                             .fillMaxWidth()
                             .selectable(
                                 selected = (text == selectedOption),
-                                onClick = { selectedOption = text },
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    selectedOption = text
+                                },
                                 role = Role.RadioButton
                             )
                             .padding(vertical = 4.dp),
@@ -90,7 +105,10 @@ fun ReportUserDialog(
                         placeholder = { Text(stringResource(R.string.placeholder_report_reason_other)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
+                            .padding(top = 8.dp)
+                            .onGloballyPositioned { coordinates ->
+                                TextFieldRegistry.register(key, coordinates)
+                            },
                         maxLines = 3,
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Sentences,

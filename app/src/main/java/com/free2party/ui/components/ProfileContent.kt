@@ -560,7 +560,10 @@ fun ProfileContent(
                 Gender.entries.forEach { option ->
                     val isSelected = gender == option
                     Row(
-                        modifier = Modifier.clickable(enabled = !isLoading) { onGenderChange(option) },
+                        modifier = Modifier.clickable(enabled = !isLoading) {
+                            focusManager.clearFocus()
+                            onGenderChange(option)
+                        },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(

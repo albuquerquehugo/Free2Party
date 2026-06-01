@@ -43,7 +43,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import com.free2party.util.TextFieldRegistry
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -88,6 +92,13 @@ fun PlanDialog(
     startTimeState: TimePickerState,
     endTimeState: TimePickerState
 ) {
+    val key = remember { Any() }
+    DisposableEffect(key) {
+        onDispose {
+            TextFieldRegistry.unregister(key)
+        }
+    }
+
     var note by remember { mutableStateOf(editingPlan?.note ?: "") }
     var visibility by remember {
         mutableStateOf(
@@ -447,7 +458,11 @@ fun PlanDialog(
                             style = MaterialTheme.typography.bodySmall
                         )
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            TextFieldRegistry.register(key, coordinates)
+                        },
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Done
@@ -669,10 +684,14 @@ fun VisibilityOption(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable {
+                focusManager.clearFocus()
+                onClick()
+            }
             .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

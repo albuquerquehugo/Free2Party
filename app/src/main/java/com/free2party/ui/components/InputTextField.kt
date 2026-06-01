@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.onGloballyPositioned
+import com.free2party.util.TextFieldRegistry
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -80,6 +83,13 @@ fun InputTextField(
     colors: TextFieldColors? = null
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    val key = remember { Any() }
+    DisposableEffect(key) {
+        onDispose {
+            TextFieldRegistry.unregister(key)
+        }
+    }
 
     val isMultiLine = maxLines > 1
     val isFocused by interactionSource.collectIsFocusedAsState()
@@ -143,7 +153,10 @@ fun InputTextField(
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .bringIntoViewRequester(bringIntoViewRequester)
-            .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier),
+            .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier)
+            .onGloballyPositioned { coordinates ->
+                TextFieldRegistry.register(key, coordinates)
+            },
         enabled = enabled,
         isError = isError,
         supportingText = supportingText,

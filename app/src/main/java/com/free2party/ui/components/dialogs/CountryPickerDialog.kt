@@ -25,13 +25,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.free2party.util.TextFieldRegistry
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +49,13 @@ fun CountryPickerDialog(
     onDismissRequest: () -> Unit,
     onCountrySelected: (Country) -> Unit
 ) {
+    val key = remember { Any() }
+    DisposableEffect(key) {
+        onDispose {
+            TextFieldRegistry.unregister(key)
+        }
+    }
+
     val context = LocalContext.current
     val detectedCountryCode = remember {
         val telephonyManager =
@@ -97,7 +107,10 @@ fun CountryPickerDialog(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 8.dp)
+                    .onGloballyPositioned { coordinates ->
+                        TextFieldRegistry.register(key, coordinates)
+                    },
                 placeholder = {
                     Text(
                         stringResource(R.string.text_placeholder_search_country),
