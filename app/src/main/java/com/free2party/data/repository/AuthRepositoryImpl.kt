@@ -59,7 +59,8 @@ class AuthRepositoryImpl @Inject constructor(
             gender = gender,
             socials = socials,
             bio = bio,
-            isFreeNow = false
+            isFreeNow = false,
+            registrationMethod = "email"
             // createdAt is handled by @ServerTimestamp in User model
         )
 
@@ -107,7 +108,8 @@ class AuthRepositoryImpl @Inject constructor(
                 firstName = firebaseUser.displayName?.split(" ")?.getOrNull(0) ?: "",
                 lastName = firebaseUser.displayName?.split(" ")?.getOrNull(1) ?: "",
                 email = firebaseUser.email ?: "",
-                isFreeNow = false
+                isFreeNow = false,
+                registrationMethod = "google"
             )
             userRepository.createUserProfile(newUser).getOrThrow()
         }

@@ -94,6 +94,7 @@ data class User(
     val manualStatusVisibility: PlanVisibility = PlanVisibility.EVERYONE,
     val manualStatusFriendsSelection: List<String> = emptyList(),
     val settings: UserSettings = UserSettings(),
+    val registrationMethod: String = "",
     @ServerTimestamp
     val createdAt: Date? = null
 ) {

@@ -84,7 +84,8 @@ class AuthRepositoryTest {
                 it.email == email &&
                 it.phoneNumber == phoneNumber &&
                 it.birthday == birthday &&
-                it.socials == socials
+                it.socials == socials &&
+                it.registrationMethod == "email"
             }) 
         }
     }
