@@ -251,7 +251,7 @@
     <string name="notification_friend_request_declined_title">Friend Request Declined</string>
     <string name="notification_friend_request_received_body">%1$s (%2$s) sent you a friend request!</string>
     <string name="notification_friend_request_received_title">New Friend Request</string>
-    <string name="text_all_caught_up">You\'re all caught up!</string>
+    <string name="text_all_caught_up">You\'re all caught up</string>
     <string name="text_decline_friend_request_dialog">Are you sure you want to decline this request?</string>
     <string name="title_decline_friend_request_dialog">Decline Friend Request</string>
     <string name="title_friend_request">Friend Request</string>

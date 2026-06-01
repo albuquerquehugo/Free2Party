@@ -251,7 +251,7 @@
     <string name="notification_friend_request_declined_title">Pedido de Amizade Recusado</string>
     <string name="notification_friend_request_received_body">%1$s (%2$s) enviou um pedido de amizade!</string>
     <string name="notification_friend_request_received_title">Novo Pedido de Amizade</string>
-    <string name="text_all_caught_up">Você está em dia!</string>
+    <string name="text_all_caught_up">Você está em dia</string>
     <string name="text_decline_friend_request_dialog">Como você deseja recusar este pedido?</string>
     <string name="title_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
     <string name="title_friend_request">Pedido de Amizade</string>
