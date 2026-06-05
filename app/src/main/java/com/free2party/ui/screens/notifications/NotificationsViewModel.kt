@@ -71,6 +71,7 @@ class NotificationsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Membership.REGULAR)
 
     private val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
+    val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
 

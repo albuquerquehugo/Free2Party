@@ -76,8 +76,8 @@
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
     <string name="text_placeholder_search_user">Pesquisar por nome ou e-mail…</string>
-    <string name="text_remove_friend_confirmation">Tem certeza que deseja remover este amigo?</string>
-    <string name="text_send_invite_confirmation">Confirma o envio do convite de amizade para %1$s (%2$s)?</string>
+    <string name="text_remove_friend_confirmation">Esta ação irá remover a amizade de ambas as listas de amigos. Se você quiser adicioná-lo novamente terá que enviar uma nova solicitação de amizade.</string>
+    <string name="text_send_invite_confirmation">Deseja enviar um convite de amizade para %1$s (%2$s)?</string>
     <string name="title_circles">Círculos</string>
     <string name="title_create_circle">Criar Círculo</string>
     <string name="title_delete_circle">Excluir Círculo</string>
@@ -91,6 +91,7 @@
     <string name="title_invite_friend">Convidar Amigo</string>
     <string name="title_remove_and_block_friend">Remover e Bloquear</string>
     <string name="title_remove_friend">Remover Amigo</string>
+    <string name="title_remove_friend_name">Remover %1$s?</string>
     <string name="title_search">Pesquisar</string>
     <string name="toast_circle_created">Círculo criado com sucesso</string>
     <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
@@ -161,7 +162,10 @@
     <string name="toast_profile_picture_updated">Foto de perfil atualizada!</string>
     <string name="toast_profile_updated">Perfil atualizado com sucesso!</string>
 
-    <!-- Blocked Users Screen -->
+    <!-- Block and Report Users -->
+    <string name="label_block">Bloquear</string>
+    <string name="label_block_and_report">Bloquear e Denunciar</string>
+    <string name="label_block_user">Bloquear Usuário</string>
     <string name="label_report">Denunciar</string>
     <string name="label_report_and_block">Denunciar e bloquear</string>
     <string name="label_report_reason_harassment">Assédio ou bullying</string>
@@ -170,7 +174,11 @@
     <string name="label_report_reason_other">Outro</string>
     <string name="label_report_reason_spam">Spam ou golpe</string>
     <string name="placeholder_report_reason_other">Descreva brevemente o motivo…</string>
+    <string name="text_block_info_message_1">Ele não poderá enviar mensagens para você ou adicioná-lo novamente a menos que você o desbloqueie.</string>
+    <string name="text_block_info_message_2">Ele não será notificado de que você o bloqueou ou denunciou.</string>
+    <string name="text_block_user_confirmation">Bloquear este usuário removerá a amizade de ambas as listas de amigos e o adicionará a %1$s no menu do seu perfil. Você pode desbloqueá-lo a qualquer momento.</string>
     <string name="text_report_user_reason">Por que você está denunciando este usuário?</string>
+    <string name="title_block_user_name">Bloquear %1$s?</string>
     <string name="title_blocked_users">Usuários Bloqueados</string>
     <string name="title_report_user">Denunciar Usuário</string>
     <string name="toast_user_reported">Usuário denunciado com sucesso</string>

@@ -76,8 +76,8 @@
     <string name="text_no_friends_in_section">No friends in this section</string>
     <string name="text_no_friends_yet">You don\'t have any friends yet!</string>
     <string name="text_placeholder_search_user">Search by name or email…</string>
-    <string name="text_remove_friend_confirmation">Are you sure you want to remove this friend?</string>
-    <string name="text_send_invite_confirmation">Do you confirm sending a friend invite to %1$s (%2$s)?</string>
+    <string name="text_remove_friend_confirmation">This action will remove the friendship from both friends list. If you want to add them again you will have to send them a new friend request.</string>
+    <string name="text_send_invite_confirmation">Do you want to send a friend invite to %1$s (%2$s)?</string>
     <string name="title_circles">Circles</string>
     <string name="title_create_circle">Create Circle</string>
     <string name="title_delete_circle">Delete Circle</string>
@@ -89,8 +89,9 @@
     <string name="title_friends">Friends</string>
     <string name="title_home">Home</string>
     <string name="title_invite_friend">Invite Friend</string>
-    <string name="title_remove_friend">Remove Friend</string>
     <string name="title_remove_and_block_friend">Remove and Block</string>
+    <string name="title_remove_friend">Remove Friend</string>
+    <string name="title_remove_friend_name">Remove %1$s?</string>
     <string name="title_search">Search</string>
     <string name="toast_circle_created">Circle created successfully</string>
     <string name="toast_circle_deleted">Circle deleted successfully</string>
@@ -161,7 +162,10 @@
     <string name="toast_profile_picture_updated">Profile picture updated</string>
     <string name="toast_profile_updated">Profile updated</string>
 
-    <!-- Blocked Users Screen -->
+    <!-- Block and Report Users -->
+    <string name="label_block">Block</string>
+    <string name="label_block_and_report">Block and Report</string>
+    <string name="label_block_user">Block User</string>
     <string name="label_report">Report</string>
     <string name="label_report_and_block">Report and block</string>
     <string name="label_report_reason_harassment">Harassment or bullying</string>
@@ -170,7 +174,11 @@
     <string name="label_report_reason_other">Other</string>
     <string name="label_report_reason_spam">Spam or scam</string>
     <string name="placeholder_report_reason_other">Briefly describe the reason…</string>
+    <string name="text_block_info_message_1">They won\'t be able to message you or add you again unless you unblock them.</string>
+    <string name="text_block_info_message_2">They won\'t be notified that you blocked or reported them.</string>
+    <string name="text_block_user_confirmation">Blocking this user will remove the friendship from both friends list and add them to %1$s in your profile menu. You can unblock them anytime.</string>
     <string name="text_report_user_reason">Why are you reporting this user?</string>
+    <string name="title_block_user_name">Block %1$s?</string>
     <string name="title_blocked_users">Blocked Users</string>
     <string name="title_report_user">Report User</string>
     <string name="toast_user_reported">User reported successfully</string>

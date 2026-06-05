@@ -11,11 +11,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -122,18 +123,30 @@ fun ReportUserDialog(
             val isOtherSelected = selectedOption == options.last()
             val isEnabled = !isOtherSelected || otherReason.isNotBlank()
 
-            TextButton(
+            Button(
                 onClick = {
                     val finalReason = if (isOtherSelected) otherReason else selectedOption
                     onReport(finalReason)
                 },
-                enabled = isEnabled
+                enabled = isEnabled,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                    disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+                    disabledContentColor = MaterialTheme.colorScheme.onError.copy(alpha = 0.38f)
+                )
             ) {
-                Text(stringResource(R.string.button_confirm))
+                Text(stringResource(R.string.label_report))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
                 Text(stringResource(R.string.button_cancel))
             }
         },
