@@ -27,12 +27,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import com.google.firebase.firestore.QuerySnapshot
+import com.free2party.data.repository.PlanRepository
+import com.free2party.data.repository.UserRepository
+import com.free2party.data.repository.SocialRepositoryImpl
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SocialRepositoryTest {
     private lateinit var repository: SocialRepositoryImpl
     private val db: FirebaseFirestore = mockk()
     private val userRepository: UserRepository = mockk()
+    private val planRepository: PlanRepository = mockk()
     private val usersCollection: CollectionReference = mockk()
     private val userDoc: DocumentReference = mockk()
     private val friendsCollection: CollectionReference = mockk()
@@ -52,7 +56,7 @@ class SocialRepositoryTest {
         every { usersCollection.document("me123") } returns userDoc
         every { userDoc.collection("friends") } returns friendsCollection
         
-        repository = SocialRepositoryImpl(db, userRepository, context)
+        repository = SocialRepositoryImpl(db, userRepository, planRepository, context)
         
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
         mockkStatic(FieldValue::class)
@@ -233,6 +237,16 @@ class SocialRepositoryTest {
         val friendRequestsCollection: CollectionReference = mockk()
         every { db.collection("friendRequests") } returns friendRequestsCollection
         every { friendRequestsCollection.document(any()) } returns mockk(relaxed = true)
+
+        val circlesCollection = mockk<CollectionReference>()
+        val circlesQuery = mockk<com.google.firebase.firestore.Query>()
+        val circlesSnapshot = mockk<QuerySnapshot> {
+            every { documents } returns emptyList()
+            every { isEmpty } returns true
+        }
+        every { userDoc.collection("circles") } returns circlesCollection
+        every { circlesCollection.whereArrayContains("friendIds", friendId) } returns circlesQuery
+        every { circlesQuery.get() } returns Tasks.forResult(circlesSnapshot)
 
         val transaction = mockk<Transaction>()
         every { db.runTransaction<Unit>(any()) } answers {

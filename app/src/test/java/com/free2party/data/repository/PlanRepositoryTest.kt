@@ -79,8 +79,8 @@ class PlanRepositoryTest {
         every { firebaseUser.uid } returns "testUser"
         
         val plan = FuturePlan(
-            startDate = "2026-05-10",
-            endDate = "2026-05-09",
+            startDate = "2026-07-10",
+            endDate = "2026-07-09",
             startTime = "10:00",
             endTime = "11:00"
         )
@@ -95,16 +95,16 @@ class PlanRepositoryTest {
         every { firebaseUser.uid } returns "testUser"
 
         val newPlan = FuturePlan(
-            startDate = "2026-05-10",
-            endDate = "2026-05-10",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
             startTime = "10:00",
             endTime = "12:00"
         )
 
         val existingPlan = FuturePlan(
             id = "existing",
-            startDate = "2026-05-10",
-            endDate = "2026-05-10",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
             startTime = "11:00",
             endTime = "13:00"
         )
@@ -127,8 +127,8 @@ class PlanRepositoryTest {
         every { firebaseUser.uid } returns "testUser"
 
         val plan = FuturePlan(
-            startDate = "2026-05-10",
-            endDate = "2026-05-10",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
             startTime = "10:00",
             endTime = "11:00",
             note = "Valid plan"
@@ -163,16 +163,16 @@ class PlanRepositoryTest {
 
         val editingPlan = FuturePlan(
             id = "editing",
-            startDate = "2026-05-10",
-            endDate = "2026-05-10",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
             startTime = "10:00",
             endTime = "12:00"
         )
 
         val otherPlan = FuturePlan(
             id = "other",
-            startDate = "2026-05-10",
-            endDate = "2026-05-10",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
             startTime = "11:00",
             endTime = "13:00"
         )

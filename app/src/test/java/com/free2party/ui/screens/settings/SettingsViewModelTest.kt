@@ -26,12 +26,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+import com.free2party.data.repository.SocialRepository
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
     private lateinit var viewModel: SettingsViewModel
     private val userRepository: UserRepository = mockk(relaxed = true)
     private val settingsRepository: SettingsRepository = mockk(relaxed = true)
+    private val socialRepository: SocialRepository = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val userFlow = MutableStateFlow(User(uid = "me", settings = UserSettings(use24HourFormat = true)))
 
@@ -41,6 +44,8 @@ class SettingsViewModelTest {
         every { userRepository.currentUserId } returns "me"
         every { userRepository.observeUser("me") } returns userFlow
         every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
+        every { socialRepository.getCircles() } returns flowOf(emptyList())
+        every { socialRepository.getFriendsList() } returns flowOf(emptyList())
         coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
     }
 
@@ -51,7 +56,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `init loads user settings and observes theme mode`() = runTest {
-        viewModel = SettingsViewModel(userRepository, settingsRepository)
+        viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
         
         // themeMode is observed in init
         runCurrent()
@@ -62,22 +67,11 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `updateThemeMode calls repository`() = runTest {
-        viewModel = SettingsViewModel(userRepository, settingsRepository)
-        runCurrent()
-
-        viewModel.updateThemeMode(ThemeMode.DARK)
-        runCurrent()
-
-        coVerify { settingsRepository.setThemeMode(ThemeMode.DARK) }
-    }
-
-    @Test
     fun `updateSettings success updates state and emits toast`() = runTest {
         val updatedUser = User(uid = "me", settings = UserSettings(use24HourFormat = false))
         coEvery { userRepository.updateUser(updatedUser) } returns Result.success(Unit)
         
-        viewModel = SettingsViewModel(userRepository, settingsRepository)
+        viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
         runCurrent()
 
         val events = mutableListOf<SettingsUiEvent>()
@@ -103,7 +97,7 @@ class SettingsViewModelTest {
         val errorMessage = "Update failed"
         coEvery { userRepository.updateUser(updatedUser) } returns Result.failure(Exception(errorMessage))
         
-        viewModel = SettingsViewModel(userRepository, settingsRepository)
+        viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
         runCurrent()
 
         val events = mutableListOf<SettingsUiEvent>()

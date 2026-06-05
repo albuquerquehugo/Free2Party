@@ -47,6 +47,7 @@ class CalendarViewModelTest {
         every { planRepository.getOwnPlans() } returns plansFlow
         every { planRepository.getPublicPlans(any()) } returns plansFlow
         every { userRepository.currentUserId } returns "testUser"
+        every { userRepository.userIdFlow } returns flowOf("testUser")
         every { userRepository.observeUser(any()) } returns userFlow
         every { socialRepository.getFriendsList() } returns flowOf(emptyList())
 
