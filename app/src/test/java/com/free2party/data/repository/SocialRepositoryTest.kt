@@ -27,9 +27,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import com.google.firebase.firestore.QuerySnapshot
-import com.free2party.data.repository.PlanRepository
-import com.free2party.data.repository.UserRepository
-import com.free2party.data.repository.SocialRepositoryImpl
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SocialRepositoryTest {
