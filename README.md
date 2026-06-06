@@ -76,12 +76,12 @@ To ensure the app remains maintainable and scalable for a future App Store launc
     - [x] "Invite" button (triggers Push Notification).
     - [x] Deep-link to WhatsApp/SMS for chat.
 
-## 📝 MVP Roadmap (Sprint 2) -- PLANNED --
+## 📝 MVP Roadmap (Sprint 2) -- IN PROGRESS --
 - [x] Phase 5: Groups & Circles
     - [x] Create "Circles" (e.g., Close Friends, Coworkers, Family) to filter availability.
     - [x] Group privacy settings (choose which circles see your "Free" status).
-- [ ] Phase 6: Plan Proposals (RSVP System)
-    - [ ] Propose a specific plan (e.g., "Beer at 7pm @ The Local Pub").
+- [ ] Phase 6: Events (RSVP System)
+    - [ ] Create an event (e.g., "Beer at 7pm @ The Local Pub").
     - [ ] Friends can RSVP "In", "Out", or "Maybe" directly in the app.
     - [ ] Shared plan chat or comments for quick logistics.
 - [ ] Phase 7: Smart Engagement

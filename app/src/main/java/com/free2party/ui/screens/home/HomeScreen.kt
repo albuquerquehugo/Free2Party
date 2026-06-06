@@ -30,7 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandMore
@@ -94,6 +94,7 @@ import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.BlockUserDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.ui.components.dialogs.FriendCalendarDialog
+import com.free2party.ui.components.dialogs.PublicProfileDialog
 import com.free2party.ui.components.dialogs.RemoveFriendDialog
 import com.free2party.ui.components.dialogs.ReportUserDialog
 import com.free2party.ui.screens.circles.CircleViewModel
@@ -217,6 +218,7 @@ fun HomeScreen(
     var showReportDialog by remember { mutableStateOf(false) }
     var friendIdToReport by remember { mutableStateOf<String?>(null) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
+    var selectedFriendForProfile by remember { mutableStateOf<FriendInfo?>(null) }
     val rootFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -320,7 +322,7 @@ fun HomeScreen(
 
                         if (isStatusFromPlan) {
                             Icon(
-                                imageVector = Icons.Default.CalendarToday,
+                                imageVector = Icons.Default.DateRange,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(16.dp)
@@ -487,6 +489,7 @@ fun HomeScreen(
                         onCancelInvite = onCancelInvite,
                         onInviteFriendClick = onInviteFriendClick,
                         onOpenFriendCalendar = { friend -> selectedFriend = friend },
+                        onFriendItemClick = { friend -> selectedFriendForProfile = friend },
                         membership = homeUiState.membership
                     )
                 }
@@ -568,6 +571,16 @@ fun HomeScreen(
                 onDismiss = { selectedFriend = null }
             )
         }
+
+        selectedFriendForProfile?.let { friend ->
+            PublicProfileDialog(
+                friend = friend,
+                onDismiss = { selectedFriendForProfile = null },
+                onViewCalendar = {
+                    selectedFriend = friend
+                }
+            )
+        }
     }
 }
 
@@ -587,6 +600,7 @@ fun HomeContent(
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
     onOpenFriendCalendar: (FriendInfo) -> Unit,
+    onFriendItemClick: (FriendInfo) -> Unit,
     membership: Membership = Membership.REGULAR
 ) {
     val haptic = LocalHapticFeedback.current
@@ -681,7 +695,8 @@ fun HomeContent(
                 onBlockUser = onBlockUser,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
-                onOpenFriendCalendar = onOpenFriendCalendar
+                onOpenFriendCalendar = onOpenFriendCalendar,
+                onFriendItemClick = onFriendItemClick
             )
         }
 
@@ -702,7 +717,8 @@ fun FriendsListSection(
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
-    onOpenFriendCalendar: (FriendInfo) -> Unit
+    onOpenFriendCalendar: (FriendInfo) -> Unit,
+    onFriendItemClick: (FriendInfo) -> Unit
 ) {
     var showFilterMenu by remember { mutableStateOf(false) }
 
@@ -864,7 +880,8 @@ fun FriendsListSection(
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
                     onCancelInvite = onCancelInvite,
-                    onOpenCalendar = onOpenFriendCalendar
+                    onOpenCalendar = onOpenFriendCalendar,
+                    onFriendItemClick = onFriendItemClick
                 )
             }
             item {
@@ -875,7 +892,8 @@ fun FriendsListSection(
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
                     onCancelInvite = onCancelInvite,
-                    onOpenCalendar = onOpenFriendCalendar
+                    onOpenCalendar = onOpenFriendCalendar,
+                    onFriendItemClick = onFriendItemClick
                 )
             }
             item {
@@ -886,7 +904,8 @@ fun FriendsListSection(
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
                     onCancelInvite = onCancelInvite,
-                    onOpenCalendar = onOpenFriendCalendar
+                    onOpenCalendar = onOpenFriendCalendar,
+                    onFriendItemClick = onFriendItemClick
                 )
             }
             item {
@@ -904,7 +923,8 @@ fun ExpandableFriendSection(
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onOpenCalendar: (FriendInfo) -> Unit
+    onOpenCalendar: (FriendInfo) -> Unit,
+    onFriendItemClick: (FriendInfo) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(true) }
     val rotation by animateFloatAsState(
@@ -954,7 +974,8 @@ fun ExpandableFriendSection(
                             onRemoveFriend = onRemoveFriend,
                             onBlockUser = onBlockUser,
                             onCancelInvite = { onCancelInvite(friend.uid) },
-                            onOpenCalendar = { onOpenCalendar(friend) }
+                            onOpenCalendar = { onOpenCalendar(friend) },
+                            onFriendItemClick = { onFriendItemClick(friend) }
                         )
                     }
                 }
@@ -970,7 +991,8 @@ fun FriendItem(
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onOpenCalendar: () -> Unit
+    onOpenCalendar: () -> Unit,
+    onFriendItemClick: () -> Unit
 ) {
     var showFriendMenu by remember { mutableStateOf(false) }
     var showContactMenu by remember { mutableStateOf(false) }
@@ -989,7 +1011,7 @@ fun FriendItem(
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
                 .combinedClickable(
-                    onClick = { /* Will implement another action later */ },
+                    onClick = { if (!isInvited) onFriendItemClick() },
                     onLongClick = { showFriendMenu = true }
                 ),
             colors = CardDefaults.cardColors(
@@ -1051,7 +1073,7 @@ fun FriendItem(
                         )
                     } else if (friend.isStatusFromPlan) {
                         Icon(
-                            imageVector = Icons.Default.CalendarToday,
+                            imageVector = Icons.Default.DateRange,
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp)
@@ -1080,7 +1102,7 @@ fun FriendItem(
                     // Calendar button
                     IconButton(onClick = onOpenCalendar) {
                         Icon(
-                            imageVector = Icons.Default.CalendarToday,
+                            imageVector = Icons.Default.DateRange,
                             contentDescription = stringResource(R.string.description_open_calendar),
                             tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
                             else MaterialTheme.colorScheme.onBusyContainer

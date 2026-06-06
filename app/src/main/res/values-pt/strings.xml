@@ -141,6 +141,8 @@
     <string name="label_phone_number">Número de Telefone</string>
     <string name="label_save_changes">Salvar Alterações</string>
     <string name="label_section_socials">Redes Sociais</string>
+    <string name="label_send_message">Enviar uma mensagem</string>
+    <string name="label_view_calendar">Ver Calendário</string>
     <string name="label_select_birthday">Selecionar data de nascimento</string>
     <string name="label_select_country">Selecionar País</string>
     <string name="label_suggested">Sugerido</string>

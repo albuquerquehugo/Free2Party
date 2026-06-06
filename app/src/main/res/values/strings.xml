@@ -141,6 +141,8 @@
     <string name="label_phone_number">Phone Number</string>
     <string name="label_save_changes">Save Changes</string>
     <string name="label_section_socials">Socials</string>
+    <string name="label_send_message">Send a message</string>
+    <string name="label_view_calendar">View Calendar</string>
     <string name="label_select_birthday">Select birthday</string>
     <string name="label_select_country">Select Country</string>
     <string name="label_suggested">Suggested</string>
