@@ -186,7 +186,7 @@ fun BlockUserDialog(
                     )
                 ) {
                     Text(
-                        text = stringResource(R.string.button_cancel),
+                        text = stringResource(R.string.label_cancel),
                         fontWeight = FontWeight.SemiBold
                     )
                 }

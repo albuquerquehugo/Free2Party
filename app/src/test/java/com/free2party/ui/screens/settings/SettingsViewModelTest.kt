@@ -36,7 +36,8 @@ class SettingsViewModelTest {
     private val settingsRepository: SettingsRepository = mockk(relaxed = true)
     private val socialRepository: SocialRepository = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val userFlow = MutableStateFlow(User(uid = "me", settings = UserSettings(use24HourFormat = true)))
+    private val userFlow =
+        MutableStateFlow(User(uid = "me", settings = UserSettings(use24HourFormat = true)))
 
     @Before
     fun setup() {
@@ -57,12 +58,15 @@ class SettingsViewModelTest {
     @Test
     fun `init loads user settings and observes theme mode`() = runTest {
         viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
-        
+
         // themeMode is observed in init
         runCurrent()
 
         assertTrue(viewModel.uiState is SettingsUiState.Success)
-        assertEquals(true, (viewModel.uiState as SettingsUiState.Success).user.settings.use24HourFormat)
+        assertEquals(
+            true,
+            (viewModel.uiState as SettingsUiState.Success).user.settings.use24HourFormat
+        )
         assertEquals(ThemeMode.AUTOMATIC, viewModel.themeMode)
     }
 
@@ -70,7 +74,7 @@ class SettingsViewModelTest {
     fun `updateSettings success updates state and emits toast`() = runTest {
         val updatedUser = User(uid = "me", settings = UserSettings(use24HourFormat = false))
         coEvery { userRepository.updateUser(updatedUser) } returns Result.success(Unit)
-        
+
         viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
         runCurrent()
 
@@ -95,8 +99,12 @@ class SettingsViewModelTest {
     fun `updateSettings failure emits error toast`() = runTest {
         val updatedUser = User(uid = "me", settings = UserSettings(use24HourFormat = false))
         val errorMessage = "Update failed"
-        coEvery { userRepository.updateUser(updatedUser) } returns Result.failure(Exception(errorMessage))
-        
+        coEvery { userRepository.updateUser(updatedUser) } returns Result.failure(
+            Exception(
+                errorMessage
+            )
+        )
+
         viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
         runCurrent()
 
@@ -114,5 +122,37 @@ class SettingsViewModelTest {
         val event = events.firstOrNull()
         assertTrue(event is SettingsUiEvent.ShowToast)
         assertTrue((event as SettingsUiEvent.ShowToast).message is UiText.StringResource)
+    }
+
+    @Test
+    fun `updateSettings with birthday settings success`() = runTest {
+        val updatedUser = User(
+            uid = "me",
+            birthdayVisibility = com.free2party.data.model.BirthdayVisibility.NOBODY,
+            birthdayShowType = com.free2party.data.model.BirthdayShowType.DAY_MONTH,
+            birthdayFriendsSelection = listOf("friend1")
+        )
+        coEvery { userRepository.updateUser(updatedUser) } answers {
+            userFlow.value = updatedUser
+            Result.success(Unit)
+        }
+
+        viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
+        runCurrent()
+
+        viewModel.updateSettings(updatedUser)
+        runCurrent()
+
+        val state = viewModel.uiState as SettingsUiState.Success
+        assertEquals(
+            com.free2party.data.model.BirthdayVisibility.NOBODY,
+            state.user.birthdayVisibility
+        )
+        assertEquals(
+            com.free2party.data.model.BirthdayShowType.DAY_MONTH,
+            state.user.birthdayShowType
+        )
+        assertEquals(listOf("friend1"), state.user.birthdayFriendsSelection)
+        coVerify { userRepository.updateUser(updatedUser) }
     }
 }

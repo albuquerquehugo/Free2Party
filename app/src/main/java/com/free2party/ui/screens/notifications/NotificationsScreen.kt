@@ -395,7 +395,7 @@ fun DeclineFriendRequestDialog(
         onConfirm = onDeclineOnly,
         secondaryButtonText = stringResource(R.string.label_decline_and_block),
         onSecondaryAction = onDeclineAndBlock,
-        dismissButtonText = stringResource(R.string.button_cancel),
+        dismissButtonText = stringResource(R.string.label_cancel),
         onDismiss = onDismiss,
         isDestructive = true
     )
@@ -613,7 +613,7 @@ fun NotificationBox(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.text_delete)) },
+                    text = { Text(stringResource(R.string.label_delete)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Delete,

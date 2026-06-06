@@ -382,12 +382,12 @@ fun CalendarScreen(
         ConfirmationDialog(
             title = stringResource(R.string.delete_plan),
             text = stringResource(R.string.delete_plan_confirmation_text),
-            confirmButtonText = stringResource(R.string.text_delete),
+            confirmButtonText = stringResource(R.string.label_delete),
             onConfirm = {
                 onDeletePlan(planToDelete!!.id)
                 setShowDeleteDialog(false)
             },
-            dismissButtonText = stringResource(R.string.button_cancel),
+            dismissButtonText = stringResource(R.string.label_cancel),
             onDismiss = { setShowDeleteDialog(false) },
             isDestructive = true
         )

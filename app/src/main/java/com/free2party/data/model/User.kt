@@ -48,6 +48,18 @@ enum class Gender(val labelResId: Int) {
     }
 }
 
+enum class BirthdayVisibility {
+    EVERYONE,
+    EXCEPT,
+    ONLY,
+    NOBODY
+}
+
+enum class BirthdayShowType {
+    FULL,
+    DAY_MONTH
+}
+
 enum class Membership {
     REGULAR,
     PREMIUM
@@ -93,6 +105,9 @@ data class User(
     val isStatusFromPlan: Boolean = false,
     val manualStatusVisibility: PlanVisibility = PlanVisibility.EVERYONE,
     val manualStatusFriendsSelection: List<String> = emptyList(),
+    val birthdayVisibility: BirthdayVisibility = BirthdayVisibility.EVERYONE,
+    val birthdayFriendsSelection: List<String> = emptyList(),
+    val birthdayShowType: BirthdayShowType = BirthdayShowType.FULL,
     val settings: UserSettings = UserSettings(),
     val registrationMethod: String = "",
     @ServerTimestamp

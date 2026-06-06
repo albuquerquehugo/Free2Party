@@ -116,7 +116,7 @@ class SettingsViewModel @Inject constructor(
                     if (showToast) {
                         uiState =
                             (uiState as? SettingsUiState.Success)?.copy(isSaving = false) ?: uiState
-                        _uiEvent.emit(SettingsUiEvent.ShowToast(UiText.StringResource(R.string.message_settings_updated)))
+                        _uiEvent.emit(SettingsUiEvent.ShowToast(UiText.StringResource(R.string.toast_settings_updated)))
                     }
                 }
                 .onFailure { _ ->

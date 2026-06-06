@@ -490,7 +490,7 @@ fun LoginScreen(
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
                     )
                     Text(
-                        text = stringResource(R.string.text_or),
+                        text = stringResource(R.string.label_or),
                         modifier = Modifier.padding(horizontal = 8.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline

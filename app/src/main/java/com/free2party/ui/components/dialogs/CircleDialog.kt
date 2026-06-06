@@ -177,7 +177,7 @@ fun CircleDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismiss, enabled = !isLoading) {
-                    Text(stringResource(R.string.button_cancel))
+                    Text(stringResource(R.string.label_cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -196,7 +196,7 @@ fun CircleDialog(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
-                        Text(stringResource(R.string.button_save))
+                        Text(stringResource(R.string.label_save))
                     }
                 }
             }

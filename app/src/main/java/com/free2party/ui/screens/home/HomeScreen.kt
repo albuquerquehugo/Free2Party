@@ -420,7 +420,7 @@ fun HomeScreen(
                             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.text_logout)) },
+                                text = { Text(stringResource(R.string.label_logout)) },
                                 onClick = {
                                     showUserMenu = false
                                     showLogoutDialog = true
@@ -498,14 +498,14 @@ fun HomeScreen(
 
         if (showLogoutDialog) {
             ConfirmationDialog(
-                title = stringResource(R.string.text_logout),
+                title = stringResource(R.string.label_logout),
                 text = stringResource(R.string.text_logout_confirmation),
-                confirmButtonText = stringResource(R.string.text_logout),
+                confirmButtonText = stringResource(R.string.label_logout),
                 onConfirm = {
                     showLogoutDialog = false
                     onLogoutClick()
                 },
-                dismissButtonText = stringResource(R.string.button_cancel),
+                dismissButtonText = stringResource(R.string.label_cancel),
                 onDismiss = { showLogoutDialog = false },
                 isDestructive = true
             )
@@ -770,7 +770,7 @@ fun FriendsListSection(
                     modifier = Modifier.padding(start = 8.dp),
                     text = {
                         Text(
-                            text = stringResource(R.string.everyone),
+                            text = stringResource(R.string.label_everyone),
                             fontWeight =
                                 if (selectedCircleId == null) FontWeight.ExtraBold
                                 else FontWeight.Normal,

@@ -123,21 +123,21 @@ fun PlanItem(
     }
 
     val friendsSelection = when (plan.visibility) {
-        PlanVisibility.EVERYONE -> stringResource(R.string.everyone)
+        PlanVisibility.EVERYONE -> stringResource(R.string.label_everyone)
         PlanVisibility.EXCEPT -> {
             val names = plan.friendsSelection.mapNotNull { uid ->
                 friends.find { it.uid == uid }?.name
             }
-            if (names.isEmpty()) stringResource(R.string.everyone)
-            else stringResource(R.string.everyone_except, names.joinToString(", "))
+            if (names.isEmpty()) stringResource(R.string.label_everyone)
+            else stringResource(R.string.label_everyone_except, names.joinToString(", "))
         }
 
         PlanVisibility.ONLY -> {
             val names = plan.friendsSelection.mapNotNull { uid ->
                 friends.find { it.uid == uid }?.name
             }
-            if (names.isEmpty()) stringResource(R.string.only_you)
-            else stringResource(R.string.only_selected_people, names.joinToString(", "))
+            if (names.isEmpty()) stringResource(R.string.label_only_you)
+            else stringResource(R.string.label_only_selected_people, names.joinToString(", "))
         }
     }
 
@@ -295,7 +295,7 @@ fun PlanItem(
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = stringResource(R.string.plan_actions_content_description),
+                            contentDescription = stringResource(R.string.description_plan_actions_content),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     }
@@ -369,7 +369,7 @@ fun PlanActionsMenu(
     ) {
         onEdit?.let {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.text_edit)) },
+                text = { Text(stringResource(R.string.label_edit)) },
                 enabled = editEnabled,
                 onClick = {
                     onDismissRequest()
@@ -382,7 +382,7 @@ fun PlanActionsMenu(
             DropdownMenuItem(
                 text = {
                     Text(
-                        stringResource(R.string.text_delete),
+                        stringResource(R.string.label_delete),
                         color = MaterialTheme.colorScheme.error
                     )
                 },

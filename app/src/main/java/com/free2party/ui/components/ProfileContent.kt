@@ -1032,12 +1032,12 @@ fun ProfileContent(
                     }
                     setShowDatePicker(false)
                 }) {
-                    Text(stringResource(R.string.button_ok))
+                    Text(stringResource(R.string.label_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { setShowDatePicker(false) }) {
-                    Text(stringResource(R.string.button_cancel))
+                    Text(stringResource(R.string.label_cancel))
                 }
             }
         ) {

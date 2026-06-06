@@ -314,8 +314,8 @@ fun PlanDialog(
         ) {
             Text(
                 text =
-                    if (editingPlan == null) stringResource(R.string.schedule_plan)
-                    else stringResource(R.string.edit_plan),
+                    if (editingPlan == null) stringResource(R.string.title_schedule_plan)
+                    else stringResource(R.string.title_edit_plan),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -337,7 +337,7 @@ fun PlanDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.start_label),
+                        text = stringResource(R.string.label_start),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.width(60.dp)
@@ -384,7 +384,7 @@ fun PlanDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.end_label),
+                        text = stringResource(R.string.label_end),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.width(60.dp)
@@ -449,13 +449,13 @@ fun PlanDialog(
                     textStyle = MaterialTheme.typography.bodySmall,
                     label = {
                         Text(
-                            stringResource(R.string.plan_note_label),
+                            stringResource(R.string.label_plan_note),
                             style = MaterialTheme.typography.bodySmall
                         )
                     },
                     placeholder = {
                         Text(
-                            stringResource(R.string.plan_note_placeholder),
+                            stringResource(R.string.placeholder_plan_note),
                             style = MaterialTheme.typography.bodySmall
                         )
                     },
@@ -475,12 +475,12 @@ fun PlanDialog(
                 // Visibility Section
                 Column {
                     Text(
-                        text = stringResource(R.string.visibility_label),
+                        text = stringResource(R.string.text_visibility),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = stringResource(R.string.visibility_label_discretion),
+                        text = stringResource(R.string.label_visibility_discretion),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.inactive
                     )
@@ -488,11 +488,11 @@ fun PlanDialog(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     VisibilityOption(
-                        stringResource(R.string.everyone),
+                        stringResource(R.string.label_everyone),
                         visibility == PlanVisibility.EVERYONE
                     ) { visibility = PlanVisibility.EVERYONE }
                     VisibilityOption(
-                        stringResource(R.string.everyone_except_label),
+                        stringResource(R.string.label_everyone_except_label),
                         visibility == PlanVisibility.EXCEPT,
                         Modifier.testTag("visibility_except")
                     ) { visibility = PlanVisibility.EXCEPT }
@@ -515,7 +515,7 @@ fun PlanDialog(
                             { exceptFriendIds = emptyList() })
                     }
                     VisibilityOption(
-                        stringResource(R.string.only_selected_people_label),
+                        stringResource(R.string.label_only_selected_people_label),
                         visibility == PlanVisibility.ONLY,
                         Modifier.testTag("visibility_only")
                     ) { visibility = PlanVisibility.ONLY }
@@ -545,7 +545,7 @@ fun PlanDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_cancel)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.label_cancel)) }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -571,8 +571,8 @@ fun PlanDialog(
                     enabled = isConfirmEnabled
                 ) {
                     Text(
-                        if (editingPlan == null) stringResource(R.string.button_add)
-                        else stringResource(R.string.button_update)
+                        if (editingPlan == null) stringResource(R.string.label_add)
+                        else stringResource(R.string.label_update)
                     )
                 }
             }
@@ -585,7 +585,7 @@ fun PlanDialog(
             colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = { setShowStartDatePicker(false) }) {
-                    Text(stringResource(R.string.button_ok))
+                    Text(stringResource(R.string.label_ok))
                 }
             }) {
             DatePicker(
@@ -608,7 +608,7 @@ fun PlanDialog(
             colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
                 TextButton(onClick = { setShowEndDatePicker(false) }) {
-                    Text(stringResource(R.string.button_ok))
+                    Text(stringResource(R.string.label_ok))
                 }
             }) {
             DatePicker(
@@ -639,8 +639,8 @@ fun PlanDialog(
             ) {
                 Text(
                     text =
-                        if (showStartTimePicker) stringResource(R.string.select_start_time)
-                        else stringResource(R.string.select_end_time),
+                        if (showStartTimePicker) stringResource(R.string.label_select_start_time)
+                        else stringResource(R.string.label_select_end_time),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -671,7 +671,7 @@ fun PlanDialog(
                         }
                         setShowStartTimePicker(false)
                         setShowEndTimePicker(false)
-                    }) { Text(stringResource(R.string.button_ok)) }
+                    }) { Text(stringResource(R.string.label_ok)) }
                 }
             }
         }
@@ -735,7 +735,7 @@ fun FriendSelector(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        stringResource(R.string.no_friends_to_select),
+                        stringResource(R.string.label_no_friends_to_select),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -785,7 +785,7 @@ fun FriendSelector(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = stringResource(R.string.unselect_all),
+                text = stringResource(R.string.label_unselect_all),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -794,7 +794,7 @@ fun FriendSelector(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = stringResource(R.string.select_all),
+                text = stringResource(R.string.label_select_all),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -869,7 +869,11 @@ fun CircleSelectorItem(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = pluralStringResource(R.plurals.label_circle_member_count, memberCount, memberCount),
+                text = pluralStringResource(
+                    R.plurals.label_circle_member_count,
+                    memberCount,
+                    memberCount
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

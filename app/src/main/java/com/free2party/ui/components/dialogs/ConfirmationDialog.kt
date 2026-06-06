@@ -24,9 +24,9 @@ import com.free2party.R
 fun ConfirmationDialog(
     title: String,
     text: String,
-    confirmButtonText: String = stringResource(R.string.button_confirm),
+    confirmButtonText: String = stringResource(R.string.label_confirm),
     onConfirm: () -> Unit,
-    dismissButtonText: String = stringResource(R.string.button_cancel),
+    dismissButtonText: String = stringResource(R.string.label_cancel),
     onDismiss: () -> Unit,
     secondaryButtonText: String? = null,
     onSecondaryAction: (() -> Unit)? = null,

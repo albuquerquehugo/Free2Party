@@ -2,19 +2,21 @@
     <string name="app_name">Free2Party</string>
 
     <!-- General Buttons & Actions -->
-    <string name="button_add">Adicionar</string>
-    <string name="button_cancel">Cancelar</string>
-    <string name="button_close">Fechar</string>
-    <string name="button_confirm">Confirmar</string>
-    <string name="button_ok">OK</string>
-    <string name="button_remove">Remover</string>
-    <string name="button_save">Salvar</string>
-    <string name="button_update">Atualizar</string>
-    <string name="text_back">Voltar</string>
-    <string name="text_delete">Excluir</string>
-    <string name="text_edit">Editar</string>
-    <string name="text_logout">Sair</string>
-    <string name="text_or"> OU </string>
+    <string name="label_add">Adicionar</string>
+    <string name="label_back">Voltar</string>
+    <string name="label_cancel">Cancelar</string>
+    <string name="label_close">Fechar</string>
+    <string name="label_confirm">Confirmar</string>
+    <string name="label_delete">Excluir</string>
+    <string name="label_discard_changes">Descartar Alterações</string>
+    <string name="label_edit">Editar</string>
+    <string name="label_logout">Sair</string>
+    <string name="label_ok">OK</string>
+    <string name="label_or"> OU </string>
+    <string name="label_remove">Remover</string>
+    <string name="label_save">Salvar</string>
+    <string name="label_save_changes">Salvar Alterações</string>
+    <string name="label_update">Atualizar</string>
 
     <!-- General Labels & Text -->
     <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
@@ -132,7 +134,6 @@
     <string name="label_bio">Bio</string>
     <string name="label_birthday">Data de Nascimento</string>
     <string name="label_delete_account">Excluir Conta</string>
-    <string name="label_discard_changes">Descartar Alterações</string>
     <string name="label_email_required">E-mail *</string>
     <string name="label_first_name_required">Nome *</string>
     <string name="label_gender">Gênero *</string>
@@ -143,7 +144,6 @@
     <string name="label_last_name_required">Sobrenome *</string>
     <string name="label_messenger_username">Usuário do Facebook/Messenger</string>
     <string name="label_phone_number">Número de Telefone</string>
-    <string name="label_save_changes">Salvar Alterações</string>
     <string name="label_section_socials">Redes Sociais</string>
     <string name="label_send_message">Enviar uma mensagem</string>
     <string name="label_view_calendar">Ver Calendário</string>
@@ -184,7 +184,7 @@
     <string name="text_block_info_message_1">Ele não poderá enviar mensagens para você ou adicioná-lo novamente a menos que você o desbloqueie.</string>
     <string name="text_block_info_message_2">Ele não será notificado de que você o bloqueou ou denunciou.</string>
     <string name="text_block_user_confirmation">Bloquear este usuário removerá a amizade de ambas as listas de amigos e o adicionará a %1$s no menu do seu perfil. Você pode desbloqueá-lo a qualquer momento.</string>
-    <string name="text_report_user_reason">Por que você está denunciando este usuário?</string>
+    <string name="text_report_user_reason">Por que você deseja denunciar este usuário?</string>
     <string name="title_block_user_name">Bloquear %1$s?</string>
     <string name="title_blocked_users">Usuários Bloqueados</string>
     <string name="title_report_user">Denunciar Usuário</string>
@@ -192,22 +192,29 @@
     <string name="toast_user_unblocked">Usuário desbloqueado</string>
 
     <!-- Settings Screen -->
-    <string name="button_save_settings">Salvar Configurações</string>
     <string name="label_background">Plano de Fundo:</string>
+    <string name="label_birthday_display_format">Como outros verão seu aniversário?</string>
     <string name="label_date_format">Formato da Data:</string>
+    <string name="label_everyone">Todos</string>
+    <string name="label_everyone_except_label">Todos, exceto…</string>
+    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
+    <string name="label_nobody">Ninguém</string>
     <string name="label_theme_mode">Modo do Tema:</string>
     <string name="label_time_format">Formato da Hora:</string>
-    <string name="message_settings_updated">Configurações atualizadas com sucesso!</string>
     <string name="option_am_pm">AM/PM</string>
+    <string name="option_birthday_full">Data completa (com ano)</string>
+    <string name="option_birthday_day_month">Apenas dia e mês</string>
     <string name="option_gradient">Gradiente</string>
     <string name="option_solid">Sólido</string>
     <string name="option_twenty_four_hour">24 horas</string>
+    <string name="text_visibility_birthday">Quem pode ver seu aniversário?</string>
     <string name="title_appearance">Aparência</string>
     <string name="title_background">Plano de Fundo</string>
     <string name="title_preferences">Preferências</string>
     <string name="title_privacy">Privacidade</string>
     <string name="title_settings">Configurações</string>
     <string name="title_theme_mode">Modo do Tema</string>
+    <string name="toast_settings_updated">Configurações atualizadas com sucesso</string>
 
     <!-- Calendar Screen -->
     <string name="add_plan">Adicionar Plano</string>
@@ -236,27 +243,24 @@
     <string name="title_calendar">Calendário</string>
 
     <!-- Plan Dialog -->
-    <string name="edit_plan">Edite seu plano</string>
-    <string name="end_label">Fim:</string>
-    <string name="everyone">Todos</string>
-    <string name="everyone_except">Todos, exceto: %1$s</string>
-    <string name="everyone_except_label">Todos, exceto…</string>
-    <string name="no_friends_to_select">Nenhum amigo para selecionar</string>
-    <string name="only_selected_people">Apenas: %1$s</string>
-    <string name="only_selected_people_label">Apenas pessoas selecionadas…</string>
-    <string name="only_you">Apenas você</string>
-    <string name="plan_actions_content_description">Ações do Plano</string>
-    <string name="plan_note_label">O que você está planejando?</string>
-    <string name="plan_note_placeholder">Digite uma breve nota…</string>
-    <string name="schedule_plan">Agendar seu plano</string>
-    <string name="select_all">Marcar todos</string>
-    <string name="select_end_time">Selecionar hora de término</string>
-    <string name="select_start_time">Selecionar hora de início</string>
-    <string name="start_label">Início:</string>
-    <string name="unselect_all">Desmarcar todos</string>
-    <string name="visibility_label">Quem pode ver este plano?</string>
-    <string name="visibility_label_discretion">(Isso não é visível para os outros)</string>
-    <string name="visibility_manual_free_status">Quem pode ver o seu status \"Livre\" manual?</string>
+    <string name="description_plan_actions_content">Ações do Plano</string>
+    <string name="label_end">Fim:</string>
+    <string name="label_everyone_except">Todos, exceto: %1$s</string>
+    <string name="label_no_friends_to_select">Nenhum amigo para selecionar</string>
+    <string name="label_only_selected_people">Apenas: %1$s</string>
+    <string name="label_only_you">Apenas você</string>
+    <string name="label_plan_note">O que você está planejando?</string>
+    <string name="label_select_all">Marcar todos</string>
+    <string name="label_select_end_time">Selecionar hora de término</string>
+    <string name="label_select_start_time">Selecionar hora de início</string>
+    <string name="label_start">Início:</string>
+    <string name="label_unselect_all">Desmarcar todos</string>
+    <string name="label_visibility_discretion">(Isso não é visível para os outros)</string>
+    <string name="placeholder_plan_note">Digite uma breve nota…</string>
+    <string name="text_visibility">Quem pode ver este plano?</string>
+    <string name="text_visibility_manual_free_status">Quem pode ver o seu status \"Livre\" manual?</string>
+    <string name="title_edit_plan">Edite seu plano</string>
+    <string name="title_schedule_plan">Agendar seu plano</string>
 
     <!-- Notifications -->
     <string name="notification_friend_removed_body">%1$s (%2$s) não é mais seu amigo.</string>

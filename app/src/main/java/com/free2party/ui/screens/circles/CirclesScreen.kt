@@ -176,12 +176,12 @@ fun CirclesScreen(
             ConfirmationDialog(
                 title = stringResource(R.string.title_delete_circle),
                 text = stringResource(R.string.text_delete_circle_confirmation),
-                confirmButtonText = stringResource(R.string.text_delete),
+                confirmButtonText = stringResource(R.string.label_delete),
                 onConfirm = {
                     onDeleteCircle(circle.id)
                     circleToDelete = null
                 },
-                dismissButtonText = stringResource(R.string.button_cancel),
+                dismissButtonText = stringResource(R.string.label_cancel),
                 onDismiss = { circleToDelete = null },
                 isDestructive = true
             )
@@ -326,7 +326,7 @@ private fun CircleListItem(
                         containerColor = MaterialTheme.colorScheme.surface
                     ) {
                         DropdownMenuItem(
-                            text = { Text(stringResource(R.string.text_edit)) },
+                            text = { Text(stringResource(R.string.label_edit)) },
                             leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                             onClick = {
                                 onEdit()
@@ -337,7 +337,7 @@ private fun CircleListItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    stringResource(R.string.text_delete),
+                                    stringResource(R.string.label_delete),
                                     color = MaterialTheme.colorScheme.error
                                 )
                             },

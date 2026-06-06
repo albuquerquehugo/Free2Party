@@ -2,7 +2,6 @@ package com.free2party.ui.screens.settings
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +48,8 @@ import com.free2party.data.model.DatePattern
 import com.free2party.data.model.User
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
+import com.free2party.data.model.BirthdayVisibility
+import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
 import com.free2party.ui.components.dialogs.FriendSelector
@@ -157,6 +159,15 @@ fun SettingsScreenContent(
     var manualStatusFriendsSelection by remember(user.manualStatusFriendsSelection) {
         mutableStateOf(user.manualStatusFriendsSelection)
     }
+    var birthdayVisibility by remember(user.birthdayVisibility) {
+        mutableStateOf(user.birthdayVisibility)
+    }
+    var birthdayFriendsSelection by remember(user.birthdayFriendsSelection) {
+        mutableStateOf(user.birthdayFriendsSelection)
+    }
+    var birthdayShowType by remember(user.birthdayShowType) {
+        mutableStateOf(user.birthdayShowType)
+    }
 
     LaunchedEffect(friends) {
         val currentFriendIds = friends.map { it.uid }.toSet()
@@ -164,13 +175,24 @@ fun SettingsScreenContent(
             manualStatusFriendsSelection =
                 manualStatusFriendsSelection.filter { it in currentFriendIds }
         }
+        if (birthdayFriendsSelection.any { it !in currentFriendIds }) {
+            birthdayFriendsSelection =
+                birthdayFriendsSelection.filter { it in currentFriendIds }
+        }
     }
 
     val oldPatternString = stringResource(user.settings.datePattern.patternResId).replace("-", "")
     val newPatternString = stringResource(datePattern.patternResId).replace("-", "")
 
-    val isPrivacyChanged = remember(user, manualStatusVisibility, manualStatusFriendsSelection) {
-        if (manualStatusVisibility != user.manualStatusVisibility) {
+    val isPrivacyChanged = remember(
+        user,
+        manualStatusVisibility,
+        manualStatusFriendsSelection,
+        birthdayVisibility,
+        birthdayFriendsSelection,
+        birthdayShowType
+    ) {
+        val manualStatusChanged = if (manualStatusVisibility != user.manualStatusVisibility) {
             true
         } else {
             when (manualStatusVisibility) {
@@ -180,25 +202,47 @@ fun SettingsScreenContent(
                 }
             }
         }
+        val birthdayChanged = if (birthdayVisibility != user.birthdayVisibility) {
+            true
+        } else if (birthdayShowType != user.birthdayShowType) {
+            true
+        } else {
+            when (birthdayVisibility) {
+                BirthdayVisibility.EVERYONE, BirthdayVisibility.NOBODY -> false
+                BirthdayVisibility.EXCEPT, BirthdayVisibility.ONLY -> {
+                    birthdayFriendsSelection.toSet() != user.birthdayFriendsSelection.toSet()
+                }
+            }
+        }
+        manualStatusChanged || birthdayChanged
     }
 
     val isPreferencesChanged = remember(user, use24HourFormat, datePattern) {
-        use24HourFormat != user.settings.use24HourFormat ||
-                datePattern != user.settings.datePattern
+        use24HourFormat != user.settings.use24HourFormat || datePattern != user.settings.datePattern
     }
 
     val hasChanges = isPrivacyChanged || isPreferencesChanged
 
-    val isVisibilityValid = remember(manualStatusVisibility, manualStatusFriendsSelection) {
-        when (manualStatusVisibility) {
+    val isVisibilityValid = remember(
+        manualStatusVisibility,
+        manualStatusFriendsSelection,
+        birthdayVisibility,
+        birthdayFriendsSelection
+    ) {
+        val isManualStatusValid = when (manualStatusVisibility) {
             PlanVisibility.EVERYONE -> true
             PlanVisibility.EXCEPT, PlanVisibility.ONLY -> manualStatusFriendsSelection.isNotEmpty()
         }
+        val isBirthdayValid = when (birthdayVisibility) {
+            BirthdayVisibility.EVERYONE, BirthdayVisibility.NOBODY -> true
+            BirthdayVisibility.EXCEPT, BirthdayVisibility.ONLY -> birthdayFriendsSelection.isNotEmpty()
+        }
+        isManualStatusValid && isBirthdayValid
     }
 
     val cardColors = CardDefaults.cardColors(
         containerColor = if (gradientBackground) {
-            MaterialTheme.colorScheme.surface.copy(alpha = if (isSystemInDarkTheme()) 0.1f else 0.5f)
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         } else {
             MaterialTheme.colorScheme.surfaceVariant
         }
@@ -229,13 +273,13 @@ fun SettingsScreenContent(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = stringResource(R.string.visibility_manual_free_status),
+                    text = stringResource(R.string.text_visibility_manual_free_status),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = stringResource(R.string.visibility_label_discretion),
+                    text = stringResource(R.string.label_visibility_discretion),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -243,13 +287,13 @@ fun SettingsScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 SettingsOption(
-                    label = stringResource(R.string.everyone),
+                    label = stringResource(R.string.label_everyone),
                     selected = manualStatusVisibility == PlanVisibility.EVERYONE,
                     onClick = { manualStatusVisibility = PlanVisibility.EVERYONE },
                     enabled = !isSaving
                 )
                 SettingsOption(
-                    label = stringResource(R.string.everyone_except_label),
+                    label = stringResource(R.string.label_everyone_except_label),
                     selected = manualStatusVisibility == PlanVisibility.EXCEPT,
                     onClick = { manualStatusVisibility = PlanVisibility.EXCEPT },
                     enabled = !isSaving,
@@ -277,7 +321,7 @@ fun SettingsScreenContent(
                     )
                 }
                 SettingsOption(
-                    label = stringResource(R.string.only_selected_people_label),
+                    label = stringResource(R.string.label_only_selected_people_label),
                     selected = manualStatusVisibility == PlanVisibility.ONLY,
                     onClick = { manualStatusVisibility = PlanVisibility.ONLY },
                     enabled = !isSaving,
@@ -303,6 +347,131 @@ fun SettingsScreenContent(
                         onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
                         onUnselectAll = { manualStatusFriendsSelection = emptyList() }
                     )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = cardColors
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = stringResource(R.string.text_visibility_birthday),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.label_visibility_discretion),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                SettingsOption(
+                    label = stringResource(R.string.label_everyone),
+                    selected = birthdayVisibility == BirthdayVisibility.EVERYONE,
+                    onClick = { birthdayVisibility = BirthdayVisibility.EVERYONE },
+                    enabled = !isSaving
+                )
+                SettingsOption(
+                    label = stringResource(R.string.label_everyone_except_label),
+                    selected = birthdayVisibility == BirthdayVisibility.EXCEPT,
+                    onClick = { birthdayVisibility = BirthdayVisibility.EXCEPT },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("birthday_visibility_except")
+                )
+                AnimatedVisibility(visible = birthdayVisibility == BirthdayVisibility.EXCEPT) {
+                    FriendSelector(
+                        friends = friends,
+                        circles = circles,
+                        selectedFriendIds = birthdayFriendsSelection,
+                        onToggleFriend = { id ->
+                            birthdayFriendsSelection = if (id in birthdayFriendsSelection)
+                                birthdayFriendsSelection - id else birthdayFriendsSelection + id
+                        },
+                        onAddFriends = { ids ->
+                            birthdayFriendsSelection =
+                                (birthdayFriendsSelection + ids).distinct()
+                        },
+                        onRemoveFriends = { ids ->
+                            birthdayFriendsSelection =
+                                birthdayFriendsSelection - ids.toSet()
+                        },
+                        onSelectAll = { birthdayFriendsSelection = friends.map { it.uid } },
+                        onUnselectAll = { birthdayFriendsSelection = emptyList() }
+                    )
+                }
+                SettingsOption(
+                    label = stringResource(R.string.label_only_selected_people_label),
+                    selected = birthdayVisibility == BirthdayVisibility.ONLY,
+                    onClick = { birthdayVisibility = BirthdayVisibility.ONLY },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("birthday_visibility_only")
+                )
+                AnimatedVisibility(visible = birthdayVisibility == BirthdayVisibility.ONLY) {
+                    FriendSelector(
+                        friends = friends,
+                        circles = circles,
+                        selectedFriendIds = birthdayFriendsSelection,
+                        onToggleFriend = { id ->
+                            birthdayFriendsSelection = if (id in birthdayFriendsSelection)
+                                birthdayFriendsSelection - id else birthdayFriendsSelection + id
+                        },
+                        onAddFriends = { ids ->
+                            birthdayFriendsSelection =
+                                (birthdayFriendsSelection + ids).distinct()
+                        },
+                        onRemoveFriends = { ids ->
+                            birthdayFriendsSelection =
+                                birthdayFriendsSelection - ids.toSet()
+                        },
+                        onSelectAll = { birthdayFriendsSelection = friends.map { it.uid } },
+                        onUnselectAll = { birthdayFriendsSelection = emptyList() }
+                    )
+                }
+                SettingsOption(
+                    label = stringResource(R.string.label_nobody),
+                    selected = birthdayVisibility == BirthdayVisibility.NOBODY,
+                    onClick = { birthdayVisibility = BirthdayVisibility.NOBODY },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("birthday_visibility_nobody")
+                )
+
+                AnimatedVisibility(visible = birthdayVisibility != BirthdayVisibility.NOBODY) {
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .fillMaxWidth()
+                    ) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                        Text(
+                            text = stringResource(R.string.label_birthday_display_format),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        SettingsOption(
+                            label = stringResource(R.string.option_birthday_full),
+                            selected = birthdayShowType == BirthdayShowType.FULL,
+                            onClick = { birthdayShowType = BirthdayShowType.FULL },
+                            enabled = !isSaving
+                        )
+                        SettingsOption(
+                            label = stringResource(R.string.option_birthday_day_month),
+                            selected = birthdayShowType == BirthdayShowType.DAY_MONTH,
+                            onClick = { birthdayShowType = BirthdayShowType.DAY_MONTH },
+                            enabled = !isSaving
+                        )
+                    }
                 }
             }
         }
@@ -394,6 +563,33 @@ fun SettingsScreenContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (hasChanges) {
+            TextButton(
+                onClick = {
+                    use24HourFormat = user.settings.use24HourFormat
+                    datePattern = user.settings.datePattern
+                    manualStatusVisibility = user.manualStatusVisibility
+                    manualStatusFriendsSelection = user.manualStatusFriendsSelection
+                    birthdayVisibility = user.birthdayVisibility
+                    birthdayFriendsSelection = user.birthdayFriendsSelection
+                    birthdayShowType = user.birthdayShowType
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(56.dp)
+                    .testTag("discard_button"),
+                enabled = !isSaving
+            ) {
+                Text(
+                    text = stringResource(R.string.label_discard_changes),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         Button(
             onClick = {
                 val oldPattern = user.settings.datePattern
@@ -430,7 +626,10 @@ fun SettingsScreenContent(
                             datePattern = datePattern
                         ),
                         manualStatusVisibility = manualStatusVisibility,
-                        manualStatusFriendsSelection = manualStatusFriendsSelection
+                        manualStatusFriendsSelection = manualStatusFriendsSelection,
+                        birthdayVisibility = birthdayVisibility,
+                        birthdayFriendsSelection = birthdayFriendsSelection,
+                        birthdayShowType = birthdayShowType
                     )
                 )
             },
@@ -448,7 +647,7 @@ fun SettingsScreenContent(
                 )
             } else {
                 Text(
-                    stringResource(R.string.button_save_settings),
+                    stringResource(R.string.label_save_changes),
                     style = MaterialTheme.typography.titleMedium
                 )
             }

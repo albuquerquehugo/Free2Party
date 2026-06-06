@@ -197,7 +197,7 @@ fun CountryPickerDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismissRequest) {
-                    Text(stringResource(R.string.button_close))
+                    Text(stringResource(R.string.label_close))
                 }
             }
         }

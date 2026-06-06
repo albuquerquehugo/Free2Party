@@ -253,12 +253,12 @@ fun InviteFriendScreen(
                     userToInvite!!.fullName,
                     userToInvite!!.email
                 ),
-                confirmButtonText = stringResource(R.string.button_confirm),
+                confirmButtonText = stringResource(R.string.label_confirm),
                 onConfirm = {
                     onUserSelected(userToInvite!!)
                     userToInvite = null
                 },
-                dismissButtonText = stringResource(R.string.button_cancel),
+                dismissButtonText = stringResource(R.string.label_cancel),
                 onDismiss = { userToInvite = null }
             )
         }

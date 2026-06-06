@@ -271,7 +271,7 @@ fun ProfileScreenContent(
         ConfirmationDialog(
             title = stringResource(R.string.label_delete_account),
             text = stringResource(R.string.text_delete_account_confirmation),
-            confirmButtonText = stringResource(R.string.text_delete),
+            confirmButtonText = stringResource(R.string.label_delete),
             onConfirm = {
                 setShowDeleteDialog(false)
                 onDeleteAccount()

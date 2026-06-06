@@ -2,19 +2,21 @@
     <string name="app_name">Free2Party</string>
 
     <!-- General Buttons & Actions -->
-    <string name="button_add">Add</string>
-    <string name="button_cancel">Cancel</string>
-    <string name="button_close">Close</string>
-    <string name="button_confirm">Confirm</string>
-    <string name="button_ok">OK</string>
-    <string name="button_remove">Remove</string>
-    <string name="button_save">Save</string>
-    <string name="button_update">Update</string>
-    <string name="text_back">Back</string>
-    <string name="text_delete">Delete</string>
-    <string name="text_edit">Edit</string>
-    <string name="text_logout">Logout</string>
-    <string name="text_or"> OR </string>
+    <string name="label_add">Add</string>
+    <string name="label_back">Back</string>
+    <string name="label_cancel">Cancel</string>
+    <string name="label_close">Close</string>
+    <string name="label_confirm">Confirm</string>
+    <string name="label_delete">Delete</string>
+    <string name="label_discard_changes">Discard Changes</string>
+    <string name="label_edit">Edit</string>
+    <string name="label_logout">Logout</string>
+    <string name="label_ok">OK</string>
+    <string name="label_or"> OR </string>
+    <string name="label_remove">Remove</string>
+    <string name="label_save">Save</string>
+    <string name="label_save_changes">Save Changes</string>
+    <string name="label_update">Update</string>
 
     <!-- General Labels & Text -->
     <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
@@ -131,7 +133,6 @@
     <string name="label_bio">Bio</string>
     <string name="label_birthday">Birthday</string>
     <string name="label_delete_account">Delete Account</string>
-    <string name="label_discard_changes">Discard Changes</string>
     <string name="label_email_required">Email *</string>
     <string name="label_first_name_required">First Name *</string>
     <string name="label_gender">Gender *</string>
@@ -142,7 +143,6 @@
     <string name="label_last_name_required">Last Name *</string>
     <string name="label_messenger_username">Facebook/Messenger Username</string>
     <string name="label_phone_number">Phone Number</string>
-    <string name="label_save_changes">Save Changes</string>
     <string name="label_section_socials">Socials</string>
     <string name="label_send_message">Send a message</string>
     <string name="label_view_calendar">View Calendar</string>
@@ -183,7 +183,7 @@
     <string name="text_block_info_message_1">They won\'t be able to message you or add you again unless you unblock them.</string>
     <string name="text_block_info_message_2">They won\'t be notified that you blocked or reported them.</string>
     <string name="text_block_user_confirmation">Blocking this user will remove the friendship from both friends list and add them to %1$s in your profile menu. You can unblock them anytime.</string>
-    <string name="text_report_user_reason">Why are you reporting this user?</string>
+    <string name="text_report_user_reason">Why do you want to report this user?</string>
     <string name="title_block_user_name">Block %1$s?</string>
     <string name="title_blocked_users">Blocked Users</string>
     <string name="title_report_user">Report User</string>
@@ -191,22 +191,29 @@
     <string name="toast_user_unblocked">User unblocked</string>
 
     <!-- Settings Screen -->
-    <string name="button_save_settings">Save Settings</string>
     <string name="label_background">Background:</string>
+    <string name="label_birthday_display_format">How others will see your birthday?</string>
     <string name="label_date_format">Date Format:</string>
+    <string name="label_everyone">Everyone</string>
+    <string name="label_everyone_except_label">Everyone except…</string>
+    <string name="label_only_selected_people_label">Only selected people…</string>
+    <string name="label_nobody">Nobody</string>
     <string name="label_theme_mode">Theme Mode:</string>
     <string name="label_time_format">Time Format:</string>
-    <string name="message_settings_updated">Settings updated successfully!</string>
     <string name="option_am_pm">AM/PM</string>
+    <string name="option_birthday_day_month">Day and month only</string>
+    <string name="option_birthday_full">Full date (with year)</string>
     <string name="option_gradient">Gradient</string>
     <string name="option_solid">Solid</string>
     <string name="option_twenty_four_hour">24-hour</string>
+    <string name="text_visibility_birthday">Who can see your birthday?</string>
     <string name="title_appearance">Appearance</string>
     <string name="title_background">Background</string>
     <string name="title_preferences">Preferences</string>
     <string name="title_privacy">Privacy</string>
     <string name="title_settings">Settings</string>
     <string name="title_theme_mode">Theme Mode</string>
+    <string name="toast_settings_updated">Settings updated successfully</string>
 
     <!-- Calendar Screen -->
     <string name="add_plan">Add Plan</string>
@@ -235,27 +242,24 @@
     <string name="title_calendar">Calendar</string>
 
     <!-- Plan Dialog -->
-    <string name="edit_plan">Edit your plan</string>
-    <string name="end_label">End:</string>
-    <string name="everyone">Everyone</string>
-    <string name="everyone_except">Everyone except: %1$s</string>
-    <string name="everyone_except_label">Everyone except…</string>
-    <string name="no_friends_to_select">No friends to select</string>
-    <string name="only_selected_people">Only: %1$s</string>
-    <string name="only_selected_people_label">Only selected people…</string>
-    <string name="only_you">Only you</string>
-    <string name="plan_actions_content_description">Plan Actions</string>
-    <string name="plan_note_label">What are you planning?</string>
-    <string name="plan_note_placeholder">Enter a brief note…</string>
-    <string name="schedule_plan">Schedule your plan</string>
-    <string name="select_all">Select all</string>
-    <string name="select_end_time">Select end time</string>
-    <string name="select_start_time">Select start time</string>
-    <string name="start_label">Start:</string>
-    <string name="unselect_all">Unselect all</string>
-    <string name="visibility_label">Who can see this plan?</string>
-    <string name="visibility_label_discretion">(This is not visible to others)</string>
-    <string name="visibility_manual_free_status">Who can see your manual \"Free\" status?</string>
+    <string name="description_plan_actions_content">Plan Actions</string>
+    <string name="label_end">End:</string>
+    <string name="label_everyone_except">Everyone except: %1$s</string>
+    <string name="label_no_friends_to_select">No friends to select</string>
+    <string name="label_only_selected_people">Only: %1$s</string>
+    <string name="label_only_you">Only you</string>
+    <string name="label_plan_note">What are you planning?</string>
+    <string name="label_select_all">Select all</string>
+    <string name="label_select_end_time">Select end time</string>
+    <string name="label_select_start_time">Select start time</string>
+    <string name="label_start">Start:</string>
+    <string name="label_unselect_all">Unselect all</string>
+    <string name="label_visibility_discretion">(This is not visible to others)</string>
+    <string name="placeholder_plan_note">Enter a brief note…</string>
+    <string name="text_visibility">Who can see this plan?</string>
+    <string name="text_visibility_manual_free_status">Who can see your manual \"Free\" status?</string>
+    <string name="title_edit_plan">Edit your plan</string>
+    <string name="title_schedule_plan">Schedule your plan</string>
 
     <!-- Notifications -->
     <string name="notification_friend_removed_body">%1$s (%2$s) is no longer your friend</string>

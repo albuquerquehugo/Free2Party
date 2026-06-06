@@ -147,7 +147,7 @@ fun ReportUserDialog(
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             ) {
-                Text(stringResource(R.string.button_cancel))
+                Text(stringResource(R.string.label_cancel))
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,

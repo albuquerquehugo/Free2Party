@@ -38,6 +38,8 @@ import com.free2party.R
 import com.free2party.data.model.Countries
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.User
+import com.free2party.data.model.BirthdayVisibility
+import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.repository.UserRepository
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
@@ -62,6 +64,8 @@ class PublicProfileViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
     private val _userId = MutableStateFlow<String?>(null)
+
+    val currentUserId: String get() = userRepository.currentUserId
 
     fun setUserId(uid: String) {
         _userId.value = uid
@@ -93,7 +97,20 @@ fun PublicProfileDialog(
     }
 
     val userState by viewModel.userFlow.collectAsState()
+    val currentUserId = viewModel.currentUserId
     val context = LocalContext.current
+
+    val showBirthday = remember(userState, currentUserId) {
+        val user = userState ?: return@remember false
+        if (user.birthday.isBlank()) return@remember false
+
+        when (user.birthdayVisibility) {
+            BirthdayVisibility.EVERYONE -> true
+            BirthdayVisibility.EXCEPT -> currentUserId !in user.birthdayFriendsSelection
+            BirthdayVisibility.ONLY -> currentUserId in user.birthdayFriendsSelection
+            BirthdayVisibility.NOBODY -> false
+        }
+    }
 
     BaseDialog(onDismissRequest = onDismiss) {
         Column(
@@ -227,9 +244,9 @@ fun PublicProfileDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Birthday
-                val birthday = userState?.birthday ?: ""
-                if (birthday.isNotBlank()) {
-                    val birthdayText = formatBirthday(birthday)
+                if (showBirthday && userState != null) {
+                    val birthdayText =
+                        formatBirthday(userState!!.birthday, userState!!.birthdayShowType)
                     ProfileDetailRow(
                         icon = Icons.Default.Cake,
                         text = birthdayText
@@ -293,7 +310,10 @@ fun PublicProfileDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        12.dp,
+                        Alignment.CenterHorizontally
+                    ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val hangOutMessage = stringResource(R.string.text_hang_out_message)
@@ -316,28 +336,44 @@ fun PublicProfileDialog(
                             painter = painterResource(id = R.drawable.telegram),
                             tint = TelegramColor
                         ) {
-                            openSocialMessage(context, SocialPlatform.TELEGRAM, socials.telegramUsername)
+                            openSocialMessage(
+                                context,
+                                SocialPlatform.TELEGRAM,
+                                socials.telegramUsername
+                            )
                         }
                     }
                     if (socials.facebookUsername.isNotBlank()) {
                         SocialIconButton(
                             painter = painterResource(id = R.drawable.messenger_color)
                         ) {
-                            openSocialMessage(context, SocialPlatform.MESSENGER, socials.facebookUsername)
+                            openSocialMessage(
+                                context,
+                                SocialPlatform.MESSENGER,
+                                socials.facebookUsername
+                            )
                         }
                     }
                     if (socials.instagramUsername.isNotBlank()) {
                         SocialIconButton(
                             painter = painterResource(id = R.drawable.instagram_color)
                         ) {
-                            openSocialMessage(context, SocialPlatform.INSTAGRAM, socials.instagramUsername)
+                            openSocialMessage(
+                                context,
+                                SocialPlatform.INSTAGRAM,
+                                socials.instagramUsername
+                            )
                         }
                     }
                     if (socials.tiktokUsername.isNotBlank()) {
                         SocialIconButton(
                             painter = painterResource(id = R.drawable.tiktok_color)
                         ) {
-                            openSocialMessage(context, SocialPlatform.TIKTOK, socials.tiktokUsername)
+                            openSocialMessage(
+                                context,
+                                SocialPlatform.TIKTOK,
+                                socials.tiktokUsername
+                            )
                         }
                     }
                     if (socials.xUsername.isNotBlank()) {
@@ -358,7 +394,7 @@ fun PublicProfileDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.button_close))
+                    Text(stringResource(R.string.label_close))
                 }
             }
         }
@@ -428,17 +464,32 @@ private fun SocialIconButton(
     }
 }
 
-private fun formatBirthday(birthday: String): String {
+private fun formatBirthday(birthday: String, showType: BirthdayShowType): String {
     if (birthday.length != 8) return birthday
     return try {
         val sdf = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).apply {
             timeZone = java.util.TimeZone.getTimeZone("UTC")
         }
         val date = sdf.parse(birthday) ?: return birthday
-        val format = java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG, java.util.Locale.getDefault()).apply {
-            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        if (showType == BirthdayShowType.DAY_MONTH) {
+            val skeleton = "MMMMd"
+            val pattern = android.text.format.DateFormat.getBestDateTimePattern(
+                java.util.Locale.getDefault(),
+                skeleton
+            )
+            val format = java.text.SimpleDateFormat(pattern, java.util.Locale.getDefault()).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            format.format(date)
+        } else {
+            val format = java.text.DateFormat.getDateInstance(
+                java.text.DateFormat.LONG,
+                java.util.Locale.getDefault()
+            ).apply {
+                timeZone = java.util.TimeZone.getTimeZone("UTC")
+            }
+            format.format(date)
         }
-        format.format(date)
     } catch (_: Exception) {
         birthday
     }
