@@ -486,7 +486,7 @@ fun HomeScreen(
                         },
                         onCancelInvite = onCancelInvite,
                         onInviteFriendClick = onInviteFriendClick,
-                        onFriendItemClick = { friend -> selectedFriend = friend },
+                        onOpenFriendCalendar = { friend -> selectedFriend = friend },
                         membership = homeUiState.membership
                     )
                 }
@@ -586,7 +586,7 @@ fun HomeContent(
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
-    onFriendItemClick: (FriendInfo) -> Unit,
+    onOpenFriendCalendar: (FriendInfo) -> Unit,
     membership: Membership = Membership.REGULAR
 ) {
     val haptic = LocalHapticFeedback.current
@@ -681,7 +681,7 @@ fun HomeContent(
                 onBlockUser = onBlockUser,
                 onCancelInvite = onCancelInvite,
                 onInviteFriendClick = onInviteFriendClick,
-                onFriendItemClick = onFriendItemClick
+                onOpenFriendCalendar = onOpenFriendCalendar
             )
         }
 
@@ -702,7 +702,7 @@ fun FriendsListSection(
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
     onInviteFriendClick: () -> Unit,
-    onFriendItemClick: (FriendInfo) -> Unit
+    onOpenFriendCalendar: (FriendInfo) -> Unit
 ) {
     var showFilterMenu by remember { mutableStateOf(false) }
 
@@ -864,7 +864,7 @@ fun FriendsListSection(
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
                     onCancelInvite = onCancelInvite,
-                    onClick = onFriendItemClick
+                    onOpenCalendar = onOpenFriendCalendar
                 )
             }
             item {
@@ -875,7 +875,7 @@ fun FriendsListSection(
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
                     onCancelInvite = onCancelInvite,
-                    onClick = onFriendItemClick
+                    onOpenCalendar = onOpenFriendCalendar
                 )
             }
             item {
@@ -886,7 +886,7 @@ fun FriendsListSection(
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
                     onCancelInvite = onCancelInvite,
-                    onClick = onFriendItemClick
+                    onOpenCalendar = onOpenFriendCalendar
                 )
             }
             item {
@@ -904,7 +904,7 @@ fun ExpandableFriendSection(
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onClick: (FriendInfo) -> Unit
+    onOpenCalendar: (FriendInfo) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(true) }
     val rotation by animateFloatAsState(
@@ -954,7 +954,7 @@ fun ExpandableFriendSection(
                             onRemoveFriend = onRemoveFriend,
                             onBlockUser = onBlockUser,
                             onCancelInvite = { onCancelInvite(friend.uid) },
-                            onClick = { onClick(friend) }
+                            onOpenCalendar = { onOpenCalendar(friend) }
                         )
                     }
                 }
@@ -970,7 +970,7 @@ fun FriendItem(
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
     onCancelInvite: (String) -> Unit,
-    onClick: () -> Unit
+    onOpenCalendar: () -> Unit
 ) {
     var showFriendMenu by remember { mutableStateOf(false) }
     var showContactMenu by remember { mutableStateOf(false) }
@@ -989,7 +989,7 @@ fun FriendItem(
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
                 .combinedClickable(
-                    onClick = { if (!isInvited) onClick() },
+                    onClick = { /* Will implement another action later */ },
                     onLongClick = { showFriendMenu = true }
                 ),
             colors = CardDefaults.cardColors(
@@ -1077,6 +1077,17 @@ fun FriendItem(
                 )
 
                 if (!isInvited) {
+                    // Calendar button
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = stringResource(R.string.description_open_calendar),
+                            tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
+                            else MaterialTheme.colorScheme.onBusyContainer
+                        )
+                    }
+
+                    // Contact button
                     Box {
                         IconButton(onClick = { showContactMenu = true }) {
                             Icon(
@@ -1266,6 +1277,7 @@ fun FriendItem(
                     }
                 }
 
+                // More menu button
                 Box {
                     IconButton(onClick = { showFriendMenu = true }) {
                         Icon(

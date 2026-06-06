@@ -61,6 +61,7 @@
     <string name="description_filter">Filtro</string>
     <string name="description_friend_options">Opções do Amigo</string>
     <string name="description_logo_content">Logo do Free2Party</string>
+    <string name="description_open_calendar">Abrir Calendário</string>
     <string name="description_user_menu">Menu do Usuário</string>
     <string name="label_cancel_invite">Cancelar Convite</string>
     <string name="label_circle_member_count">%1$d membros</string>

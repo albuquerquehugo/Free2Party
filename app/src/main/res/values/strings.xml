@@ -61,6 +61,7 @@
     <string name="description_filter">Filter</string>
     <string name="description_friend_options">Friend Options</string>
     <string name="description_logo_content">Free2Party Logo</string>
+    <string name="description_open_calendar">Open Calendar</string>
     <string name="description_user_menu">User Menu</string>
     <string name="label_cancel_invite">Cancel Invite</string>
     <string name="label_circle_member_count">%1$d members</string>

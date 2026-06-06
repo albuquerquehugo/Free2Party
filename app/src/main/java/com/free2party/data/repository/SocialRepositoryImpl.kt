@@ -931,19 +931,18 @@ class SocialRepositoryImpl @Inject constructor(
         return when (e) {
             is FirebaseNetworkException -> NetworkUnavailableException()
             is FirebaseFirestoreException -> {
-                when (e.code) {
-                    FirebaseFirestoreException.Code.PERMISSION_DENIED -> {
-                        if (currentUserId.isBlank()) {
-                            UnauthorizedException()
-                        } else {
-                            DatabaseOperationException(
-                                e.localizedMessage ?: "Social permission denied"
-                            )
-                        }
+                if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    if (currentUserId.isBlank()) {
+                        UnauthorizedException()
+                    } else {
+                        DatabaseOperationException(
+                            e.localizedMessage ?: "Social permission denied"
+                        )
                     }
-
-                    FirebaseFirestoreException.Code.UNAVAILABLE -> NetworkUnavailableException()
-                    else -> DatabaseOperationException(
+                } else if (e.code == FirebaseFirestoreException.Code.UNAVAILABLE) {
+                    NetworkUnavailableException()
+                } else {
+                    DatabaseOperationException(
                         e.localizedMessage ?: "Social database error"
                     )
                 }
