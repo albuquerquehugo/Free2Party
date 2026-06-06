@@ -270,6 +270,8 @@ class SocialRepositoryTest {
         val query = "João"
         val normalizedQuery = "joao"
         
+        coEvery { userRepository.getUserById("me123") } returns Result.success(User(uid = "me123", countryCode = "US"))
+
         val querySnapshot: QuerySnapshot = mockk {
             every { documents } returns emptyList()
             every { size() } returns 0
@@ -299,5 +301,190 @@ class SocialRepositoryTest {
 
         assertTrue(result.isSuccess)
         verify { usersCollection.whereArrayContains("searchKeywords", normalizedQuery) }
+    }
+
+    @Test
+    fun `searchUsers scores and sorts results correctly based on match strength, country and profile pic`() = runTest {
+        val query = "Alice"
+        val normalizedQuery = "alice"
+        
+        coEvery { userRepository.getUserById("me123") } returns Result.success(User(uid = "me123", countryCode = "US"))
+
+        // Mock candidates
+        val doc1 = mockk<DocumentSnapshot> {
+            every { id } returns "alice1"
+            every { toObject(User::class.java) } returns User(
+                uid = "alice1",
+                firstName = "Alice",
+                lastName = "Green",
+                countryCode = "US",
+                profilePicUrl = ""
+            )
+        }
+        val doc2 = mockk<DocumentSnapshot> {
+            every { id } returns "alice2"
+            every { toObject(User::class.java) } returns User(
+                uid = "alice2",
+                firstName = "Alice",
+                lastName = "Blue",
+                countryCode = "CA",
+                profilePicUrl = "pic_url"
+            )
+        }
+        val doc3 = mockk<DocumentSnapshot> {
+            every { id } returns "bob"
+            every { toObject(User::class.java) } returns User(
+                uid = "bob",
+                firstName = "Bob",
+                lastName = "Alice",
+                countryCode = "US",
+                profilePicUrl = ""
+            )
+        }
+        val doc4 = mockk<DocumentSnapshot> {
+            every { id } returns "alicia"
+            every { toObject(User::class.java) } returns User(
+                uid = "alicia",
+                firstName = "Alicia",
+                lastName = "White",
+                countryCode = "US",
+                profilePicUrl = ""
+            )
+        }
+
+        val querySnapshot: QuerySnapshot = mockk {
+            every { documents } returns listOf(doc4, doc2, doc3, doc1) // unsorted
+            every { size() } returns 4
+        }
+
+        val mockQuery = mockk<com.google.firebase.firestore.Query> {
+            every { whereArrayContains("searchKeywords", normalizedQuery) } returns this
+            every { limit(any()) } returns this
+            every { get() } returns Tasks.forResult(querySnapshot)
+        }
+
+        every { usersCollection.whereArrayContains("searchKeywords", normalizedQuery) } returns mockQuery
+
+        val friendsSubCollection = mockk<CollectionReference>()
+        val blockedSubCollection = mockk<CollectionReference>()
+        val emptySnapshot = mockk<QuerySnapshot> {
+            every { documents } returns emptyList()
+        }
+
+        every { userDoc.collection("friends") } returns friendsSubCollection
+        every { userDoc.collection("blocked") } returns blockedSubCollection
+        every { friendsSubCollection.get() } returns Tasks.forResult(emptySnapshot)
+        every { blockedSubCollection.get() } returns Tasks.forResult(emptySnapshot)
+
+        val result = repository.searchUsers(query)
+
+        assertTrue(result.isSuccess)
+        val list = result.getOrThrow()
+        
+        // Expected order: 
+        // 1. alice1 (Score 1100 - Exact first name match + same country)
+        // 2. alice2 (Score 1050 - Exact first name match + profile pic)
+        // 3. bob (Score 900 - Exact last name match + same country)
+        // 4. alicia (Score 600 - Prefix match + same country)
+        org.junit.Assert.assertEquals(4, list.size)
+        org.junit.Assert.assertEquals("alice1", list[0].uid)
+        org.junit.Assert.assertEquals("alice2", list[1].uid)
+        org.junit.Assert.assertEquals("bob", list[2].uid)
+        org.junit.Assert.assertEquals("alicia", list[3].uid)
+    }
+
+    @Test
+    fun `searchUsers scores and sorts results based on relationship status`() = runTest {
+        val query = "Alice"
+        val normalizedQuery = "alice"
+        
+        coEvery { userRepository.getUserById("me123") } returns Result.success(User(uid = "me123", countryCode = "US"))
+
+        // Mock candidates
+        val doc1 = mockk<DocumentSnapshot> {
+            every { id } returns "alice1"
+            every { toObject(User::class.java) } returns User(
+                uid = "alice1",
+                firstName = "Alice",
+                lastName = "Green",
+                countryCode = "US"
+            )
+        }
+        val doc2 = mockk<DocumentSnapshot> {
+            every { id } returns "alice2"
+            every { toObject(User::class.java) } returns User(
+                uid = "alice2",
+                firstName = "Alice",
+                lastName = "Blue",
+                countryCode = "CA"
+            )
+        }
+        val doc3 = mockk<DocumentSnapshot> {
+            every { id } returns "alice3"
+            every { toObject(User::class.java) } returns User(
+                uid = "alice3",
+                firstName = "Alice",
+                lastName = "Red",
+                countryCode = "US"
+            )
+        }
+        val doc4 = mockk<DocumentSnapshot> {
+            every { id } returns "alice4"
+            every { toObject(User::class.java) } returns User(
+                uid = "alice4",
+                firstName = "Alice",
+                lastName = "Yellow",
+                countryCode = "CA"
+            )
+        }
+
+        val querySnapshot: QuerySnapshot = mockk {
+            every { documents } returns listOf(doc3, doc4, doc1, doc2)
+            every { size() } returns 4
+        }
+
+        val mockQuery = mockk<com.google.firebase.firestore.Query> {
+            every { whereArrayContains("searchKeywords", normalizedQuery) } returns this
+            every { limit(any()) } returns this
+            every { get() } returns Tasks.forResult(querySnapshot)
+        }
+
+        every { usersCollection.whereArrayContains("searchKeywords", normalizedQuery) } returns mockQuery
+
+        val friendsSubCollection = mockk<CollectionReference>()
+        val friendsSnapshot = mockk<QuerySnapshot> {
+            val fDoc2 = mockk<DocumentSnapshot> {
+                every { id } returns "alice2"
+                every { getString("inviteStatus") } returns InviteStatus.ACCEPTED.name
+            }
+            val fDoc4 = mockk<DocumentSnapshot> {
+                every { id } returns "alice4"
+                every { getString("inviteStatus") } returns InviteStatus.INVITED.name
+            }
+            every { documents } returns listOf(fDoc2, fDoc4)
+        }
+        every { userDoc.collection("friends") } returns friendsSubCollection
+        every { friendsSubCollection.get() } returns Tasks.forResult(friendsSnapshot)
+
+        val blockedSubCollection = mockk<CollectionReference>()
+        val blockedSnapshot = mockk<QuerySnapshot> {
+            val bDoc3 = mockk<DocumentSnapshot> {
+                every { id } returns "alice3"
+            }
+            every { documents } returns listOf(bDoc3)
+        }
+        every { userDoc.collection("blocked") } returns blockedSubCollection
+        every { blockedSubCollection.get() } returns Tasks.forResult(blockedSnapshot)
+
+        val result = repository.searchUsers(query)
+
+        assertTrue(result.isSuccess)
+        val list = result.getOrThrow()
+        
+        org.junit.Assert.assertEquals(4, list.size)
+        org.junit.Assert.assertEquals("alice2", list[0].uid)
+        org.junit.Assert.assertEquals("alice4", list[1].uid)
+        org.junit.Assert.assertEquals("alice1", list[2].uid)
+        org.junit.Assert.assertEquals("alice3", list[3].uid)
     }
 }

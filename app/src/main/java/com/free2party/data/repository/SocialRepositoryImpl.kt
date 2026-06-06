@@ -12,6 +12,7 @@ import com.free2party.data.model.Notification
 import com.free2party.data.model.UserSearchResult
 import com.free2party.data.model.NotificationType
 import com.free2party.data.model.PlanVisibility
+import com.free2party.data.model.User
 import com.free2party.exception.CannotAddSelfException
 import com.free2party.exception.DatabaseOperationException
 import com.free2party.exception.FriendRequestAlreadyAcceptedException
@@ -130,7 +131,7 @@ class SocialRepositoryImpl @Inject constructor(
                 clockFlow
             ) { user, plans, now ->
                 val isPlanActiveNow = plans.any { isPlanActive(it, now) }
-                
+
                 // Privacy-aware status derivation:
                 val effectiveIsFree = if (user.isStatusFromPlan) {
                     // Following Plan: status depends on plan activity
@@ -242,9 +243,12 @@ class SocialRepositoryImpl @Inject constructor(
             val normalizedQuery = query.trim().lowercase().removeAccents()
             Log.d("SocialRepository", "Searching users with normalized query: $normalizedQuery")
 
+            val currentUser = userRepository.getUserById(currentUserId).getOrNull()
+            val currentUserCountry = currentUser?.countryCode.orEmpty()
+
             val querySnapshot = db.collection("users")
                 .whereArrayContains("searchKeywords", normalizedQuery)
-                .limit(20)
+                .limit(40)
                 .get().await()
 
             val friendsSnapshot = db.collection("users").document(currentUserId)
@@ -259,7 +263,9 @@ class SocialRepositoryImpl @Inject constructor(
             val blockedIds = blockedSnapshot.documents.map { it.id }.toSet()
 
             val results = querySnapshot.documents
+                .asSequence()
                 .mapNotNull { doc ->
+                    val user = doc.toObject(User::class.java) ?: return@mapNotNull null
                     val uid = doc.id
                     val relationship = when {
                         uid in blockedIds -> UserRelationship.BLOCKED
@@ -267,17 +273,85 @@ class SocialRepositoryImpl @Inject constructor(
                             if (friendsMap[uid] == InviteStatus.INVITED.name) UserRelationship.INVITED
                             else UserRelationship.FRIEND
                         }
+
                         else -> UserRelationship.NONE
                     }
 
-                    doc.toObject(UserSearchResult::class.java)?.copy(
+                    // Calculate search relevance score
+                    var score = 0
+                    val firstNameNorm = user.firstName.lowercase().removeAccents()
+                    val lastNameNorm = user.lastName.lowercase().removeAccents()
+                    val emailNorm = user.email.lowercase().removeAccents()
+
+                    // Match Strength (Highest Priority)
+                    score += when {
+                        firstNameNorm == normalizedQuery -> 1000
+                        lastNameNorm == normalizedQuery -> 800
+                        emailNorm.substringBefore("@").startsWith(normalizedQuery) -> 700
+                        firstNameNorm.startsWith(normalizedQuery) -> 500
+                        lastNameNorm.startsWith(normalizedQuery) -> 300
+                        else -> 100
+                    }
+
+                    // Geographic Proximity (Medium Priority)
+                    if (currentUserCountry.isNotEmpty() && user.countryCode.equals(
+                            currentUserCountry,
+                            ignoreCase = true
+                        )
+                    ) {
+                        score += 100
+                    }
+
+                    // Profile Completeness (Lowest Priority)
+                    if (user.profilePicUrl.isNotEmpty()) {
+                        score += 50
+                    }
+                    if (user.bio.isNotEmpty()) {
+                        score += 5
+                    }
+                    val hasSocials = user.socials.telegramUsername.isNotEmpty() ||
+                            user.socials.facebookUsername.isNotEmpty() ||
+                            user.socials.instagramUsername.isNotEmpty() ||
+                            user.socials.tiktokUsername.isNotEmpty() ||
+                            user.socials.xUsername.isNotEmpty() ||
+                            user.socials.whatsappFullNumber.isNotEmpty()
+                    if (hasSocials) {
+                        score += 5
+                    }
+
+                    // Relationship Status Boost / Penalty
+                    when (relationship) {
+                        UserRelationship.FRIEND -> {
+                            score += 200
+                        }
+
+                        UserRelationship.INVITED -> {
+                            score += 100
+                        }
+
+                        UserRelationship.BLOCKED -> {
+                            score -= 1000
+                        }
+
+                        else -> {}
+                    }
+
+                    val searchResult = UserSearchResult(
                         uid = uid,
-                        profilePicUrl = doc.getString("profilePicUrl") ?: "",
+                        profilePicUrl = user.profilePicUrl,
+                        firstName = user.firstName,
+                        lastName = user.lastName,
+                        email = user.email,
                         relationship = relationship
                     )
+
+                    searchResult to score
                 }
-                .filter { it.uid != currentUserId }
+                .filter { it.first.uid != currentUserId }
+                .sortedByDescending { it.second }
+                .map { it.first }
                 .take(10)
+                .toList()
 
             Log.d("SocialRepository", "Total results found: ${results.size}")
             Result.success(results)
@@ -316,7 +390,8 @@ class SocialRepositoryImpl @Inject constructor(
             val existingFriendDoc = transaction.get(existingFriendRef)
 
             // Check if there's a pending incoming request from this user
-            val incomingRequestRef = db.collection("friendRequests").document("${receiver.uid}_$currentUserId")
+            val incomingRequestRef =
+                db.collection("friendRequests").document("${receiver.uid}_$currentUserId")
             val incomingRequestDoc = transaction.get(incomingRequestRef)
 
             // Check if receiver has blocked current user
@@ -729,11 +804,16 @@ class SocialRepositoryImpl @Inject constructor(
 
         if (newFullName == null && newProfilePicUrl == null) return Result.success(Unit)
 
-        Log.d("SocialRepository", "Updating social context for UID: $uid. Name: $newFullName, Pic: $newProfilePicUrl")
+        Log.d(
+            "SocialRepository",
+            "Updating social context for UID: $uid. Name: $newFullName, Pic: $newProfilePicUrl"
+        )
 
         // Update friendRequests where user is sender or receiver
-        val senderRequests = db.collection("friendRequests").whereEqualTo("senderId", uid).get().await()
-        val receiverRequests = db.collection("friendRequests").whereEqualTo("receiverId", uid).get().await()
+        val senderRequests =
+            db.collection("friendRequests").whereEqualTo("senderId", uid).get().await()
+        val receiverRequests =
+            db.collection("friendRequests").whereEqualTo("receiverId", uid).get().await()
 
         if (!senderRequests.isEmpty || !receiverRequests.isEmpty) {
             val batch = db.batch()
@@ -760,7 +840,7 @@ class SocialRepositoryImpl @Inject constructor(
                 val friendId = friendDoc.id
                 val friendEntryInOtherUser = db.collection("users").document(friendId)
                     .collection("friends").document(uid)
-                
+
                 newFullName?.let { batch.update(friendEntryInOtherUser, "name", it) }
                 newProfilePicUrl?.let { batch.update(friendEntryInOtherUser, "profilePicUrl", it) }
             }
@@ -800,21 +880,25 @@ class SocialRepositoryImpl @Inject constructor(
         validateSession()
         val circleRef = db.collection("users").document(currentUserId)
             .collection("circles").document()
-        
+
         val circle = Circle(
             id = circleRef.id,
             name = name,
             ownerId = currentUserId,
             friendIds = friendIds
         )
-        
+
         circleRef.set(circle).await()
         Result.success(circleRef.id)
     } catch (e: Exception) {
         Result.failure(mapToSocialException(e))
     }
 
-    override suspend fun updateCircle(circleId: String, name: String, friendIds: List<String>): Result<Unit> = try {
+    override suspend fun updateCircle(
+        circleId: String,
+        name: String,
+        friendIds: List<String>
+    ): Result<Unit> = try {
         validateSession()
         db.collection("users").document(currentUserId)
             .collection("circles").document(circleId)
