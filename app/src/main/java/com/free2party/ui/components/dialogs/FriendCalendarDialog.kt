@@ -34,6 +34,7 @@ import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun FriendCalendarDialog(
@@ -58,7 +59,7 @@ fun FriendCalendarDialog(
 
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
-            delay(BuildConfig.updateFrequency)
+            delay(BuildConfig.updateFrequency.milliseconds)
             value = System.currentTimeMillis()
         }
     }

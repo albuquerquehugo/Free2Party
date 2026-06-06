@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun InputTextField(
@@ -101,7 +102,7 @@ fun InputTextField(
         if (isFocused) {
             isFocusedBuffered = true
         } else {
-            delay(150)
+            delay(150.milliseconds)
             isFocusedBuffered = false
         }
     }
@@ -128,9 +129,9 @@ fun InputTextField(
 
     LaunchedEffect(isFocused) {
         if (isFocused) {
-            delay(100)
+            delay(100.milliseconds)
             keyboardController?.show()
-            delay(100)
+            delay(100.milliseconds)
             bringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
         }
     }

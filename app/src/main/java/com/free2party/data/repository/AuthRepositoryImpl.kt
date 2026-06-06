@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import javax.inject.Inject
 import kotlinx.coroutines.tasks.await
+import kotlin.time.Duration.Companion.milliseconds
 
 class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
@@ -102,7 +103,7 @@ class AuthRepositoryImpl @Inject constructor(
         var userProfileResult = userRepository.getUserById(firebaseUser.uid)
         
         if (userProfileResult.isFailure) {
-            kotlinx.coroutines.delay(500) // Brief pause to allow Firestore/Auth synchronization
+            kotlinx.coroutines.delay(500.milliseconds) // Brief pause to allow Firestore/Auth synchronization
             userProfileResult = userRepository.getUserById(firebaseUser.uid)
         }
 

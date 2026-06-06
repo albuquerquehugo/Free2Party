@@ -24,6 +24,7 @@ import com.free2party.R
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.FuturePlan
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun PlanResults(
@@ -89,7 +90,7 @@ fun PlanResults(
             val index = plans.indexOfFirst { it.id == expandedPlanId }
             if (index >= 0) {
                 // Small delay to allow the item to finish its expansion animation before scrolling
-                delay(100)
+                delay(100.milliseconds)
                 listState.animateScrollToItem(index)
             }
         }

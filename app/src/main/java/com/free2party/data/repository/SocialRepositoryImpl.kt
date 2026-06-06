@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
+import kotlin.time.Duration.Companion.milliseconds
 
 class SocialRepositoryImpl @Inject constructor(
     private val db: FirebaseFirestore,
@@ -119,7 +120,7 @@ class SocialRepositoryImpl @Inject constructor(
         val clockFlow = flow {
             while (true) {
                 emit(System.currentTimeMillis())
-                delay(60000L) // Refresh every minute
+                delay(60000L.milliseconds) // Refresh every minute
             }
         }
 

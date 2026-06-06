@@ -60,6 +60,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,7 +185,7 @@ fun CalendarScreen(
 
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
-            delay(BuildConfig.updateFrequency)
+            delay(BuildConfig.updateFrequency.milliseconds)
             value = System.currentTimeMillis()
         }
     }

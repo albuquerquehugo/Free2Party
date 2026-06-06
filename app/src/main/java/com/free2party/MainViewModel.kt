@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -106,7 +107,7 @@ class MainViewModel @Inject constructor(
                     val localBackground = settingsRepository.gradientBackgroundFlow.first()
 
                     // Wait for user document to be created (max 10 seconds)
-                    val initialUser = withTimeoutOrNull(10000) {
+                    val initialUser = withTimeoutOrNull(10000.milliseconds) {
                         userRepository.observeUser(uid).first()
                     }
 

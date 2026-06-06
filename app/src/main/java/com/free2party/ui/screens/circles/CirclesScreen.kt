@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -299,8 +300,9 @@ private fun CircleListItem(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(
-                                R.string.label_circle_member_count,
+                            text = pluralStringResource(
+                                R.plurals.label_circle_member_count,
+                                circleFriends.size,
                                 circleFriends.size
                             ),
                             style = MaterialTheme.typography.bodySmall,

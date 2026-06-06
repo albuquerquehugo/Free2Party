@@ -95,6 +95,7 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -271,7 +272,7 @@ fun ProfileContent(
 
     LaunchedEffect(showCountryDialog) {
         if (!showCountryDialog && countryCode.isNotEmpty() && phoneNumber.isEmpty()) {
-            delay(200)
+            delay(200.milliseconds)
             phoneFocusRequester.requestFocus()
             keyboardController?.show()
         }
@@ -279,7 +280,7 @@ fun ProfileContent(
 
     LaunchedEffect(showWhatsappCountryDialog) {
         if (!showWhatsappCountryDialog && whatsappCountryCode.isNotEmpty() && whatsappNumber.isEmpty()) {
-            delay(200)
+            delay(200.milliseconds)
             whatsappFocusRequester.requestFocus()
             keyboardController?.show()
         }

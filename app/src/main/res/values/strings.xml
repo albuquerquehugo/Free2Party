@@ -64,7 +64,10 @@
     <string name="description_open_calendar">Open Calendar</string>
     <string name="description_user_menu">User Menu</string>
     <string name="label_cancel_invite">Cancel Invite</string>
-    <string name="label_circle_member_count">%1$d members</string>
+    <plurals name="label_circle_member_count">
+        <item quantity="one">%1$d member</item>
+        <item quantity="other">%1$d members</item>
+    </plurals>
     <string name="label_circle_name">Circle Name</string>
     <string name="label_select_friends">Select Friends</string>
     <string name="label_send_invite">Send invite</string>

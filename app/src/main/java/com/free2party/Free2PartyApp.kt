@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltAndroidApp
 class Free2PartyApp : Application() {
@@ -170,7 +171,7 @@ class Free2PartyApp : Application() {
 
                         // Ensure frequency is at least 1s to avoid tight loops on older devices or bugged configs
                         val safeDelay = maxOf(BuildConfig.updateFrequency, 1000L)
-                        delay(safeDelay)
+                        delay(safeDelay.milliseconds)
                     }
                 }
             } catch (e: Exception) {

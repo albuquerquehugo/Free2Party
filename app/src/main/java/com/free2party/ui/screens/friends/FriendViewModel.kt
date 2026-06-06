@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed interface InviteFriendUiState {
     object Idle : InviteFriendUiState
@@ -60,7 +61,7 @@ class FriendViewModel @Inject constructor(
         }
 
         searchJob = viewModelScope.launch {
-            delay(300) // Debounce
+            delay(300.milliseconds) // Debounce
             isSearchingUsers = true
             socialRepository.searchUsers(query)
                 .onSuccess { results ->

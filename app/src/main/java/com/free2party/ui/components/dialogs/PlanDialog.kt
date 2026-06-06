@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -868,7 +869,7 @@ fun CircleSelectorItem(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = stringResource(R.string.label_circle_member_count, memberCount),
+                text = pluralStringResource(R.plurals.label_circle_member_count, memberCount, memberCount),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

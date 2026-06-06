@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,6 @@ import com.free2party.util.capitalizeFirstLetter
 import com.free2party.util.isDateTimeInPast
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 import java.util.TimeZone
 
 @Composable
@@ -57,7 +57,7 @@ fun MonthCalendar(
         set(Calendar.DAY_OF_MONTH, 1)
     }
 
-    val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).apply {
+    val monthName = SimpleDateFormat("MMMM yyyy", LocalLocale.current.platformLocale).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }.format(calendar.time).capitalizeFirstLetter()
 
