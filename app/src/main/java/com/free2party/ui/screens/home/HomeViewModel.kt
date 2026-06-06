@@ -17,16 +17,18 @@ import com.free2party.data.repository.UserRepository
 import com.free2party.exception.InfrastructureException
 import com.free2party.exception.SocialException
 import com.free2party.exception.UnauthorizedException
-import com.free2party.exception.UserNotFoundException
 import com.free2party.R
 import com.free2party.util.UiText
 import com.free2party.util.isPlanActive
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -73,80 +75,83 @@ class HomeViewModel @Inject constructor(
         observeData()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeData() {
-        combine(
-            userRepository.observeUser(userRepository.currentUserId),
-            socialRepository.getFriendsList(),
-            socialRepository.getOutgoingFriendRequests(),
-            planRepository.getOwnPlans()
-        ) { user, friends, outgoingRequests, plans ->
-            val currentUserId = userRepository.currentUserId
+        userRepository.userIdFlow
+            .filter { it.isNotBlank() }
+            .flatMapLatest { uid ->
+                combine(
+                    userRepository.observeUser(uid),
+                    socialRepository.getFriendsList(),
+                    socialRepository.getOutgoingFriendRequests(),
+                    planRepository.getOwnPlans()
+                ) { user, friends, outgoingRequests, plans ->
+                    val isAnyPlanActiveNow = plans.any { isPlanActive(it) }
+                    val effectiveIsFree = if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
+                    val effectiveFromPlan = user.isStatusFromPlan && isAnyPlanActiveNow
 
-            val isAnyPlanActiveNow = plans.any { isPlanActive(it) }
-            val effectiveIsFree = if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
-            val effectiveFromPlan = user.isStatusFromPlan && isAnyPlanActiveNow
+                    // Map outgoing requests to FriendInfo with INVITED status
+                    val invitedFriends = outgoingRequests
+                        .filter { it.receiverName.isNotBlank() }
+                        .map { request ->
+                            FriendInfo(
+                                uid = request.receiverId,
+                                name = request.receiverName,
+                                profilePicUrl = request.receiverProfilePicUrl,
+                                inviteStatus = InviteStatus.INVITED
+                            )
+                        }
 
-            // Map outgoing requests to FriendInfo with INVITED status
-            val invitedFriends = outgoingRequests
-                .filter { it.receiverName.isNotBlank() }
-                .map { request ->
-                    FriendInfo(
-                        uid = request.receiverId,
-                        name = request.receiverName,
-                        profilePicUrl = request.receiverProfilePicUrl,
-                        inviteStatus = InviteStatus.INVITED
+                    // Combine confirmed friends and invited ones, filtering out the current user
+                    val allFriends = (friends + invitedFriends)
+                        .filter { it.uid != uid }
+                        .distinctBy { it.uid }
+
+                    // Sort: Invited at the bottom, then by availability, then alphabetically
+                    val sortedFriends = allFriends.sortedWith(
+                        compareBy<FriendInfo> { it.inviteStatus == InviteStatus.INVITED }
+                            .thenByDescending { it.isFreeNow }
+                            .thenBy { it.name }
+                    )
+                    HomeUiState.Success(
+                        userName = user.firstName,
+                        userGender = user.gender,
+                        profilePicUrl = user.profilePicUrl,
+                        isUserFree = effectiveIsFree,
+                        isStatusFromPlan = effectiveFromPlan,
+                        isWithinPlanPeriod = isAnyPlanActiveNow,
+                        use24HourFormat = user.settings.use24HourFormat,
+                        gradientBackground = user.settings.gradientBackground,
+                        friendsList = sortedFriends,
+                        membership = user.membership
                     )
                 }
-
-            // Combine confirmed friends and invited ones, filtering out the current user
-            val allFriends = (friends + invitedFriends)
-                .filter { it.uid != currentUserId }
-                .distinctBy { it.uid }
-
-            // Sort: Invited at the bottom, then by availability, then alphabetically
-            val sortedFriends = allFriends.sortedWith(
-                compareBy<FriendInfo> { it.inviteStatus == InviteStatus.INVITED }
-                    .thenByDescending { it.isFreeNow }
-                    .thenBy { it.name }
-            )
-            HomeUiState.Success(
-                userName = user.firstName,
-                userGender = user.gender,
-                profilePicUrl = user.profilePicUrl,
-                isUserFree = effectiveIsFree,
-                isStatusFromPlan = effectiveFromPlan,
-                isWithinPlanPeriod = isAnyPlanActiveNow,
-                use24HourFormat = user.settings.use24HourFormat,
-                gradientBackground = user.settings.gradientBackground,
-                friendsList = sortedFriends,
-                membership = user.membership
-            )
-        }.onEach { newState ->
-            uiState = newState
-        }.catch { e ->
-            // Suppress errors during account deletion/logout transition
-            if (e is UserNotFoundException || e is UnauthorizedException) {
-                Log.d(
-                    "HomeViewModel",
-                    "Ignoring error during transition: ${e.javaClass.simpleName}"
-                )
-                return@catch
             }
-
-            Log.e("HomeViewModel", "Error observing data", e)
-            val errorText = when (e) {
-                is InfrastructureException ->
-                    if (e.messageRes != null) UiText.StringResource(e.messageRes)
-                    else UiText.StringResource(R.string.error_infrastructure)
-
-                is SocialException ->
-                    if (e.messageRes != null) UiText.StringResource(e.messageRes)
-                    else UiText.StringResource(R.string.error_social)
-
-                else -> UiText.StringResource(R.string.error_unknown)
+            .onEach { newState ->
+                uiState = newState
             }
-            uiState = HomeUiState.Error(errorText)
-        }.launchIn(viewModelScope)
+            .catch { e ->
+                Log.e("HomeViewModel", "Error observing data", e)
+
+                if (e is UnauthorizedException) {
+                    _uiEvent.emit(HomeUiEvent.Logout)
+                    return@catch
+                }
+
+                val errorText = when (e) {
+                    is InfrastructureException ->
+                        if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                        else UiText.StringResource(R.string.error_infrastructure)
+
+                    is SocialException ->
+                        if (e.messageRes != null) UiText.StringResource(e.messageRes)
+                        else UiText.StringResource(R.string.error_social)
+
+                    else -> UiText.StringResource(R.string.error_unknown)
+                }
+                uiState = HomeUiState.Error(errorText)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun logout(onLogoutSuccess: () -> Unit) {

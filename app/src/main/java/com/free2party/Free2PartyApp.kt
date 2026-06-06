@@ -107,7 +107,7 @@ class Free2PartyApp : Application() {
     }
 
     private fun setupFcmTokenSync() {
-        ProcessLifecycleOwner.get().lifecycleScope.launch {
+        ProcessLifecycleOwner.get().lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             Firebase.auth.addAuthStateListener { auth ->
                 val uid = auth.currentUser?.uid
                 if (uid != null) {
@@ -131,7 +131,7 @@ class Free2PartyApp : Application() {
         stopUserStatusAutomation()
         currentAutomationUid = uid
 
-        automationJob = ProcessLifecycleOwner.get().lifecycleScope.launch {
+        automationJob = ProcessLifecycleOwner.get().lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Default) {
             var lastAutomatedStatus: Boolean? = null
 
             try {
@@ -142,40 +142,39 @@ class Free2PartyApp : Application() {
                 }
 
                 planRepository.getOwnPlans().collectLatest { plans ->
-                    Log.d("Automation", "Plans updated, count: ${plans.size}")
                     while (true) {
                         val activePlans = plans.filter { isPlanActive(it) }
+                        val hasAnyActivePlan = activePlans.isNotEmpty()
                         val shouldBeFreePublicly =
                             activePlans.any { it.visibility == PlanVisibility.EVERYONE }
-                        val hasAnyActivePlan = activePlans.isNotEmpty()
 
                         if (lastAutomatedStatus != hasAnyActivePlan) {
                             Log.d(
                                 "Automation",
-                                "Status transition detected. Any plan: $hasAnyActivePlan, Public plan: $shouldBeFreePublicly"
+                                "Status transition: $hasAnyActivePlan (Public: $shouldBeFreePublicly)"
                             )
 
-                            if (lastAutomatedStatus != null || hasAnyActivePlan) {
-                                userRepository.toggleAvailability(
-                                    shouldBeFreePublicly,
-                                    fromPlan = hasAnyActivePlan
-                                )
-                                    .onFailure { e ->
-                                        if (e is UnauthorizedException || e is UserNotFoundException) {
-                                            Log.d("Automation", "User no longer valid, stopping.")
-                                            stopUserStatusAutomation()
-                                            return@collectLatest
-                                        }
-                                    }
+                            userRepository.toggleAvailability(
+                                shouldBeFreePublicly,
+                                fromPlan = hasAnyActivePlan
+                            ).onFailure { e ->
+                                if (e is UnauthorizedException || e is UserNotFoundException) {
+                                    Log.d("Automation", "User no longer valid, stopping.")
+                                    stopUserStatusAutomation()
+                                    return@collectLatest
+                                }
                             }
 
                             lastAutomatedStatus = hasAnyActivePlan
                         }
 
-                        delay(BuildConfig.updateFrequency)
+                        // Ensure frequency is at least 1s to avoid tight loops on older devices or bugged configs
+                        val safeDelay = maxOf(BuildConfig.updateFrequency, 1000L)
+                        delay(safeDelay)
                     }
                 }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 if (e is UnauthorizedException || e is UserNotFoundException) {
                     Log.d(
                         "Automation",

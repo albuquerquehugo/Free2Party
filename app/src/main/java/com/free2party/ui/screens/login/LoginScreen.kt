@@ -175,6 +175,11 @@ fun LoginRoute(
                     ).show()
                 } catch (e: Exception) {
                     Log.e("LoginScreen", "An unexpected error occurred during Google Sign-In", e)
+                    Toast.makeText(
+                        context,
+                        e.localizedMessage ?: "Google Sign-In error",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }

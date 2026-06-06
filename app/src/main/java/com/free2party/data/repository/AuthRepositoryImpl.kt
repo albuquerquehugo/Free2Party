@@ -98,8 +98,14 @@ class AuthRepositoryImpl @Inject constructor(
         val result = auth.signInWithCredential(credential).await()
         val firebaseUser = result.user ?: throw UserNullException()
 
-        // Check if user profile already exists
-        val userProfileResult = userRepository.getUserById(firebaseUser.uid)
+        // Check if user profile already exists - with a small retry logic for slow networks/older devices
+        var userProfileResult = userRepository.getUserById(firebaseUser.uid)
+        
+        if (userProfileResult.isFailure) {
+            kotlinx.coroutines.delay(500) // Brief pause to allow Firestore/Auth synchronization
+            userProfileResult = userRepository.getUserById(firebaseUser.uid)
+        }
+
         if (userProfileResult.isFailure) {
             // If user profile doesn't exist, create a basic one from Google data
             val newUser = User(

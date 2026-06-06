@@ -64,6 +64,7 @@ class HomeViewModelTest {
         every { Log.e(any(), any(), any()) } returns 0
 
         every { userRepository.currentUserId } returns "me"
+        every { userRepository.userIdFlow } returns MutableStateFlow("me")
         every { userRepository.observeUser("me") } returns userFlow
         every { socialRepository.getFriendsList() } returns friendsFlow
         every { socialRepository.getOutgoingFriendRequests() } returns MutableStateFlow(emptyList())
