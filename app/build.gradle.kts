@@ -7,12 +7,13 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services)
 }
 
 android {
     namespace = "com.free2party"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.free2party"
@@ -118,7 +119,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    ksp(libs.kotlinMetadataJvm)
+    ksp(libs.hilt.metadata.fix)
 
     // --- Firebase & Backend ---
     implementation(platform(libs.firebase.bom))
@@ -174,7 +175,7 @@ fun getLocalIpAddress(): String {
 
             val interfaceAddresses = networkInterface.inetAddresses
             for (address in interfaceAddresses) {
-                if (address is Inet4Address && !address.isLoopbackAddress) {
+                if ((address is Inet4Address) && !address.isLoopbackAddress) {
                     val hostAddress = address.hostAddress
                     // Prioritize common local network ranges
                     if (hostAddress.startsWith("192.168.") || hostAddress.startsWith("10.")) {
