@@ -6,6 +6,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.core.net.toUri
 import com.free2party.data.model.Countries
+import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.model.FuturePlan
 import com.free2party.R
 import java.text.SimpleDateFormat
@@ -351,6 +352,43 @@ fun isPhoneValid(number: String, countryCode: String): Boolean {
 }
 
 /**
+ * Formats a birthday string based on its visibility and display type preference.
+ * @param birthday The 8-digit birthday string in "yyyyMMdd" format.
+ * @param showType The [BirthdayShowType] preference.
+ * @return The formatted date string, or the original string if parsing fails.
+ */
+fun formatBirthday(birthday: String, showType: BirthdayShowType): String {
+    if (birthday.length != 8) return birthday
+    return try {
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val date = sdf.parse(birthday) ?: return birthday
+        if (showType == BirthdayShowType.DAY_MONTH) {
+            val skeleton = "MMMMd"
+            val pattern = android.text.format.DateFormat.getBestDateTimePattern(
+                Locale.getDefault(),
+                skeleton
+            )
+            val format = SimpleDateFormat(pattern, Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            format.format(date)
+        } else {
+            val format = java.text.DateFormat.getDateInstance(
+                java.text.DateFormat.LONG,
+                Locale.getDefault()
+            ).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            format.format(date)
+        }
+    } catch (_: Exception) {
+        birthday
+    }
+}
+
+/**
  * Opens the default email client with a pre-filled recipient, subject, and body.
  * @param context The context used to retrieve resources and start the activity.
  * @param email The recipient's email address.
@@ -390,6 +428,19 @@ fun openSMS(
     }
     context.startActivity(intent)
 }
+
+/**
+ * Opens the device's dialer with a pre-filled phone number.
+ * @param context The context used to start the activity.
+ * @param phoneNumber The phone number to dial.
+ */
+fun openDialer(context: Context, phoneNumber: String) {
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = "tel:$phoneNumber".toUri()
+    }
+    context.startActivity(intent)
+}
+
 
 /**
  * Supported social platforms for messaging.
@@ -549,4 +600,33 @@ fun getCountryFromNanpAreaCode(areaCode: String): String? {
     )
 
     return areaCodeMap[code] ?: if (code[0] in '2'..'9') "US" else null
+}
+
+/**
+ * Formats a phone number string according to a target mask (e.g. "###-###-####").
+ * @param number The raw input phone number.
+ * @param mask The pattern mask.
+ * @return The formatted phone number.
+ */
+fun formatPhoneNumber(number: String, mask: String): String {
+    val trimmed = number.filter { it.isDigit() }
+    val out = StringBuilder()
+    var maskIndex = 0
+    var textIndex = 0
+
+    while (maskIndex < mask.length && textIndex < trimmed.length) {
+        if (mask[maskIndex] == '#') {
+            out.append(trimmed[textIndex])
+            textIndex++
+        } else {
+            out.append(mask[maskIndex])
+        }
+        maskIndex++
+    }
+
+    if (textIndex < trimmed.length) {
+        out.append(trimmed.substring(textIndex))
+    }
+
+    return out.toString()
 }

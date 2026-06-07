@@ -126,9 +126,19 @@
     <string name="title_register">Register</string>
 
     <!-- Profile Screen -->
-    <string name="description_edit_photo">Edit Photo</string>
+    <string name="description_edit_photo">Edit photo</string>
     <string name="description_more_options">More options</string>
-    <string name="description_profile_picture">Profile Picture</string>
+    <string name="description_phone_number">Call number</string>
+    <string name="description_profile_picture">Profile picture</string>
+    <string name="description_send_email">Send email</string>
+    <string name="description_send_instagram_message">Send Instagram message</string>
+    <string name="description_send_messenger_message">Send Facebook Messenger message</string>
+    <string name="description_send_sms">Send SMS</string>
+    <string name="description_send_telegram_message">Send Telegram message</string>
+    <string name="description_send_tiktok_message">Send TikTok message</string>
+    <string name="description_send_whatsapp_message">Send WhatsApp message</string>
+    <string name="description_send_x_message">Send X message</string>
+    <string name="description_view_calendar">View calendar</string>
     <string name="label_all_countries">All Countries</string>
     <string name="label_bio">Bio</string>
     <string name="label_birthday">Birthday</string>
@@ -145,13 +155,13 @@
     <string name="label_phone_number">Phone Number</string>
     <string name="label_section_socials">Socials</string>
     <string name="label_send_message">Send a message</string>
-    <string name="label_view_calendar">View Calendar</string>
     <string name="label_select_birthday">Select birthday</string>
     <string name="label_select_country">Select Country</string>
     <string name="label_suggested">Suggested</string>
     <string name="label_telegram_username">Telegram Username</string>
     <string name="label_tiktok_username">TikTok Username</string>
     <string name="label_unblock">Unblock</string>
+    <string name="label_view_calendar">View Calendar</string>
     <string name="label_whatsapp_number">WhatsApp Number</string>
     <string name="label_whatsapp_same_as_phone_number">Same as phone number</string>
     <string name="label_x_username">X/Twitter Username</string>

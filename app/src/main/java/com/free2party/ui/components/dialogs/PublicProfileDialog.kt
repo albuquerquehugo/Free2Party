@@ -2,27 +2,30 @@ package com.free2party.ui.components.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -39,7 +42,6 @@ import com.free2party.data.model.Countries
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.User
 import com.free2party.data.model.BirthdayVisibility
-import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.repository.UserRepository
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
@@ -48,7 +50,10 @@ import com.free2party.ui.theme.busy
 import com.free2party.util.SocialPlatform
 import com.free2party.util.openEmail
 import com.free2party.util.openSMS
+import com.free2party.util.openDialer
 import com.free2party.util.openSocialMessage
+import com.free2party.util.formatBirthday
+import com.free2party.util.formatPhoneNumber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,6 +104,8 @@ fun PublicProfileDialog(
     val userState by viewModel.userFlow.collectAsState()
     val currentUserId = viewModel.currentUserId
     val context = LocalContext.current
+    val email = userState?.email ?: friend.email
+    val phoneNum = userState?.phoneNumber ?: friend.phoneNumber
 
     val showBirthday = remember(userState, currentUserId) {
         val user = userState ?: return@remember false
@@ -192,18 +199,17 @@ fun PublicProfileDialog(
                     onDismiss()
                     onViewCalendar()
                 },
-                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    contentDescription = stringResource(R.string.description_view_calendar),
+                    modifier = Modifier.size(24.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = stringResource(R.string.label_view_calendar),
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
 
@@ -215,7 +221,7 @@ fun PublicProfileDialog(
                         .fillMaxWidth()
                         .padding(top = 24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -236,7 +242,7 @@ fun PublicProfileDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Details List
             Column(
@@ -253,135 +259,150 @@ fun PublicProfileDialog(
                     )
                 }
 
-                // Email
-                val email = userState?.email ?: friend.email
-                if (email.isNotBlank()) {
-                    ProfileDetailRow(
-                        icon = Icons.Default.Email,
-                        text = email,
-                        onClick = { openEmail(context, email) }
-                    )
-                }
-
-                // Phone
-                val phoneNum = userState?.phoneNumber ?: friend.phoneNumber
+                // Phone (Call)
                 val countryCode = userState?.countryCode ?: friend.phoneCode
                 if (phoneNum.isNotBlank()) {
                     val country = Countries.find { it.code == countryCode }
                     val phoneText = if (country != null) {
-                        "${country.flag} ${country.phoneCode} $phoneNum"
+                        "${country.flag}   ${formatPhoneNumber(phoneNum, country.phoneMask)}"
                     } else {
                         phoneNum
                     }
-                    val rawSmsNumber = if (country != null) {
+                    val rawDialNumber = if (country != null) {
                         "${country.phoneCode.filter { it.isDigit() || it == '+' }}$phoneNum"
                     } else {
                         phoneNum
                     }
                     ProfileDetailRow(
-                        icon = Icons.Default.Sms,
+                        icon = Icons.Default.Phone,
                         text = phoneText,
-                        onClick = { openSMS(context, rawSmsNumber) }
+                        contentDescription = "${stringResource(R.string.description_phone_number)}: $rawDialNumber",
+                        onClick = { openDialer(context, rawDialNumber) }
                     )
                 }
             }
 
             // Socials Row
             val socials = userState?.socials ?: friend.socials
-            val hasSocials = socials.whatsappFullNumber.isNotBlank() ||
-                    socials.telegramUsername.isNotBlank() ||
-                    socials.facebookUsername.isNotBlank() ||
-                    socials.instagramUsername.isNotBlank() ||
-                    socials.tiktokUsername.isNotBlank() ||
-                    socials.xUsername.isNotBlank()
 
-            if (hasSocials) {
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(R.string.label_send_message),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+            Text(
+                text = stringResource(R.string.label_send_message),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        12.dp,
-                        Alignment.CenterHorizontally
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val hangOutMessage = stringResource(R.string.text_hang_out_message)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(
+                    12.dp,
+                    Alignment.CenterHorizontally
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val hangOutMessage = stringResource(R.string.text_hang_out_message)
 
-                    if (socials.whatsappFullNumber.isNotBlank()) {
-                        SocialIconButton(
-                            painter = painterResource(id = R.drawable.whatsapp),
-                            tint = WhatsAppColor
-                        ) {
-                            openSocialMessage(
-                                context,
-                                SocialPlatform.WHATSAPP,
-                                socials.whatsappFullNumber,
-                                message = hangOutMessage
-                            )
-                        }
+                if (email.isNotBlank()) {
+                    SocialIconButton(
+                        painter = rememberVectorPainter(Icons.Default.Email),
+                        contentDescription = stringResource(R.string.description_send_email),
+                        tint = MaterialTheme.colorScheme.primary
+                    ) {
+                        openEmail(context, email)
                     }
-                    if (socials.telegramUsername.isNotBlank()) {
-                        SocialIconButton(
-                            painter = painterResource(id = R.drawable.telegram),
-                            tint = TelegramColor
-                        ) {
-                            openSocialMessage(
-                                context,
-                                SocialPlatform.TELEGRAM,
-                                socials.telegramUsername
-                            )
-                        }
+                }
+                if (phoneNum.isNotBlank()) {
+                    val countryCode = userState?.countryCode ?: friend.phoneCode
+                    val country = Countries.find { it.code == countryCode }
+                    val rawSmsNumber = if (country != null) {
+                        "${country.phoneCode.filter { it.isDigit() || it == '+' }}$phoneNum"
+                    } else {
+                        phoneNum
                     }
-                    if (socials.facebookUsername.isNotBlank()) {
-                        SocialIconButton(
-                            painter = painterResource(id = R.drawable.messenger_color)
-                        ) {
-                            openSocialMessage(
-                                context,
-                                SocialPlatform.MESSENGER,
-                                socials.facebookUsername
-                            )
-                        }
+                    SocialIconButton(
+                        painter = rememberVectorPainter(Icons.Default.Sms),
+                        contentDescription = stringResource(R.string.description_send_sms),
+                        tint = MaterialTheme.colorScheme.primary
+                    ) {
+                        openSMS(context, rawSmsNumber)
                     }
-                    if (socials.instagramUsername.isNotBlank()) {
-                        SocialIconButton(
-                            painter = painterResource(id = R.drawable.instagram_color)
-                        ) {
-                            openSocialMessage(
-                                context,
-                                SocialPlatform.INSTAGRAM,
-                                socials.instagramUsername
-                            )
-                        }
+                }
+                if (socials.whatsappFullNumber.isNotBlank()) {
+                    SocialIconButton(
+                        painter = painterResource(id = R.drawable.whatsapp),
+                        contentDescription = stringResource(R.string.description_send_whatsapp_message),
+                        tint = WhatsAppColor
+                    ) {
+                        openSocialMessage(
+                            context,
+                            SocialPlatform.WHATSAPP,
+                            socials.whatsappFullNumber,
+                            message = hangOutMessage
+                        )
                     }
-                    if (socials.tiktokUsername.isNotBlank()) {
-                        SocialIconButton(
-                            painter = painterResource(id = R.drawable.tiktok_color)
-                        ) {
-                            openSocialMessage(
-                                context,
-                                SocialPlatform.TIKTOK,
-                                socials.tiktokUsername
-                            )
-                        }
+                }
+                if (socials.telegramUsername.isNotBlank()) {
+                    SocialIconButton(
+                        painter = painterResource(id = R.drawable.telegram),
+                        contentDescription = stringResource(R.string.description_send_telegram_message),
+                        tint = TelegramColor
+                    ) {
+                        openSocialMessage(
+                            context,
+                            SocialPlatform.TELEGRAM,
+                            socials.telegramUsername
+                        )
                     }
-                    if (socials.xUsername.isNotBlank()) {
-                        SocialIconButton(
-                            painter = painterResource(id = R.drawable.x)
-                        ) {
-                            openSocialMessage(context, SocialPlatform.X, socials.xUsername)
-                        }
+                }
+                if (socials.facebookUsername.isNotBlank()) {
+                    SocialIconButton(
+                        painter = painterResource(id = R.drawable.messenger_color),
+                        contentDescription = stringResource(R.string.description_send_messenger_message)
+                    ) {
+                        openSocialMessage(
+                            context,
+                            SocialPlatform.MESSENGER,
+                            socials.facebookUsername
+                        )
+                    }
+                }
+                if (socials.instagramUsername.isNotBlank()) {
+                    SocialIconButton(
+                        painter = painterResource(id = R.drawable.instagram_color),
+                        contentDescription = stringResource(R.string.description_send_instagram_message)
+                    ) {
+                        openSocialMessage(
+                            context,
+                            SocialPlatform.INSTAGRAM,
+                            socials.instagramUsername
+                        )
+                    }
+                }
+                if (socials.tiktokUsername.isNotBlank()) {
+                    SocialIconButton(
+                        painter = painterResource(id = R.drawable.tiktok_color),
+                        contentDescription = stringResource(R.string.description_send_tiktok_message)
+                    ) {
+                        openSocialMessage(
+                            context,
+                            SocialPlatform.TIKTOK,
+                            socials.tiktokUsername
+                        )
+                    }
+                }
+                if (socials.xUsername.isNotBlank()) {
+                    SocialIconButton(
+                        painter = painterResource(id = R.drawable.x),
+                        contentDescription = stringResource(R.string.description_send_x_message)
+                    ) {
+                        openSocialMessage(context, SocialPlatform.X, socials.xUsername)
                     }
                 }
             }
@@ -393,8 +414,14 @@ fun PublicProfileDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.label_close))
+                val closeText = stringResource(R.string.label_close)
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.semantics {
+                        contentDescription = closeText
+                    }
+                ) {
+                    Text(closeText)
                 }
             }
         }
@@ -405,38 +432,54 @@ fun PublicProfileDialog(
 private fun ProfileDetailRow(
     icon: ImageVector,
     text: String,
+    contentDescription: String? = null,
     onClick: (() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .then(
-                if (onClick != null) Modifier.clickable(onClick = onClick)
-                else Modifier
-            )
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        if (onClick != null) {
-            Spacer(modifier = Modifier.weight(1f))
+    if (onClick != null) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = onClick,
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = contentDescription,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(20.dp)
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -445,6 +488,7 @@ private fun ProfileDetailRow(
 @Composable
 private fun SocialIconButton(
     painter: Painter,
+    contentDescription: String,
     tint: Color = Color.Unspecified,
     onClick: () -> Unit
 ) {
@@ -457,40 +501,9 @@ private fun SocialIconButton(
     ) {
         Icon(
             painter = painter,
-            contentDescription = null,
+            contentDescription = contentDescription,
             tint = tint,
             modifier = Modifier.size(24.dp)
         )
-    }
-}
-
-private fun formatBirthday(birthday: String, showType: BirthdayShowType): String {
-    if (birthday.length != 8) return birthday
-    return try {
-        val sdf = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).apply {
-            timeZone = java.util.TimeZone.getTimeZone("UTC")
-        }
-        val date = sdf.parse(birthday) ?: return birthday
-        if (showType == BirthdayShowType.DAY_MONTH) {
-            val skeleton = "MMMMd"
-            val pattern = android.text.format.DateFormat.getBestDateTimePattern(
-                java.util.Locale.getDefault(),
-                skeleton
-            )
-            val format = java.text.SimpleDateFormat(pattern, java.util.Locale.getDefault()).apply {
-                timeZone = java.util.TimeZone.getTimeZone("UTC")
-            }
-            format.format(date)
-        } else {
-            val format = java.text.DateFormat.getDateInstance(
-                java.text.DateFormat.LONG,
-                java.util.Locale.getDefault()
-            ).apply {
-                timeZone = java.util.TimeZone.getTimeZone("UTC")
-            }
-            format.format(date)
-        }
-    } catch (_: Exception) {
-        birthday
     }
 }
