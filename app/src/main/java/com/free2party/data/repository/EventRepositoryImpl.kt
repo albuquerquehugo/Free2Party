@@ -1,0 +1,366 @@
+package com.free2party.data.repository
+
+import android.net.Uri
+import com.free2party.data.model.Event
+import com.free2party.data.model.EventComment
+import com.free2party.data.model.EventPhoto
+import com.free2party.data.model.EventType
+import com.free2party.data.model.GuestStatus
+import com.free2party.exception.DatabaseOperationException
+import com.free2party.exception.EventNotFoundException
+import com.free2party.exception.InvalidEventDataException
+import com.free2party.exception.NetworkUnavailableException
+import com.free2party.exception.UnauthorizedException
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Query
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.tasks.await
+import java.util.Date
+import java.util.UUID
+import javax.inject.Inject
+
+class EventRepositoryImpl @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore,
+    private val storage: FirebaseStorage
+) : EventRepository {
+
+    private val currentUserId: String get() = auth.currentUser?.uid ?: ""
+
+    override fun getEvents(): Flow<List<Event>> {
+        val uid = currentUserId
+        if (uid.isBlank()) {
+            return callbackFlow {
+                close(UnauthorizedException())
+            }
+        }
+
+        // Listener for hosted events
+        val hostedFlow = callbackFlow<List<Event>> {
+            val listener = db.collection("events")
+                .whereEqualTo("hostId", uid)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(mapToEventException(error))
+                        return@addSnapshotListener
+                    }
+                    val events = snapshot?.documents?.mapNotNull { doc ->
+                        doc.toObject(Event::class.java)?.copy(id = doc.id)
+                    } ?: emptyList()
+                    trySend(events)
+                }
+            awaitClose { listener.remove() }
+        }
+
+        // Listener for events where user is invited/guest
+        val guestFlow = callbackFlow<List<Event>> {
+            val listener = db.collection("events")
+                .whereArrayContains("guestIds", uid)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(mapToEventException(error))
+                        return@addSnapshotListener
+                    }
+                    val events = snapshot?.documents?.mapNotNull { doc ->
+                        doc.toObject(Event::class.java)?.copy(id = doc.id)
+                    } ?: emptyList()
+                    trySend(events)
+                }
+            awaitClose { listener.remove() }
+        }
+
+        // Listener for public events
+        val publicFlow = callbackFlow<List<Event>> {
+            val listener = db.collection("events")
+                .whereEqualTo("type", EventType.PUBLIC.name)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(mapToEventException(error))
+                        return@addSnapshotListener
+                    }
+                    val events = snapshot?.documents?.mapNotNull { doc ->
+                        doc.toObject(Event::class.java)?.copy(id = doc.id)
+                    } ?: emptyList()
+                    trySend(events)
+                }
+            awaitClose { listener.remove() }
+        }
+
+        // Combine all flows and remove duplicates, sorting by startDate/startTime
+        return combine(hostedFlow, guestFlow, publicFlow) { hosted, guest, public ->
+            val allEvents = (hosted + guest + public).distinctBy { it.id }
+            allEvents.sortedWith(compareBy({ it.startDate }, { it.startTime }))
+        }
+    }
+
+    override fun getEventDetails(eventId: String): Flow<Event> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            close(UnauthorizedException())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("events").document(eventId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToEventException(error))
+                    return@addSnapshotListener
+                }
+                val event = snapshot?.toObject(Event::class.java)?.copy(id = snapshot.id)
+                if (event != null) {
+                    trySend(event)
+                } else {
+                    close(EventNotFoundException())
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    override fun getComments(eventId: String): Flow<List<EventComment>> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            close(UnauthorizedException())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("events").document(eventId)
+            .collection("comments")
+            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToEventException(error))
+                    return@addSnapshotListener
+                }
+                val comments = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(EventComment::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+                trySend(comments)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    override fun getPhotos(eventId: String): Flow<List<EventPhoto>> = callbackFlow {
+        if (currentUserId.isBlank()) {
+            close(UnauthorizedException())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("events").document(eventId)
+            .collection("photos")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(mapToEventException(error))
+                    return@addSnapshotListener
+                }
+                val photos = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(EventPhoto::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+                trySend(photos)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    override suspend fun saveEvent(event: Event): Result<String> = try {
+        validateSession()
+        validateEventDateTime(event)
+
+        val docRef = db.collection("events").document()
+        // Ensure guestIds matches guests keys list
+        val guestIdsList = event.guests.keys.toList()
+        val eventWithDetails = event.copy(
+            id = docRef.id,
+            hostId = currentUserId,
+            guestIds = guestIdsList
+        )
+        docRef.set(eventWithDetails).await()
+        Result.success(docRef.id)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun updateEvent(event: Event): Result<Unit> = try {
+        validateSession()
+        validateEventDateTime(event)
+
+        val guestIdsList = event.guests.keys.toList()
+        val updatedData = mapOf(
+            "title" to event.title,
+            "description" to event.description,
+            "type" to event.type.name,
+            "startDate" to event.startDate,
+            "startTime" to event.startTime,
+            "endDate" to event.endDate,
+            "endTime" to event.endTime,
+            "timezone" to event.timezone,
+            "locationName" to event.locationName,
+            "latitude" to event.latitude,
+            "longitude" to event.longitude,
+            "guests" to event.guests,
+            "guestIds" to guestIdsList,
+            "usefulLinks" to event.usefulLinks
+        )
+        db.collection("events").document(event.id)
+            .update(updatedData)
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun deleteEvent(eventId: String): Result<Unit> = try {
+        validateSession()
+
+        // 1. Delete all comments
+        val commentsSnapshot = db.collection("events").document(eventId)
+            .collection("comments").get().await()
+        commentsSnapshot.documents.forEach { doc ->
+            doc.reference.delete().await()
+        }
+
+        // 2. Delete all photos in Storage & Firestore subcollection
+        val photosSnapshot = db.collection("events").document(eventId)
+            .collection("photos").get().await()
+        photosSnapshot.documents.forEach { doc ->
+            val photo = doc.toObject(EventPhoto::class.java)
+            if (photo != null) {
+                try {
+                    storage.getReferenceFromUrl(photo.url).delete().await()
+                } catch (_: Exception) {}
+            }
+            doc.reference.delete().await()
+        }
+
+        // 3. Delete event document itself
+        db.collection("events").document(eventId).delete().await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun respondToEvent(eventId: String, status: GuestStatus): Result<Unit> = try {
+        val uid = validateSession()
+        db.collection("events").document(eventId)
+            .update("guests.$uid", status.name)
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun addComment(eventId: String, text: String): Result<Unit> = try {
+        val uid = validateSession()
+        if (text.isBlank()) throw InvalidEventDataException("Comment text cannot be empty")
+
+        // Fetch user info for comment caching
+        val userDoc = db.collection("users").document(uid).get().await()
+        val userName = "${userDoc.getString("firstName") ?: ""} ${userDoc.getString("lastName") ?: ""}".trim()
+        val userProfilePic = userDoc.getString("profilePicUrl") ?: ""
+
+        val commentRef = db.collection("events").document(eventId)
+            .collection("comments").document()
+
+        val comment = EventComment(
+            id = commentRef.id,
+            userId = uid,
+            userName = userName,
+            userProfilePic = userProfilePic,
+            text = text,
+            createdAt = Date()
+        )
+        commentRef.set(comment).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun deleteComment(eventId: String, commentId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("events").document(eventId)
+            .collection("comments").document(commentId)
+            .delete()
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun uploadPhoto(eventId: String, uri: Uri): Result<Unit> = try {
+        val uid = validateSession()
+        val photoId = UUID.randomUUID().toString()
+        val ref = storage.reference.child("event_photos/$eventId/$photoId.jpg")
+        
+        ref.putFile(uri).await()
+        val downloadUrl = ref.downloadUrl.await().toString()
+
+        val photoRef = db.collection("events").document(eventId)
+            .collection("photos").document(photoId)
+
+        val photo = EventPhoto(
+            id = photoId,
+            uploadedBy = uid,
+            url = downloadUrl,
+            createdAt = Date()
+        )
+        photoRef.set(photo).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    override suspend fun deletePhoto(eventId: String, photoId: String, storageUrl: String): Result<Unit> = try {
+        validateSession()
+        try {
+            storage.getReferenceFromUrl(storageUrl).delete().await()
+        } catch (_: Exception) {}
+
+        db.collection("events").document(eventId)
+            .collection("photos").document(photoId)
+            .delete()
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
+    private fun validateSession(): String {
+        val uid = currentUserId
+        if (uid.isBlank()) throw UnauthorizedException()
+        return uid
+    }
+
+    private fun validateEventDateTime(event: Event) {
+        if (event.title.isBlank()) throw InvalidEventDataException("Title cannot be empty")
+        if (event.startDate.isBlank() || event.endDate.isBlank()) throw InvalidEventDataException("Dates cannot be empty")
+        if (event.startTime.isBlank() || event.endTime.isBlank()) throw InvalidEventDataException("Times cannot be empty")
+    }
+
+    private fun mapToEventException(e: Exception): Exception {
+        return when (e) {
+            is FirebaseFirestoreException -> {
+                when (e.code) {
+                    FirebaseFirestoreException.Code.NOT_FOUND -> EventNotFoundException()
+                    FirebaseFirestoreException.Code.PERMISSION_DENIED -> UnauthorizedException()
+                    FirebaseFirestoreException.Code.UNAVAILABLE -> NetworkUnavailableException()
+                    else -> DatabaseOperationException(e.localizedMessage ?: "Database error")
+                }
+            }
+            is FirebaseNetworkException -> NetworkUnavailableException()
+            is StorageException -> {
+                when (e.errorCode) {
+                    StorageException.ERROR_NOT_AUTHENTICATED -> UnauthorizedException()
+                    StorageException.ERROR_NOT_AUTHORIZED -> UnauthorizedException()
+                    StorageException.ERROR_RETRY_LIMIT_EXCEEDED -> NetworkUnavailableException()
+                    else -> DatabaseOperationException("Storage error: ${e.message}")
+                }
+            }
+            else -> e
+        }
+    }
+}

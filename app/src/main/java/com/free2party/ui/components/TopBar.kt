@@ -22,14 +22,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import androidx.compose.foundation.layout.BoxScope
 
 @Composable
 fun TopBar(
-    title: String,
+    title: String? = null,
     color: Color = Color.Unspecified,
     onBack: () -> Unit,
     showBackButton: Boolean = true,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    action: @Composable (BoxScope.() -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
@@ -58,19 +60,29 @@ fun TopBar(
                 modifier = Modifier.height(20.dp),
                 contentScale = ContentScale.Fit
             )
+
+            if (action != null) {
+                Box(
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    action()
+                }
+            }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = color,
-                fontWeight = FontWeight.Bold
-            )
+        if (!title.isNullOrBlank()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = color,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

@@ -11,12 +11,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
@@ -70,6 +72,11 @@ import com.free2party.ui.screens.profile.ProfileRoute
 import com.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
+import com.free2party.ui.screens.events.EventsRoute
+import com.free2party.ui.screens.events.CreateEventScreen
+import com.free2party.ui.screens.events.EventDetailsScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
@@ -129,6 +136,31 @@ sealed class Screen(
         iconSelected = Icons.Filled.Notifications
     )
 
+    object Events : Screen(
+        route = "events",
+        labelResId = R.string.title_events,
+        icon = Icons.Outlined.Celebration,
+        iconSelected = Icons.Filled.Celebration
+    )
+
+    object CreateEvent : Screen(
+        route = "create_event?eventId={eventId}",
+        labelResId = R.string.title_create_event
+    ) {
+        fun createRoute(eventId: String? = null): String {
+            return if (eventId != null) "create_event?eventId=$eventId" else "create_event"
+        }
+    }
+
+    object EventDetails : Screen(
+        route = "event_details/{eventId}",
+        labelResId = R.string.title_event_details
+    ) {
+        fun createRoute(eventId: String): String {
+            return "event_details/$eventId"
+        }
+    }
+
     object InviteFriend : Screen(
         route = "invite_friend",
         labelResId = R.string.title_invite_friend
@@ -148,6 +180,7 @@ sealed class Screen(
 val BottomNavItems = listOf(
     Screen.Home,
     Screen.Calendar,
+    Screen.Events,
     Screen.Notifications
 )
 
@@ -397,6 +430,55 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Notifications.route) {
             NotificationsRoute(viewModel = notificationsViewModel)
+        }
+
+        composable(Screen.Events.route) {
+            EventsRoute(
+                viewModel = hiltViewModel(),
+                onNavigateToCreateEvent = {
+                    navController.navigate(Screen.CreateEvent.createRoute())
+                },
+                onNavigateToEventDetails = { eventId ->
+                    navController.navigate(Screen.EventDetails.createRoute(eventId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.CreateEvent.route,
+            arguments = listOf(
+                navArgument("eventId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId")
+            CreateEventScreen(
+                viewModel = hiltViewModel(),
+                editingEventId = eventId,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.EventDetails.route,
+            arguments = listOf(
+                navArgument("eventId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            EventDetailsScreen(
+                viewModel = hiltViewModel(),
+                eventId = eventId,
+                onNavigateToEditEvent = { id ->
+                    navController.navigate(Screen.CreateEvent.createRoute(id))
+                },
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Profile.route) {

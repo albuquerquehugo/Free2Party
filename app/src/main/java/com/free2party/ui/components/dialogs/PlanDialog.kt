@@ -339,7 +339,7 @@ fun PlanDialog(
                     Text(
                         text = stringResource(R.string.label_start),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
                     OutlinedCard(
@@ -386,7 +386,7 @@ fun PlanDialog(
                     Text(
                         text = stringResource(R.string.label_end),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
                     OutlinedCard(
@@ -477,7 +477,7 @@ fun PlanDialog(
                     Text(
                         text = stringResource(R.string.text_visibility),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = stringResource(R.string.label_visibility_discretion),

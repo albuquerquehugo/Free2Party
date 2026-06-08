@@ -2,7 +2,6 @@ package com.free2party.ui.screens.notifications
 
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -58,7 +56,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,6 +66,7 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
@@ -135,31 +133,17 @@ fun NotificationsScreen(
             .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 20.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.free2party_full_foreground_color),
-                contentDescription = stringResource(R.string.description_logo_content),
-                modifier = Modifier.height(20.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-
         val titleText = if (itemsUnreadCount > 0) {
             stringResource(R.string.title_notifications_with_count, itemsUnreadCount)
         } else {
             stringResource(R.string.title_notifications)
         }
 
-        Text(
-            text = titleText,
+        TopBar(
+            title = titleText,
             color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            showBackButton = false,
+            onBack = {}
         )
 
         Box(modifier = Modifier.weight(1f)) {
