@@ -96,7 +96,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `friends are sorted correctly (invited last, then by availability, then alphabetical)`() =
+    fun `friends are sorted correctly (pending last, then by availability, then alphabetical)`() =
         runTest {
             val friends = listOf(
                 FriendInfo(uid = "1", name = "Zoe", isFreeNow = false),
@@ -105,12 +105,12 @@ class HomeViewModelTest {
                     uid = "3",
                     name = "Charlie",
                     isFreeNow = true,
-                    inviteStatus = InviteStatus.INVITED
+                    inviteStatus = InviteStatus.PENDING
                 ),
                 FriendInfo(uid = "4", name = "Bob", isFreeNow = true)
             )
             
-            friendsFlow.value = friends.filter { it.inviteStatus != InviteStatus.INVITED }
+            friendsFlow.value = friends.filter { it.inviteStatus != InviteStatus.PENDING }
             val outgoingRequestsFlow = MutableStateFlow(listOf(
                 FriendRequest(
                     receiverId = "3",
@@ -124,7 +124,7 @@ class HomeViewModelTest {
             runCurrent()
 
             val state = viewModel.uiState as HomeUiState.Success
-            // Bob (Free, Accepted) -> Alice (Not Free, Accepted) -> Zoe (Not Free, Accepted) -> Charlie (Invited)
+            // Bob (Free, Accepted) -> Alice (Not Free, Accepted) -> Zoe (Not Free, Accepted) -> Charlie (Pending)
             assertEquals("Bob", state.friendsList[0].name)
             assertEquals("Alice", state.friendsList[1].name)
             assertEquals("Zoe", state.friendsList[2].name)

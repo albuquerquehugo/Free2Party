@@ -22,7 +22,7 @@ sealed interface EventsUiState {
     object Loading : EventsUiState
     data class Success(
         val myEvents: List<Event> = emptyList(),
-        val invitedEvents: List<Event> = emptyList()
+        val pendingEvents: List<Event> = emptyList()
     ) : EventsUiState
     data class Error(val message: UiText) : EventsUiState
 }
@@ -42,6 +42,7 @@ class EventsViewModel @Inject constructor(
         private set
     var membership by mutableStateOf(Membership.REGULAR)
         private set
+    var selectedTabIndex by mutableStateOf(0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<EventsUiState> = userRepository.userIdFlow
@@ -52,8 +53,8 @@ class EventsViewModel @Inject constructor(
                 eventRepository.getEvents()
                     .map<List<Event>, EventsUiState> { events ->
                         val my = events.filter { it.hostId == uid }
-                        val invited = events.filter { it.hostId != uid }
-                        EventsUiState.Success(myEvents = my, invitedEvents = invited)
+                        val pending = events.filter { it.hostId != uid }
+                    EventsUiState.Success(myEvents = my, pendingEvents = pending)
                     }
                     .catch { e ->
                         Log.e("EventsViewModel", "Error inside events flow", e)
@@ -62,6 +63,28 @@ class EventsViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EventsUiState.Loading)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pendingInvitationsCount: StateFlow<Int> = userRepository.userIdFlow
+        .flatMapLatest { uid ->
+            if (uid.isBlank()) {
+                flowOf(0)
+            } else {
+                eventRepository.getEvents()
+                    .map { events ->
+                        events.count { event ->
+                            event.hostId != uid &&
+                                    event.guestIds.contains(uid) &&
+                                    (event.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
+                        }
+                    }
+                    .catch { e ->
+                        Log.e("EventsViewModel", "Error inside pending invitations flow", e)
+                        emit(0)
+                    }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val circles: StateFlow<List<Circle>> = socialRepository.getCircles()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -101,6 +124,26 @@ class EventsViewModel @Inject constructor(
                 .catch { emit(null) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val eventGuests: StateFlow<Map<String, User>> = currentEvent
+        .flatMapLatest { event ->
+            if (event == null || event.guestIds.isEmpty()) {
+                flowOf(emptyMap())
+            } else {
+                flow {
+                    val guestsMap = mutableMapOf<String, User>()
+                    event.guestIds.forEach { uid ->
+                        userRepository.getUserById(uid).getOrNull()?.let { user ->
+                            guestsMap[uid] = user
+                        }
+                    }
+                    emit(guestsMap)
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val comments: StateFlow<List<EventComment>> = _currentEventId
@@ -143,6 +186,7 @@ class EventsViewModel @Inject constructor(
             val user = userRepository.getUserById(currentUserId).getOrNull()
             val hostName = user?.fullName ?: ""
             val hostProfilePic = user?.profilePicUrl ?: ""
+            val hostEmail = user?.email ?: ""
 
             val event = Event(
                 title = title.trim(),
@@ -158,7 +202,8 @@ class EventsViewModel @Inject constructor(
                 longitude = longitude,
                 guests = guests,
                 hostName = hostName,
-                hostProfilePic = hostProfilePic
+                hostProfilePic = hostProfilePic,
+                hostEmail = hostEmail
             )
 
             eventRepository.saveEvent(event)

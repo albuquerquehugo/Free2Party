@@ -682,18 +682,18 @@ fun CreateEventScreen(
                         selectedGuestsMap = if (id in selectedGuestsMap) {
                             selectedGuestsMap - id
                         } else {
-                            selectedGuestsMap + (id to GuestStatus.INVITED.name)
+                            selectedGuestsMap + (id to GuestStatus.PENDING.name)
                         }
                     },
                     onAddFriends = { ids ->
-                        val additions = ids.associateWith { GuestStatus.INVITED.name }
+                        val additions = ids.associateWith { GuestStatus.PENDING.name }
                         selectedGuestsMap = selectedGuestsMap + additions
                     },
                     onRemoveFriends = { ids ->
                         selectedGuestsMap = selectedGuestsMap - ids.toSet()
                     },
                     onSelectAll = {
-                        val all = friends.associateBy({ it.uid }, { GuestStatus.INVITED.name })
+                        val all = friends.associateBy({ it.uid }, { GuestStatus.PENDING.name })
                         selectedGuestsMap = all
                     },
                     onUnselectAll = {

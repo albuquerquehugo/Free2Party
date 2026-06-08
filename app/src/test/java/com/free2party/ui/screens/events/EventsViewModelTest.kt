@@ -82,14 +82,46 @@ class EventsViewModelTest {
         userIdFlow.value = "testUser"
         eventsFlow.value = listOf(
             Event(id = "1", hostId = "testUser", title = "My Event"),
-            Event(id = "2", hostId = "otherUser", title = "Invited Event")
+            Event(id = "2", hostId = "otherUser", title = "Pending Event")
         )
 
         val successState = viewModel.uiState.value as? EventsUiState.Success
         assertTrue(successState != null)
         assertTrue(successState?.myEvents?.size == 1)
-        assertTrue(successState?.invitedEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.size == 1)
         
+        job.cancel()
+    }
+
+    @Test
+    fun `selectedTabIndex defaults to 0 and can be modified`() = runTest {
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+        assertTrue(viewModel.selectedTabIndex == 0)
+        viewModel.selectedTabIndex = 1
+        assertTrue(viewModel.selectedTabIndex == 1)
+    }
+
+    @Test
+    fun `pendingInvitationsCount correctly counts pending event invitations`() = runTest {
+        userIdFlow.value = ""
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+        val job = launch(testDispatcher) {
+            viewModel.pendingInvitationsCount.collect {}
+        }
+
+        assertTrue(viewModel.pendingInvitationsCount.value == 0)
+
+        userIdFlow.value = "testUser"
+        eventsFlow.value = listOf(
+            Event(id = "1", hostId = "testUser", guestIds = listOf("otherUser"), guests = mapOf("otherUser" to "PENDING")),
+            Event(id = "2", hostId = "otherUser", guestIds = listOf("testUser"), guests = mapOf("testUser" to "PENDING")),
+            Event(id = "3", hostId = "otherUser", guestIds = listOf("testUser"), guests = mapOf("testUser" to "ACCEPTED")),
+            Event(id = "4", hostId = "otherUser", guestIds = listOf("testUser"), guests = mapOf("testUser" to "DECLINED")),
+            Event(id = "5", hostId = "otherUser", guestIds = listOf("testUser"), guests = emptyMap())
+        )
+
+        assertTrue(viewModel.pendingInvitationsCount.value == 2)
+
         job.cancel()
     }
 }

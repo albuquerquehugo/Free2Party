@@ -9,8 +9,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Transaction
 import com.google.firebase.storage.FirebaseStorage
+import android.content.Context
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -29,6 +32,7 @@ class EventRepositoryTest {
     private val firebaseUser: FirebaseUser = mockk()
     private val eventsCollection: CollectionReference = mockk()
     private val eventDoc: DocumentReference = mockk()
+    private val context: Context = mockk(relaxed = true)
 
     @Before
     fun setup() {
@@ -36,7 +40,7 @@ class EventRepositoryTest {
         every { eventsCollection.document(any()) } returns eventDoc
         every { eventsCollection.document() } returns eventDoc
         
-        repository = EventRepositoryImpl(auth, db, storage)
+        repository = EventRepositoryImpl(auth, db, storage, context)
         
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
     }
@@ -86,11 +90,50 @@ class EventRepositoryTest {
             endTime = "11:00"
         )
         every { eventDoc.id } returns "newEventId"
-        every { eventDoc.set(any()) } returns Tasks.forResult(null)
+        
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.set(any(), any()) } returns transaction
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
 
         val result = repository.saveEvent(event)
         assertTrue(result.isSuccess)
         assertTrue(result.getOrNull() == "newEventId")
+    }
+
+    @Test
+    fun `updateEvent succeeds with valid details`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Party Updated",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00"
+        )
+        every { eventsCollection.document("event123") } returns eventDoc
+        val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.get("guestIds") } returns emptyList<String>()
+        every { oldDoc.getString("hostName") } returns "Host Name"
+        every { oldDoc.getString("hostEmail") } returns "host@test.com"
+
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.updateEvent(event)
+        assertTrue(result.isSuccess)
     }
 
     @Test

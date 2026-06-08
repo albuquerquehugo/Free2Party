@@ -866,7 +866,7 @@ fun FriendsListSection(
             friends.filter { it.inviteStatus == InviteStatus.ACCEPTED && it.isFreeNow }
         val busyFriends =
             friends.filter { it.inviteStatus == InviteStatus.ACCEPTED && !it.isFreeNow }
-        val invitedFriends = friends.filter { it.inviteStatus == InviteStatus.INVITED }
+        val pendingFriends = friends.filter { it.inviteStatus == InviteStatus.PENDING }
 
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
@@ -898,8 +898,8 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.title_friend_section_invited),
-                    friends = invitedFriends,
+                    title = stringResource(R.string.title_friend_section_pending),
+                    friends = pendingFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
@@ -996,11 +996,11 @@ fun FriendItem(
 ) {
     var showFriendMenu by remember { mutableStateOf(false) }
     var showContactMenu by remember { mutableStateOf(false) }
-    val isInvited = friend.inviteStatus == InviteStatus.INVITED
+    val isPending = friend.inviteStatus == InviteStatus.PENDING
     val context = LocalContext.current
     val hangOutMessage = stringResource(R.string.text_hang_out_message)
     val statusColor = when {
-        isInvited -> MaterialTheme.colorScheme.outline // Or inactiveContainer
+        isPending -> MaterialTheme.colorScheme.outline // Or inactiveContainer
         friend.isFreeNow -> MaterialTheme.colorScheme.available
         else -> MaterialTheme.colorScheme.busy
     }
@@ -1011,12 +1011,12 @@ fun FriendItem(
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
                 .combinedClickable(
-                    onClick = { if (!isInvited) onFriendItemClick() },
+                    onClick = { if (!isPending) onFriendItemClick() },
                     onLongClick = { showFriendMenu = true }
                 ),
             colors = CardDefaults.cardColors(
                 containerColor = (when {
-                    isInvited -> MaterialTheme.colorScheme.inactiveContainer
+                    isPending -> MaterialTheme.colorScheme.inactiveContainer
                     friend.isFreeNow -> MaterialTheme.colorScheme.availableContainer
                     else -> MaterialTheme.colorScheme.busyContainer
                 }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it }
@@ -1060,7 +1060,7 @@ fun FriendItem(
                         }
                     }
 
-                    if (isInvited) {
+                    if (isPending) {
                         Icon(
                             imageVector = Icons.Default.HourglassEmpty,
                             contentDescription = null,
@@ -1092,13 +1092,13 @@ fun FriendItem(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),
                     color = when {
-                        isInvited -> MaterialTheme.colorScheme.onInactiveContainer
+                        isPending -> MaterialTheme.colorScheme.onInactiveContainer
                         friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
                         else -> MaterialTheme.colorScheme.onBusyContainer
                     }
                 )
 
-                if (!isInvited) {
+                if (!isPending) {
                     // Calendar button
                     IconButton(onClick = onOpenCalendar) {
                         Icon(
@@ -1306,7 +1306,7 @@ fun FriendItem(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.description_friend_options),
                             tint = when {
-                                isInvited -> MaterialTheme.colorScheme.onInactiveContainer
+                                isPending -> MaterialTheme.colorScheme.onInactiveContainer
                                 friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
                                 else -> MaterialTheme.colorScheme.onBusyContainer
                             }
@@ -1321,7 +1321,7 @@ fun FriendItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    if (isInvited) stringResource(R.string.label_cancel_invite) else stringResource(
+                                    if (isPending) stringResource(R.string.label_cancel_invite) else stringResource(
                                         R.string.title_remove_friend
                                     ),
                                     color = MaterialTheme.colorScheme.error
@@ -1336,7 +1336,7 @@ fun FriendItem(
                             },
                             onClick = {
                                 showFriendMenu = false
-                                if (isInvited) {
+                                if (isPending) {
                                     onCancelInvite(friend.uid)
                                 } else {
                                     onRemoveFriend(friend)
@@ -1344,7 +1344,7 @@ fun FriendItem(
                             }
                         )
 
-                        if (!isInvited) {
+                        if (!isPending) {
                             DropdownMenuItem(
                                 text = {
                                     Row(verticalAlignment = Alignment.CenterVertically) {

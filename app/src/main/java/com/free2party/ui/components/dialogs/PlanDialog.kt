@@ -807,7 +807,7 @@ fun FriendSelector(
 
 @Composable
 fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> Unit) {
-    val isInvited = friend.inviteStatus == InviteStatus.INVITED
+    val isPending = friend.inviteStatus == InviteStatus.PENDING
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -823,9 +823,9 @@ fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> 
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
                 )
-                if (isInvited) {
+                if (isPending) {
                     Text(
-                        text = " " + stringResource(R.string.label_invited_observation),
+                        text = " " + stringResource(R.string.label_pending_observation),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Normal

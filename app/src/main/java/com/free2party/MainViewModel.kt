@@ -241,7 +241,7 @@ class MainViewModel @Inject constructor(
                         }
 
                         notifications.forEach { notification ->
-                            if (notification.type == NotificationType.FRIEND_ADDED &&
+                            if (notification.type == NotificationType.FRIEND_ACCEPTED &&
                                 !notification.isSilent &&
                                 !notification.isRead &&
                                 !shownIds.contains(notification.id) &&

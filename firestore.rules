@@ -78,7 +78,7 @@ service cloud.firestore {
     // Events collection rules
     match /events/{eventId} {
       // Anyone authenticated can read PUBLIC events.
-      // PRIVATE events are only readable by the host or invited guests.
+      // PRIVATE events are only readable by the host or pending guests.
       allow read: if request.auth != null && (
         resource.data.type == 'PUBLIC' ||
         request.auth.uid == resource.data.hostId ||
@@ -109,7 +109,7 @@ service cloud.firestore {
           request.auth.uid in get(/databases/$(database)/documents/events/$(eventId)).data.guestIds
         );
         
-        // Only host or invited/accepted/declined users can comment
+        // Only host or pending/accepted/declined users can comment
         allow create: if request.auth != null && (
           request.auth.uid == get(/databases/$(database)/documents/events/$(eventId)).data.hostId ||
           request.auth.uid in get(/databases/$(database)/documents/events/$(eventId)).data.guestIds

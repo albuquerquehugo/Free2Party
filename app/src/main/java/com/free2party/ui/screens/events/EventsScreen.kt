@@ -49,9 +49,12 @@ fun EventsRoute(
     val membership = viewModel.membership
     val currentUserId = viewModel.currentUserId
     val use24HourFormat = viewModel.use24HourFormat
+    val selectedTabIndex = viewModel.selectedTabIndex
 
     EventsScreen(
         uiState = uiState,
+        selectedTabIndex = selectedTabIndex,
+        onTabSelected = { viewModel.selectedTabIndex = it },
         gradientBackground = gradientBackground,
         membership = membership,
         currentUserId = currentUserId,
@@ -64,6 +67,8 @@ fun EventsRoute(
 @Composable
 fun EventsScreen(
     uiState: EventsUiState,
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
     gradientBackground: Boolean,
     membership: Membership,
     currentUserId: String,
@@ -71,8 +76,6 @@ fun EventsScreen(
     onNavigateToCreateEvent: () -> Unit,
     onNavigateToEventDetails: (String) -> Unit
 ) {
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -98,13 +101,13 @@ fun EventsScreen(
             ) {
                 Tab(
                     selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
+                    onClick = { onTabSelected(0) },
                     text = { Text(stringResource(R.string.label_my_events), fontWeight = FontWeight.Bold) }
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
-                    text = { Text(stringResource(R.string.label_invitations), fontWeight = FontWeight.Bold) }
+                    onClick = { onTabSelected(1) },
+                    text = { Text(stringResource(R.string.label_invited), fontWeight = FontWeight.Bold) }
                 )
             }
 
@@ -124,7 +127,7 @@ fun EventsScreen(
                         }
                     }
                     is EventsUiState.Success -> {
-                        val eventsList = if (selectedTabIndex == 0) uiState.myEvents else uiState.invitedEvents
+                        val eventsList = if (selectedTabIndex == 0) uiState.myEvents else uiState.pendingEvents
                         if (eventsList.isEmpty()) {
                             Box(
                                 modifier = Modifier
@@ -190,7 +193,7 @@ fun EventCard(
     }
     
     val myStatus = remember(event.guests, currentUserId) {
-        event.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.INVITED
+        event.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.PENDING
     }
 
     Card(
@@ -199,9 +202,8 @@ fun EventCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -209,29 +211,32 @@ fun EventCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Host Avatar
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    if (event.hostProfilePic.isNotBlank()) {
-                        AsyncImage(
-                            model = event.hostProfilePic,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.free2party_full_foreground_color),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                val isMyEvent = event.hostId == currentUserId
+                if (!isMyEvent) {
+                    // Host Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        if (event.hostProfilePic.isNotBlank()) {
+                            AsyncImage(
+                                model = event.hostProfilePic,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.free2party_full_foreground_color),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
-                Spacer(modifier = Modifier.width(12.dp))
                 
                 // Title & Host Name
                 Column(modifier = Modifier.weight(1f)) {
@@ -243,24 +248,26 @@ fun EventCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = stringResource(R.string.label_hosted_by, event.hostName),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (!isMyEvent) {
+                        Text(
+                            text = stringResource(R.string.label_hosted_by, event.hostName),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 
-                // Status Badge (for invited events)
-                if (event.hostId != currentUserId) {
+                // Status Badge (for pending events)
+                if (!isMyEvent) {
                     val badgeColor = when (myStatus) {
                         GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.available
                         GuestStatus.DECLINED -> MaterialTheme.colorScheme.busy
-                        GuestStatus.INVITED -> MaterialTheme.colorScheme.primary
+                        GuestStatus.PENDING -> MaterialTheme.colorScheme.primary
                     }
                     val badgeText = when (myStatus) {
                         GuestStatus.ACCEPTED -> stringResource(R.string.label_accepted)
                         GuestStatus.DECLINED -> stringResource(R.string.label_declined)
-                        GuestStatus.INVITED -> stringResource(R.string.label_invited)
+                        GuestStatus.PENDING -> stringResource(R.string.label_pending)
                     }
                     Text(
                         text = badgeText,

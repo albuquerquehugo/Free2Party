@@ -73,6 +73,7 @@ import com.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
 import com.free2party.ui.screens.events.EventsRoute
+import com.free2party.ui.screens.events.EventsViewModel
 import com.free2party.ui.screens.events.CreateEventScreen
 import com.free2party.ui.screens.events.EventDetailsScreen
 import androidx.navigation.NavType
@@ -188,6 +189,7 @@ val BottomNavItems = listOf(
 fun AppNavigation(
     mainViewModel: MainViewModel = hiltViewModel(),
     notificationsViewModel: NotificationsViewModel = hiltViewModel(),
+    eventsViewModel: EventsViewModel = hiltViewModel(),
     startDestination: String? = null
 ) {
     val navController = rememberNavController()
@@ -215,7 +217,7 @@ fun AppNavigation(
             containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
             bottomBar = {
                 if (showBottomBar) {
-                    BottomNavigationBar(navController, notificationsViewModel)
+                    BottomNavigationBar(navController, notificationsViewModel, eventsViewModel)
                 }
             }
         ) { innerPadding ->
@@ -255,13 +257,17 @@ fun AppNavigation(
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
-    notificationsViewModel: NotificationsViewModel
+    notificationsViewModel: NotificationsViewModel,
+    eventsViewModel: EventsViewModel
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     val unreadCountState = notificationsViewModel.itemsUnreadCount.collectAsState(initial = 0)
     val totalUnread = unreadCountState.value
+
+    val pendingInvitationsCountState = eventsViewModel.pendingInvitationsCount.collectAsState(initial = 0)
+    val pendingInvitationsCount = pendingInvitationsCountState.value
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)) {
         BottomNavItems.forEach { screen ->
@@ -275,6 +281,20 @@ fun BottomNavigationBar(
                             badge = {
                                 Badge {
                                     Text(totalUnread.toString())
+                                }
+                            }
+                        ) {
+                            Icon(
+                                if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                contentDescription = label
+                            )
+
+                        }
+                    } else if ((screen is Screen.Events) && (pendingInvitationsCount > 0)) {
+                        BadgedBox(
+                            badge = {
+                                Badge {
+                                    Text(pendingInvitationsCount.toString())
                                 }
                             }
                         ) {

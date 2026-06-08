@@ -1,4 +1,5 @@
 <resources>
+
     <string name="app_name">Free2Party</string>
 
     <!-- General Buttons & Actions -->
@@ -35,7 +36,7 @@
     <string name="label_facebook_messenger">Facebook Messenger</string>
     <string name="label_friends_picture">Foto do Amigo</string>
     <string name="label_instagram">Instagram</string>
-    <string name="label_invited_observation">(Convidado)</string>
+    <string name="label_pending_observation">(Pendente)</string>
     <string name="label_mark_all_as_read">Marcar tudo como lido</string>
     <string name="label_mark_as_read">Marcar como lido</string>
     <string name="label_mark_as_unread">Marcar como não lido</string>
@@ -83,7 +84,7 @@
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
     <string name="text_placeholder_search_user">Pesquisar por nome ou e-mail…</string>
-    <string name="text_remove_friend_confirmation">Esta ação irá remover a amizade de ambas as listas de amigos. Se você quiser adicioná-lo novamente terá que enviar uma nova solicitação de amizade.</string>
+    <string name="text_remove_friend_confirmation">Esta ação irá remover a amizade de ambas as listas de amigos. Se você quiser adicioná-lo novamente terá que enviar um novo pedido de amizade.</string>
     <string name="text_send_invite_confirmation">Deseja enviar um convite de amizade para %1$s (%2$s)?</string>
     <string name="title_circles">Círculos</string>
     <string name="title_create_circle">Criar Círculo</string>
@@ -92,7 +93,7 @@
     <string name="title_friend_section">%1$s (%2$d)</string>
     <string name="title_friend_section_busy">Ocupados</string>
     <string name="title_friend_section_free">Livres</string>
-    <string name="title_friend_section_invited">Convidados</string>
+    <string name="title_friend_section_pending">Pendentes</string>
     <string name="title_friends">Amigos</string>
     <string name="title_home">Início</string>
     <string name="title_invite_friend">Convidar Amigo</string>
@@ -122,9 +123,9 @@
     <string name="password_required">Senha *</string>
     <string name="success_account_created">Conta criada com sucesso! Verifique seu e-mail para validar sua conta.</string>
     <string name="title_create_account">Criar Conta</string>
-    <string name="title_reset_password">Redefinir Senha</string>
     <string name="title_login">Entrar</string>
     <string name="title_register">Registrar</string>
+    <string name="title_reset_password">Redefinir Senha</string>
 
     <!-- Profile Screen -->
     <string name="description_edit_photo">Editar foto</string>
@@ -155,9 +156,9 @@
     <string name="label_messenger_username">Usuário do Facebook/Messenger</string>
     <string name="label_phone_number">Número de Telefone</string>
     <string name="label_section_socials">Redes Sociais</string>
-    <string name="label_send_message">Enviar uma mensagem</string>
     <string name="label_select_birthday">Selecionar data de nascimento</string>
     <string name="label_select_country">Selecionar País</string>
+    <string name="label_send_message">Enviar uma mensagem</string>
     <string name="label_suggested">Sugerido</string>
     <string name="label_telegram_username">Usuário do Telegram</string>
     <string name="label_tiktok_username">Usuário do TikTok</string>
@@ -207,13 +208,13 @@
     <string name="label_date_format">Formato da Data:</string>
     <string name="label_everyone">Todos</string>
     <string name="label_everyone_except_label">Todos, exceto…</string>
-    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
     <string name="label_nobody">Ninguém</string>
+    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
     <string name="label_theme_mode">Modo do Tema:</string>
     <string name="label_time_format">Formato da Hora:</string>
     <string name="option_am_pm">AM/PM</string>
-    <string name="option_birthday_full">Data completa (com ano)</string>
     <string name="option_birthday_day_month">Apenas dia e mês</string>
+    <string name="option_birthday_full">Data completa (com ano)</string>
     <string name="option_gradient">Gradiente</string>
     <string name="option_solid">Sólido</string>
     <string name="option_twenty_four_hour">24 horas</string>
@@ -248,9 +249,9 @@
     <string name="select_day_on_calendar">Selecione um dia no calendário para ver os planos</string>
     <string name="select_end_date">Selecionar data de término</string>
     <string name="select_start_date">Selecionar data de início</string>
+    <string name="title_calendar">Calendário</string>
     <string name="title_friend_calendar">Calendário de %1$s</string>
     <string name="title_friend_calendar_s">Calendário de %1$s</string>
-    <string name="title_calendar">Calendário</string>
 
     <!-- Plan Dialog -->
     <string name="description_plan_actions_content">Ações do Plano</string>
@@ -273,31 +274,32 @@
     <string name="title_schedule_plan">Agendar seu plano</string>
 
     <!-- Notifications -->
+    <string name="notification_event_invitation_body">%1$s (%2$s) convidou você para o evento \"%3$s\".</string>
+    <string name="notification_event_invitation_title">Convite de Evento</string>
     <string name="notification_friend_removed_body">%1$s (%2$s) não é mais seu amigo.</string>
     <string name="notification_friend_removed_title">Amigo Removido</string>
-    <string name="notification_friend_request_accepted_body">%1$s (%2$s) foi adicionado como amigo.</string>
+    <string name="notification_friend_request_accepted_body">%1$s (%2$s) aceitou seu pedido de amizade.</string>
     <string name="notification_friend_request_accepted_title">Pedido de Amizade Aceito</string>
-    <string name="notification_friend_request_declined_body">Seu pedido de amizade para %1$s (%2$s) foi recusado.</string>
+    <string name="notification_friend_request_declined_body">%1$s (%2$s) recusou seu pedido de amizade.</string>
     <string name="notification_friend_request_declined_title">Pedido de Amizade Recusado</string>
-    <string name="notification_friend_request_received_body">%1$s (%2$s) enviou um pedido de amizade!</string>
+    <string name="notification_friend_request_received_body">%1$s (%2$s) enviou um pedido de amizade.</string>
     <string name="notification_friend_request_received_title">Novo Pedido de Amizade</string>
+    <string-array name="notification_prefixes_to_strip">
+        <item>Your friend request to </item>
+        <item>Seu pedido de amizade para </item>
+    </string-array>
     <string name="text_all_caught_up">Você está em dia</string>
     <string name="text_decline_friend_request_dialog">Como você deseja recusar este pedido?</string>
     <string name="title_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
+    <string name="title_friend_removed">Amigo Removido</string>
     <string name="title_friend_request">Pedido de Amizade</string>
     <string name="title_friend_request_accepted">Pedido de Amizade Aceito</string>
     <string name="title_friend_request_declined">Pedido de Amizade Recusado</string>
-    <string name="title_friend_removed">Amigo Removido</string>
     <string name="title_notifications">Notificações</string>
     <string name="title_notifications_with_count">Notificações (%1$d)</string>
     <string name="toast_friend_request_accepted">Pedido de amizade aceito</string>
     <string name="toast_friend_request_declined">Pedido de amizade recusado</string>
     <string name="toast_friend_request_declined_and_user_blocked">Pedido de amizade recusado e usuário bloqueado</string>
-
-    <string-array name="notification_prefixes_to_strip">
-        <item>Your friend request to </item>
-        <item>Seu pedido de amizade para </item>
-    </string-array>
 
     <!-- About Screen -->
     <string name="app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos e nunca mais perder um encontro.</string>
@@ -324,10 +326,10 @@
     <string name="error_failed_save_plan">Falha ao salvar o plano.</string>
     <string name="error_failed_update_plan">Falha ao atualizar o plano.</string>
     <string name="error_friend_request_already_accepted">Este usuário já é seu amigo.</string>
-    <string name="error_friend_request_already_sent">Um convite já foi enviado para este usuário.</string>
-    <string name="error_friend_request_pending">Você tem um convite pendente deste usuário. Por favor, verifique suas notificações.</string>
+    <string name="error_friend_request_already_sent">Um pedido de amizade já foi enviado para este usuário.</string>
     <string name="error_friend_request_blocked">Você não pode enviar um pedido de amizade para este usuário.</string>
     <string name="error_friend_request_not_found">O pedido de amizade não foi encontrado</string>
+    <string name="error_friend_request_pending">Você tem um pedido de amizade pendente deste usuário. Por favor, verifique suas notificações.</string>
     <string name="error_google_config">Erro de configuração ao entrar com o Google. Por favor, tente novamente mais tarde.</string>
     <string name="error_google_failed">Falha ao entrar com o Google</string>
     <string name="error_google_invalid_token">Falha ao entrar com o Google: Token inválido</string>
@@ -340,7 +342,6 @@
     <string name="error_invalid_email">Por favor, insira um endereço de e-mail válido.</string>
     <string name="error_invalid_phone">Por favor, insira um número de telefone válido</string>
     <string name="error_invalid_plan_data">Os detalhes do plano são inválidos</string>
-    <string name="error_social">Erro social</string>
     <string name="error_invalid_whatsapp">Por favor, insira um número de WhatsApp válido</string>
     <string name="error_login_empty_fields">E-mail e senha não podem estar vazios</string>
     <string name="error_login_failed">Falha no login</string>
@@ -361,6 +362,7 @@
     <string name="error_resend_verification_failed">Falha ao reenviar e-mail de verificação</string>
     <string name="error_sending_invite">Erro ao enviar convite.</string>
     <string name="error_settings_not_found">Configurações do usuário não encontradas. Por favor, tente sair e entrar novamente.</string>
+    <string name="error_social">Erro social</string>
     <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
     <string name="error_unblock_to_invite">Desbloqueie este usuário antes de convidá-lo.</string>
     <string name="error_unblocking_user">Erro ao desbloquear usuário</string>
@@ -386,55 +388,66 @@
     <string name="time_range">%1$s - %2$s</string>
 
     <!-- Events Screen -->
-    <string name="title_events">Eventos</string>
-    <string name="title_create_event">Criar Evento</string>
-    <string name="title_edit_event">Editar Evento</string>
-    <string name="title_event_details">Detalhes do Evento</string>
-    <string name="label_event_title">Título</string>
-    <string name="label_event_description">Descrição</string>
-    <string name="label_event_type">Tipo</string>
-    <string name="label_public">Público</string>
-    <string name="label_private">Privado</string>
-    <string name="label_timezone">Fuso Horário</string>
-    <string name="label_location">Localização</string>
-    <string name="label_useful_links">Links Úteis</string>
-    <string name="label_guests">Convidados</string>
-    <string name="label_comments">Comentários</string>
-    <string name="label_photos">Fotos</string>
-    <string name="label_rsvp">Sua Resposta</string>
-    <string name="label_post_comment">Enviar</string>
-    <string name="placeholder_comment">Escreva um comentário…</string>
-    <string name="placeholder_event_title">Digite o título do evento</string>
-    <string name="placeholder_event_description">Digite a descrição do evento</string>
-    <string name="placeholder_location">Digite o nome do local ou endereço</string>
-    <string name="placeholder_link_title">Título do Link (ex: Site)</string>
-    <string name="placeholder_link_url">URL do Link (ex: https://…)</string>
-    <string name="label_my_events">Meus Eventos</string>
-    <string name="label_invitations">Convites</string>
-    <string name="label_no_events">Nenhum evento encontrado</string>
-    <string name="label_hosted_by">Organizado por %1$s</string>
-    <string name="toast_event_created">Evento criado com sucesso!</string>
-    <string name="toast_event_updated">Evento atualizado com sucesso!</string>
-    <string name="toast_event_deleted">Evento excluído!</string>
-    <string name="toast_photo_uploaded">Foto enviada com sucesso!</string>
-    <string name="toast_comment_posted">Comentário enviado!</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_invalid_event_data">Dados do evento inválidos.</string>
+    <string name="label_accepted">Aceito</string>
     <string name="label_add_link">Adicionar Link</string>
-    <string name="label_link_url">URL</string>
-    <string name="label_link_title">Título</string>
-    <string name="label_timezone_search">Pesquisar Fuso Horário…</string>
-    <string name="label_event_type_desc_public">Qualquer pessoa pode ver e participar</string>
-    <string name="label_event_type_desc_private">Apenas convidados</string>
-    <string name="label_event_guests_selection">Selecionar Convidados</string>
-    <string name="label_photo_album">Álbum de Fotos</string>
-    <string name="label_upload_photo">Enviar Foto</string>
+    <string name="label_comments">Comentários</string>
+    <string name="label_comments_empty">Nenhum comentário ainda. Comece a conversa!</string>
+    <string name="label_declined">Recusado</string>
+    <string name="label_delete_comment_confirm">Tem certeza de que deseja excluir este comentário?</string>
     <string name="label_delete_event">Excluir Evento</string>
     <string name="label_delete_event_confirm">Tem certeza de que deseja excluir este evento? Esta ação não pode ser desfeita.</string>
-    <string name="label_comments_empty">Nenhum comentário ainda. Comece a conversa!</string>
-    <string name="label_photos_empty">Nenhuma foto compartilhada ainda. Envie a primeira!</string>
-    <string name="label_open_in_maps">Abrir no Mapa</string>
-    <string name="label_accepted">Aceito</string>
-    <string name="label_declined">Recusado</string>
+    <string name="label_event_description">Descrição</string>
+    <string name="label_event_guests_selection">Selecionar Convidados</string>
+    <string name="label_event_title">Título</string>
+    <string name="label_event_type">Tipo</string>
+    <string name="label_event_type_desc_private">Apenas convidados</string>
+    <string name="label_event_type_desc_public">Qualquer pessoa pode ver e participar</string>
+    <plurals name="label_guest">
+        <item quantity="one">Convidado (%1$d)</item>
+        <item quantity="many">Convidados (%1$d)</item>
+        <item quantity="other">Convidados (%1$d)</item>
+    </plurals>
+    <string name="label_hosted_by">Organizado por %1$s</string>
     <string name="label_invited">Convidado</string>
+    <string name="label_link_title">Título</string>
+    <string name="label_link_url">URL</string>
+    <string name="label_location">Localização</string>
+    <string name="label_my_events">Meus Eventos</string>
+    <string name="label_no_events">Nenhum evento encontrado</string>
+    <string name="label_no_guests_pending">Nenhum convidado pendente ainda</string>
+    <string name="label_pending">Pendente</string>
+    <string name="label_open_in_maps">Abrir no Mapa</string>
+    <string name="label_photo_album">Álbum de Fotos</string>
+    <string name="label_photos">Fotos</string>
+    <string name="label_photos_empty">Nenhuma foto compartilhada ainda. Envie a primeira!</string>
+    <string name="label_post_comment">Enviar</string>
+    <string name="label_private">Privado</string>
+    <string name="label_public">Público</string>
+    <string name="label_rsvp">Sua Resposta</string>
+    <string name="label_timezone">Fuso Horário</string>
+    <string name="label_timezone_search">Pesquisar Fuso Horário…</string>
+    <string name="label_upload_photo">Enviar Foto</string>
+    <string name="label_useful_links">Links Úteis</string>
+    <string name="label_you">Você</string>
+    <string name="label_your_local_time">Seu horário local (Traduzido do original: %1$s @ %2$s %3$s)</string>
+    <string name="placeholder_comment">Escreva um comentário…</string>
+    <string name="placeholder_event_description">Digite a descrição do evento</string>
+    <string name="placeholder_event_title">Digite o título do evento</string>
+    <string name="placeholder_link_title">Título do Link (ex: Site)</string>
+    <string name="placeholder_link_url">URL do Link (ex: https://…)</string>
+    <string name="placeholder_location">Digite o nome do local ou endereço</string>
+    <string name="title_create_event">Criar Evento</string>
+    <string name="title_delete_comment">Excluir Comentário</string>
+    <string name="title_edit_event">Editar Evento</string>
+    <string name="title_event_details">Detalhes do Evento</string>
+    <string name="title_events">Eventos</string>
+    <string name="toast_comment_deleted">Comentário excluído</string>
+    <string name="toast_comment_posted">Comentário enviado!</string>
+    <string name="toast_event_created">Evento criado com sucesso!</string>
+    <string name="toast_event_deleted">Evento excluído!</string>
+    <string name="toast_event_updated">Evento atualizado com sucesso!</string>
+    <string name="toast_photo_deleted">Foto excluída</string>
+    <string name="toast_photo_uploaded">Foto enviada com sucesso!</string>
 </resources>

@@ -10,7 +10,7 @@ enum class EventType {
 }
 
 enum class GuestStatus {
-    INVITED,
+    PENDING,
     ACCEPTED,
     DECLINED
 }
@@ -26,6 +26,7 @@ data class Event(
     val hostId: String = "",
     val hostName: String = "",
     val hostProfilePic: String = "",
+    val hostEmail: String = "",
     val type: EventType = EventType.PRIVATE,
     val title: String = "",
     val description: String = "",

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,13 +68,16 @@ fun EventDetailsScreen(
     val currentUserId = viewModel.currentUserId
     val use24Hour = viewModel.use24HourFormat
 
-    val photoUploadedMsg = stringResource(R.string.toast_photo_uploaded)
-    val noMapAvailableMsg = stringResource(R.string.error_no_app_available)
+    val commentDeletedMsg = stringResource(R.string.toast_comment_deleted)
     val eventDeletedMsg = stringResource(R.string.toast_event_deleted)
+    val noMapAvailableMsg = stringResource(R.string.error_no_app_available)
+    val photoUploadedMsg = stringResource(R.string.toast_photo_uploaded)
+    val photoDeletedMsg = stringResource(R.string.toast_photo_deleted)
 
     val event by viewModel.currentEvent.collectAsState()
     val comments by viewModel.comments.collectAsState()
     val photos by viewModel.photos.collectAsState()
+    val guestProfiles by viewModel.eventGuests.collectAsState()
 
     var commentText by remember { mutableStateOf("") }
     var selectedFriendForProfile by remember { mutableStateOf<FriendInfo?>(null) }
@@ -112,12 +117,12 @@ fun EventDetailsScreen(
 
     val isHost = ev.hostId == currentUserId
     val myStatus = remember(ev.guests, currentUserId) {
-        ev.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.INVITED
+        ev.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.PENDING
     }
     val isAccepted = isHost || myStatus == GuestStatus.ACCEPTED
 
     // Timezone translation details
-    val tzMatch = ev.timezone == TimeZone.getDefault().id
+    val tzMatch = TimeZone.getTimeZone(ev.timezone).hasSameRules(TimeZone.getDefault())
     val timeFormatter = remember {
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone(ev.timezone)
@@ -224,7 +229,10 @@ fun EventDetailsScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.label_hosted_by, ev.hostName),
+                            text = stringResource(
+                                R.string.label_hosted_by,
+                                if (isHost) stringResource(R.string.label_you) else ev.hostName
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -245,7 +253,10 @@ fun EventDetailsScreen(
             // Date / Time Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -262,20 +273,17 @@ fun EventDetailsScreen(
                             Text(
                                 text = "$localDateText @ $localTimeText",
                                 fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             if (!tzMatch) {
                                 Text(
-                                    text = "Your local time (Translated from original: ${
-                                        formatPlanDateInFull(
-                                            ev.startDate
-                                        )
-                                    } @ ${
-                                        formatTimeForDisplay(
-                                            ev.startTime,
-                                            use24Hour
-                                        )
-                                    } ${ev.timezone})",
+                                    text = stringResource(
+                                        R.string.label_your_local_time,
+                                        formatPlanDateInFull(ev.startDate),
+                                        formatTimeForDisplay(ev.startTime, use24Hour),
+                                        ev.timezone
+                                    ),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -295,7 +303,10 @@ fun EventDetailsScreen(
             if (ev.locationName.isNotBlank()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -316,11 +327,13 @@ fun EventDetailsScreen(
                                 Text(
                                     text = stringResource(R.string.label_location),
                                     fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = ev.locationName,
                                     style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -359,7 +372,10 @@ fun EventDetailsScreen(
             if (ev.usefulLinks.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -412,7 +428,10 @@ fun EventDetailsScreen(
             if (!isHost) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -422,7 +441,8 @@ fun EventDetailsScreen(
                         Text(
                             text = stringResource(R.string.label_rsvp),
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -445,9 +465,25 @@ fun EventDetailsScreen(
                                 },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (myStatus == GuestStatus.ACCEPTED) MaterialTheme.colorScheme.available else MaterialTheme.colorScheme.surfaceVariant,
-                                    contentColor = if (myStatus == GuestStatus.ACCEPTED) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                    containerColor = if (myStatus == GuestStatus.ACCEPTED) {
+                                        MaterialTheme.colorScheme.available
+                                    } else {
+                                        MaterialTheme.colorScheme.available.copy(alpha = 0.12f)
+                                    },
+                                    contentColor = if (myStatus == GuestStatus.ACCEPTED) {
+                                        Color.White
+                                    } else {
+                                        MaterialTheme.colorScheme.available
+                                    }
                                 ),
+                                border = if (myStatus == GuestStatus.ACCEPTED) {
+                                    null
+                                } else {
+                                    BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.available.copy(alpha = 0.5f)
+                                    )
+                                },
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(Icons.Default.Check, contentDescription = null)
@@ -471,9 +507,25 @@ fun EventDetailsScreen(
                                 },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (myStatus == GuestStatus.DECLINED) MaterialTheme.colorScheme.busy else MaterialTheme.colorScheme.surfaceVariant,
-                                    contentColor = if (myStatus == GuestStatus.DECLINED) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                    containerColor = if (myStatus == GuestStatus.DECLINED) {
+                                        MaterialTheme.colorScheme.busy
+                                    } else {
+                                        MaterialTheme.colorScheme.busy.copy(alpha = 0.12f)
+                                    },
+                                    contentColor = if (myStatus == GuestStatus.DECLINED) {
+                                        Color.White
+                                    } else {
+                                        MaterialTheme.colorScheme.busy
+                                    }
                                 ),
+                                border = if (myStatus == GuestStatus.DECLINED) {
+                                    null
+                                } else {
+                                    BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.busy.copy(alpha = 0.5f)
+                                    )
+                                },
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = null)
@@ -488,70 +540,122 @@ fun EventDetailsScreen(
             // Guests list Row
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.label_guests),
+                        text = pluralStringResource(
+                            R.plurals.label_guest,
+                            ev.guests.size,
+                            ev.guests.size
+                        ),
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (ev.guests.isEmpty()) {
                         Text(
-                            text = "No guests invited yet",
-                            style = MaterialTheme.typography.bodySmall
+                            text = stringResource(R.string.label_no_guests_pending),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
+                        val sortedGuests = remember(ev.guests, currentUserId) {
+                            val list = ev.guests.entries.toList()
+                            val currentUserEntry = list.find { it.key == currentUserId }
+                            if (currentUserEntry != null) {
+                                listOf(currentUserEntry) + list.filter { it.key != currentUserId }
+                            } else {
+                                list
+                            }
+                        }
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(ev.guests.entries.toList()) { entry ->
+                            items(sortedGuests) { entry ->
                                 val uid = entry.key
                                 val status = GuestStatus.valueOf(entry.value)
+                                val guestUser = guestProfiles[uid]
+                                val guestName =
+                                    guestUser?.fullName ?: stringResource(R.string.label_pending)
+                                val displayName =
+                                    if (uid == currentUserId) stringResource(R.string.label_you) else guestName
+                                val guestPic = guestUser?.profilePicUrl ?: ""
                                 val statusColor = when (status) {
                                     GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.available
                                     GuestStatus.DECLINED -> MaterialTheme.colorScheme.busy
-                                    GuestStatus.INVITED -> MaterialTheme.colorScheme.outline
+                                    GuestStatus.PENDING -> MaterialTheme.colorScheme.outline
                                 }
                                 Box(
                                     modifier = Modifier
                                         .clickable {
                                             selectedFriendForProfile = FriendInfo(
                                                 uid = uid,
-                                                name = "Guest Profile", // Will load real name via dialog viewmodel
+                                                name = guestName,
+                                                profilePicUrl = guestPic,
                                                 isFreeNow = status == GuestStatus.ACCEPTED
                                             )
                                         }
                                         .width(64.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
                                         Box(
                                             modifier = Modifier
                                                 .size(44.dp)
+                                                .clip(CircleShape)
                                                 .border(2.dp, statusColor, CircleShape)
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                                 .padding(2.dp)
                                         ) {
-                                            Icon(
-                                                Icons.Default.Person,
-                                                contentDescription = null,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
+                                            if (guestPic.isNotBlank()) {
+                                                AsyncImage(
+                                                    model = guestPic,
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            } else {
+                                                Icon(
+                                                    Icons.Default.Person,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = displayName,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                         Text(
                                             text = status.name.lowercase().replaceFirstChar {
                                                 if (it.isLowerCase()) it.titlecase(LocalLocale.current.platformLocale)
                                                 else it.toString()
                                             },
-                                            fontSize = 10.sp,
+                                            fontSize = 9.sp,
                                             color = statusColor,
                                             maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                 }
@@ -565,7 +669,10 @@ fun EventDetailsScreen(
             if (isAccepted) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -579,7 +686,8 @@ fun EventDetailsScreen(
                             Text(
                                 text = stringResource(R.string.label_photo_album),
                                 fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             TextButton(onClick = { photoPickerLauncher.launch("image/*") }) {
                                 Icon(Icons.Default.AddAPhoto, contentDescription = null)
@@ -622,10 +730,13 @@ fun EventDetailsScreen(
                 }
             }
 
-            // Comment Section (All invited users)
+            // Comment Section (All pending users)
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -634,7 +745,8 @@ fun EventDetailsScreen(
                     Text(
                         text = stringResource(R.string.label_comments),
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     if (comments.isEmpty()) {
@@ -803,8 +915,8 @@ fun EventDetailsScreen(
     // Delete Comment confirmation
     showDeleteCommentDialog?.let { comment ->
         ConfirmationDialog(
-            title = "Delete Comment",
-            text = "Are you sure you want to delete this comment?",
+            title = stringResource(R.string.title_delete_comment),
+            text = stringResource(R.string.label_delete_comment_confirm),
             confirmButtonText = stringResource(R.string.label_delete),
             onConfirm = {
                 showDeleteCommentDialog = null
@@ -812,7 +924,11 @@ fun EventDetailsScreen(
                     eventId = eventId,
                     commentId = comment.id,
                     onSuccess = {
-                        Toast.makeText(context, "Comment deleted", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            commentDeletedMsg,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     },
                     onError = { err ->
                         Toast.makeText(
@@ -864,7 +980,7 @@ fun EventDetailsScreen(
                                     onSuccess = {
                                         Toast.makeText(
                                             context,
-                                            "Photo deleted",
+                                            photoDeletedMsg,
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     },
@@ -882,7 +998,7 @@ fun EventDetailsScreen(
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = null)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Delete")
+                            Text(stringResource(R.string.label_delete))
                         }
                     } else {
                         Spacer(modifier = Modifier.width(1.dp))

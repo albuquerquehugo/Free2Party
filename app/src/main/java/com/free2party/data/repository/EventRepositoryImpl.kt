@@ -26,11 +26,17 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
+import android.content.Context
+import com.free2party.R
+import com.free2party.data.model.NotificationType
+import com.google.firebase.firestore.FieldValue
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 class EventRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    @param:ApplicationContext private val context: Context
 ) : EventRepository {
 
     private val currentUserId: String get() = auth.currentUser?.uid ?: ""
@@ -44,7 +50,7 @@ class EventRepositoryImpl @Inject constructor(
         }
 
         // Listener for hosted events
-        val hostedFlow = callbackFlow<List<Event>> {
+        val hostedFlow = callbackFlow {
             val listener = db.collection("events")
                 .whereEqualTo("hostId", uid)
                 .addSnapshotListener { snapshot, error ->
@@ -60,8 +66,8 @@ class EventRepositoryImpl @Inject constructor(
             awaitClose { listener.remove() }
         }
 
-        // Listener for events where user is invited/guest
-        val guestFlow = callbackFlow<List<Event>> {
+        // Listener for events where user is pending/guest
+        val guestFlow = callbackFlow {
             val listener = db.collection("events")
                 .whereArrayContains("guestIds", uid)
                 .addSnapshotListener { snapshot, error ->
@@ -78,7 +84,7 @@ class EventRepositoryImpl @Inject constructor(
         }
 
         // Listener for public events
-        val publicFlow = callbackFlow<List<Event>> {
+        val publicFlow = callbackFlow {
             val listener = db.collection("events")
                 .whereEqualTo("type", EventType.PUBLIC.name)
                 .addSnapshotListener { snapshot, error ->
@@ -179,7 +185,32 @@ class EventRepositoryImpl @Inject constructor(
             hostId = currentUserId,
             guestIds = guestIdsList
         )
-        docRef.set(eventWithDetails).await()
+
+        db.runTransaction { transaction ->
+            transaction.set(docRef, eventWithDetails)
+
+            // Create notification for each guest ID (except the host)
+            guestIdsList.filter { it != currentUserId }.forEach { guestId ->
+                val notifRef = db.collection("users").document(guestId)
+                    .collection("notifications").document()
+                transaction.set(
+                    notifRef, mapOf(
+                        "id" to notifRef.id,
+                        "title" to context.getString(R.string.notification_event_invitation_title),
+                        "message" to context.getString(
+                            R.string.notification_event_invitation_body,
+                            eventWithDetails.hostName.ifBlank { "Someone" },
+                            eventWithDetails.hostEmail,
+                            eventWithDetails.title
+                        ),
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.EVENT_INVITE.name
+                    )
+                )
+            }
+        }.await()
+
         Result.success(docRef.id)
     } catch (e: Exception) {
         Result.failure(mapToEventException(e))
@@ -189,6 +220,7 @@ class EventRepositoryImpl @Inject constructor(
         validateSession()
         validateEventDateTime(event)
 
+        val docRef = db.collection("events").document(event.id)
         val guestIdsList = event.guests.keys.toList()
         val updatedData = mapOf(
             "title" to event.title,
@@ -206,9 +238,41 @@ class EventRepositoryImpl @Inject constructor(
             "guestIds" to guestIdsList,
             "usefulLinks" to event.usefulLinks
         )
-        db.collection("events").document(event.id)
-            .update(updatedData)
-            .await()
+
+        db.runTransaction { transaction ->
+            val oldDoc = transaction.get(docRef)
+            val oldGuestIds =
+                (oldDoc.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+
+            // Perform the update
+            transaction.update(docRef, updatedData)
+
+            // Send notification only to newly added guest IDs (excluding host)
+            val newGuestIds = guestIdsList.filter { (it !in oldGuestIds) && (it != currentUserId) }
+            val hostName = oldDoc.getString("hostName") ?: "Someone"
+            val hostEmail = oldDoc.getString("hostEmail") ?: ""
+
+            newGuestIds.forEach { guestId ->
+                val notifRef = db.collection("users").document(guestId)
+                    .collection("notifications").document()
+                transaction.set(
+                    notifRef, mapOf(
+                        "id" to notifRef.id,
+                        "title" to context.getString(R.string.notification_event_invitation_title),
+                        "message" to context.getString(
+                            R.string.notification_event_invitation_body,
+                            hostName,
+                            hostEmail,
+                            event.title
+                        ),
+                        "isRead" to false,
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "type" to NotificationType.EVENT_INVITE.name
+                    )
+                )
+            }
+        }.await()
+
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToEventException(e))
@@ -232,7 +296,8 @@ class EventRepositoryImpl @Inject constructor(
             if (photo != null) {
                 try {
                     storage.getReferenceFromUrl(photo.url).delete().await()
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                }
             }
             doc.reference.delete().await()
         }
@@ -260,7 +325,8 @@ class EventRepositoryImpl @Inject constructor(
 
         // Fetch user info for comment caching
         val userDoc = db.collection("users").document(uid).get().await()
-        val userName = "${userDoc.getString("firstName") ?: ""} ${userDoc.getString("lastName") ?: ""}".trim()
+        val userName =
+            "${userDoc.getString("firstName") ?: ""} ${userDoc.getString("lastName") ?: ""}".trim()
         val userProfilePic = userDoc.getString("profilePicUrl") ?: ""
 
         val commentRef = db.collection("events").document(eventId)
@@ -295,7 +361,7 @@ class EventRepositoryImpl @Inject constructor(
         val uid = validateSession()
         val photoId = UUID.randomUUID().toString()
         val ref = storage.reference.child("event_photos/$eventId/$photoId.jpg")
-        
+
         ref.putFile(uri).await()
         val downloadUrl = ref.downloadUrl.await().toString()
 
@@ -314,11 +380,16 @@ class EventRepositoryImpl @Inject constructor(
         Result.failure(mapToEventException(e))
     }
 
-    override suspend fun deletePhoto(eventId: String, photoId: String, storageUrl: String): Result<Unit> = try {
+    override suspend fun deletePhoto(
+        eventId: String,
+        photoId: String,
+        storageUrl: String
+    ): Result<Unit> = try {
         validateSession()
         try {
             storage.getReferenceFromUrl(storageUrl).delete().await()
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
 
         db.collection("events").document(eventId)
             .collection("photos").document(photoId)
@@ -351,6 +422,7 @@ class EventRepositoryImpl @Inject constructor(
                     else -> DatabaseOperationException(e.localizedMessage ?: "Database error")
                 }
             }
+
             is FirebaseNetworkException -> NetworkUnavailableException()
             is StorageException -> {
                 when (e.errorCode) {
@@ -360,6 +432,7 @@ class EventRepositoryImpl @Inject constructor(
                     else -> DatabaseOperationException("Storage error: ${e.message}")
                 }
             }
+
             else -> e
         }
     }

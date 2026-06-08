@@ -90,26 +90,26 @@ class HomeViewModel @Inject constructor(
                     val effectiveIsFree = if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
                     val effectiveFromPlan = user.isStatusFromPlan && isAnyPlanActiveNow
 
-                    // Map outgoing requests to FriendInfo with INVITED status
-                    val invitedFriends = outgoingRequests
+                    // Map outgoing requests to FriendInfo with PENDING status
+                    val pendingFriends = outgoingRequests
                         .filter { it.receiverName.isNotBlank() }
                         .map { request ->
                             FriendInfo(
                                 uid = request.receiverId,
                                 name = request.receiverName,
                                 profilePicUrl = request.receiverProfilePicUrl,
-                                inviteStatus = InviteStatus.INVITED
+                                inviteStatus = InviteStatus.PENDING
                             )
                         }
 
-                    // Combine confirmed friends and invited ones, filtering out the current user
-                    val allFriends = (friends + invitedFriends)
+                    // Combine confirmed friends and pending ones, filtering out the current user
+                    val allFriends = (friends + pendingFriends)
                         .filter { it.uid != uid }
                         .distinctBy { it.uid }
 
-                    // Sort: Invited at the bottom, then by availability, then alphabetically
+                    // Sort: Pending at the bottom, then by availability, then alphabetically
                     val sortedFriends = allFriends.sortedWith(
-                        compareBy<FriendInfo> { it.inviteStatus == InviteStatus.INVITED }
+                        compareBy<FriendInfo> { it.inviteStatus == InviteStatus.PENDING }
                             .thenByDescending { it.isFreeNow }
                             .thenBy { it.name }
                     )
