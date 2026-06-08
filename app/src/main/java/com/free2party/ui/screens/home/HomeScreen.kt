@@ -896,17 +896,19 @@ fun FriendsListSection(
                     onFriendItemClick = onFriendItemClick
                 )
             }
-            item {
-                ExpandableFriendSection(
-                    title = stringResource(R.string.title_friend_section_pending),
-                    friends = pendingFriends,
-                    gradientBackground = gradientBackground,
-                    onRemoveFriend = onRemoveFriend,
-                    onBlockUser = onBlockUser,
-                    onCancelInvite = onCancelInvite,
-                    onOpenCalendar = onOpenFriendCalendar,
-                    onFriendItemClick = onFriendItemClick
-                )
+            if (pendingFriends.isNotEmpty()) {
+                item {
+                    ExpandableFriendSection(
+                        title = stringResource(R.string.title_friend_section_pending),
+                        friends = pendingFriends,
+                        gradientBackground = gradientBackground,
+                        onRemoveFriend = onRemoveFriend,
+                        onBlockUser = onBlockUser,
+                        onCancelInvite = onCancelInvite,
+                        onOpenCalendar = onOpenFriendCalendar,
+                        onFriendItemClick = onFriendItemClick
+                    )
+                }
             }
             item {
                 Spacer(modifier = Modifier.height(8.dp))
