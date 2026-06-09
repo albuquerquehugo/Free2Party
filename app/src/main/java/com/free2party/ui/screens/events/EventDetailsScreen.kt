@@ -82,6 +82,9 @@ fun EventDetailsScreen(
     var commentText by remember { mutableStateOf("") }
     var selectedFriendForProfile by remember { mutableStateOf<FriendInfo?>(null) }
     var selectedPhotoForView by remember { mutableStateOf<EventPhoto?>(null) }
+    var selectedStatuses by remember {
+        mutableStateOf(setOf(GuestStatus.ACCEPTED, GuestStatus.PENDING, GuestStatus.DECLINED))
+    }
 
     var showDeleteEventDialog by remember { mutableStateOf(false) }
     var showDeleteCommentDialog by remember { mutableStateOf<EventComment?>(null) }
@@ -559,6 +562,67 @@ fun EventDetailsScreen(
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (isHost && ev.guests.isNotEmpty()) {
+                        val acceptedCount = remember(ev.guests) {
+                            ev.guests.values.count { it == GuestStatus.ACCEPTED.name }
+                        }
+                        val pendingCount = remember(ev.guests) {
+                            ev.guests.values.count { it == GuestStatus.PENDING.name }
+                        }
+                        val declinedCount = remember(ev.guests) {
+                            ev.guests.values.count { it == GuestStatus.DECLINED.name }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            StatusSummaryItem(
+                                label = stringResource(R.string.label_accepted),
+                                count = acceptedCount,
+                                color = MaterialTheme.colorScheme.available,
+                                isChecked = GuestStatus.ACCEPTED in selectedStatuses,
+                                onClick = {
+                                    selectedStatuses = if (GuestStatus.ACCEPTED in selectedStatuses) {
+                                        selectedStatuses - GuestStatus.ACCEPTED
+                                    } else {
+                                        selectedStatuses + GuestStatus.ACCEPTED
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            StatusSummaryItem(
+                                label = stringResource(R.string.label_pending),
+                                count = pendingCount,
+                                color = MaterialTheme.colorScheme.primary,
+                                isChecked = GuestStatus.PENDING in selectedStatuses,
+                                onClick = {
+                                    selectedStatuses = if (GuestStatus.PENDING in selectedStatuses) {
+                                        selectedStatuses - GuestStatus.PENDING
+                                    } else {
+                                        selectedStatuses + GuestStatus.PENDING
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            StatusSummaryItem(
+                                label = stringResource(R.string.label_declined),
+                                count = declinedCount,
+                                color = MaterialTheme.colorScheme.busy,
+                                isChecked = GuestStatus.DECLINED in selectedStatuses,
+                                onClick = {
+                                    selectedStatuses = if (GuestStatus.DECLINED in selectedStatuses) {
+                                        selectedStatuses - GuestStatus.DECLINED
+                                    } else {
+                                        selectedStatuses + GuestStatus.DECLINED
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
                     if (ev.guests.isEmpty()) {
                         Text(
                             text = stringResource(R.string.label_no_guests_pending),
@@ -566,13 +630,37 @@ fun EventDetailsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        val sortedGuests = remember(ev.guests, currentUserId) {
+                        val sortedGuests = remember(ev.guests, currentUserId, selectedStatuses) {
                             val list = ev.guests.entries.toList()
                             val currentUserEntry = list.find { it.key == currentUserId }
-                            if (currentUserEntry != null) {
-                                listOf(currentUserEntry) + list.filter { it.key != currentUserId }
+                            val remainingGuests = list.filter { it.key != currentUserId }
+                                .sortedWith { o1, o2 ->
+                                    val s1 = GuestStatus.valueOf(o1.value)
+                                    val s2 = GuestStatus.valueOf(o2.value)
+                                    val p1 = when (s1) {
+                                        GuestStatus.ACCEPTED -> 1
+                                        GuestStatus.PENDING -> 2
+                                        GuestStatus.DECLINED -> 3
+                                    }
+                                    val p2 = when (s2) {
+                                        GuestStatus.ACCEPTED -> 1
+                                        GuestStatus.PENDING -> 2
+                                        GuestStatus.DECLINED -> 3
+                                    }
+                                    p1.compareTo(p2)
+                                }
+                            val combined = if (currentUserEntry != null) {
+                                listOf(currentUserEntry) + remainingGuests
                             } else {
-                                list
+                                remainingGuests
+                            }
+                            if (isHost) {
+                                combined.filter { entry ->
+                                    val status = GuestStatus.valueOf(entry.value)
+                                    status in selectedStatuses
+                                }
+                            } else {
+                                combined
                             }
                         }
                         LazyRow(
@@ -591,7 +679,7 @@ fun EventDetailsScreen(
                                 val statusColor = when (status) {
                                     GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.available
                                     GuestStatus.DECLINED -> MaterialTheme.colorScheme.busy
-                                    GuestStatus.PENDING -> MaterialTheme.colorScheme.outline
+                                    GuestStatus.PENDING -> MaterialTheme.colorScheme.primary
                                 }
                                 Box(
                                     modifier = Modifier
@@ -1018,5 +1106,44 @@ fun EventDetailsScreen(
             onDismiss = { selectedFriendForProfile = null },
             onViewCalendar = {}
         )
+    }
+}
+
+@Composable
+private fun StatusSummaryItem(
+    label: String,
+    count: Int,
+    color: Color,
+    isChecked: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        color = if (isChecked) color.copy(alpha = 0.15f) else color.copy(alpha = 0.02f),
+        border = BorderStroke(
+            width = if (isChecked) 1.5.dp else 1.dp,
+            color = if (isChecked) color.copy(alpha = 0.6f) else color.copy(alpha = 0.2f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (isChecked) color else color.copy(alpha = 0.4f)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isChecked) color else color.copy(alpha = 0.4f)
+            )
+        }
     }
 }
