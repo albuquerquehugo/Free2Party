@@ -18,6 +18,7 @@
     <string name="label_save">Save</string>
     <string name="label_save_changes">Save Changes</string>
     <string name="label_update">Update</string>
+    <string name="text_discard_changes_confirmation">Are you sure you want to discard your changes?</string>
 
     <!-- General Labels & Text -->
     <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
@@ -36,12 +37,12 @@
     <string name="label_facebook_messenger">Facebook Messenger</string>
     <string name="label_friends_picture">Friend\'s Picture</string>
     <string name="label_instagram">Instagram</string>
-    <string name="label_pending_observation">(Pending)</string>
     <string name="label_mark_all_as_read">Mark all as read</string>
     <string name="label_mark_as_read">Mark as read</string>
     <string name="label_mark_as_unread">Mark as unread</string>
     <string name="label_options">Options</string>
     <string name="label_password">Password</string>
+    <string name="label_pending_observation">(Pending)</string>
     <string name="label_sms">SMS</string>
     <string name="label_status">Status:</string>
     <string name="label_status_busy">Busy</string>

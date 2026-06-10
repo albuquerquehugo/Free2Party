@@ -52,7 +52,7 @@ import com.free2party.data.model.BirthdayVisibility
 import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
-import com.free2party.ui.components.dialogs.FriendSelector
+import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat

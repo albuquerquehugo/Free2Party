@@ -76,7 +76,9 @@ import com.free2party.data.model.GuestStatus
 import com.free2party.R
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.BaseDialog
-import com.free2party.ui.components.dialogs.FriendSelector
+import com.free2party.ui.components.dialogs.ConfirmationDialog
+import androidx.activity.compose.BackHandler
+import com.free2party.ui.components.FriendSelector
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.parseDateToMillis
@@ -144,6 +146,7 @@ fun CreateEventScreen(
     var showLinkDialog by remember { mutableStateOf(false) }
     var linkTitle by remember { mutableStateOf("") }
     var linkUrl by remember { mutableStateOf("") }
+    var showDiscardDialog by remember { mutableStateOf(false) }
 
     // Timezone search states
     var showTimezonePicker by remember { mutableStateOf(false) }
@@ -202,7 +205,7 @@ fun CreateEventScreen(
                 val mins = (abs(rawOffset) / 60000) % 60
                 val sign = if (rawOffset >= 0) "+" else "-"
                 val offsetStr = "GMT$sign${String.format(locale, "%02d:%02d", hours, mins)}"
-                
+
                 tz.id.contains(timezoneSearchQuery, ignoreCase = true) ||
                         offsetStr.contains(timezoneSearchQuery, ignoreCase = true)
             }
@@ -309,6 +312,52 @@ fun CreateEventScreen(
     val isFormValid = title.isNotBlank() && startDatePickerState.selectedDateMillis != null &&
             endDatePickerState.selectedDateMillis != null && isDateTimeValid
 
+    val hasChanges = remember(
+        title, description, eventType, timezone, locationName, latitude, longitude,
+        selectedGuestsMap, usefulLinksList,
+        startDatePickerState.selectedDateMillis, endDatePickerState.selectedDateMillis,
+        startTimeState.hour, startTimeState.minute, endTimeState.hour, endTimeState.minute,
+        currentEventState, initialLoadDone, editingEventId
+    ) {
+        if (editingEventId == null) {
+            title.isNotBlank() ||
+                    description.isNotBlank() ||
+                    locationName.isNotBlank() ||
+                    selectedGuestsMap.isNotEmpty() ||
+                    usefulLinksList.isNotEmpty() ||
+                    startDatePickerState.selectedDateMillis != null ||
+                    endDatePickerState.selectedDateMillis != null
+        } else {
+            val event = currentEventState ?: return@remember false
+            if (!initialLoadDone) return@remember false
+
+            val startD = parseDateToMillis(event.startDate)
+            val endD = parseDateToMillis(event.endDate)
+            val startT = unformatTime(event.startTime)
+            val endT = unformatTime(event.endTime)
+
+            title != event.title ||
+                    description != event.description ||
+                    eventType != event.type ||
+                    timezone != event.timezone ||
+                    locationName != event.locationName ||
+                    latitude != event.latitude ||
+                    longitude != event.longitude ||
+                    selectedGuestsMap != event.guests ||
+                    usefulLinksList != event.usefulLinks ||
+                    startDatePickerState.selectedDateMillis != startD ||
+                    endDatePickerState.selectedDateMillis != endD ||
+                    startTimeState.hour != startT.first ||
+                    startTimeState.minute != startT.second ||
+                    endTimeState.hour != endT.first ||
+                    endTimeState.minute != endT.second
+        }
+    }
+
+    BackHandler(enabled = hasChanges) {
+        showDiscardDialog = true
+    }
+
     Scaffold(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
@@ -317,7 +366,13 @@ fun CreateEventScreen(
                     R.string.title_edit_event
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
-                onBack = onBack
+                onBack = {
+                    if (hasChanges) {
+                        showDiscardDialog = true
+                    } else {
+                        onBack()
+                    }
+                }
             )
         }
     ) { paddingValues ->
@@ -528,7 +583,16 @@ fun CreateEventScreen(
                 val hours = abs(rawOffset) / 3600000
                 val mins = (abs(rawOffset) / 60000) % 60
                 val sign = if (rawOffset >= 0) "+" else "-"
-                Text("GMT$sign${String.format(locale, "%02d:%02d", hours, mins)} - ${timezone.replace("_", " ")}")
+                Text(
+                    "GMT$sign${
+                        String.format(
+                            locale,
+                            "%02d:%02d",
+                            hours,
+                            mins
+                        )
+                    } - ${timezone.replace("_", " ")}"
+                )
             }
 
             HorizontalDivider()
@@ -702,9 +766,46 @@ fun CreateEventScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Action Buttons
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (editingEventId != null && hasChanges) {
+                    TextButton(
+                        onClick = {
+                            val event = currentEventState
+                            if (event != null) {
+                                title = event.title
+                                description = event.description
+                                eventType = event.type
+                                timezone = event.timezone
+                                locationName = event.locationName
+                                latitude = event.latitude
+                                longitude = event.longitude
+                                selectedGuestsMap = event.guests
+                                usefulLinksList = event.usefulLinks
+
+                                val startMillis = parseDateToMillis(event.startDate)
+                                val endMillis = parseDateToMillis(event.endDate)
+                                startMillis?.let { startDatePickerState.selectedDateMillis = it }
+                                endMillis?.let { endDatePickerState.selectedDateMillis = it }
+
+                                val startParts = unformatTime(event.startTime)
+                                val endParts = unformatTime(event.endTime)
+                                startTimeState.hour = startParts.first
+                                startTimeState.minute = startParts.second
+                                endTimeState.hour = endParts.first
+                                endTimeState.minute = endParts.second
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.label_discard_changes),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
             Button(
                 onClick = {
                     val startMillis = startDatePickerState.selectedDateMillis
@@ -779,18 +880,16 @@ fun CreateEventScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = isFormValid,
+                enabled = isFormValid && (editingEventId == null || hasChanges),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = if (editingEventId == null) stringResource(R.string.label_confirm) else stringResource(
-                        R.string.label_update
-                    ),
+                    text =
+                        if (editingEventId == null) stringResource(R.string.label_confirm)
+                        else stringResource(R.string.label_update),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
@@ -973,5 +1072,20 @@ fun CreateEventScreen(
                 }
             }
         }
+    }
+
+    if (showDiscardDialog) {
+        ConfirmationDialog(
+            title = stringResource(R.string.label_discard_changes),
+            text = stringResource(R.string.text_discard_changes_confirmation),
+            confirmButtonText = stringResource(R.string.label_discard_changes),
+            onConfirm = {
+                showDiscardDialog = false
+                onBack()
+            },
+            dismissButtonText = stringResource(R.string.label_cancel),
+            onDismiss = { showDiscardDialog = false },
+            isDestructive = true
+        )
     }
 }

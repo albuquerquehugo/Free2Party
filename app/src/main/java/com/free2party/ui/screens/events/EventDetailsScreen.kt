@@ -54,6 +54,17 @@ import java.util.*
 import androidx.core.net.toUri
 import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,9 +75,24 @@ fun EventDetailsScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
     val gradientBackground = viewModel.gradientBackground
     val currentUserId = viewModel.currentUserId
     val use24Hour = viewModel.use24HourFormat
+
+    val commentInteractionSource = remember { MutableInteractionSource() }
+    val isCommentFocused by commentInteractionSource.collectIsFocusedAsState()
+    val commentBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(isCommentFocused) {
+        if (isCommentFocused) {
+            delay(100.milliseconds)
+            keyboardController?.show()
+            delay(100.milliseconds)
+            commentBringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
+        }
+    }
 
     val commentDeletedMsg = stringResource(R.string.toast_comment_deleted)
     val eventDeletedMsg = stringResource(R.string.toast_event_deleted)
@@ -182,9 +208,11 @@ fun EventDetailsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(top = paddingValues.calculateTopPadding())
+                .consumeWindowInsets(paddingValues)
+                .imePadding()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Title & Description Card
@@ -560,7 +588,8 @@ fun EventDetailsScreen(
                         ),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                     if (isHost && ev.guests.isNotEmpty()) {
                         val acceptedCount = remember(ev.guests) {
@@ -576,7 +605,7 @@ fun EventDetailsScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             StatusSummaryItem(
@@ -585,11 +614,12 @@ fun EventDetailsScreen(
                                 color = MaterialTheme.colorScheme.available,
                                 isChecked = GuestStatus.ACCEPTED in selectedStatuses,
                                 onClick = {
-                                    selectedStatuses = if (GuestStatus.ACCEPTED in selectedStatuses) {
-                                        selectedStatuses - GuestStatus.ACCEPTED
-                                    } else {
-                                        selectedStatuses + GuestStatus.ACCEPTED
-                                    }
+                                    selectedStatuses =
+                                        if (GuestStatus.ACCEPTED in selectedStatuses) {
+                                            selectedStatuses - GuestStatus.ACCEPTED
+                                        } else {
+                                            selectedStatuses + GuestStatus.ACCEPTED
+                                        }
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -599,11 +629,12 @@ fun EventDetailsScreen(
                                 color = MaterialTheme.colorScheme.primary,
                                 isChecked = GuestStatus.PENDING in selectedStatuses,
                                 onClick = {
-                                    selectedStatuses = if (GuestStatus.PENDING in selectedStatuses) {
-                                        selectedStatuses - GuestStatus.PENDING
-                                    } else {
-                                        selectedStatuses + GuestStatus.PENDING
-                                    }
+                                    selectedStatuses =
+                                        if (GuestStatus.PENDING in selectedStatuses) {
+                                            selectedStatuses - GuestStatus.PENDING
+                                        } else {
+                                            selectedStatuses + GuestStatus.PENDING
+                                        }
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -613,11 +644,12 @@ fun EventDetailsScreen(
                                 color = MaterialTheme.colorScheme.busy,
                                 isChecked = GuestStatus.DECLINED in selectedStatuses,
                                 onClick = {
-                                    selectedStatuses = if (GuestStatus.DECLINED in selectedStatuses) {
-                                        selectedStatuses - GuestStatus.DECLINED
-                                    } else {
-                                        selectedStatuses + GuestStatus.DECLINED
-                                    }
+                                    selectedStatuses =
+                                        if (GuestStatus.DECLINED in selectedStatuses) {
+                                            selectedStatuses - GuestStatus.DECLINED
+                                        } else {
+                                            selectedStatuses + GuestStatus.DECLINED
+                                        }
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -724,27 +756,31 @@ fun EventDetailsScreen(
                                             }
                                         }
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = displayName,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
-                                        Text(
-                                            text = status.name.lowercase().replaceFirstChar {
-                                                if (it.isLowerCase()) it.titlecase(LocalLocale.current.platformLocale)
-                                                else it.toString()
-                                            },
-                                            fontSize = 9.sp,
-                                            color = statusColor,
-                                            maxLines = 1,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy((-6).dp)
+                                        ) {
+                                            Text(
+                                                text = displayName,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            Text(
+                                                text = status.name.lowercase().replaceFirstChar {
+                                                    if (it.isLowerCase()) it.titlecase(LocalLocale.current.platformLocale)
+                                                    else it.toString()
+                                                },
+                                                fontSize = 9.sp,
+                                                color = statusColor,
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -766,18 +802,22 @@ fun EventDetailsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = stringResource(R.string.label_photo_album),
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(top = 4.dp)
                             )
-                            TextButton(onClick = { photoPickerLauncher.launch("image/*") }) {
+                            TextButton(
+                                onClick = { photoPickerLauncher.launch("image/*") },
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                            ) {
                                 Icon(Icons.Default.AddAPhoto, contentDescription = null)
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(stringResource(R.string.label_upload_photo))
@@ -789,7 +829,9 @@ fun EventDetailsScreen(
                                 text = stringResource(R.string.label_photos_empty),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
                                 textAlign = TextAlign.Center
                             )
                         } else {
@@ -814,6 +856,8 @@ fun EventDetailsScreen(
                                 }
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
@@ -834,15 +878,20 @@ fun EventDetailsScreen(
                         text = stringResource(R.string.label_comments),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     if (comments.isEmpty()) {
                         Text(
                             text = stringResource(R.string.label_comments_empty),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
                             textAlign = TextAlign.Center
                         )
                     } else {
@@ -920,6 +969,8 @@ fun EventDetailsScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(4.dp))
+
                     // Input to write comment
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -928,10 +979,24 @@ fun EventDetailsScreen(
                         OutlinedTextField(
                             value = commentText,
                             onValueChange = { commentText = it },
-                            placeholder = { Text(stringResource(R.string.placeholder_comment)) },
-                            modifier = Modifier.weight(1f),
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                            placeholder = {
+                                Text(
+                                    stringResource(R.string.placeholder_comment),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .bringIntoViewRequester(commentBringIntoViewRequester),
+                            interactionSource = commentInteractionSource,
                             maxLines = 3,
-                            shape = RoundedCornerShape(24.dp)
+                            shape = RoundedCornerShape(24.dp),
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Sentences,
+                                imeAction = ImeAction.Done
+                            )
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
@@ -962,8 +1027,6 @@ fun EventDetailsScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 

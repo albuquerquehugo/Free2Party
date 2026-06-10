@@ -18,6 +18,7 @@
     <string name="label_save">Salvar</string>
     <string name="label_save_changes">Salvar Alterações</string>
     <string name="label_update">Atualizar</string>
+    <string name="text_discard_changes_confirmation">Tem certeza que deseja descartar suas alterações?</string>
 
     <!-- General Labels & Text -->
     <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
@@ -36,12 +37,12 @@
     <string name="label_facebook_messenger">Facebook Messenger</string>
     <string name="label_friends_picture">Foto do Amigo</string>
     <string name="label_instagram">Instagram</string>
-    <string name="label_pending_observation">(Pendente)</string>
     <string name="label_mark_all_as_read">Marcar tudo como lido</string>
     <string name="label_mark_as_read">Marcar como lido</string>
     <string name="label_mark_as_unread">Marcar como não lido</string>
     <string name="label_options">Opções</string>
     <string name="label_password">Senha</string>
+    <string name="label_pending_observation">(Pendente)</string>
     <string name="label_sms">SMS</string>
     <string name="label_status">Status:</string>
     <string name="label_status_busy">Ocupado</string>
@@ -417,8 +418,8 @@
     <string name="label_my_events">Meus Eventos</string>
     <string name="label_no_events">Nenhum evento encontrado</string>
     <string name="label_no_guests_pending">Nenhum convidado pendente ainda</string>
-    <string name="label_pending">Pendente</string>
     <string name="label_open_in_maps">Abrir no Mapa</string>
+    <string name="label_pending">Pendente</string>
     <string name="label_photo_album">Álbum de Fotos</string>
     <string name="label_photos">Fotos</string>
     <string name="label_photos_empty">Nenhuma foto compartilhada ainda. Envie a primeira!</string>
