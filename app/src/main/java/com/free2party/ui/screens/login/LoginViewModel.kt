@@ -142,7 +142,11 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onGoogleSignIn(credential: AuthCredential, onSuccess: () -> Unit) {
+    fun onGoogleSignIn(
+        credential: AuthCredential,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit
+    ) {
         if (uiState is LoginUiState.Loading) return
         uiState = LoginUiState.Loading
         viewModelScope.launch {
@@ -158,6 +162,7 @@ class LoginViewModel @Inject constructor(
                         UiText.StringResource(R.string.error_google_failed)
                     }
                     uiState = LoginUiState.Error(errorText)
+                    onFailure(e)
                 }
         }
     }

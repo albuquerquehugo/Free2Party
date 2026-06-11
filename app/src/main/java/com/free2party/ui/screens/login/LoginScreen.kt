@@ -140,21 +140,31 @@ fun LoginRoute(
                                 googleIdTokenCredential.idToken,
                                 null
                             )
-                            viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
+                            viewModel.onGoogleSignIn(
+                                credential = firebaseCredential,
+                                onSuccess = onLoginSuccess,
+                                onFailure = { e ->
+                                    Toast.makeText(
+                                        context,
+                                        "$googleSignInFailedError: ${e.localizedMessage ?: e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
                         } catch (e: GoogleIdTokenParsingException) {
                             Log.e("LoginScreen", "Received an invalid google id token response", e)
                             Toast.makeText(
                                 context,
-                                googleInvalidTokenError,
-                                Toast.LENGTH_SHORT
+                                "$googleInvalidTokenError: ${e.localizedMessage ?: e.message}",
+                                Toast.LENGTH_LONG
                             ).show()
                         }
                     } else {
                         Log.e("LoginScreen", "Unexpected credential type: ${credential.type}")
                         Toast.makeText(
                             context,
-                            googleUnexpectedResponseError,
-                            Toast.LENGTH_SHORT
+                            "$googleUnexpectedResponseError: ${credential.type}",
+                            Toast.LENGTH_LONG
                         ).show()
                     }
                 } catch (_: GetCredentialCancellationException) {
@@ -163,22 +173,22 @@ fun LoginRoute(
                     Log.e("LoginScreen", "No Google accounts available", e)
                     Toast.makeText(
                         context,
-                        googleNoAccountsError,
-                        Toast.LENGTH_SHORT
+                        "$googleNoAccountsError: ${e.localizedMessage ?: e.message}",
+                        Toast.LENGTH_LONG
                     ).show()
                 } catch (e: GetCredentialException) {
                     Log.e("LoginScreen", "Google Sign-In failed", e)
                     Toast.makeText(
                         context,
-                        googleSignInFailedError,
-                        Toast.LENGTH_SHORT
+                        "$googleSignInFailedError: ${e.localizedMessage ?: e.message}",
+                        Toast.LENGTH_LONG
                     ).show()
                 } catch (e: Exception) {
                     Log.e("LoginScreen", "An unexpected error occurred during Google Sign-In", e)
                     Toast.makeText(
                         context,
-                        e.localizedMessage ?: "Google Sign-In error",
-                        Toast.LENGTH_SHORT
+                        "Google Sign-In error: ${e.localizedMessage ?: e.message}",
+                        Toast.LENGTH_LONG
                     ).show()
                 }
             }

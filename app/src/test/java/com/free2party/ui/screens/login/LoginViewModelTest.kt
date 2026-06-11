@@ -4,6 +4,7 @@ import com.free2party.data.model.ThemeMode
 import com.free2party.data.repository.AuthRepository
 import com.free2party.data.repository.SettingsRepository
 import com.free2party.util.UiText
+import com.google.firebase.auth.AuthCredential
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -176,5 +177,49 @@ class LoginViewModelTest {
         assertEquals("", viewModel.email)
         assertEquals("", viewModel.password)
         assertEquals(LoginUiState.Idle, viewModel.uiState)
+    }
+
+    @Test
+    fun `onGoogleSignIn success updates state and calls onSuccess`() = runTest(testDispatcher) {
+        val credential = mockk<AuthCredential>()
+        coEvery { authRepository.signInWithGoogle(credential) } returns Result.success(mockk())
+
+        var onSuccessCalled = false
+        var onFailureCalled = false
+        viewModel.onGoogleSignIn(
+            credential = credential,
+            onSuccess = { onSuccessCalled = true },
+            onFailure = { onFailureCalled = true }
+        )
+        runCurrent()
+
+        assertTrue(onSuccessCalled)
+        assertFalse(onFailureCalled)
+        assertEquals(LoginUiState.Success, viewModel.uiState)
+    }
+
+    @Test
+    fun `onGoogleSignIn failure updates state and calls onFailure`() = runTest(testDispatcher) {
+        val credential = mockk<AuthCredential>()
+        val exception = Exception("Sign-in failed")
+        coEvery { authRepository.signInWithGoogle(credential) } returns Result.failure(exception)
+
+        var onSuccessCalled = false
+        var onFailureCalled = false
+        var failureReason: Throwable? = null
+        viewModel.onGoogleSignIn(
+            credential = credential,
+            onSuccess = { onSuccessCalled = true },
+            onFailure = { e ->
+                onFailureCalled = true
+                failureReason = e
+            }
+        )
+        runCurrent()
+
+        assertFalse(onSuccessCalled)
+        assertTrue(onFailureCalled)
+        assertEquals(exception, failureReason)
+        assertTrue(viewModel.uiState is LoginUiState.Error)
     }
 }
