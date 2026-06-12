@@ -32,13 +32,13 @@ data class UserSearchResult(
 }
 
 enum class InviteStatus {
-    INVITED,
+    PENDING,
     ACCEPTED
 }
 
 enum class UserRelationship {
     NONE,
     FRIEND,
-    INVITED,
+    PENDING,
     BLOCKED
 }

@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
                 title to body
             }
 
-            NotificationType.FRIEND_ADDED -> {
+            NotificationType.FRIEND_ACCEPTED -> {
                 val match = notification.message.matchNameAndEmail(this)
                 val title = getString(R.string.notification_friend_request_accepted_title)
                 val body = if (match != null) {

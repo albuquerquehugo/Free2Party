@@ -203,7 +203,7 @@ fun InviteFriendScreen(
                                         tint = MaterialTheme.colorScheme.primary
                                     )
 
-                                    UserRelationship.INVITED -> Icon(
+                                    UserRelationship.PENDING -> Icon(
                                         imageVector = Icons.Default.Mail,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary
@@ -230,7 +230,7 @@ fun InviteFriendScreen(
                                 .clip(MaterialTheme.shapes.medium)
                                 .clickable(
                                     enabled = ((user.relationship == UserRelationship.NONE) ||
-                                            (user.relationship == UserRelationship.INVITED) ||
+                                            (user.relationship == UserRelationship.PENDING) ||
                                             (user.relationship == UserRelationship.BLOCKED))
                                 ) {
                                     if (user.relationship == UserRelationship.NONE) {

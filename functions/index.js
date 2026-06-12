@@ -112,7 +112,7 @@ exports.onNotificationCreated = onDocumentCreated(
         }
 
         switch (notifData.type) {
-          case "FRIEND_ADDED":
+          case "FRIEND_ACCEPTED":
             titleLocKey = "notification_friend_request_accepted_title";
             bodyLocKey = "notification_friend_request_accepted_body";
             bodyLocArgs = extractedArgs;

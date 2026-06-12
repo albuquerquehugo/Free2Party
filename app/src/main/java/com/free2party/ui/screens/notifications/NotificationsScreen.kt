@@ -518,7 +518,7 @@ fun NotificationBox(
 
     val context = LocalContext.current
     val displayMessage = when (notification.type) {
-        NotificationType.FRIEND_ADDED -> {
+        NotificationType.FRIEND_ACCEPTED -> {
             val match = notification.message.matchNameAndEmail(context)
             if (match != null) {
                 stringResource(

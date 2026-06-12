@@ -35,12 +35,12 @@
     <string name="label_facebook_messenger">Facebook Messenger</string>
     <string name="label_friends_picture">Friend\'s Picture</string>
     <string name="label_instagram">Instagram</string>
-    <string name="label_invited_observation">(Invited)</string>
     <string name="label_mark_all_as_read">Mark all as read</string>
     <string name="label_mark_as_read">Mark as read</string>
     <string name="label_mark_as_unread">Mark as unread</string>
     <string name="label_options">Options</string>
     <string name="label_password">Password</string>
+    <string name="label_pending_observation">(Pending)</string>
     <string name="label_sms">SMS</string>
     <string name="label_status">Status:</string>
     <string name="label_status_busy">Busy</string>
@@ -91,7 +91,7 @@
     <string name="title_friend_section">%1$s (%2$d)</string>
     <string name="title_friend_section_busy">Busy</string>
     <string name="title_friend_section_free">Free</string>
-    <string name="title_friend_section_invited">Invited</string>
+    <string name="title_friend_section_pending">Pending</string>
     <string name="title_friends">Friends</string>
     <string name="title_home">Home</string>
     <string name="title_invite_friend">Invite Friend</string>

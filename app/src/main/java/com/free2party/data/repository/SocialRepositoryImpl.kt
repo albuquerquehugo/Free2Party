@@ -271,7 +271,7 @@ class SocialRepositoryImpl @Inject constructor(
                     val relationship = when {
                         uid in blockedIds -> UserRelationship.BLOCKED
                         friendsMap.containsKey(uid) -> {
-                            if (friendsMap[uid] == InviteStatus.INVITED.name) UserRelationship.INVITED
+                            if (friendsMap[uid] == InviteStatus.PENDING.name) UserRelationship.PENDING
                             else UserRelationship.FRIEND
                         }
 
@@ -326,7 +326,7 @@ class SocialRepositoryImpl @Inject constructor(
                             score += 200
                         }
 
-                        UserRelationship.INVITED -> {
+                        UserRelationship.PENDING -> {
                             score += 100
                         }
 
@@ -412,7 +412,7 @@ class SocialRepositoryImpl @Inject constructor(
             if (existingFriendDoc.exists()) {
                 val inviteStatus = existingFriendDoc.getString("inviteStatus")
                 if (inviteStatus == InviteStatus.ACCEPTED.name) throw FriendRequestAlreadyAcceptedException()
-                else if (inviteStatus == InviteStatus.INVITED.name) throw FriendRequestAlreadySentException()
+                else if (inviteStatus == InviteStatus.PENDING.name) throw FriendRequestAlreadySentException()
             }
 
             val requestRef = db.collection("friendRequests").document(requestId)
@@ -439,7 +439,7 @@ class SocialRepositoryImpl @Inject constructor(
                     "name" to receiver.fullName,
                     "email" to receiver.email,
                     "profilePicUrl" to receiver.profilePicUrl,
-                    "inviteStatus" to InviteStatus.INVITED.name,
+                    "inviteStatus" to InviteStatus.PENDING.name,
                     "addedAt" to FieldValue.serverTimestamp()
                 )
             )
@@ -523,11 +523,11 @@ class SocialRepositoryImpl @Inject constructor(
                         ),
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
-                        "type" to NotificationType.FRIEND_ADDED.name
+                        "type" to NotificationType.FRIEND_ACCEPTED.name
                     )
                 )
             } else {
-                // If declined, remove the sender's invited status and the request
+                // If declined, remove the sender's pending status and the request
                 transaction.delete(requestRef)
                 transaction.delete(senderFriendRef)
 
@@ -571,7 +571,7 @@ class SocialRepositoryImpl @Inject constructor(
             // Delete the friend request
             transaction.delete(requestRef)
 
-            // Remove the sender's "invited" status for the current user
+            // Remove the sender's "pending" status for the current user
             val senderFriendRef = db.collection("users").document(request.senderId)
                 .collection("friends").document(request.receiverId)
             transaction.delete(senderFriendRef)

@@ -174,7 +174,7 @@ class SocialRepositoryTest {
             every { blockedByReceiverDoc.exists() } returns false
             every { blockedByCurrentUserDoc.exists() } returns false
             every { existingFriendDoc.exists() } returns true
-            every { existingFriendDoc.getString("inviteStatus") } returns InviteStatus.INVITED.name
+            every { existingFriendDoc.getString("inviteStatus") } returns InviteStatus.PENDING.name
             every { incomingRequestDoc.exists() } returns false
             
             function.apply(transaction)
@@ -459,7 +459,7 @@ class SocialRepositoryTest {
             }
             val fDoc4 = mockk<DocumentSnapshot> {
                 every { id } returns "alice4"
-                every { getString("inviteStatus") } returns InviteStatus.INVITED.name
+                every { getString("inviteStatus") } returns InviteStatus.PENDING.name
             }
             every { documents } returns listOf(fDoc2, fDoc4)
         }
