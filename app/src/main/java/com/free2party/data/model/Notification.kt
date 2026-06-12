@@ -20,9 +20,15 @@ data class Notification(
 )
 
 enum class NotificationType {
-    GENERAL,
+    // Social / Friends
+    FRIEND_REQUEST_RECEIVED,
     FRIEND_ACCEPTED,
     FRIEND_DECLINED,
     FRIEND_REMOVED,
-    FRIEND_REQUEST_RECEIVED
+
+    // Events
+    EVENT_INVITE,
+
+    // System & Misc
+    GENERAL,
 }
