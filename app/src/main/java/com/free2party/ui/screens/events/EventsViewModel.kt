@@ -12,6 +12,7 @@ import com.free2party.data.model.*
 import com.free2party.data.repository.EventRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
+import com.free2party.exception.EventException
 import com.free2party.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -215,7 +216,17 @@ class EventsViewModel @Inject constructor(
                 .onSuccess { eventId -> onSuccess(eventId) }
                 .onFailure { error ->
                     Log.e("EventsViewModel", "Error saving event", error)
-                    onError(UiText.StringResource(R.string.error_database_operation))
+                    val errorMsg = when (error) {
+                        is EventException -> {
+                            if (error.messageRes != null) {
+                                UiText.StringResource(error.messageRes)
+                            } else {
+                                UiText.DynamicString(error.message ?: "")
+                            }
+                        }
+                        else -> UiText.StringResource(R.string.error_database_operation)
+                    }
+                    onError(errorMsg)
                 }
         }
     }
@@ -260,7 +271,17 @@ class EventsViewModel @Inject constructor(
                 .onSuccess { onSuccess() }
                 .onFailure { error ->
                     Log.e("EventsViewModel", "Error updating event", error)
-                    onError(UiText.StringResource(R.string.error_database_operation))
+                    val errorMsg = when (error) {
+                        is EventException -> {
+                            if (error.messageRes != null) {
+                                UiText.StringResource(error.messageRes)
+                            } else {
+                                UiText.DynamicString(error.message ?: "")
+                            }
+                        }
+                        else -> UiText.StringResource(R.string.error_database_operation)
+                    }
+                    onError(errorMsg)
                 }
         }
     }

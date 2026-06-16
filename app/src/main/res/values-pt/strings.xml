@@ -354,6 +354,7 @@
     <string name="error_overlapping_plan">Este intervalo de tempo se sobrepõe a um plano existente. Por favor, selecione um intervalo diferente.</string>
     <string name="error_passwords_not_match">As senhas não coincidem</string>
     <string name="error_past_date_time">Não é possível agendar planos para uma data ou hora passada</string>
+    <string name="error_past_event_date_time">Não é possível agendar eventos para uma data ou hora passada</string>
     <string name="error_past_plan">Não é possível agendar planos no passado</string>
     <string name="error_plan_not_found">O plano que você está procurando não existe</string>
     <string name="error_profile_not_found">Perfil de usuário não encontrado. Por favor, tente sair e entrar novamente.</string>

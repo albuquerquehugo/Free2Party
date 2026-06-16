@@ -9,8 +9,12 @@ import com.free2party.data.model.GuestStatus
 import com.free2party.exception.DatabaseOperationException
 import com.free2party.exception.EventNotFoundException
 import com.free2party.exception.InvalidEventDataException
+import com.free2party.exception.PastEventDateTimeException
 import com.free2party.exception.NetworkUnavailableException
 import com.free2party.exception.UnauthorizedException
+import com.free2party.util.isDateTimeInPast
+import com.free2party.util.parseDateToMillis
+import com.free2party.util.parseTimeToMinutes
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -409,8 +413,32 @@ class EventRepositoryImpl @Inject constructor(
 
     private fun validateEventDateTime(event: Event) {
         if (event.title.isBlank()) throw InvalidEventDataException("Title cannot be empty")
-        if (event.startDate.isBlank() || event.endDate.isBlank()) throw InvalidEventDataException("Dates cannot be empty")
-        if (event.startTime.isBlank() || event.endTime.isBlank()) throw InvalidEventDataException("Times cannot be empty")
+        if (event.startDate.isBlank() || event.endDate.isBlank())
+            throw InvalidEventDataException("Dates cannot be empty")
+        if (event.startTime.isBlank() || event.endTime.isBlank())
+            throw InvalidEventDataException("Times cannot be empty")
+
+        val startDateMillis = parseDateToMillis(event.startDate)
+            ?: throw InvalidEventDataException("Invalid start date format")
+        val endDateMillis = parseDateToMillis(event.endDate)
+            ?: throw InvalidEventDataException("Invalid end date format")
+
+        if (isDateTimeInPast(startDateMillis, event.startTime)) {
+            throw PastEventDateTimeException()
+        }
+
+        if (startDateMillis > endDateMillis) {
+            throw InvalidEventDataException("End date must be after start date")
+        }
+
+        val startTimeMinutes = parseTimeToMinutes(event.startTime)
+            ?: throw InvalidEventDataException("Invalid start time format")
+        val endTimeMinutes = parseTimeToMinutes(event.endTime)
+            ?: throw InvalidEventDataException("Invalid end time format")
+
+        if (startDateMillis == endDateMillis && startTimeMinutes >= endTimeMinutes) {
+            throw InvalidEventDataException("End time must be after start time")
+        }
     }
 
     private fun mapToEventException(e: Exception): Exception {

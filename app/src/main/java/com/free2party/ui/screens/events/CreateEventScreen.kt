@@ -82,6 +82,7 @@ import androidx.activity.compose.BackHandler
 import com.free2party.ui.components.FriendSelector
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
+import com.free2party.util.isDateTimeInPast
 import com.free2party.util.isUrlValid
 import com.free2party.util.parseDateToMillis
 import com.free2party.util.parseTimeToMinutes
@@ -313,8 +314,25 @@ fun CreateEventScreen(
         startMins < endMins
     }
 
+    val isStartDateInPast = remember(startDatePickerState.selectedDateMillis) {
+        startDatePickerState.selectedDateMillis?.let {
+            isDateTimeInPast(it, null)
+        } ?: false
+    }
+
+    val isStartTimeInPast = remember(
+        startDatePickerState.selectedDateMillis,
+        startTimeState.hour,
+        startTimeState.minute
+    ) {
+        startDatePickerState.selectedDateMillis?.let {
+            isDateTimeInPast(it, formatTime(startTimeState.hour, startTimeState.minute))
+        } ?: false
+    }
+
     val isFormValid = title.isNotBlank() && startDatePickerState.selectedDateMillis != null &&
-            endDatePickerState.selectedDateMillis != null && isDateTimeValid
+            endDatePickerState.selectedDateMillis != null && isDateTimeValid &&
+            !isStartDateInPast && !isStartTimeInPast
 
     val hasChanges = remember(
         title, description, eventType, timezone, locationName, latitude, longitude,
@@ -501,7 +519,13 @@ fun CreateEventScreen(
                         onClick = { setShowStartDatePicker(true) }
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(text = startDateText, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                text = startDateText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color =
+                                    if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
+                            )
                         }
                     }
                     OutlinedCard(
@@ -518,7 +542,10 @@ fun CreateEventScreen(
                                         startTimeState.minute
                                     ), use24Hour
                                 ),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color =
+                                    if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
@@ -544,7 +571,13 @@ fun CreateEventScreen(
                         onClick = { setShowEndDatePicker(true) }
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(text = endDateText, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                text = endDateText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color =
+                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
+                            )
                         }
                     }
                     OutlinedCard(
@@ -561,12 +594,24 @@ fun CreateEventScreen(
                                         endTimeState.minute
                                     ), use24Hour
                                 ),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color =
+                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
                 }
 
+                if (isStartDateInPast || isStartTimeInPast) {
+                    Text(
+                        text = stringResource(R.string.error_past_event_date_time),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
                 if (!isDateTimeValid && startDatePickerState.selectedDateMillis != null && endDatePickerState.selectedDateMillis != null) {
                     Text(
                         text = stringResource(R.string.error_invalid_datetime),

@@ -3,6 +3,7 @@ package com.free2party.data.repository
 import com.free2party.data.model.Event
 import com.free2party.data.model.GuestStatus
 import com.free2party.exception.InvalidEventDataException
+import com.free2party.exception.PastEventDateTimeException
 import com.free2party.exception.UnauthorizedException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
@@ -78,6 +79,57 @@ class EventRepositoryTest {
     }
 
     @Test
+    fun `saveEvent fails if start date is in the past`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Test Event",
+            startDate = "2020-01-01",
+            endDate = "2020-01-01",
+            startTime = "10:00",
+            endTime = "11:00"
+        )
+        val result = repository.saveEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is PastEventDateTimeException)
+    }
+
+    @Test
+    fun `saveEvent fails if end date is before start date`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Test Event",
+            startDate = "2026-07-10",
+            endDate = "2026-07-09",
+            startTime = "10:00",
+            endTime = "11:00"
+        )
+        val result = repository.saveEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+    }
+
+    @Test
+    fun `saveEvent fails if end time is before start time on same day`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Test Event",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "11:00",
+            endTime = "10:00"
+        )
+        val result = repository.saveEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+    }
+
+    @Test
     fun `saveEvent succeeds with valid details`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
@@ -127,6 +179,8 @@ class EventRepositoryTest {
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
             every { transaction.get(eventDoc) } returns oldDoc
+            every { transaction.set(any(), any()) } returns transaction
+            every { transaction.set(any(), any(), any()) } returns transaction
             every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
             function.apply(transaction)
             Tasks.forResult(Unit)
@@ -143,6 +197,42 @@ class EventRepositoryTest {
         val result = repository.updateEvent(event)
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is UnauthorizedException)
+    }
+
+    @Test
+    fun `updateEvent fails if start date is in the past`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Party Updated",
+            startDate = "2020-01-01",
+            endDate = "2020-01-01",
+            startTime = "10:00",
+            endTime = "11:00"
+        )
+        val result = repository.updateEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is PastEventDateTimeException)
+    }
+
+    @Test
+    fun `updateEvent fails if end date is before start date`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Party Updated",
+            startDate = "2026-07-10",
+            endDate = "2026-07-09",
+            startTime = "10:00",
+            endTime = "11:00"
+        )
+        val result = repository.updateEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
     }
 
     @Test

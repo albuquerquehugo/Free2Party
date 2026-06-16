@@ -15,3 +15,7 @@ class EventNotFoundException(
 class InvalidEventDataException(
     message: String? = null
 ) : EventException(message ?: "InvalidEventDataException", R.string.error_invalid_event_data)
+
+class PastEventDateTimeException(
+    message: String? = null
+) : EventException(message ?: "PastEventDateTimeException", R.string.error_past_event_date_time)

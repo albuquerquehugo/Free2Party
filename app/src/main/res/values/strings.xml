@@ -353,6 +353,7 @@
     <string name="error_overlapping_plan">This time slot overlaps with an existing plan. Please select a different time slot.</string>
     <string name="error_passwords_not_match">Passwords do not match</string>
     <string name="error_past_date_time">Cannot schedule plans for a past date or time</string>
+    <string name="error_past_event_date_time">Cannot schedule events for a past date or time</string>
     <string name="error_past_plan">Cannot schedule plans in the past</string>
     <string name="error_plan_not_found">The plan you are looking for does not exist</string>
     <string name="error_profile_not_found">User profile not found. Please try logging out and in again.</string>
