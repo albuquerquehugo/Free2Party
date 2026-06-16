@@ -56,7 +56,7 @@ class EventsViewModel @Inject constructor(
                 eventRepository.getEvents()
                     .map<List<Event>, EventsUiState> { events ->
                         val my = events.filter { it.hostId == uid }
-                        val pending = events.filter { it.hostId != uid }
+                        val pending = events.filter { it.hostId != uid && it.guestIds.contains(uid) }
                         EventsUiState.Success(myEvents = my, pendingEvents = pending)
                     }
                     .catch { e ->

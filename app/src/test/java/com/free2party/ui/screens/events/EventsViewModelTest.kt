@@ -82,7 +82,7 @@ class EventsViewModelTest {
         userIdFlow.value = "testUser"
         eventsFlow.value = listOf(
             Event(id = "1", hostId = "testUser", title = "My Event"),
-            Event(id = "2", hostId = "otherUser", title = "Pending Event")
+            Event(id = "2", hostId = "otherUser", guestIds = listOf("testUser"), title = "Pending Event")
         )
 
         val successState = viewModel.uiState.value as? EventsUiState.Success
@@ -90,6 +90,29 @@ class EventsViewModelTest {
         assertTrue(successState?.myEvents?.size == 1)
         assertTrue(successState?.pendingEvents?.size == 1)
         
+        job.cancel()
+    }
+
+    @Test
+    fun `uiState Success filters out public events when user is not invited`() = runTest {
+        userIdFlow.value = "testUser"
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+        val job = launch(testDispatcher) {
+            viewModel.uiState.collect {}
+        }
+
+        eventsFlow.value = listOf(
+            Event(id = "1", hostId = "testUser", title = "My Event"),
+            Event(id = "2", hostId = "otherUser", guestIds = listOf("testUser"), title = "Invited Event"),
+            Event(id = "3", hostId = "otherUser", guestIds = emptyList(), title = "Public Event - Uninvited")
+        )
+
+        val successState = viewModel.uiState.value as? EventsUiState.Success
+        assertTrue(successState != null)
+        assertTrue(successState?.myEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.first()?.id == "2")
+
         job.cancel()
     }
 

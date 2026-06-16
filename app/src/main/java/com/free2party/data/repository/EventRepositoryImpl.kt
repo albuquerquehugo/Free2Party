@@ -20,7 +20,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.channels.awaitClose
@@ -250,7 +249,7 @@ class EventRepositoryImpl @Inject constructor(
                 (oldDoc.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
             // Perform the update
-            transaction.set(docRef, updatedData, SetOptions.merge())
+            transaction.update(docRef, updatedData)
 
             // Send notification only to newly added guest IDs (excluding host)
             val newGuestIds = guestIdsList.filter { (it !in oldGuestIds) && (it != currentUserId) }

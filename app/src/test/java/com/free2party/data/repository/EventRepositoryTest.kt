@@ -179,8 +179,6 @@ class EventRepositoryTest {
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
             every { transaction.get(eventDoc) } returns oldDoc
-            every { transaction.set(any(), any()) } returns transaction
-            every { transaction.set(any(), any(), any()) } returns transaction
             every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
             function.apply(transaction)
             Tasks.forResult(Unit)
