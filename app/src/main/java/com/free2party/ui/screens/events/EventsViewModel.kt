@@ -2,6 +2,7 @@ package com.free2party.ui.screens.events
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -24,6 +25,7 @@ sealed interface EventsUiState {
         val myEvents: List<Event> = emptyList(),
         val pendingEvents: List<Event> = emptyList()
     ) : EventsUiState
+
     data class Error(val message: UiText) : EventsUiState
 }
 
@@ -42,7 +44,7 @@ class EventsViewModel @Inject constructor(
         private set
     var membership by mutableStateOf(Membership.REGULAR)
         private set
-    var selectedTabIndex by mutableStateOf(0)
+    var selectedTabIndex by mutableIntStateOf(0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<EventsUiState> = userRepository.userIdFlow
@@ -54,7 +56,7 @@ class EventsViewModel @Inject constructor(
                     .map<List<Event>, EventsUiState> { events ->
                         val my = events.filter { it.hostId == uid }
                         val pending = events.filter { it.hostId != uid }
-                    EventsUiState.Success(myEvents = my, pendingEvents = pending)
+                        EventsUiState.Success(myEvents = my, pendingEvents = pending)
                     }
                     .catch { e ->
                         Log.e("EventsViewModel", "Error inside events flow", e)
@@ -75,7 +77,8 @@ class EventsViewModel @Inject constructor(
                         events.count { event ->
                             event.hostId != uid &&
                                     event.guestIds.contains(uid) &&
-                                    (event.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
+                                    (event.guests[uid]
+                                        ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
                         }
                     }
                     .catch { e ->
@@ -178,6 +181,7 @@ class EventsViewModel @Inject constructor(
         latitude: Double?,
         longitude: Double?,
         guests: Map<String, String>,
+        usefulLinks: List<EventLink>,
         onSuccess: (String) -> Unit,
         onError: (UiText) -> Unit
     ) {
@@ -201,6 +205,7 @@ class EventsViewModel @Inject constructor(
                 latitude = latitude,
                 longitude = longitude,
                 guests = guests,
+                usefulLinks = usefulLinks,
                 hostName = hostName,
                 hostProfilePic = hostProfilePic,
                 hostEmail = hostEmail
@@ -229,6 +234,7 @@ class EventsViewModel @Inject constructor(
         latitude: Double?,
         longitude: Double?,
         guests: Map<String, String>,
+        usefulLinks: List<EventLink>,
         onSuccess: () -> Unit,
         onError: (UiText) -> Unit
     ) {
@@ -246,7 +252,8 @@ class EventsViewModel @Inject constructor(
                 locationName = locationName.trim(),
                 latitude = latitude,
                 longitude = longitude,
-                guests = guests
+                guests = guests,
+                usefulLinks = usefulLinks
             )
 
             eventRepository.updateEvent(event)
@@ -269,7 +276,12 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    fun respondToEvent(eventId: String, status: GuestStatus, onSuccess: () -> Unit, onError: (UiText) -> Unit) {
+    fun respondToEvent(
+        eventId: String,
+        status: GuestStatus,
+        onSuccess: () -> Unit,
+        onError: (UiText) -> Unit
+    ) {
         viewModelScope.launch {
             eventRepository.respondToEvent(eventId, status)
                 .onSuccess { onSuccess() }
@@ -280,7 +292,12 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    fun addComment(eventId: String, text: String, onSuccess: () -> Unit, onError: (UiText) -> Unit) {
+    fun addComment(
+        eventId: String,
+        text: String,
+        onSuccess: () -> Unit,
+        onError: (UiText) -> Unit
+    ) {
         viewModelScope.launch {
             eventRepository.addComment(eventId, text)
                 .onSuccess { onSuccess() }
@@ -291,7 +308,12 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    fun deleteComment(eventId: String, commentId: String, onSuccess: () -> Unit, onError: (UiText) -> Unit) {
+    fun deleteComment(
+        eventId: String,
+        commentId: String,
+        onSuccess: () -> Unit,
+        onError: (UiText) -> Unit
+    ) {
         viewModelScope.launch {
             eventRepository.deleteComment(eventId, commentId)
                 .onSuccess { onSuccess() }
@@ -302,7 +324,12 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    fun uploadPhoto(eventId: String, uri: android.net.Uri, onSuccess: () -> Unit, onError: (UiText) -> Unit) {
+    fun uploadPhoto(
+        eventId: String,
+        uri: android.net.Uri,
+        onSuccess: () -> Unit,
+        onError: (UiText) -> Unit
+    ) {
         viewModelScope.launch {
             eventRepository.uploadPhoto(eventId, uri)
                 .onSuccess { onSuccess() }
@@ -313,7 +340,13 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    fun deletePhoto(eventId: String, photoId: String, storageUrl: String, onSuccess: () -> Unit, onError: (UiText) -> Unit) {
+    fun deletePhoto(
+        eventId: String,
+        photoId: String,
+        storageUrl: String,
+        onSuccess: () -> Unit,
+        onError: (UiText) -> Unit
+    ) {
         viewModelScope.launch {
             eventRepository.deletePhoto(eventId, photoId, storageUrl)
                 .onSuccess { onSuccess() }

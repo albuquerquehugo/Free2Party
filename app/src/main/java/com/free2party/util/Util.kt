@@ -508,6 +508,20 @@ fun openSocialMessage(
 }
 
 /**
+ * Validates whether the given string is a valid URL.
+ * @param url The URL string to validate.
+ * @return `true` if the URL is valid; `false` otherwise.
+ */
+fun isUrlValid(url: String): Boolean {
+    val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        "https://$url"
+    } else {
+        url
+    }
+    return android.util.Patterns.WEB_URL.matcher(formattedUrl).matches()
+}
+
+/**
  * Detects the country code from a 3-digit North American Numbering Plan (NANP) area code.
  * This function maps specific area codes to their respective ISO 3166-1 alpha-2 country codes.
  * If the area code is not found in the specific mapping but starts with a digit between 2 and 9,

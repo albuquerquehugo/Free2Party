@@ -293,6 +293,12 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Text(
+                        text = stringResource(R.string.label_date_and_time),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.CalendarToday,
@@ -307,6 +313,7 @@ fun EventDetailsScreen(
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             if (!tzMatch) {
                                 Text(
                                     text = stringResource(
@@ -339,28 +346,31 @@ fun EventDetailsScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        Text(
+                            text = stringResource(R.string.label_location),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Row(
-                            modifier = Modifier.weight(1f),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Icon(
-                                Icons.Default.LocationOn,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.label_location),
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = ev.locationName,
                                     style = MaterialTheme.typography.bodySmall,
@@ -369,30 +379,31 @@ fun EventDetailsScreen(
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
-                        }
-                        if (ev.latitude != null && ev.longitude != null) {
-                            Button(
-                                onClick = {
-                                    val gmmIntentUri = "geo:${ev.latitude},${ev.longitude}?q=${
-                                        Uri.encode(ev.locationName)
-                                    }".toUri()
-                                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
-                                        setPackage("com.google.android.apps.maps")
-                                    }
-                                    try {
-                                        context.startActivity(mapIntent)
-                                    } catch (_: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            noMapAvailableMsg,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp)
-                            ) {
-                                Text(stringResource(R.string.label_open_in_maps))
+                            if (ev.latitude != null && ev.longitude != null) {
+                                Button(
+                                    onClick = {
+                                        val gmmIntentUri = "geo:${ev.latitude},${ev.longitude}?q=${
+                                            Uri.encode(ev.locationName)
+                                        }".toUri()
+                                        val mapIntent =
+                                            Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
+                                                setPackage("com.google.android.apps.maps")
+                                            }
+                                        try {
+                                            context.startActivity(mapIntent)
+                                        } catch (_: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                noMapAvailableMsg,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp)
+                                ) {
+                                    Text(stringResource(R.string.label_open_in_maps))
+                                }
                             }
                         }
                     }
@@ -416,7 +427,7 @@ fun EventDetailsScreen(
                             text = stringResource(R.string.label_useful_links),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         ev.usefulLinks.forEach { link ->
                             Row(
@@ -432,6 +443,7 @@ fun EventDetailsScreen(
                                 Icon(
                                     Icons.Default.Link,
                                     contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -439,8 +451,10 @@ fun EventDetailsScreen(
                                     Text(
                                         link.title,
                                         fontWeight = FontWeight.SemiBold,
-                                        style = MaterialTheme.typography.bodyMedium
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         link.url,
                                         style = MaterialTheme.typography.labelSmall,

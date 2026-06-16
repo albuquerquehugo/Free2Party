@@ -70,6 +70,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.free2party.data.model.Event
 import com.free2party.data.model.EventLink
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
@@ -81,6 +82,7 @@ import androidx.activity.compose.BackHandler
 import com.free2party.ui.components.FriendSelector
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
+import com.free2party.util.isUrlValid
 import com.free2party.util.parseDateToMillis
 import com.free2party.util.parseTimeToMinutes
 import com.free2party.util.unformatTime
@@ -116,6 +118,7 @@ fun CreateEventScreen(
     // Query event if editing
     var initialLoadDone by remember { mutableStateOf(value = false) }
     val currentEventState by viewModel.currentEvent.collectAsState()
+    var originalEvent by remember { mutableStateOf<Event?>(null) }
 
     // Form fields
     var title by remember { mutableStateOf("") }
@@ -225,6 +228,7 @@ fun CreateEventScreen(
     LaunchedEffect(currentEventState) {
         val event = currentEventState
         if (editingEventId != null && event != null && !initialLoadDone) {
+            originalEvent = event
             title = event.title
             description = event.description
             eventType = event.type
@@ -317,7 +321,7 @@ fun CreateEventScreen(
         selectedGuestsMap, usefulLinksList,
         startDatePickerState.selectedDateMillis, endDatePickerState.selectedDateMillis,
         startTimeState.hour, startTimeState.minute, endTimeState.hour, endTimeState.minute,
-        currentEventState, initialLoadDone, editingEventId
+        originalEvent, initialLoadDone, editingEventId
     ) {
         if (editingEventId == null) {
             title.isNotBlank() ||
@@ -328,7 +332,7 @@ fun CreateEventScreen(
                     startDatePickerState.selectedDateMillis != null ||
                     endDatePickerState.selectedDateMillis != null
         } else {
-            val event = currentEventState ?: return@remember false
+            val event = originalEvent ?: return@remember false
             if (!initialLoadDone) return@remember false
 
             val startD = parseDateToMillis(event.startDate)
@@ -379,7 +383,7 @@ fun CreateEventScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -485,7 +489,8 @@ fun CreateEventScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.label_start),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
@@ -527,7 +532,8 @@ fun CreateEventScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.label_end),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
@@ -691,7 +697,7 @@ fun CreateEventScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
                                     alpha = 0.5f
                                 )
                             )
@@ -704,9 +710,11 @@ fun CreateEventScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         link.title,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodyMedium
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         link.url,
                                         style = MaterialTheme.typography.bodySmall,
@@ -746,18 +754,27 @@ fun CreateEventScreen(
                         selectedGuestsMap = if (id in selectedGuestsMap) {
                             selectedGuestsMap - id
                         } else {
-                            selectedGuestsMap + (id to GuestStatus.PENDING.name)
+                            val status = originalEvent?.guests?.get(id) ?: GuestStatus.PENDING.name
+                            selectedGuestsMap + (id to status)
                         }
                     },
                     onAddFriends = { ids ->
-                        val additions = ids.associateWith { GuestStatus.PENDING.name }
+                        val additions =
+                            ids.filter { it !in selectedGuestsMap }.associateWith { id ->
+                                originalEvent?.guests?.get(id) ?: GuestStatus.PENDING.name
+                            }
                         selectedGuestsMap = selectedGuestsMap + additions
                     },
                     onRemoveFriends = { ids ->
                         selectedGuestsMap = selectedGuestsMap - ids.toSet()
                     },
                     onSelectAll = {
-                        val all = friends.associateBy({ it.uid }, { GuestStatus.PENDING.name })
+                        val all = friends.associate { friend ->
+                            val status = selectedGuestsMap[friend.uid]
+                                ?: originalEvent?.guests?.get(friend.uid)
+                                ?: GuestStatus.PENDING.name
+                            friend.uid to status
+                        }
                         selectedGuestsMap = all
                     },
                     onUnselectAll = {
@@ -833,6 +850,7 @@ fun CreateEventScreen(
                                 latitude = latitude,
                                 longitude = longitude,
                                 guests = selectedGuestsMap,
+                                usefulLinks = usefulLinksList,
                                 onSuccess = {
                                     Toast.makeText(context, eventCreatedMsg, Toast.LENGTH_SHORT)
                                         .show()
@@ -861,6 +879,7 @@ fun CreateEventScreen(
                                 latitude = latitude,
                                 longitude = longitude,
                                 guests = selectedGuestsMap,
+                                usefulLinks = usefulLinksList,
                                 onSuccess = {
                                     Toast.makeText(context, eventUpdatedMsg, Toast.LENGTH_SHORT)
                                         .show()
@@ -879,6 +898,7 @@ fun CreateEventScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(bottom = 16.dp)
                     .height(56.dp),
                 enabled = isFormValid && (editingEventId == null || hasChanges),
                 shape = RoundedCornerShape(12.dp)
@@ -971,14 +991,50 @@ fun CreateEventScreen(
                     onValueChange = { linkTitle = it },
                     label = { Text(stringResource(R.string.label_link_title)) },
                     placeholder = { Text(stringResource(R.string.placeholder_link_title)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Next
+                    )
                 )
+
+                val formattedLinkUrl = remember(linkUrl) {
+                    val trimmed = linkUrl.trim()
+                    if (trimmed.isNotBlank() && !trimmed.startsWith("http://") && !trimmed.startsWith(
+                            "https://"
+                        )
+                    ) {
+                        "https://$trimmed"
+                    } else {
+                        trimmed
+                    }
+                }
+
+                val isUrlFormatValid = remember(linkUrl) {
+                    linkUrl.isBlank() || isUrlValid(linkUrl)
+                }
+
+                val isDuplicate = remember(formattedLinkUrl, usefulLinksList) {
+                    formattedLinkUrl.isNotBlank() && usefulLinksList.any { it.url == formattedLinkUrl }
+                }
+
                 OutlinedTextField(
                     value = linkUrl,
                     onValueChange = { linkUrl = it },
                     label = { Text(stringResource(R.string.label_link_url)) },
                     placeholder = { Text(stringResource(R.string.placeholder_link_url)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = !isUrlFormatValid || isDuplicate,
+                    supportingText = {
+                        if (!isUrlFormatValid) {
+                            Text(stringResource(R.string.error_invalid_url))
+                        } else if (isDuplicate) {
+                            Text(stringResource(R.string.error_duplicate_link))
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    )
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -990,15 +1046,11 @@ fun CreateEventScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            var formattedUrl = linkUrl.trim()
-                            if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
-                                formattedUrl = "https://$formattedUrl"
-                            }
                             usefulLinksList =
-                                usefulLinksList + EventLink(linkTitle.trim(), formattedUrl)
+                                usefulLinksList + EventLink(linkTitle.trim(), formattedLinkUrl)
                             showLinkDialog = false
                         },
-                        enabled = linkTitle.isNotBlank() && linkUrl.isNotBlank()
+                        enabled = linkTitle.isNotBlank() && linkUrl.isNotBlank() && isUrlFormatValid && !isDuplicate
                     ) {
                         Text(stringResource(R.string.label_add))
                     }

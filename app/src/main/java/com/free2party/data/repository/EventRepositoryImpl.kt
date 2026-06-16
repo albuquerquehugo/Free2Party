@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.channels.awaitClose
@@ -236,7 +237,7 @@ class EventRepositoryImpl @Inject constructor(
             "longitude" to event.longitude,
             "guests" to event.guests,
             "guestIds" to guestIdsList,
-            "usefulLinks" to event.usefulLinks
+            "usefulLinks" to event.usefulLinks.map { mapOf("title" to it.title, "url" to it.url) }
         )
 
         db.runTransaction { transaction ->
@@ -245,7 +246,7 @@ class EventRepositoryImpl @Inject constructor(
                 (oldDoc.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
             // Perform the update
-            transaction.update(docRef, updatedData)
+            transaction.set(docRef, updatedData, SetOptions.merge())
 
             // Send notification only to newly added guest IDs (excluding host)
             val newGuestIds = guestIdsList.filter { (it !in oldGuestIds) && (it != currentUserId) }
