@@ -402,6 +402,7 @@
     <string name="error_email_not_verified">Please verify your email address before logging in. Check your inbox (including SPAM folder) for the verification link.</string>
     <string name="error_email_not_verified_resend">Didn\'t receive the verification link?</string>
     <string name="error_email_not_verified_resend_clickable">Resend it.</string>
+    <string name="error_end_date_mandatory">End date and time are mandatory</string>
     <string name="error_event_not_found">The event was not found.</string>
     <string name="error_failed_delete_plan">Failed to delete the plan.</string>
     <string name="error_failed_reset_password">Failed to send reset email</string>
@@ -417,6 +418,7 @@
     <string name="error_google_invalid_token">Google Sign-In failed: Invalid token</string>
     <string name="error_google_no_accounts">No Google accounts found on this device</string>
     <string name="error_google_unexpected_response">Google Sign-In failed: Unexpected response</string>
+    <string name="error_guests_mandatory_private">Guests selection is mandatory for private events</string>
     <string name="error_infrastructure">Infrastructure error</string>
     <string name="error_invalid_credentials">Invalid email or password</string>
     <string name="error_invalid_date">Invalid date</string>
@@ -427,6 +429,7 @@
     <string name="error_invalid_plan_data">The plan details are invalid</string>
     <string name="error_invalid_url">Please enter a valid URL</string>
     <string name="error_invalid_whatsapp">Please enter a valid WhatsApp number</string>
+    <string name="error_location_mandatory">Location is mandatory for all events</string>
     <string name="error_login_empty_fields">Email and password cannot be empty</string>
     <string name="error_login_failed">Login failed</string>
     <string name="error_network_unavailable">No internet connection available</string>
@@ -448,6 +451,8 @@
     <string name="error_sending_invite">Error sending invite.</string>
     <string name="error_settings_not_found">User settings not found. Please try logging out and in again.</string>
     <string name="error_social">Social error</string>
+    <string name="error_start_date_mandatory">Start date and time are mandatory</string>
+    <string name="error_title_mandatory">Title is mandatory for all events</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
     <string name="error_unblock_to_invite">Unblock this user before inviting them.</string>
     <string name="error_unblocking_user">Error unblocking user</string>

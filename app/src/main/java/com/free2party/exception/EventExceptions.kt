@@ -19,3 +19,11 @@ class InvalidEventDataException(
 class PastEventDateTimeException(
     message: String? = null
 ) : EventException(message ?: "PastEventDateTimeException", R.string.error_past_event_date_time)
+
+class GuestsMandatoryPrivateException(
+    message: String? = null
+) : EventException(message ?: "GuestsMandatoryPrivateException", R.string.error_guests_mandatory_private)
+
+class LocationMandatoryException(
+    message: String? = null
+) : EventException(message ?: "LocationMandatoryException", R.string.error_location_mandatory)

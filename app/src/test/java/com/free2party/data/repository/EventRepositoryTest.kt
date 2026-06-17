@@ -2,9 +2,12 @@ package com.free2party.data.repository
 
 import com.free2party.data.model.Event
 import com.free2party.data.model.GuestStatus
+import com.free2party.data.model.EventType
 import com.free2party.exception.InvalidEventDataException
 import com.free2party.exception.PastEventDateTimeException
 import com.free2party.exception.UnauthorizedException
+import com.free2party.exception.GuestsMandatoryPrivateException
+import com.free2party.exception.LocationMandatoryException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -40,6 +43,15 @@ class EventRepositoryTest {
         every { db.collection("events") } returns eventsCollection
         every { eventsCollection.document(any()) } returns eventDoc
         every { eventsCollection.document() } returns eventDoc
+
+        val usersCollection = mockk<CollectionReference>(relaxed = true)
+        val userDoc = mockk<DocumentReference>(relaxed = true)
+        val notificationsCollection = mockk<CollectionReference>(relaxed = true)
+        val notifDoc = mockk<DocumentReference>(relaxed = true)
+        every { db.collection("users") } returns usersCollection
+        every { usersCollection.document(any()) } returns userDoc
+        every { userDoc.collection("notifications") } returns notificationsCollection
+        every { notificationsCollection.document() } returns notifDoc
 
         repository = EventRepositoryImpl(auth, db, storage, context)
 
@@ -91,7 +103,11 @@ class EventRepositoryTest {
             startDate = "2020-01-01",
             endDate = "2020-01-01",
             startTime = "10:00",
-            endTime = "11:00"
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.saveEvent(event)
         assertTrue(result.isFailure)
@@ -108,7 +124,11 @@ class EventRepositoryTest {
             startDate = "2026-07-10",
             endDate = "2026-07-09",
             startTime = "10:00",
-            endTime = "11:00"
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.saveEvent(event)
         assertTrue(result.isFailure)
@@ -125,7 +145,11 @@ class EventRepositoryTest {
             startDate = "2026-07-10",
             endDate = "2026-07-10",
             startTime = "11:00",
-            endTime = "10:00"
+            endTime = "10:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.saveEvent(event)
         assertTrue(result.isFailure)
@@ -142,7 +166,11 @@ class EventRepositoryTest {
             startDate = "2026-07-10",
             endDate = "2026-07-10",
             startTime = "10:00",
-            endTime = "11:00"
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         every { eventDoc.id } returns "newEventId"
 
@@ -160,6 +188,99 @@ class EventRepositoryTest {
     }
 
     @Test
+    fun `saveEvent succeeds with valid details for public event with empty guests`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Awesome Public Party",
+            type = EventType.PUBLIC,
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = emptyMap()
+        )
+        every { eventDoc.id } returns "newEventId"
+
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.set(any(), any()) } returns transaction
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.saveEvent(event)
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull() == "newEventId")
+    }
+
+    @Test
+    fun `saveEvent fails if private event has no guests`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Awesome Party",
+            type = EventType.PRIVATE,
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = emptyMap()
+        )
+        val result = repository.saveEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is GuestsMandatoryPrivateException)
+    }
+
+    @Test
+    fun `saveEvent fails if location is missing`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Awesome Party",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "",
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
+        )
+        val result = repository.saveEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is LocationMandatoryException)
+    }
+
+    @Test
+    fun `updateEvent fails if location is missing`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Party Updated",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "",
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
+        )
+        val result = repository.updateEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is LocationMandatoryException)
+    }
+
+    @Test
     fun `updateEvent succeeds with valid details`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
@@ -170,7 +291,49 @@ class EventRepositoryTest {
             startDate = "2026-07-10",
             endDate = "2026-07-10",
             startTime = "10:00",
-            endTime = "11:00"
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
+        )
+        every { eventsCollection.document("event123") } returns eventDoc
+        val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.get("guestIds") } returns emptyList<String>()
+        every { oldDoc.getString("hostName") } returns "Host Name"
+        every { oldDoc.getString("hostEmail") } returns "host@test.com"
+
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
+            every { transaction.set(any(), any()) } returns transaction
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.updateEvent(event)
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `updateEvent succeeds with valid details for public event with empty guests`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Public Party Updated",
+            type = EventType.PUBLIC,
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = emptyMap()
         )
         every { eventsCollection.document("event123") } returns eventDoc
         val oldDoc = mockk<DocumentSnapshot>()
@@ -189,6 +352,29 @@ class EventRepositoryTest {
 
         val result = repository.updateEvent(event)
         assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `updateEvent fails if private event has no guests`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Party Updated",
+            type = EventType.PRIVATE,
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = emptyMap()
+        )
+        val result = repository.updateEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is GuestsMandatoryPrivateException)
     }
 
     @Test
@@ -211,7 +397,11 @@ class EventRepositoryTest {
             startDate = "2020-01-01",
             endDate = "2020-01-01",
             startTime = "10:00",
-            endTime = "11:00"
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.updateEvent(event)
         assertTrue(result.isFailure)
@@ -229,7 +419,11 @@ class EventRepositoryTest {
             startDate = "2026-07-10",
             endDate = "2026-07-09",
             startTime = "10:00",
-            endTime = "11:00"
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.updateEvent(event)
         assertTrue(result.isFailure)

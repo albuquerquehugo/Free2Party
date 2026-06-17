@@ -404,6 +404,7 @@
     <string name="error_email_not_verified">Por favor, verifique seu endereço de e-mail antes de entrar. Verifique sua caixa de entrada (incluindo a pasta de SPAM) pelo link de verificação.</string>
     <string name="error_email_not_verified_resend">Não recebeu o link de verificação?</string>
     <string name="error_email_not_verified_resend_clickable">Reenviar.</string>
+    <string name="error_end_date_mandatory">A data e hora de término são obrigatórias</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_failed_delete_plan">Falha ao excluir o plano.</string>
     <string name="error_failed_reset_password">Falha ao enviar e-mail de redefinição</string>
@@ -419,6 +420,7 @@
     <string name="error_google_invalid_token">Falha ao entrar com o Google: Token inválido</string>
     <string name="error_google_no_accounts">Nenhuma conta do Google encontrada neste dispositivo</string>
     <string name="error_google_unexpected_response">Falha ao entrar com o Google: Resposta inesperada</string>
+    <string name="error_guests_mandatory_private">A seleção de convidados é obrigatória para eventos privados</string>
     <string name="error_infrastructure">Erro de infraestrutura</string>
     <string name="error_invalid_credentials">E-mail ou senha inválidos</string>
     <string name="error_invalid_date">Data inválida</string>
@@ -429,6 +431,7 @@
     <string name="error_invalid_plan_data">Os detalhes do plano são inválidos</string>
     <string name="error_invalid_url">Por favor, insira uma URL válida</string>
     <string name="error_invalid_whatsapp">Por favor, insira um número de WhatsApp válido</string>
+    <string name="error_location_mandatory">A localização é obrigatória para todos os eventos</string>
     <string name="error_login_empty_fields">E-mail e senha não podem estar vazios</string>
     <string name="error_login_failed">Falha no login</string>
     <string name="error_network_unavailable">Sem conexão com a internet</string>
@@ -450,6 +453,8 @@
     <string name="error_sending_invite">Erro ao enviar convite.</string>
     <string name="error_settings_not_found">Configurações do usuário não encontradas. Por favor, tente sair e entrar novamente.</string>
     <string name="error_social">Erro social</string>
+    <string name="error_start_date_mandatory">A data e hora de início são obrigatórias</string>
+    <string name="error_title_mandatory">O título é obrigatório para todos os eventos</string>
     <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
     <string name="error_unblock_to_invite">Desbloqueie este usuário antes de convidá-lo.</string>
     <string name="error_unblocking_user">Erro ao desbloquear usuário</string>

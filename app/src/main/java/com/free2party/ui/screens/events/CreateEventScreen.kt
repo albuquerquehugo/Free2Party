@@ -64,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -123,13 +124,20 @@ fun CreateEventScreen(
 
     // Form fields
     var title by remember { mutableStateOf("") }
+    var isTitleFocused by remember { mutableStateOf(false) }
+    var hasInteractedWithTitle by remember { mutableStateOf(false) }
     var description by remember { mutableStateOf("") }
     var eventType by remember { mutableStateOf(EventType.PRIVATE) }
     var timezone by remember { mutableStateOf(TimeZone.getDefault().id) }
+    var hasInteractedWithStart by remember { mutableStateOf(false) }
+    var hasInteractedWithEnd by remember { mutableStateOf(false) }
     var locationName by remember { mutableStateOf("") }
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
+    var isLocationFocused by remember { mutableStateOf(false) }
+    var hasInteractedWithLocation by remember { mutableStateOf(false) }
     var selectedGuestsMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var hasInteractedWithGuests by remember { mutableStateOf(false) }
     var usefulLinksList by remember { mutableStateOf<List<EventLink>>(emptyList()) }
 
     // Date/Time States
@@ -332,7 +340,9 @@ fun CreateEventScreen(
 
     val isFormValid = title.isNotBlank() && startDatePickerState.selectedDateMillis != null &&
             endDatePickerState.selectedDateMillis != null && isDateTimeValid &&
-            !isStartDateInPast && !isStartTimeInPast
+            !isStartDateInPast && !isStartTimeInPast &&
+            locationName.isNotBlank() && latitude != null && longitude != null &&
+            (eventType == EventType.PUBLIC || selectedGuestsMap.isNotEmpty())
 
     val hasChanges = remember(
         title, description, eventType, timezone, locationName, latitude, longitude,
@@ -409,19 +419,43 @@ fun CreateEventScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Title Input
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text(stringResource(R.string.label_event_title)) },
-                placeholder = { Text(stringResource(R.string.placeholder_event_title)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                maxLines = 1
+            Text(
+                text = stringResource(R.string.text_required_fields_notice),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.padding(vertical = 4.dp)
             )
+
+            // Title Input
+            Column(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(stringResource(R.string.label_event_title) + " *") },
+                    placeholder = { Text(stringResource(R.string.placeholder_event_title)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            isTitleFocused = focusState.isFocused
+                            if (focusState.isFocused) {
+                                hasInteractedWithTitle = true
+                            }
+                        },
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next
+                    ),
+                    maxLines = 1
+                )
+                if (hasInteractedWithTitle && !isTitleFocused && title.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.error_title_mandatory),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                    )
+                }
+            }
 
             // Description Input
             OutlinedTextField(
@@ -454,11 +488,17 @@ fun CreateEventScreen(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { eventType = EventType.PRIVATE }
+                        modifier = Modifier.clickable {
+                            eventType = EventType.PRIVATE
+                            hasInteractedWithGuests = true
+                        }
                     ) {
                         RadioButton(
                             selected = eventType == EventType.PRIVATE,
-                            onClick = { eventType = EventType.PRIVATE })
+                            onClick = {
+                                eventType = EventType.PRIVATE
+                                hasInteractedWithGuests = true
+                            })
                         Column {
                             Text(
                                 stringResource(R.string.label_private),
@@ -474,11 +514,17 @@ fun CreateEventScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { eventType = EventType.PUBLIC }
+                        modifier = Modifier.clickable {
+                            eventType = EventType.PUBLIC
+                            hasInteractedWithGuests = true
+                        }
                     ) {
                         RadioButton(
                             selected = eventType == EventType.PUBLIC,
-                            onClick = { eventType = EventType.PUBLIC })
+                            onClick = {
+                                eventType = EventType.PUBLIC
+                                hasInteractedWithGuests = true
+                            })
                         Column {
                             Text(
                                 stringResource(R.string.label_public),
@@ -506,7 +552,7 @@ fun CreateEventScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.label_start),
+                        text = stringResource(R.string.label_start) + " *",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -516,7 +562,10 @@ fun CreateEventScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
-                        onClick = { setShowStartDatePicker(true) }
+                        onClick = {
+                            hasInteractedWithStart = true
+                            setShowStartDatePicker(true)
+                        }
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
@@ -532,7 +581,10 @@ fun CreateEventScreen(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
-                        onClick = { setShowStartTimePicker(true) }
+                        onClick = {
+                            hasInteractedWithStart = true
+                            setShowStartTimePicker(true)
+                        }
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
@@ -551,6 +603,16 @@ fun CreateEventScreen(
                     }
                 }
 
+                if (hasInteractedWithStart && startDatePickerState.selectedDateMillis == null) {
+                    Text(
+                        text = stringResource(R.string.error_start_date_mandatory),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
                 // End
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -558,7 +620,7 @@ fun CreateEventScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.label_end),
+                        text = stringResource(R.string.label_end) + " *",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -568,7 +630,10 @@ fun CreateEventScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
-                        onClick = { setShowEndDatePicker(true) }
+                        onClick = {
+                            hasInteractedWithEnd = true
+                            setShowEndDatePicker(true)
+                        }
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
@@ -584,7 +649,10 @@ fun CreateEventScreen(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
-                        onClick = { setShowEndTimePicker(true) }
+                        onClick = {
+                            hasInteractedWithEnd = true
+                            setShowEndTimePicker(true)
+                        }
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
@@ -601,6 +669,16 @@ fun CreateEventScreen(
                             )
                         }
                     }
+                }
+
+                if (hasInteractedWithEnd && endDatePickerState.selectedDateMillis == null) {
+                    Text(
+                        text = stringResource(R.string.error_end_date_mandatory),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                 }
 
                 if (isStartDateInPast || isStartTimeInPast) {
@@ -656,7 +734,7 @@ fun CreateEventScreen(
                         locationName = it
                         showLocationSuggestions = true
                     },
-                    label = { Text(stringResource(R.string.label_location)) },
+                    label = { Text(stringResource(R.string.label_location) + " *") },
                     placeholder = { Text(stringResource(R.string.placeholder_location)) },
                     leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                     trailingIcon = {
@@ -665,12 +743,20 @@ fun CreateEventScreen(
                                 locationName = ""
                                 latitude = null
                                 longitude = null
+                                hasInteractedWithLocation = true
                             }) {
                                 Icon(Icons.Default.Clear, contentDescription = null)
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            isLocationFocused = focusState.isFocused
+                            if (focusState.isFocused) {
+                                hasInteractedWithLocation = true
+                            }
+                        },
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
                 )
 
@@ -708,6 +794,78 @@ fun CreateEventScreen(
                             }
                         }
                     }
+                }
+
+                if (hasInteractedWithLocation && !isLocationFocused && (locationName.isBlank() || latitude == null || longitude == null)) {
+                    Text(
+                        text = stringResource(R.string.error_location_mandatory),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                    )
+                }
+            }
+
+            HorizontalDivider()
+
+            // Guests Picker
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.label_event_guests_selection) + if (eventType == EventType.PRIVATE) " *" else "",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                FriendSelector(
+                    friends = friends,
+                    circles = circles,
+                    selectedFriendIds = selectedGuestsMap.keys.toList(),
+                    onToggleFriend = { id ->
+                        hasInteractedWithGuests = true
+                        selectedGuestsMap = if (id in selectedGuestsMap) {
+                            selectedGuestsMap - id
+                        } else {
+                            val status = originalEvent?.guests?.get(id) ?: GuestStatus.PENDING.name
+                            selectedGuestsMap + (id to status)
+                        }
+                    },
+                    onAddFriends = { ids ->
+                        hasInteractedWithGuests = true
+                        val additions =
+                            ids.filter { it !in selectedGuestsMap }.associateWith { id ->
+                                originalEvent?.guests?.get(id) ?: GuestStatus.PENDING.name
+                            }
+                        selectedGuestsMap = selectedGuestsMap + additions
+                    },
+                    onRemoveFriends = { ids ->
+                        hasInteractedWithGuests = true
+                        selectedGuestsMap = selectedGuestsMap - ids.toSet()
+                    },
+                    onSelectAll = {
+                        hasInteractedWithGuests = true
+                        val all = friends.associate { friend ->
+                            val status = selectedGuestsMap[friend.uid]
+                                ?: originalEvent?.guests?.get(friend.uid)
+                                ?: GuestStatus.PENDING.name
+                            friend.uid to status
+                        }
+                        selectedGuestsMap = all
+                    },
+                    onUnselectAll = {
+                        hasInteractedWithGuests = true
+                        selectedGuestsMap = emptyMap()
+                    }
+                )
+
+                if (hasInteractedWithGuests && eventType == EventType.PRIVATE && selectedGuestsMap.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.error_guests_mandatory_private),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
+                    )
                 }
             }
 
@@ -779,55 +937,6 @@ fun CreateEventScreen(
                 }
             }
 
-            HorizontalDivider()
-
-            // Guests Picker
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(R.string.label_event_guests_selection),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                FriendSelector(
-                    friends = friends,
-                    circles = circles,
-                    selectedFriendIds = selectedGuestsMap.keys.toList(),
-                    onToggleFriend = { id ->
-                        selectedGuestsMap = if (id in selectedGuestsMap) {
-                            selectedGuestsMap - id
-                        } else {
-                            val status = originalEvent?.guests?.get(id) ?: GuestStatus.PENDING.name
-                            selectedGuestsMap + (id to status)
-                        }
-                    },
-                    onAddFriends = { ids ->
-                        val additions =
-                            ids.filter { it !in selectedGuestsMap }.associateWith { id ->
-                                originalEvent?.guests?.get(id) ?: GuestStatus.PENDING.name
-                            }
-                        selectedGuestsMap = selectedGuestsMap + additions
-                    },
-                    onRemoveFriends = { ids ->
-                        selectedGuestsMap = selectedGuestsMap - ids.toSet()
-                    },
-                    onSelectAll = {
-                        val all = friends.associate { friend ->
-                            val status = selectedGuestsMap[friend.uid]
-                                ?: originalEvent?.guests?.get(friend.uid)
-                                ?: GuestStatus.PENDING.name
-                            friend.uid to status
-                        }
-                        selectedGuestsMap = all
-                    },
-                    onUnselectAll = {
-                        selectedGuestsMap = emptyMap()
-                    }
-                )
-            }
-
             // Action Buttons
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (editingEventId != null && hasChanges) {
@@ -856,6 +965,14 @@ fun CreateEventScreen(
                                 startTimeState.minute = startParts.second
                                 endTimeState.hour = endParts.first
                                 endTimeState.minute = endParts.second
+
+                                hasInteractedWithLocation = false
+                                isLocationFocused = false
+                                hasInteractedWithGuests = false
+                                hasInteractedWithTitle = false
+                                isTitleFocused = false
+                                hasInteractedWithStart = false
+                                hasInteractedWithEnd = false
                             }
                         },
                         modifier = Modifier.fillMaxWidth()

@@ -10,6 +10,8 @@ import com.free2party.exception.DatabaseOperationException
 import com.free2party.exception.EventNotFoundException
 import com.free2party.exception.InvalidEventDataException
 import com.free2party.exception.PastEventDateTimeException
+import com.free2party.exception.GuestsMandatoryPrivateException
+import com.free2party.exception.LocationMandatoryException
 import com.free2party.exception.NetworkUnavailableException
 import com.free2party.exception.UnauthorizedException
 import com.free2party.util.isDateTimeInPast
@@ -179,7 +181,7 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun saveEvent(event: Event): Result<String> = try {
         validateSession()
-        validateEventDateTime(event)
+        validateEventDetails(event)
 
         val docRef = db.collection("events").document()
         // Ensure guestIds matches guests keys list
@@ -223,7 +225,7 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun updateEvent(event: Event): Result<Unit> = try {
         validateSession()
-        validateEventDateTime(event)
+        validateEventDetails(event)
 
         val docRef = db.collection("events").document(event.id)
         val guestIdsList = event.guests.keys.toList()
@@ -436,12 +438,20 @@ class EventRepositoryImpl @Inject constructor(
         return uid
     }
 
-    private fun validateEventDateTime(event: Event) {
+    private fun validateEventDetails(event: Event) {
         if (event.title.isBlank()) throw InvalidEventDataException("Title cannot be empty")
         if (event.startDate.isBlank() || event.endDate.isBlank())
             throw InvalidEventDataException("Dates cannot be empty")
         if (event.startTime.isBlank() || event.endTime.isBlank())
             throw InvalidEventDataException("Times cannot be empty")
+
+        if (event.type == EventType.PRIVATE && event.guests.isEmpty()) {
+            throw GuestsMandatoryPrivateException()
+        }
+
+        if (event.locationName.isBlank() || event.latitude == null || event.longitude == null) {
+            throw LocationMandatoryException()
+        }
 
         val startDateMillis = parseDateToMillis(event.startDate)
             ?: throw InvalidEventDataException("Invalid start date format")
