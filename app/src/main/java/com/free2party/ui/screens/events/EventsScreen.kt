@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
@@ -65,6 +66,7 @@ fun EventsRoute(
     val selectedTabIndex = viewModel.selectedTabIndex
     val searchQuery by viewModel.searchQuery.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
+    val showOnlyAttending by viewModel.showOnlyAttending.collectAsState()
 
     EventsScreen(
         uiState = uiState,
@@ -79,7 +81,9 @@ fun EventsRoute(
         currentUserId = currentUserId,
         use24HourFormat = use24HourFormat,
         onNavigateToCreateEvent = onNavigateToCreateEvent,
-        onNavigateToEventDetails = onNavigateToEventDetails
+        onNavigateToEventDetails = onNavigateToEventDetails,
+        showOnlyAttending = showOnlyAttending,
+        onToggleShowOnlyAttending = { viewModel.toggleShowOnlyAttending() }
     )
 }
 
@@ -97,9 +101,12 @@ fun EventsScreen(
     currentUserId: String,
     use24HourFormat: Boolean,
     onNavigateToCreateEvent: () -> Unit,
-    onNavigateToEventDetails: (String) -> Unit
+    onNavigateToEventDetails: (String) -> Unit,
+    showOnlyAttending: Boolean,
+    onToggleShowOnlyAttending: () -> Unit
 ) {
     val context = LocalContext.current
+    var showFilterMenu by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -152,7 +159,94 @@ fun EventsScreen(
         ) {
             TopBar(
                 showBackButton = false,
-                onBack = {}
+                onBack = {},
+                action = {
+                    Box {
+                        IconButton(onClick = { showFilterMenu = true }) {
+                            Box(contentAlignment = Alignment.Center) {
+                                if (showOnlyAttending) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                CircleShape
+                                            )
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                                CircleShape
+                                            )
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.FilterList,
+                                    contentDescription = stringResource(R.string.description_filter),
+                                    tint = if (showOnlyAttending) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (showOnlyAttending) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .align(Alignment.TopEnd)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary,
+                                                CircleShape
+                                            )
+                                            .border(
+                                                1.5.dp,
+                                                MaterialTheme.colorScheme.surface,
+                                                CircleShape
+                                            )
+                                    )
+                                }
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = showFilterMenu,
+                            onDismissRequest = { showFilterMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = {
+                                    Text(
+                                        text = stringResource(R.string.filter_all_events),
+                                        fontWeight = if (!showOnlyAttending) FontWeight.ExtraBold
+                                        else FontWeight.Normal,
+                                        color = if (!showOnlyAttending) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                onClick = {
+                                    if (showOnlyAttending) {
+                                        onToggleShowOnlyAttending()
+                                    }
+                                    showFilterMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                modifier = Modifier.padding(start = 8.dp),
+                                text = {
+                                    Text(
+                                        text = stringResource(R.string.filter_only_attending),
+                                        fontWeight = if (showOnlyAttending) FontWeight.ExtraBold
+                                        else FontWeight.Normal,
+                                        color = if (showOnlyAttending) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                onClick = {
+                                    if (!showOnlyAttending) {
+                                        onToggleShowOnlyAttending()
+                                    }
+                                    showFilterMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
             )
 
             // Tabs Selector

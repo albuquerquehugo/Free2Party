@@ -345,4 +345,77 @@ class EventsViewModelTest {
 
             job.cancel()
         }
+
+    @Test
+    fun `events are filtered by showOnlyAttending when toggled`() = runTest {
+        userIdFlow.value = "testUser"
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+        val job = launch(testDispatcher) {
+            viewModel.uiState.collect {}
+        }
+
+        eventsFlow.value = listOf(
+            Event(
+                id = "1",
+                hostId = "testUser",
+                title = "My Event"
+            ),
+            Event(
+                id = "2",
+                hostId = "otherUser",
+                guestIds = listOf("testUser"),
+                invitedGuestIds = listOf("testUser"),
+                guests = mapOf("testUser" to "PENDING"),
+                title = "Invited Event - Pending"
+            ),
+            Event(
+                id = "3",
+                hostId = "otherUser",
+                guestIds = listOf("testUser"),
+                invitedGuestIds = listOf("testUser"),
+                guests = mapOf("testUser" to "ACCEPTED"),
+                title = "Invited Event - Accepted"
+            ),
+            Event(
+                id = "4",
+                hostId = "otherUser",
+                type = EventType.PUBLIC,
+                guestIds = listOf("testUser"),
+                invitedGuestIds = emptyList(),
+                guests = mapOf("testUser" to "ACCEPTED"),
+                title = "Public Event - Attending"
+            ),
+            Event(
+                id = "5",
+                hostId = "otherUser",
+                type = EventType.PUBLIC,
+                guestIds = emptyList(),
+                title = "Public Event - Unattended"
+            )
+        )
+
+        // 1. Initially (filter is off):
+        // My Events should have 1 event (id 1)
+        // Invited Events should have 2 events (id 2, 3)
+        // Public Events should have 2 events (id 4, 5)
+        var successState = viewModel.uiState.value as? EventsUiState.Success
+        assertTrue(successState != null)
+        assertTrue(successState?.myEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.size == 2)
+        assertTrue(successState?.publicEvents?.size == 2)
+
+        // 2. Toggle showOnlyAttending to true:
+        // My Events should still have 1 event (id 1 - host is always attending)
+        // Invited Events should have 1 event (id 3 - accepted only)
+        // Public Events should have 1 event (id 4 - accepted/attending only)
+        viewModel.toggleShowOnlyAttending()
+        successState = viewModel.uiState.value as? EventsUiState.Success
+        assertTrue(successState?.myEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.first()?.id == "3")
+        assertTrue(successState?.publicEvents?.size == 1)
+        assertTrue(successState?.publicEvents?.first()?.id == "4")
+
+        job.cancel()
+    }
 }

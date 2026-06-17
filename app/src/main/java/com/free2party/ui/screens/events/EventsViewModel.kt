@@ -60,12 +60,19 @@ class EventsViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _showOnlyAttending = MutableStateFlow(false)
+    val showOnlyAttending: StateFlow<Boolean> = _showOnlyAttending.asStateFlow()
+
     fun setUserLocation(location: UserLocation?) {
         _userLocation.value = location
     }
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun toggleShowOnlyAttending() {
+        _showOnlyAttending.value = !_showOnlyAttending.value
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -76,8 +83,9 @@ class EventsViewModel @Inject constructor(
             else eventRepository.getEvents()
         },
         _userLocation,
-        _searchQuery
-    ) { uid, events, location, query ->
+        _searchQuery,
+        _showOnlyAttending
+    ) { uid, events, location, query, showOnlyAttending ->
         if (uid.isBlank()) {
             EventsUiState.Error(UiText.StringResource(R.string.error_unauthorized))
         } else {
@@ -127,10 +135,25 @@ class EventsViewModel @Inject constructor(
                         list.sortedWith(compareBy({ it.startDate }, { it.startTime }))
                     }
                 }
+
+            val finalMyEvents = myEvents // Host is always attending their own event
+
+            val finalPendingEvents = if (showOnlyAttending) {
+                pendingEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
+            } else {
+                pendingEvents
+            }
+
+            val finalPublicEvents = if (showOnlyAttending) {
+                publicEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
+            } else {
+                publicEvents
+            }
+
             EventsUiState.Success(
-                myEvents = myEvents,
-                pendingEvents = pendingEvents,
-                publicEvents = publicEvents
+                myEvents = finalMyEvents,
+                pendingEvents = finalPendingEvents,
+                publicEvents = finalPublicEvents
             )
         }
     }
