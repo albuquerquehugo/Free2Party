@@ -227,7 +227,7 @@ class EventsViewModelTest {
     }
 
     @Test
-    fun `publicEvents are filtered by search query matching title, description or locationName`() =
+    fun `publicEvents are filtered by search query matching title, description, locationName or hostName`() =
         runTest {
             userIdFlow.value = "testUser"
             viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
@@ -239,6 +239,7 @@ class EventsViewModelTest {
                 Event(
                     id = "1",
                     hostId = "otherUser",
+                    hostName = "John Doe",
                     type = EventType.PUBLIC,
                     title = "Tech Party",
                     description = "Fun tech party",
@@ -247,6 +248,7 @@ class EventsViewModelTest {
                 Event(
                     id = "2",
                     hostId = "otherUser",
+                    hostName = "Jane Smith",
                     type = EventType.PUBLIC,
                     title = "Dance Night",
                     description = "Dance all night",
@@ -255,6 +257,7 @@ class EventsViewModelTest {
                 Event(
                     id = "3",
                     hostId = "otherUser",
+                    hostName = "Alice Cooper",
                     type = EventType.PUBLIC,
                     title = "Study Session",
                     description = "Focus group",
@@ -283,6 +286,18 @@ class EventsViewModelTest {
             successState = viewModel.uiState.value as? EventsUiState.Success
             assertTrue(successState?.publicEvents?.size == 1)
             assertTrue(successState?.publicEvents?.first()?.id == "3")
+
+            // Filter by host name "John"
+            viewModel.setSearchQuery("John")
+            successState = viewModel.uiState.value as? EventsUiState.Success
+            assertTrue(successState?.publicEvents?.size == 1)
+            assertTrue(successState?.publicEvents?.first()?.id == "1")
+
+            // Filter by host name "Jane"
+            viewModel.setSearchQuery("Jane")
+            successState = viewModel.uiState.value as? EventsUiState.Success
+            assertTrue(successState?.publicEvents?.size == 1)
+            assertTrue(successState?.publicEvents?.first()?.id == "2")
 
             job.cancel()
         }

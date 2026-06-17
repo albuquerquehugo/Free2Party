@@ -109,7 +109,8 @@ class EventsViewModel @Inject constructor(
                         list.filter {
                             it.title.lowercase().contains(lowerQuery) ||
                                     it.description.lowercase().contains(lowerQuery) ||
-                                    it.locationName.lowercase().contains(lowerQuery)
+                                    it.locationName.lowercase().contains(lowerQuery) ||
+                                    it.hostName.lowercase().contains(lowerQuery)
                         }
                     }
                 }
