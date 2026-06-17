@@ -1,9 +1,14 @@
 package com.free2party.util
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import com.free2party.data.model.Countries
 import com.free2party.data.model.BirthdayShowType
@@ -14,6 +19,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.Date
+import kotlin.math.*
 
 /**
  * Formats the given hour and minute into a string with the format "H:mm" or "HH:mm".
@@ -643,4 +649,55 @@ fun formatPhoneNumber(number: String, mask: String): String {
     }
 
     return out.toString()
+}
+
+/**
+ * Calculates the distance between two geographical coordinates using the Haversine formula.
+ * @return The distance in meters.
+ */
+fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val r = 6371e3 // Earth's radius in meters
+    val phi1 = Math.toRadians(lat1)
+    val phi2 = Math.toRadians(lat2)
+    val deltaPhi = Math.toRadians(lat2 - lat1)
+    val deltaLambda = Math.toRadians(lon2 - lon1)
+
+    val a = sin(deltaPhi / 2.0).pow(2.0) +
+            cos(phi1) * cos(phi2) * sin(deltaLambda / 2.0).pow(2.0)
+    val c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a))
+
+    return r * c
+}
+
+/**
+ * Formats a distance in meters to a human readable localized string.
+ */
+fun formatDistance(context: Context, meters: Double): String {
+    return if (meters < 1000) {
+        context.getString(R.string.label_distance_m, meters.roundToInt())
+    } else {
+        val km = meters / 1000.0
+        context.getString(R.string.label_distance_km, km)
+    }
+}
+
+/**
+ * Gets the last known device location from available providers.
+ */
+fun getLastKnownLocation(context: Context): Location? {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return null
+    }
+    val providers = locationManager.getProviders(true)
+    var bestLocation: Location? = null
+    for (provider in providers) {
+        val l = locationManager.getLastKnownLocation(provider) ?: continue
+        if (bestLocation == null || l.accuracy < bestLocation.accuracy) {
+            bestLocation = l
+        }
+    }
+    return bestLocation
 }

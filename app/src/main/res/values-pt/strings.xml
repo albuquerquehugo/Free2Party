@@ -395,24 +395,27 @@
     <!-- Events Screen -->
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_invalid_event_data">Dados do evento inválidos.</string>
-    <string name="label_accepted">Aceito</string>
     <string name="label_add_link">Adicionar Link</string>
     <string name="label_comments">Comentários</string>
     <string name="label_comments_empty">Nenhum comentário ainda. Comece a conversa!</string>
-    <string name="label_declined">Recusado</string>
     <string name="label_delete_comment_confirm">Tem certeza de que deseja excluir este comentário?</string>
     <string name="label_delete_event">Excluir Evento</string>
     <string name="label_delete_event_confirm">Tem certeza de que deseja excluir este evento? Esta ação não pode ser desfeita.</string>
+    <string name="label_distance_km">%1$.1f km de distância</string>
+    <string name="label_distance_m">%1$d m de distância</string>
     <string name="label_event_description">Descrição</string>
     <string name="label_event_guests_selection">Selecionar Convidados</string>
     <string name="label_event_title">Título</string>
     <string name="label_event_type">Tipo</string>
     <string name="label_event_type_desc_private">Apenas convidados</string>
     <string name="label_event_type_desc_public">Qualquer pessoa pode ver e participar</string>
-    <plurals name="label_guest">
-        <item quantity="one">Convidado (%1$d)</item>
-        <item quantity="many">Convidados (%1$d)</item>
-        <item quantity="other">Convidados (%1$d)</item>
+    <string name="label_going">Vai</string>
+    <string name="label_going_self">Vou</string>
+    <string name="label_guests">Convidados (%1$d)</string>
+    <plurals name="label_guests_going">
+        <item quantity="one">%1$d vai</item>
+        <item quantity="many">%1$d vão</item>
+        <item quantity="other">%1$d vão</item>
     </plurals>
     <string name="label_hosted_by">Organizado por %1$s</string>
     <string name="label_invited">Convidado</string>
@@ -422,6 +425,8 @@
     <string name="label_my_events">Meus Eventos</string>
     <string name="label_no_events">Nenhum evento encontrado</string>
     <string name="label_no_guests_pending">Nenhum convidado pendente ainda</string>
+    <string name="label_not_going">Não vai</string>
+    <string name="label_not_going_self">Não Vou</string>
     <string name="label_open_in_maps">Abrir no Mapa</string>
     <string name="label_pending">Pendente</string>
     <string name="label_photo_album">Álbum de Fotos</string>
@@ -443,6 +448,7 @@
     <string name="placeholder_link_title">Título do Link (ex: Site)</string>
     <string name="placeholder_link_url">URL do Link (ex: https://…)</string>
     <string name="placeholder_location">Digite o nome do local ou endereço</string>
+    <string name="placeholder_search_events">Buscar eventos…</string>
     <string name="title_create_event">Criar Evento</string>
     <string name="title_delete_comment">Excluir Comentário</string>
     <string name="title_edit_event">Editar Evento</string>

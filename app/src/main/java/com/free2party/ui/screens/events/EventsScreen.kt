@@ -1,5 +1,9 @@
 package com.free2party.ui.screens.events
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,8 +16,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,21 +28,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
 import coil.compose.AsyncImage
-import com.free2party.R
 import com.free2party.data.model.Event
+import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.data.model.Membership
+import com.free2party.R
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
+import com.free2party.util.calculateHaversineDistance
+import com.free2party.util.formatDistance
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.formatTimeForDisplay
+import com.free2party.util.getLastKnownLocation
 
 @Composable
 fun EventsRoute(
@@ -50,11 +63,17 @@ fun EventsRoute(
     val currentUserId = viewModel.currentUserId
     val use24HourFormat = viewModel.use24HourFormat
     val selectedTabIndex = viewModel.selectedTabIndex
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val userLocation by viewModel.userLocation.collectAsState()
 
     EventsScreen(
         uiState = uiState,
         selectedTabIndex = selectedTabIndex,
         onTabSelected = { viewModel.selectedTabIndex = it },
+        searchQuery = searchQuery,
+        onSearchQueryChange = { viewModel.setSearchQuery(it) },
+        userLocation = userLocation,
+        onUserLocationChange = { viewModel.setUserLocation(it) },
         gradientBackground = gradientBackground,
         membership = membership,
         currentUserId = currentUserId,
@@ -69,6 +88,10 @@ fun EventsScreen(
     uiState: EventsUiState,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    userLocation: UserLocation?,
+    onUserLocationChange: (UserLocation?) -> Unit,
     gradientBackground: Boolean,
     membership: Membership,
     currentUserId: String,
@@ -76,6 +99,46 @@ fun EventsScreen(
     onNavigateToCreateEvent: () -> Unit,
     onNavigateToEventDetails: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (fineGranted || coarseGranted) {
+            val loc = getLastKnownLocation(context)
+            if (loc != null) {
+                onUserLocationChange(UserLocation(loc.latitude, loc.longitude))
+            }
+        }
+    }
+
+    LaunchedEffect(selectedTabIndex) {
+        if (selectedTabIndex == 2) {
+            val fineGranted = ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            val coarseGranted = ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            if (fineGranted || coarseGranted) {
+                val loc = getLastKnownLocation(context)
+                if (loc != null) {
+                    onUserLocationChange(UserLocation(loc.latitude, loc.longitude))
+                }
+            } else {
+                permissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,12 +165,54 @@ fun EventsScreen(
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { onTabSelected(0) },
-                    text = { Text(stringResource(R.string.label_my_events), fontWeight = FontWeight.Bold) }
+                    text = {
+                        Text(
+                            stringResource(R.string.label_my_events),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
                     onClick = { onTabSelected(1) },
-                    text = { Text(stringResource(R.string.label_invited), fontWeight = FontWeight.Bold) }
+                    text = {
+                        Text(
+                            stringResource(R.string.label_invited),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                )
+                Tab(
+                    selected = selectedTabIndex == 2,
+                    onClick = { onTabSelected(2) },
+                    text = {
+                        Text(
+                            stringResource(R.string.label_public),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                )
+            }
+
+            // Search Bar for Public Tab
+            if (selectedTabIndex == 2) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text(stringResource(R.string.placeholder_search_events)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onSearchQueryChange("") }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
 
@@ -117,17 +222,32 @@ fun EventsScreen(
             ) {
                 when (uiState) {
                     is EventsUiState.Loading -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             CircularProgressIndicator()
                         }
                     }
+
                     is EventsUiState.Error -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(text = uiState.message.asString(), color = MaterialTheme.colorScheme.error)
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = uiState.message.asString(),
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
+
                     is EventsUiState.Success -> {
-                        val eventsList = if (selectedTabIndex == 0) uiState.myEvents else uiState.pendingEvents
+                        val eventsList = when (selectedTabIndex) {
+                            0 -> uiState.myEvents
+                            1 -> uiState.pendingEvents
+                            else -> uiState.publicEvents
+                        }
                         if (eventsList.isEmpty()) {
                             Box(
                                 modifier = Modifier
@@ -153,6 +273,7 @@ fun EventsScreen(
                                         event = event,
                                         currentUserId = currentUserId,
                                         use24Hour = use24HourFormat,
+                                        userLocation = userLocation,
                                         onClick = { onNavigateToEventDetails(event.id) }
                                     )
                                 }
@@ -174,9 +295,15 @@ fun EventsScreen(
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = if (membership == Membership.REGULAR) 66.dp else 16.dp)
+                .padding(
+                    end = 16.dp,
+                    bottom = if (membership == Membership.REGULAR) 66.dp else 16.dp
+                )
         ) {
-            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.title_create_event))
+            Icon(
+                Icons.Default.Add,
+                contentDescription = stringResource(R.string.title_create_event)
+            )
         }
     }
 }
@@ -186,14 +313,30 @@ fun EventCard(
     event: Event,
     currentUserId: String,
     use24Hour: Boolean,
+    userLocation: UserLocation?,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val acceptedCount = remember(event.guests) {
         event.guests.values.count { it == GuestStatus.ACCEPTED.name }
     }
-    
+
     val myStatus = remember(event.guests, currentUserId) {
         event.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.PENDING
+    }
+
+    val distanceText = remember(event.latitude, event.longitude, userLocation) {
+        if (userLocation != null && event.latitude != null && event.longitude != null) {
+            val meters = calculateHaversineDistance(
+                userLocation.latitude,
+                userLocation.longitude,
+                event.latitude,
+                event.longitude
+            )
+            formatDistance(context, meters)
+        } else {
+            null
+        }
     }
 
     Card(
@@ -237,7 +380,7 @@ fun EventCard(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                 }
-                
+
                 // Title & Host Name
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -256,7 +399,7 @@ fun EventCard(
                         )
                     }
                 }
-                
+
                 // Status Badge (for pending events)
                 if (!isMyEvent) {
                     val badgeColor = when (myStatus) {
@@ -265,8 +408,8 @@ fun EventCard(
                         GuestStatus.PENDING -> MaterialTheme.colorScheme.primary
                     }
                     val badgeText = when (myStatus) {
-                        GuestStatus.ACCEPTED -> stringResource(R.string.label_accepted)
-                        GuestStatus.DECLINED -> stringResource(R.string.label_declined)
+                        GuestStatus.ACCEPTED -> stringResource(R.string.label_going_self)
+                        GuestStatus.DECLINED -> stringResource(R.string.label_not_going_self)
                         GuestStatus.PENDING -> stringResource(R.string.label_pending)
                     }
                     Text(
@@ -306,7 +449,7 @@ fun EventCard(
             }
 
             // Location
-            if (event.locationName.isNotBlank()) {
+            if (event.locationName.isNotBlank() || distanceText != null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -319,11 +462,21 @@ fun EventCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
+                    val displayText = when {
+                        event.locationName.isNotBlank() && distanceText != null ->
+                            "${event.locationName} ($distanceText)"
+
+                        event.locationName.isNotBlank() ->
+                            event.locationName
+
+                        else ->
+                            distanceText ?: ""
+                    }
                     Text(
-                        text = event.locationName,
+                        text = displayText,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -343,20 +496,35 @@ fun EventCard(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "$acceptedCount accepted",
+                        text = pluralStringResource(
+                            R.plurals.label_guests_going,
+                            acceptedCount,
+                            acceptedCount
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
-                // Public/Private indicator
+                val typeColor = if (event.type == EventType.PUBLIC) {
+                    MaterialTheme.colorScheme.secondary
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
                 Text(
-                    text = event.type.name,
+                    text = when (event.type) {
+                        EventType.PUBLIC -> stringResource(R.string.label_public)
+                        EventType.PRIVATE -> stringResource(R.string.label_private)
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = typeColor,
+                    modifier = Modifier
+                        .background(typeColor.copy(alpha = 0.15f), CircleShape)
+                        .border(1.dp, typeColor.copy(alpha = 0.3f), CircleShape)
+                        .padding(horizontal = 10.dp, vertical = 2.dp)
                 )
             }
         }

@@ -394,23 +394,26 @@
     <!-- Events Screen -->
     <string name="error_event_not_found">The event was not found.</string>
     <string name="error_invalid_event_data">Invalid event data.</string>
-    <string name="label_accepted">Accepted</string>
     <string name="label_add_link">Add Link</string>
     <string name="label_comments">Comments</string>
     <string name="label_comments_empty">No comments yet. Start the conversation!</string>
-    <string name="label_declined">Declined</string>
     <string name="label_delete_comment_confirm">Are you sure you want to delete this comment?</string>
     <string name="label_delete_event">Delete Event</string>
     <string name="label_delete_event_confirm">Are you sure you want to delete this event? This action cannot be undone.</string>
+    <string name="label_distance_km">%1$.1f km away</string>
+    <string name="label_distance_m">%1$d m away</string>
     <string name="label_event_description">Description</string>
     <string name="label_event_guests_selection">Select Guests</string>
     <string name="label_event_title">Title</string>
     <string name="label_event_type">Type</string>
     <string name="label_event_type_desc_private">Invite-only</string>
     <string name="label_event_type_desc_public">Anyone can view and join</string>
-    <plurals name="label_guest">
-        <item quantity="one">Guest (%1$d)</item>
-        <item quantity="other">Guests (%1$d)</item>
+    <string name="label_going">Going</string>
+    <string name="label_going_self">Going</string>
+    <string name="label_guests">Guests (%1$d)</string>
+    <plurals name="label_guests_going">
+        <item quantity="one">%1$d going</item>
+        <item quantity="other">%1$d going</item>
     </plurals>
     <string name="label_hosted_by">Hosted by %1$s</string>
     <string name="label_invited">Invited</string>
@@ -420,6 +423,8 @@
     <string name="label_my_events">My Events</string>
     <string name="label_no_events">No events found</string>
     <string name="label_no_guests_pending">No guests pending yet</string>
+    <string name="label_not_going">Not Going</string>
+    <string name="label_not_going_self">Not Going</string>
     <string name="label_open_in_maps">Open in Maps</string>
     <string name="label_pending">Pending</string>
     <string name="label_photo_album">Photo Album</string>
@@ -441,6 +446,7 @@
     <string name="placeholder_link_title">Link Title (e.g. Website)</string>
     <string name="placeholder_link_url">Link URL (e.g. https://…)</string>
     <string name="placeholder_location">Enter location name or address</string>
+    <string name="placeholder_search_events">Search events…</string>
     <string name="title_create_event">Create Event</string>
     <string name="title_delete_comment">Delete Comment</string>
     <string name="title_edit_event">Edit Event</string>

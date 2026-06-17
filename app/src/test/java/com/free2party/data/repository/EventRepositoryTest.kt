@@ -40,9 +40,9 @@ class EventRepositoryTest {
         every { db.collection("events") } returns eventsCollection
         every { eventsCollection.document(any()) } returns eventDoc
         every { eventsCollection.document() } returns eventDoc
-        
+
         repository = EventRepositoryImpl(auth, db, storage, context)
-        
+
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
     }
 
@@ -58,7 +58,10 @@ class EventRepositoryTest {
         )
         val result = repository.saveEvent(event)
         assertTrue("Expected failure for unauthorized user", result.isFailure)
-        assertTrue("Expected UnauthorizedException", result.exceptionOrNull() is UnauthorizedException)
+        assertTrue(
+            "Expected UnauthorizedException",
+            result.exceptionOrNull() is UnauthorizedException
+        )
     }
 
     @Test
@@ -142,7 +145,7 @@ class EventRepositoryTest {
             endTime = "11:00"
         )
         every { eventDoc.id } returns "newEventId"
-        
+
         val transaction = mockk<Transaction>()
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
@@ -250,16 +253,115 @@ class EventRepositoryTest {
     }
 
     @Test
-    fun `respondToEvent succeeds if logged in`() = runTest {
+    fun `respondToEvent succeeds and updates guests status only if already guest or private`() =
+        runTest {
+            every { auth.currentUser } returns firebaseUser
+            every { firebaseUser.uid } returns "testUser"
+
+            every { eventsCollection.document("123") } returns eventDoc
+            val oldDoc = mockk<DocumentSnapshot>()
+            every { oldDoc.get("guestIds") } returns listOf("testUser")
+            every { oldDoc.get("invitedGuestIds") } returns listOf("testUser")
+            every { oldDoc.getString("type") } returns "PRIVATE"
+
+            val transaction = mockk<Transaction>()
+            every { db.runTransaction<Unit>(any()) } answers {
+                val function = firstArg<Transaction.Function<Unit>>()
+                every { transaction.get(eventDoc) } returns oldDoc
+                every {
+                    transaction.update(
+                        eventDoc,
+                        "guests.testUser",
+                        "ACCEPTED"
+                    )
+                } returns transaction
+                function.apply(transaction)
+                Tasks.forResult(Unit)
+            }
+
+            val result = repository.respondToEvent("123", GuestStatus.ACCEPTED)
+            assertTrue(result.isSuccess)
+        }
+
+    @Test
+    fun `respondToEvent adds guest to guestIds if event is public and user not in guestIds`() =
+        runTest {
+            every { auth.currentUser } returns firebaseUser
+            every { firebaseUser.uid } returns "testUser"
+
+            every { eventsCollection.document("123") } returns eventDoc
+            val oldDoc = mockk<DocumentSnapshot>()
+            every { oldDoc.get("guestIds") } returns emptyList<String>()
+            every { oldDoc.get("invitedGuestIds") } returns emptyList<String>()
+            every { oldDoc.getString("type") } returns "PUBLIC"
+
+            val transaction = mockk<Transaction>()
+            every { db.runTransaction<Unit>(any()) } answers {
+                val function = firstArg<Transaction.Function<Unit>>()
+                every { transaction.get(eventDoc) } returns oldDoc
+                every { transaction.update(eventDoc, any<Map<String, Any>>()) } returns transaction
+                function.apply(transaction)
+                Tasks.forResult(Unit)
+            }
+
+            val result = repository.respondToEvent("123", GuestStatus.ACCEPTED)
+            assertTrue(result.isSuccess)
+        }
+
+    @Test
+    fun `respondToEvent adds guest to guestIds if event is public and user declines`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
-        
-        every { eventsCollection.document("123") } returns eventDoc
-        every { eventDoc.update("guests.testUser", "ACCEPTED") } returns Tasks.forResult(null)
 
-        val result = repository.respondToEvent("123", GuestStatus.ACCEPTED)
+        every { eventsCollection.document("123") } returns eventDoc
+        val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.get("guestIds") } returns emptyList<String>()
+        every { oldDoc.get("invitedGuestIds") } returns emptyList<String>()
+        every { oldDoc.getString("type") } returns "PUBLIC"
+
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            every { transaction.update(eventDoc, any<Map<String, Any>>()) } returns transaction
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.respondToEvent("123", GuestStatus.DECLINED)
         assertTrue(result.isSuccess)
     }
+
+    @Test
+    fun `respondToEvent updates guest status only if event is public, user is invited and status is declined`() =
+        runTest {
+            every { auth.currentUser } returns firebaseUser
+            every { firebaseUser.uid } returns "testUser"
+
+            every { eventsCollection.document("123") } returns eventDoc
+            val oldDoc = mockk<DocumentSnapshot>()
+            every { oldDoc.get("guestIds") } returns listOf("testUser")
+            every { oldDoc.get("invitedGuestIds") } returns listOf("testUser")
+            every { oldDoc.getString("type") } returns "PUBLIC"
+
+            val transaction = mockk<Transaction>()
+            every { db.runTransaction<Unit>(any()) } answers {
+                val function = firstArg<Transaction.Function<Unit>>()
+                every { transaction.get(eventDoc) } returns oldDoc
+                every {
+                    transaction.update(
+                        eventDoc,
+                        "guests.testUser",
+                        "DECLINED"
+                    )
+                } returns transaction
+                function.apply(transaction)
+                Tasks.forResult(Unit)
+            }
+
+            val result = repository.respondToEvent("123", GuestStatus.DECLINED)
+            assertTrue(result.isSuccess)
+        }
 
     @Test
     fun `addComment fails if text is blank`() = runTest {

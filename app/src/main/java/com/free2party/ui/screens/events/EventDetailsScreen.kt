@@ -9,15 +9,20 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -27,16 +32,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.*
@@ -51,20 +60,9 @@ import com.free2party.util.formatTimeAgo
 import com.free2party.util.formatTimeForDisplay
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.core.net.toUri
 import java.util.Locale
-import androidx.compose.ui.platform.LocalLocale
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -533,7 +531,7 @@ fun EventDetailsScreen(
                             ) {
                                 Icon(Icons.Default.Check, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.label_accept))
+                                Text(stringResource(R.string.label_going_self))
                             }
                             Button(
                                 onClick = {
@@ -575,7 +573,7 @@ fun EventDetailsScreen(
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.label_decline))
+                                Text(stringResource(R.string.label_not_going_self))
                             }
                         }
                     }
@@ -594,26 +592,36 @@ fun EventDetailsScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    val visibleGuests =
+                        remember(ev.guests, ev.invitedGuestIds, ev.guestIds, ev.type) {
+                            val isPublic = ev.type == EventType.PUBLIC
+                            ev.guests.filter { entry ->
+                                if (isPublic) {
+                                    val invitedIds = ev.invitedGuestIds ?: ev.guestIds
+                                    val isInvited = invitedIds.contains(entry.key)
+                                    isInvited || entry.value == GuestStatus.ACCEPTED.name
+                                } else {
+                                    true
+                                }
+                            }
+                        }
+
                     Text(
-                        text = pluralStringResource(
-                            R.plurals.label_guest,
-                            ev.guests.size,
-                            ev.guests.size
-                        ),
+                        text = stringResource(R.string.label_guests, ev.guests.size),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
                     )
-                    if (isHost && ev.guests.isNotEmpty()) {
-                        val acceptedCount = remember(ev.guests) {
-                            ev.guests.values.count { it == GuestStatus.ACCEPTED.name }
+                    if (isHost && visibleGuests.isNotEmpty()) {
+                        val acceptedCount = remember(visibleGuests) {
+                            visibleGuests.values.count { it == GuestStatus.ACCEPTED.name }
                         }
-                        val pendingCount = remember(ev.guests) {
-                            ev.guests.values.count { it == GuestStatus.PENDING.name }
+                        val pendingCount = remember(visibleGuests) {
+                            visibleGuests.values.count { it == GuestStatus.PENDING.name }
                         }
-                        val declinedCount = remember(ev.guests) {
-                            ev.guests.values.count { it == GuestStatus.DECLINED.name }
+                        val declinedCount = remember(visibleGuests) {
+                            visibleGuests.values.count { it == GuestStatus.DECLINED.name }
                         }
 
                         Row(
@@ -623,7 +631,7 @@ fun EventDetailsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             StatusSummaryItem(
-                                label = stringResource(R.string.label_accepted),
+                                label = stringResource(R.string.label_going),
                                 count = acceptedCount,
                                 color = MaterialTheme.colorScheme.available,
                                 isChecked = GuestStatus.ACCEPTED in selectedStatuses,
@@ -653,7 +661,7 @@ fun EventDetailsScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             StatusSummaryItem(
-                                label = stringResource(R.string.label_declined),
+                                label = stringResource(R.string.label_not_going),
                                 count = declinedCount,
                                 color = MaterialTheme.colorScheme.busy,
                                 isChecked = GuestStatus.DECLINED in selectedStatuses,
@@ -669,46 +677,47 @@ fun EventDetailsScreen(
                             )
                         }
                     }
-                    if (ev.guests.isEmpty()) {
+                    if (visibleGuests.isEmpty()) {
                         Text(
                             text = stringResource(R.string.label_no_guests_pending),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        val sortedGuests = remember(ev.guests, currentUserId, selectedStatuses) {
-                            val list = ev.guests.entries.toList()
-                            val currentUserEntry = list.find { it.key == currentUserId }
-                            val remainingGuests = list.filter { it.key != currentUserId }
-                                .sortedWith { o1, o2 ->
-                                    val s1 = GuestStatus.valueOf(o1.value)
-                                    val s2 = GuestStatus.valueOf(o2.value)
-                                    val p1 = when (s1) {
-                                        GuestStatus.ACCEPTED -> 1
-                                        GuestStatus.PENDING -> 2
-                                        GuestStatus.DECLINED -> 3
+                        val sortedGuests =
+                            remember(visibleGuests, currentUserId, selectedStatuses) {
+                                val list = visibleGuests.entries.toList()
+                                val currentUserEntry = list.find { it.key == currentUserId }
+                                val remainingGuests = list.filter { it.key != currentUserId }
+                                    .sortedWith { o1, o2 ->
+                                        val s1 = GuestStatus.valueOf(o1.value)
+                                        val s2 = GuestStatus.valueOf(o2.value)
+                                        val p1 = when (s1) {
+                                            GuestStatus.ACCEPTED -> 1
+                                            GuestStatus.PENDING -> 2
+                                            GuestStatus.DECLINED -> 3
+                                        }
+                                        val p2 = when (s2) {
+                                            GuestStatus.ACCEPTED -> 1
+                                            GuestStatus.PENDING -> 2
+                                            GuestStatus.DECLINED -> 3
+                                        }
+                                        p1.compareTo(p2)
                                     }
-                                    val p2 = when (s2) {
-                                        GuestStatus.ACCEPTED -> 1
-                                        GuestStatus.PENDING -> 2
-                                        GuestStatus.DECLINED -> 3
+                                val combined = if (currentUserEntry != null) {
+                                    listOf(currentUserEntry) + remainingGuests
+                                } else {
+                                    remainingGuests
+                                }
+                                if (isHost) {
+                                    combined.filter { entry ->
+                                        val status = GuestStatus.valueOf(entry.value)
+                                        status in selectedStatuses
                                     }
-                                    p1.compareTo(p2)
+                                } else {
+                                    combined
                                 }
-                            val combined = if (currentUserEntry != null) {
-                                listOf(currentUserEntry) + remainingGuests
-                            } else {
-                                remainingGuests
                             }
-                            if (isHost) {
-                                combined.filter { entry ->
-                                    val status = GuestStatus.valueOf(entry.value)
-                                    status in selectedStatuses
-                                }
-                            } else {
-                                combined
-                            }
-                        }
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -784,11 +793,21 @@ fun EventDetailsScreen(
                                                 textAlign = TextAlign.Center,
                                                 modifier = Modifier.fillMaxWidth()
                                             )
+                                            val statusText = when (status) {
+                                                GuestStatus.ACCEPTED -> {
+                                                    if (uid == currentUserId) stringResource(R.string.label_going_self)
+                                                    else stringResource(R.string.label_going)
+                                                }
+
+                                                GuestStatus.DECLINED -> {
+                                                    if (uid == currentUserId) stringResource(R.string.label_not_going_self)
+                                                    else stringResource(R.string.label_not_going)
+                                                }
+
+                                                GuestStatus.PENDING -> stringResource(R.string.label_pending)
+                                            }
                                             Text(
-                                                text = status.name.lowercase().replaceFirstChar {
-                                                    if (it.isLowerCase()) it.titlecase(LocalLocale.current.platformLocale)
-                                                    else it.toString()
-                                                },
+                                                text = statusText,
                                                 fontSize = 9.sp,
                                                 color = statusColor,
                                                 maxLines = 1,

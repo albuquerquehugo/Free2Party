@@ -187,7 +187,8 @@ class EventRepositoryImpl @Inject constructor(
         val eventWithDetails = event.copy(
             id = docRef.id,
             hostId = currentUserId,
-            guestIds = guestIdsList
+            guestIds = guestIdsList,
+            invitedGuestIds = guestIdsList
         )
 
         db.runTransaction { transaction ->
@@ -240,6 +241,7 @@ class EventRepositoryImpl @Inject constructor(
             "longitude" to event.longitude,
             "guests" to event.guests,
             "guestIds" to guestIdsList,
+            "invitedGuestIds" to guestIdsList,
             "usefulLinks" to event.usefulLinks.map { mapOf("title" to it.title, "url" to it.url) }
         )
 
@@ -315,9 +317,33 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun respondToEvent(eventId: String, status: GuestStatus): Result<Unit> = try {
         val uid = validateSession()
-        db.collection("events").document(eventId)
-            .update("guests.$uid", status.name)
-            .await()
+        val docRef = db.collection("events").document(eventId)
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(docRef)
+            val guestIds =
+                (snapshot.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+            val invitedGuestIds =
+                (snapshot.get("invitedGuestIds") as? List<*>)?.filterIsInstance<String>()
+            val isPublic = snapshot.getString("type") == EventType.PUBLIC.name
+
+            val updates = mutableMapOf<String, Any>()
+            if (isPublic && invitedGuestIds == null) {
+                updates["invitedGuestIds"] = guestIds
+            }
+
+            if (isPublic && !guestIds.contains(uid)) {
+                updates["guests.$uid"] = status.name
+                updates["guestIds"] = FieldValue.arrayUnion(uid)
+                transaction.update(docRef, updates)
+            } else {
+                if (updates.isNotEmpty()) {
+                    updates["guests.$uid"] = status.name
+                    transaction.update(docRef, updates)
+                } else {
+                    transaction.update(docRef, "guests.$uid", status.name)
+                }
+            }
+        }.await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToEventException(e))

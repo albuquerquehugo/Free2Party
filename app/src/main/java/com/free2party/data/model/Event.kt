@@ -38,9 +38,9 @@ data class Event(
     val locationName: String = "",
     val latitude: Double? = null,
     val longitude: Double? = null,
-    // Stored as Map<String, String> for guestId -> GuestStatus.name to avoid Firestore serialization issues
     val guests: Map<String, String> = emptyMap(),
     val guestIds: List<String> = emptyList(),
+    val invitedGuestIds: List<String>? = null,
     val usefulLinks: List<EventLink> = emptyList(),
     @ServerTimestamp
     val createdAt: Date? = null

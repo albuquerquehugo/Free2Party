@@ -7,24 +7,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.free2party.R
 import com.free2party.data.model.*
 import com.free2party.data.repository.EventRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.EventException
+import com.free2party.R
+import com.free2party.util.calculateHaversineDistance
 import com.free2party.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.net.URL
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import kotlinx.coroutines.withContext
+
+data class UserLocation(val latitude: Double, val longitude: Double)
 
 sealed interface EventsUiState {
     object Loading : EventsUiState
     data class Success(
         val myEvents: List<Event> = emptyList(),
-        val pendingEvents: List<Event> = emptyList()
+        val pendingEvents: List<Event> = emptyList(),
+        val publicEvents: List<Event> = emptyList()
     ) : EventsUiState
 
     data class Error(val message: UiText) : EventsUiState
@@ -47,23 +54,89 @@ class EventsViewModel @Inject constructor(
         private set
     var selectedTabIndex by mutableIntStateOf(0)
 
+    private val _userLocation = MutableStateFlow<UserLocation?>(null)
+    val userLocation: StateFlow<UserLocation?> = _userLocation.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    fun setUserLocation(location: UserLocation?) {
+        _userLocation.value = location
+    }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<EventsUiState> = userRepository.userIdFlow
-        .flatMapLatest { uid ->
-            if (uid.isBlank()) {
-                flowOf(EventsUiState.Error(UiText.StringResource(R.string.error_unauthorized)))
-            } else {
-                eventRepository.getEvents()
-                    .map<List<Event>, EventsUiState> { events ->
-                        val my = events.filter { it.hostId == uid }
-                        val pending = events.filter { it.hostId != uid && it.guestIds.contains(uid) }
-                        EventsUiState.Success(myEvents = my, pendingEvents = pending)
-                    }
-                    .catch { e ->
-                        Log.e("EventsViewModel", "Error inside events flow", e)
-                        emit(EventsUiState.Error(UiText.StringResource(R.string.error_unknown)))
-                    }
+    val uiState: StateFlow<EventsUiState> = combine(
+        userRepository.userIdFlow,
+        userRepository.userIdFlow.flatMapLatest { uid ->
+            if (uid.isBlank()) flowOf(emptyList())
+            else eventRepository.getEvents()
+        },
+        _userLocation,
+        _searchQuery
+    ) { uid, events, location, query ->
+        if (uid.isBlank()) {
+            EventsUiState.Error(UiText.StringResource(R.string.error_unauthorized))
+        } else {
+            val myEvents = events.filter { it.hostId == uid }
+            val pendingEvents = events.filter {
+                it.hostId != uid && (it.invitedGuestIds ?: it.guestIds).contains(uid)
             }
+            val publicEvents = events.filter { it.type == EventType.PUBLIC && it.hostId != uid }
+                .let { list ->
+                    if (query.isBlank()) {
+                        list
+                    } else {
+                        val lowerQuery = query.lowercase().trim()
+                        list.filter {
+                            it.title.lowercase().contains(lowerQuery) ||
+                                    it.description.lowercase().contains(lowerQuery) ||
+                                    it.locationName.lowercase().contains(lowerQuery)
+                        }
+                    }
+                }
+                .let { list ->
+                    if (location != null) {
+                        list.sortedWith { e1, e2 ->
+                            val d1 = if (e1.latitude != null && e1.longitude != null) {
+                                calculateHaversineDistance(
+                                    location.latitude,
+                                    location.longitude,
+                                    e1.latitude,
+                                    e1.longitude
+                                )
+                            } else {
+                                Double.MAX_VALUE
+                            }
+                            val d2 = if (e2.latitude != null && e2.longitude != null) {
+                                calculateHaversineDistance(
+                                    location.latitude,
+                                    location.longitude,
+                                    e2.latitude,
+                                    e2.longitude
+                                )
+                            } else {
+                                Double.MAX_VALUE
+                            }
+                            d1.compareTo(d2)
+                        }
+                    } else {
+                        list.sortedWith(compareBy({ it.startDate }, { it.startTime }))
+                    }
+                }
+            EventsUiState.Success(
+                myEvents = myEvents,
+                pendingEvents = pendingEvents,
+                publicEvents = publicEvents
+            )
+        }
+    }
+        .catch { e ->
+            Log.e("EventsViewModel", "Error inside events flow", e)
+            emit(EventsUiState.Error(UiText.StringResource(R.string.error_unknown)))
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EventsUiState.Loading)
 
@@ -77,7 +150,7 @@ class EventsViewModel @Inject constructor(
                     .map { events ->
                         events.count { event ->
                             event.hostId != uid &&
-                                    event.guestIds.contains(uid) &&
+                                    (event.invitedGuestIds ?: event.guestIds).contains(uid) &&
                                     (event.guests[uid]
                                         ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
                         }
@@ -98,6 +171,7 @@ class EventsViewModel @Inject constructor(
 
     init {
         observeUserSettings()
+        fetchFallbackLocation()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -224,6 +298,7 @@ class EventsViewModel @Inject constructor(
                                 UiText.DynamicString(error.message ?: "")
                             }
                         }
+
                         else -> UiText.StringResource(R.string.error_database_operation)
                     }
                     onError(errorMsg)
@@ -279,6 +354,7 @@ class EventsViewModel @Inject constructor(
                                 UiText.DynamicString(error.message ?: "")
                             }
                         }
+
                         else -> UiText.StringResource(R.string.error_database_operation)
                     }
                     onError(errorMsg)
@@ -377,4 +453,96 @@ class EventsViewModel @Inject constructor(
                 }
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun fetchFallbackLocation() {
+        viewModelScope.launch {
+            // 1. Try IP Geolocation
+            val ipLoc = fetchLocationByIp()
+            if (ipLoc != null) {
+                if (_userLocation.value == null) {
+                    _userLocation.value = ipLoc
+                    Log.d("EventsViewModel", "Set fallback location from IP: $ipLoc")
+                }
+                return@launch
+            }
+
+            // 2. Try Country Code from profile
+            userRepository.userIdFlow
+                .filter { it.isNotBlank() }
+                .flatMapLatest { uid -> userRepository.observeUser(uid) }
+                .firstOrNull()?.let { user ->
+                    if (_userLocation.value == null && user.countryCode.isNotBlank()) {
+                        val countryLoc = CountryCoordinates[user.countryCode.uppercase().trim()]
+                        if (countryLoc != null) {
+                            _userLocation.value = countryLoc
+                            Log.d(
+                                "EventsViewModel",
+                                "Set fallback location from country code: $countryLoc"
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    private suspend fun fetchLocationByIp(): UserLocation? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = URL("https://ip-api.com/json")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 3000
+                connection.readTimeout = 3000
+
+                val responseText = connection.inputStream.bufferedReader().use { it.readText() }
+                val latRegex = Regex(""""lat"\s*:\s*(-?\d+\.?\d*)""")
+                val lonRegex = Regex(""""lon"\s*:\s*(-?\d+\.?\d*)""")
+
+                val latMatch = latRegex.find(responseText)
+                val lonMatch = lonRegex.find(responseText)
+                if (latMatch != null && lonMatch != null) {
+                    val lat = latMatch.groupValues[1].toDoubleOrNull()
+                    val lon = lonMatch.groupValues[1].toDoubleOrNull()
+                    if (lat != null && lon != null) {
+                        UserLocation(lat, lon)
+                    } else null
+                } else null
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
 }
+
+private val CountryCoordinates = mapOf(
+    "US" to UserLocation(37.0902, -95.7129),
+    "PT" to UserLocation(39.3999, -8.2245),
+    "BR" to UserLocation(-14.2350, -51.9253),
+    "ES" to UserLocation(40.4637, -3.7492),
+    "FR" to UserLocation(46.2276, 2.2137),
+    "UK" to UserLocation(55.3781, -3.4360),
+    "GB" to UserLocation(55.3781, -3.4360),
+    "DE" to UserLocation(51.1657, 10.4515),
+    "IT" to UserLocation(41.8719, 12.5674),
+    "CA" to UserLocation(56.1304, -106.3468),
+    "AU" to UserLocation(-25.2744, 133.7751),
+    "IN" to UserLocation(20.5937, 78.9629),
+    "JP" to UserLocation(36.2048, 138.2529),
+    "CN" to UserLocation(35.8617, 104.1954),
+    "RU" to UserLocation(61.5240, 105.3188),
+    "ZA" to UserLocation(-30.5595, 22.9375),
+    "MX" to UserLocation(23.6345, -102.5528),
+    "AR" to UserLocation(-38.4161, -63.6167),
+    "CO" to UserLocation(4.5709, -74.2973),
+    "CH" to UserLocation(46.8182, 8.2275),
+    "NL" to UserLocation(52.1326, 5.2913),
+    "BE" to UserLocation(50.5039, 4.4699),
+    "AT" to UserLocation(47.5162, 14.5501),
+    "DK" to UserLocation(56.2639, 9.5018),
+    "NO" to UserLocation(60.4720, 8.4689),
+    "SE" to UserLocation(60.1282, 18.6435),
+    "FI" to UserLocation(61.9241, 25.7482),
+    "IE" to UserLocation(53.4129, -8.2439),
+    "NZ" to UserLocation(-40.9006, 174.8860)
+)

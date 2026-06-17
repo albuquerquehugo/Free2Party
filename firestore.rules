@@ -90,11 +90,31 @@ service cloud.firestore {
       
       // Host can update anything.
       // Guests can only update their own status in the guests map.
+      // Users can update their own status in PUBLIC events even if they are not invited to it
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.hostId || (
           request.auth.uid in resource.data.guestIds &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['guests']) &&
           request.resource.data.guests.diff(resource.data.guests).affectedKeys().hasOnly([request.auth.uid])
+        ) || (
+          resource.data.type == 'PUBLIC' &&
+          (
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['guests', 'guestIds']) &&
+              request.resource.data.guests.diff(resource.data.guests).affectedKeys().hasOnly([request.auth.uid]) &&
+              request.resource.data.guestIds.hasAll(resource.data.guestIds) &&
+              request.resource.data.guestIds.size() <= resource.data.guestIds.size() + 1 &&
+              request.auth.uid in request.resource.data.guestIds
+            ) || (
+              !('invitedGuestIds' in resource.data) &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['guests', 'guestIds', 'invitedGuestIds']) &&
+              request.resource.data.guests.diff(resource.data.guests).affectedKeys().hasOnly([request.auth.uid]) &&
+              request.resource.data.guestIds.hasAll(resource.data.guestIds) &&
+              request.resource.data.guestIds.size() <= resource.data.guestIds.size() + 1 &&
+              request.auth.uid in request.resource.data.guestIds &&
+              request.resource.data.invitedGuestIds == resource.data.guestIds
+            )
+          )
         )
       );
       
