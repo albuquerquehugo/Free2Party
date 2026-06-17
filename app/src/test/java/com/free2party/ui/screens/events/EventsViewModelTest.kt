@@ -347,7 +347,7 @@ class EventsViewModelTest {
         }
 
     @Test
-    fun `events are filtered by showOnlyAttending when toggled`() = runTest {
+    fun `events are filtered by EventFilter states when applied`() = runTest {
         userIdFlow.value = "testUser"
         viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
         val job = launch(testDispatcher) {
@@ -391,30 +391,49 @@ class EventsViewModelTest {
                 type = EventType.PUBLIC,
                 guestIds = emptyList(),
                 title = "Public Event - Unattended"
+            ),
+            Event(
+                id = "6",
+                hostId = "otherUser",
+                guestIds = listOf("testUser"),
+                invitedGuestIds = listOf("testUser"),
+                guests = mapOf("testUser" to "DECLINED"),
+                title = "Invited Event - Declined"
             )
         )
 
-        // 1. Initially (filter is off):
-        // My Events should have 1 event (id 1)
-        // Invited Events should have 2 events (id 2, 3)
-        // Public Events should have 2 events (id 4, 5)
+        // 1. ALL filter (default):
         var successState = viewModel.uiState.value as? EventsUiState.Success
         assertTrue(successState != null)
         assertTrue(successState?.myEvents?.size == 1)
-        assertTrue(successState?.pendingEvents?.size == 2)
-        assertTrue(successState?.publicEvents?.size == 2)
+        assertTrue(successState?.pendingEvents?.size == 3) // pending, accepted, declined
+        assertTrue(successState?.publicEvents?.size == 2)  // accepted, unattended
 
-        // 2. Toggle showOnlyAttending to true:
-        // My Events should still have 1 event (id 1 - host is always attending)
-        // Invited Events should have 1 event (id 3 - accepted only)
-        // Public Events should have 1 event (id 4 - accepted/attending only)
-        viewModel.toggleShowOnlyAttending()
+        // 2. GOING filter:
+        viewModel.setEventFilter(EventFilter.GOING)
         successState = viewModel.uiState.value as? EventsUiState.Success
         assertTrue(successState?.myEvents?.size == 1)
         assertTrue(successState?.pendingEvents?.size == 1)
         assertTrue(successState?.pendingEvents?.first()?.id == "3")
         assertTrue(successState?.publicEvents?.size == 1)
         assertTrue(successState?.publicEvents?.first()?.id == "4")
+
+        // 3. PENDING filter:
+        viewModel.setEventFilter(EventFilter.PENDING)
+        successState = viewModel.uiState.value as? EventsUiState.Success
+        assertTrue(successState?.myEvents?.isEmpty() == true)
+        assertTrue(successState?.pendingEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.first()?.id == "2")
+        assertTrue(successState?.publicEvents?.size == 1)
+        assertTrue(successState?.publicEvents?.first()?.id == "5")
+
+        // 4. NOT_GOING filter:
+        viewModel.setEventFilter(EventFilter.NOT_GOING)
+        successState = viewModel.uiState.value as? EventsUiState.Success
+        assertTrue(successState?.myEvents?.isEmpty() == true)
+        assertTrue(successState?.pendingEvents?.size == 1)
+        assertTrue(successState?.pendingEvents?.first()?.id == "6")
+        assertTrue(successState?.publicEvents?.isEmpty() == true)
 
         job.cancel()
     }

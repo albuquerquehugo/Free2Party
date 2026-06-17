@@ -323,9 +323,8 @@
     <string name="time_range">%1$s - %2$s</string>
 
     <!-- Events Screen -->
-    <string name="filter_all_events">All Events</string>
-    <string name="filter_only_attending">Attending</string>
     <string name="label_add_link">Add Link</string>
+    <string name="label_all_events">All Events</string>
     <string name="label_comments">Comments</string>
     <string name="label_comments_empty">No comments yet. Start the conversation!</string>
     <string name="label_delete_comment_confirm">Are you sure you want to delete this comment?</string>

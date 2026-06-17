@@ -26,6 +26,13 @@ import kotlinx.coroutines.withContext
 
 data class UserLocation(val latitude: Double, val longitude: Double)
 
+enum class EventFilter {
+    ALL,
+    GOING,
+    NOT_GOING,
+    PENDING
+}
+
 sealed interface EventsUiState {
     object Loading : EventsUiState
     data class Success(
@@ -60,8 +67,8 @@ class EventsViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _showOnlyAttending = MutableStateFlow(false)
-    val showOnlyAttending: StateFlow<Boolean> = _showOnlyAttending.asStateFlow()
+    private val _eventFilter = MutableStateFlow(EventFilter.ALL)
+    val eventFilter: StateFlow<EventFilter> = _eventFilter.asStateFlow()
 
     fun setUserLocation(location: UserLocation?) {
         _userLocation.value = location
@@ -71,8 +78,8 @@ class EventsViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    fun toggleShowOnlyAttending() {
-        _showOnlyAttending.value = !_showOnlyAttending.value
+    fun setEventFilter(filter: EventFilter) {
+        _eventFilter.value = filter
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -84,8 +91,8 @@ class EventsViewModel @Inject constructor(
         },
         _userLocation,
         _searchQuery,
-        _showOnlyAttending
-    ) { uid, events, location, query, showOnlyAttending ->
+        _eventFilter
+    ) { uid, events, location, query, filter ->
         if (uid.isBlank()) {
             EventsUiState.Error(UiText.StringResource(R.string.error_unauthorized))
         } else {
@@ -136,18 +143,23 @@ class EventsViewModel @Inject constructor(
                     }
                 }
 
-            val finalMyEvents = myEvents // Host is always attending their own event
-
-            val finalPendingEvents = if (showOnlyAttending) {
-                pendingEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
-            } else {
-                pendingEvents
+            val finalMyEvents = when (filter) {
+                EventFilter.ALL, EventFilter.GOING -> myEvents // Host is always attending their own event
+                else -> emptyList()
             }
 
-            val finalPublicEvents = if (showOnlyAttending) {
-                publicEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
-            } else {
-                publicEvents
+            val finalPendingEvents = when (filter) {
+                EventFilter.ALL -> pendingEvents
+                EventFilter.GOING -> pendingEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
+                EventFilter.NOT_GOING -> pendingEvents.filter { it.guests[uid] == GuestStatus.DECLINED.name }
+                EventFilter.PENDING -> pendingEvents.filter { (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name }
+            }
+
+            val finalPublicEvents = when (filter) {
+                EventFilter.ALL -> publicEvents
+                EventFilter.GOING -> publicEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
+                EventFilter.NOT_GOING -> publicEvents.filter { it.guests[uid] == GuestStatus.DECLINED.name }
+                EventFilter.PENDING -> publicEvents.filter { (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name }
             }
 
             EventsUiState.Success(

@@ -66,7 +66,7 @@ fun EventsRoute(
     val selectedTabIndex = viewModel.selectedTabIndex
     val searchQuery by viewModel.searchQuery.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
-    val showOnlyAttending by viewModel.showOnlyAttending.collectAsState()
+    val eventFilter by viewModel.eventFilter.collectAsState()
 
     EventsScreen(
         uiState = uiState,
@@ -82,8 +82,8 @@ fun EventsRoute(
         use24HourFormat = use24HourFormat,
         onNavigateToCreateEvent = onNavigateToCreateEvent,
         onNavigateToEventDetails = onNavigateToEventDetails,
-        showOnlyAttending = showOnlyAttending,
-        onToggleShowOnlyAttending = { viewModel.toggleShowOnlyAttending() }
+        eventFilter = eventFilter,
+        onEventFilterChange = { viewModel.setEventFilter(it) }
     )
 }
 
@@ -102,8 +102,8 @@ fun EventsScreen(
     use24HourFormat: Boolean,
     onNavigateToCreateEvent: () -> Unit,
     onNavigateToEventDetails: (String) -> Unit,
-    showOnlyAttending: Boolean,
-    onToggleShowOnlyAttending: () -> Unit
+    eventFilter: EventFilter,
+    onEventFilterChange: (EventFilter) -> Unit
 ) {
     val context = LocalContext.current
     var showFilterMenu by remember { mutableStateOf(false) }
@@ -121,6 +121,9 @@ fun EventsScreen(
     }
 
     LaunchedEffect(selectedTabIndex) {
+        if (selectedTabIndex == 0) {
+            onEventFilterChange(EventFilter.ALL)
+        }
         if (selectedTabIndex == 2) {
             val fineGranted = ActivityCompat.checkSelfPermission(
                 context,
@@ -161,10 +164,11 @@ fun EventsScreen(
                 showBackButton = false,
                 onBack = {},
                 action = {
+                    val isFilterActive = eventFilter != EventFilter.ALL
                     Box {
                         IconButton(onClick = { showFilterMenu = true }) {
                             Box(contentAlignment = Alignment.Center) {
-                                if (showOnlyAttending) {
+                                if (isFilterActive) {
                                     Box(
                                         modifier = Modifier
                                             .size(32.dp)
@@ -182,10 +186,10 @@ fun EventsScreen(
                                 Icon(
                                     imageVector = Icons.Default.FilterList,
                                     contentDescription = stringResource(R.string.description_filter),
-                                    tint = if (showOnlyAttending) MaterialTheme.colorScheme.primary
+                                    tint = if (isFilterActive) MaterialTheme.colorScheme.primary
                                     else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                if (showOnlyAttending) {
+                                if (isFilterActive) {
                                     Box(
                                         modifier = Modifier
                                             .size(8.dp)
@@ -208,39 +212,86 @@ fun EventsScreen(
                             expanded = showFilterMenu,
                             onDismissRequest = { showFilterMenu = false }
                         ) {
+                            val isFilterEnabled = selectedTabIndex != 0
                             DropdownMenuItem(
                                 modifier = Modifier.padding(start = 8.dp),
                                 text = {
                                     Text(
-                                        text = stringResource(R.string.filter_all_events),
-                                        fontWeight = if (!showOnlyAttending) FontWeight.ExtraBold
+                                        text = stringResource(R.string.label_all_events),
+                                        fontWeight = if (eventFilter == EventFilter.ALL) FontWeight.ExtraBold
                                         else FontWeight.Normal,
-                                        color = if (!showOnlyAttending) MaterialTheme.colorScheme.primary
+                                        color = if (eventFilter == EventFilter.ALL) MaterialTheme.colorScheme.primary
                                         else MaterialTheme.colorScheme.onSurface
                                     )
                                 },
                                 onClick = {
-                                    if (showOnlyAttending) {
-                                        onToggleShowOnlyAttending()
-                                    }
+                                    onEventFilterChange(EventFilter.ALL)
                                     showFilterMenu = false
                                 }
                             )
                             DropdownMenuItem(
                                 modifier = Modifier.padding(start = 8.dp),
+                                enabled = isFilterEnabled,
                                 text = {
                                     Text(
-                                        text = stringResource(R.string.filter_only_attending),
-                                        fontWeight = if (showOnlyAttending) FontWeight.ExtraBold
+                                        text = stringResource(R.string.label_going_self),
+                                        fontWeight = if (eventFilter == EventFilter.GOING) FontWeight.ExtraBold
                                         else FontWeight.Normal,
-                                        color = if (showOnlyAttending) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurface
+                                        color = if (!isFilterEnabled) {
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        } else if (eventFilter == EventFilter.GOING) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        }
                                     )
                                 },
                                 onClick = {
-                                    if (!showOnlyAttending) {
-                                        onToggleShowOnlyAttending()
-                                    }
+                                    onEventFilterChange(EventFilter.GOING)
+                                    showFilterMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                modifier = Modifier.padding(start = 8.dp),
+                                enabled = isFilterEnabled,
+                                text = {
+                                    Text(
+                                        text = stringResource(R.string.label_not_going_self),
+                                        fontWeight = if (eventFilter == EventFilter.NOT_GOING) FontWeight.ExtraBold
+                                        else FontWeight.Normal,
+                                        color = if (!isFilterEnabled) {
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        } else if (eventFilter == EventFilter.NOT_GOING) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                },
+                                onClick = {
+                                    onEventFilterChange(EventFilter.NOT_GOING)
+                                    showFilterMenu = false
+                                }
+                            )
+                            DropdownMenuItem(
+                                modifier = Modifier.padding(start = 8.dp),
+                                enabled = isFilterEnabled,
+                                text = {
+                                    Text(
+                                        text = stringResource(R.string.label_pending),
+                                        fontWeight = if (eventFilter == EventFilter.PENDING) FontWeight.ExtraBold
+                                        else FontWeight.Normal,
+                                        color = if (!isFilterEnabled) {
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                        } else if (eventFilter == EventFilter.PENDING) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                },
+                                onClick = {
+                                    onEventFilterChange(EventFilter.PENDING)
                                     showFilterMenu = false
                                 }
                             )
