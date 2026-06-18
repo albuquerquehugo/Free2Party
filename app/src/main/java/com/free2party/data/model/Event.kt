@@ -53,6 +53,7 @@ data class EventComment(
     val userName: String = "",
     val userProfilePic: String = "",
     val text: String = "",
+    val edited: Boolean = false,
     @ServerTimestamp
     val createdAt: Date? = null
 )

@@ -383,6 +383,9 @@
     <string name="title_event_details">Event Details</string>
     <string name="title_events">Events</string>
     <string name="toast_comment_deleted">Comment deleted</string>
+    <string name="label_comment_edited">(edited)</string>
+    <string name="label_discard">Discard</string>
+    <string name="label_editing_comment">Editing comment</string>
     <string name="toast_comment_posted">Comment posted!</string>
     <string name="toast_event_created">Event created successfully!</string>
     <string name="toast_event_deleted">Event deleted!</string>

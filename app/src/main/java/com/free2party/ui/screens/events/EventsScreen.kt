@@ -564,7 +564,7 @@ fun EventCard(
                         color = badgeColor,
                         modifier = Modifier
                             .background(badgeColor.copy(alpha = 0.15f), CircleShape)
-                            .border(1.dp, badgeColor.copy(alpha = 0.3f), CircleShape)
+                            .border(1.dp, badgeColor.copy(alpha = 0.5f), CircleShape)
                             .padding(horizontal = 10.dp, vertical = 2.dp)
                     )
                 }
@@ -668,7 +668,7 @@ fun EventCard(
                     color = typeColor,
                     modifier = Modifier
                         .background(typeColor.copy(alpha = 0.15f), CircleShape)
-                        .border(1.dp, typeColor.copy(alpha = 0.3f), CircleShape)
+                        .border(1.dp, typeColor.copy(alpha = 0.5f), CircleShape)
                         .padding(horizontal = 10.dp, vertical = 2.dp)
                 )
             }

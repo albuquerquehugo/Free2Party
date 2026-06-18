@@ -378,6 +378,21 @@ class EventRepositoryImpl @Inject constructor(
         Result.failure(mapToEventException(e))
     }
 
+    override suspend fun editComment(eventId: String, commentId: String, newText: String): Result<Unit> = try {
+        validateSession()
+        if (newText.isBlank()) throw InvalidEventDataException("Comment text cannot be empty")
+        db.collection("events").document(eventId)
+            .collection("comments").document(commentId)
+            .update(mapOf(
+                "text" to newText,
+                "edited" to true
+            ))
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToEventException(e))
+    }
+
     override suspend fun deleteComment(eventId: String, commentId: String): Result<Unit> = try {
         validateSession()
         db.collection("events").document(eventId)

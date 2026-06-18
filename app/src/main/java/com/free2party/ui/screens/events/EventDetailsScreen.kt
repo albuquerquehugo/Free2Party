@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,6 +105,8 @@ fun EventDetailsScreen(
     val guestProfiles by viewModel.eventGuests.collectAsState()
 
     var commentText by remember { mutableStateOf("") }
+    var editingComment by remember { mutableStateOf<EventComment?>(null) }
+    var activeMenuCommentId by remember { mutableStateOf<String?>(null) }
     var selectedFriendForProfile by remember { mutableStateOf<FriendInfo?>(null) }
     var selectedPhotoForView by remember { mutableStateOf<EventPhoto?>(null) }
     var selectedStatuses by remember {
@@ -401,65 +404,6 @@ fun EventDetailsScreen(
                                     contentPadding = PaddingValues(horizontal = 12.dp)
                                 ) {
                                     Text(stringResource(R.string.label_open_in_maps))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Useful Links Card
-            if (ev.usefulLinks.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.label_useful_links),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        ev.usefulLinks.forEach { link ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        val intent = Intent(Intent.ACTION_VIEW, link.url.toUri())
-                                        context.startActivity(intent)
-                                    }
-                                    .padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Link,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        link.title,
-                                        fontWeight = FontWeight.SemiBold,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        link.url,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
                                 }
                             }
                         }
@@ -822,6 +766,65 @@ fun EventDetailsScreen(
                 }
             }
 
+            // Useful Links Card
+            if (ev.usefulLinks.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.label_useful_links),
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        ev.usefulLinks.forEach { link ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val intent = Intent(Intent.ACTION_VIEW, link.url.toUri())
+                                        context.startActivity(intent)
+                                    }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Link,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        link.title,
+                                        fontWeight = FontWeight.SemiBold,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        link.url,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Photo Album Section (Host & Accepted users only)
             if (isAccepted) {
                 Card(
@@ -934,128 +937,288 @@ fun EventDetailsScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.Top
                                 ) {
-                                    // User profile
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    ) {
-                                        if (comment.userProfilePic.isNotBlank()) {
-                                            AsyncImage(
-                                                model = comment.userProfilePic,
-                                                contentDescription = null,
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        } else {
-                                            Icon(
-                                                Icons.Default.Person,
-                                                contentDescription = null,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    // Comment bubble
-                                    Card(
-                                        modifier = Modifier.weight(1f),
-                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                                    ) {
-                                        Column(modifier = Modifier.padding(8.dp)) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    comment.userName,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 12.sp
+                                    val userProfile: @Composable () -> Unit = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            if (comment.userProfilePic.isNotBlank()) {
+                                                AsyncImage(
+                                                    model = comment.userProfilePic,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Crop
                                                 )
-                                                Text(
-                                                    formatTimeAgo(comment.createdAt).asString(),
-                                                    fontSize = 10.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            } else {
+                                                Icon(
+                                                    Icons.Default.Person,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize()
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(comment.text, fontSize = 13.sp)
                                         }
                                     }
-                                    // Delete comment if owner or host
-                                    if (comment.userId == currentUserId || isHost) {
-                                        IconButton(
-                                            onClick = { showDeleteCommentDialog = comment },
-                                            modifier = Modifier.size(24.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Delete,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.error
-                                            )
+                                    val commentBubble: @Composable (Modifier) -> Unit =
+                                        { modifier ->
+                                            val isBeingEdited = editingComment?.id == comment.id
+                                            Card(
+                                                modifier = modifier
+                                                    .then(
+                                                        if (isBeingEdited) Modifier.border(
+                                                            BorderStroke(
+                                                                1.dp,
+                                                                MaterialTheme.colorScheme.primary
+                                                            ),
+                                                            shape = CardDefaults.shape
+                                                        ) else Modifier
+                                                    ),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = when {
+                                                        isBeingEdited -> MaterialTheme.colorScheme.primary.copy(
+                                                            alpha = 0.2f
+                                                        )
+
+                                                        comment.userId == currentUserId -> MaterialTheme.colorScheme.primaryContainer
+                                                        else -> MaterialTheme.colorScheme.surface
+                                                    },
+                                                    contentColor = when {
+                                                        isBeingEdited -> MaterialTheme.colorScheme.onSurfaceVariant
+                                                        comment.userId == currentUserId -> MaterialTheme.colorScheme.onPrimaryContainer
+                                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                                    }
+                                                )
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier.padding(
+                                                        horizontal = 12.dp,
+                                                        vertical = 8.dp
+                                                    )
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            text =
+                                                                if (comment.userId == currentUserId) stringResource(
+                                                                    R.string.label_you
+                                                                )
+                                                                else comment.userName,
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 12.sp,
+                                                            color = MaterialTheme.colorScheme.primary
+                                                        )
+                                                        Row(
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                4.dp
+                                                            )
+                                                        ) {
+                                                            if (comment.edited) {
+                                                                Text(
+                                                                    text = stringResource(R.string.label_comment_edited),
+                                                                    fontSize = 9.sp,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                                                        alpha = 0.6f
+                                                                    )
+                                                                )
+                                                            }
+                                                            Text(
+                                                                text = formatTimeAgo(comment.createdAt).asString(),
+                                                                fontSize = 10.sp,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+                                                    }
+                                                    Spacer(modifier = Modifier.height(4.dp))
+                                                    Text(text = comment.text, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                                                }
+                                            }
                                         }
+                                    val dropdownMenu: @Composable () -> Unit = {
+                                        if (comment.userId == currentUserId || isHost) {
+                                            Box {
+                                                IconButton(
+                                                    onClick = { activeMenuCommentId = comment.id },
+                                                    modifier = Modifier.size(24.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.MoreVert,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(16.dp),
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                                DropdownMenu(
+                                                    expanded = activeMenuCommentId == comment.id,
+                                                    onDismissRequest = {
+                                                        activeMenuCommentId = null
+                                                    }
+                                                ) {
+                                                    if (comment.userId == currentUserId) {
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.label_edit)) },
+                                                            onClick = {
+                                                                activeMenuCommentId = null
+                                                                editingComment = comment
+                                                                commentText = comment.text
+                                                            },
+                                                            leadingIcon = {
+                                                                Icon(
+                                                                    Icons.Default.Edit,
+                                                                    contentDescription = null,
+                                                                    modifier = Modifier.size(16.dp)
+                                                                )
+                                                            }
+                                                        )
+                                                    }
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.label_delete)) },
+                                                        onClick = {
+                                                            activeMenuCommentId = null
+                                                            showDeleteCommentDialog = comment
+                                                        },
+                                                        leadingIcon = {
+                                                            Icon(
+                                                                Icons.Default.Delete,
+                                                                contentDescription = null,
+                                                                modifier = Modifier.size(16.dp),
+                                                                tint = MaterialTheme.colorScheme.error
+                                                            )
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    val isCurrentUserComment = comment.userId == currentUserId
+                                    if (isCurrentUserComment) {
+                                        dropdownMenu()
+                                        commentBubble(Modifier.weight(1f))
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        userProfile()
+                                    } else {
+                                        userProfile()
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        commentBubble(Modifier.weight(1f))
+                                        dropdownMenu()
                                     }
                                 }
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
                     // Input to write comment
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = commentText,
-                            onValueChange = { commentText = it },
-                            textStyle = MaterialTheme.typography.bodyMedium,
-                            placeholder = {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        if (editingComment != null) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text(
-                                    stringResource(R.string.placeholder_comment),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    text = stringResource(R.string.label_editing_comment),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
                                 )
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .bringIntoViewRequester(commentBringIntoViewRequester),
-                            interactionSource = commentInteractionSource,
-                            maxLines = 3,
-                            shape = RoundedCornerShape(24.dp),
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.Sentences,
-                                imeAction = ImeAction.Done
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = {
-                                if (commentText.isNotBlank()) {
-                                    viewModel.addComment(
-                                        eventId = eventId,
-                                        text = commentText.trim(),
-                                        onSuccess = { commentText = "" },
-                                        onError = { err ->
-                                            Toast.makeText(
-                                                context,
-                                                err.asString(context),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                TextButton(
+                                    onClick = {
+                                        editingComment = null
+                                        commentText = ""
+                                    },
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.label_discard),
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Bold
                                     )
                                 }
-                            },
-                            enabled = commentText.isNotBlank()
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = stringResource(R.string.label_post_comment),
-                                tint = MaterialTheme.colorScheme.primary
+                            OutlinedTextField(
+                                value = commentText,
+                                onValueChange = { commentText = it },
+                                textStyle = MaterialTheme.typography.bodyMedium,
+                                placeholder = {
+                                    Text(
+                                        stringResource(R.string.placeholder_comment),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                            alpha = 0.6f
+                                        )
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .bringIntoViewRequester(commentBringIntoViewRequester),
+                                interactionSource = commentInteractionSource,
+                                maxLines = 5,
+                                shape = RoundedCornerShape(24.dp),
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Sentences,
+                                    keyboardType = KeyboardType.Text
+                                )
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    if (commentText.isNotBlank()) {
+                                        val editCommentObj = editingComment
+                                        if (editCommentObj != null) {
+                                            viewModel.editComment(
+                                                eventId = eventId,
+                                                commentId = editCommentObj.id,
+                                                text = commentText.trim(),
+                                                onSuccess = {
+                                                    editingComment = null
+                                                    commentText = ""
+                                                },
+                                                onError = { err ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        err.asString(context),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            )
+                                        } else {
+                                            viewModel.addComment(
+                                                eventId = eventId,
+                                                text = commentText.trim(),
+                                                onSuccess = { commentText = "" },
+                                                onError = { err ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        err.asString(context),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            )
+                                        }
+                                    }
+                                },
+                                enabled = commentText.isNotBlank()
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Send,
+                                    contentDescription = stringResource(R.string.label_post_comment),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }

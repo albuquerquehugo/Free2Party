@@ -80,6 +80,7 @@ import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.BaseDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.text.input.KeyboardType
 import com.free2party.ui.components.FriendSelector
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
@@ -466,6 +467,7 @@ fun CreateEventScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
+                    keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Default
                 ),
                 singleLine = false,

@@ -566,4 +566,14 @@ class EventRepositoryTest {
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is InvalidEventDataException)
     }
+
+    @Test
+    fun `editComment fails if text is blank`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val result = repository.editComment("123", "commentId", "   ")
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+    }
 }

@@ -441,6 +441,23 @@ class EventsViewModel @Inject constructor(
         }
     }
 
+        fun editComment(
+            eventId: String,
+            commentId: String,
+            text: String,
+            onSuccess: () -> Unit,
+            onError: (UiText) -> Unit
+        ) {
+            viewModelScope.launch {
+                eventRepository.editComment(eventId, commentId, text)
+                    .onSuccess { onSuccess() }
+                    .onFailure { error ->
+                        Log.e("EventsViewModel", "Error editing comment", error)
+                        onError(UiText.StringResource(R.string.error_database_operation))
+                    }
+            }
+        }
+
     fun deleteComment(
         eventId: String,
         commentId: String,

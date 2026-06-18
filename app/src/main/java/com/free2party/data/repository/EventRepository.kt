@@ -17,6 +17,7 @@ interface EventRepository {
     suspend fun deleteEvent(eventId: String): Result<Unit>
     suspend fun respondToEvent(eventId: String, status: GuestStatus): Result<Unit>
     suspend fun addComment(eventId: String, text: String): Result<Unit>
+    suspend fun editComment(eventId: String, commentId: String, newText: String): Result<Unit>
     suspend fun deleteComment(eventId: String, commentId: String): Result<Unit>
     suspend fun uploadPhoto(eventId: String, uri: Uri): Result<Unit>
     suspend fun deletePhoto(eventId: String, photoId: String, storageUrl: String): Result<Unit>
