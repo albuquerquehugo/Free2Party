@@ -39,7 +39,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -176,6 +175,10 @@ fun EventDetailsScreen(
         } ?: formatTimeForDisplay(ev.startTime, use24Hour)
     }
 
+    val isPastStartTime = remember(eventDateTime) {
+        eventDateTime?.let { System.currentTimeMillis() > it.time } ?: false
+    }
+
     Scaffold(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
@@ -186,12 +189,14 @@ fun EventDetailsScreen(
                 action = {
                     if (isHost) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { onNavigateToEditEvent(eventId) }) {
-                                Icon(
-                                    Icons.Default.Edit,
-                                    contentDescription = stringResource(R.string.label_edit),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            if (!isPastStartTime) {
+                                IconButton(onClick = { onNavigateToEditEvent(eventId) }) {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = stringResource(R.string.label_edit),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                             IconButton(onClick = { showDeleteEventDialog = true }) {
                                 Icon(
@@ -1033,7 +1038,11 @@ fun EventDetailsScreen(
                                                         }
                                                     }
                                                     Spacer(modifier = Modifier.height(4.dp))
-                                                    Text(text = comment.text, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                                                    Text(
+                                                        text = comment.text,
+                                                        fontSize = 12.sp,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
                                                 }
                                             }
                                         }

@@ -8,6 +8,7 @@ import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.exception.DatabaseOperationException
 import com.free2party.exception.EventNotFoundException
+import com.free2party.exception.EventAlreadyStartedException
 import com.free2party.exception.InvalidEventDataException
 import com.free2party.exception.PastEventDateTimeException
 import com.free2party.exception.GuestsMandatoryPrivateException
@@ -249,6 +250,18 @@ class EventRepositoryImpl @Inject constructor(
 
         db.runTransaction { transaction ->
             val oldDoc = transaction.get(docRef)
+            if (!oldDoc.exists()) {
+                throw EventNotFoundException()
+            }
+            val oldStartDate = oldDoc.getString("startDate") ?: ""
+            val oldStartTime = oldDoc.getString("startTime") ?: ""
+            if (oldStartDate.isNotBlank() && oldStartTime.isNotBlank()) {
+                val oldStartDateMillis = parseDateToMillis(oldStartDate)
+                if (oldStartDateMillis != null && isDateTimeInPast(oldStartDateMillis, oldStartTime)) {
+                    throw EventAlreadyStartedException()
+                }
+            }
+
             val oldGuestIds =
                 (oldDoc.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 

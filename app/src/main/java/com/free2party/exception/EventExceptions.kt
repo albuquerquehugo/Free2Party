@@ -27,3 +27,7 @@ class GuestsMandatoryPrivateException(
 class LocationMandatoryException(
     message: String? = null
 ) : EventException(message ?: "LocationMandatoryException", R.string.error_location_mandatory)
+
+class EventAlreadyStartedException(
+    message: String? = null
+) : EventException(message ?: "EventAlreadyStartedException", R.string.error_event_already_started)

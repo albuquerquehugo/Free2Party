@@ -408,6 +408,7 @@
     <string name="error_email_not_verified_resend">Não recebeu o link de verificação?</string>
     <string name="error_email_not_verified_resend_clickable">Reenviar.</string>
     <string name="error_end_date_mandatory">A data e hora de término são obrigatórias</string>
+    <string name="error_event_already_started">Não é possível editar um evento que já começou</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_failed_delete_plan">Falha ao excluir o plano.</string>
     <string name="error_failed_reset_password">Falha ao enviar e-mail de redefinição</string>

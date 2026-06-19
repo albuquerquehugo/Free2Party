@@ -8,6 +8,7 @@ import com.free2party.exception.PastEventDateTimeException
 import com.free2party.exception.UnauthorizedException
 import com.free2party.exception.GuestsMandatoryPrivateException
 import com.free2party.exception.LocationMandatoryException
+import com.free2party.exception.EventAlreadyStartedException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -299,6 +300,9 @@ class EventRepositoryTest {
         )
         every { eventsCollection.document("event123") } returns eventDoc
         val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.exists() } returns true
+        every { oldDoc.getString("startDate") } returns "2026-07-10"
+        every { oldDoc.getString("startTime") } returns "10:00"
         every { oldDoc.get("guestIds") } returns emptyList<String>()
         every { oldDoc.getString("hostName") } returns "Host Name"
         every { oldDoc.getString("hostEmail") } returns "host@test.com"
@@ -337,6 +341,9 @@ class EventRepositoryTest {
         )
         every { eventsCollection.document("event123") } returns eventDoc
         val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.exists() } returns true
+        every { oldDoc.getString("startDate") } returns "2026-07-10"
+        every { oldDoc.getString("startTime") } returns "10:00"
         every { oldDoc.get("guestIds") } returns emptyList<String>()
         every { oldDoc.getString("hostName") } returns "Host Name"
         every { oldDoc.getString("hostEmail") } returns "host@test.com"
@@ -406,6 +413,45 @@ class EventRepositoryTest {
         val result = repository.updateEvent(event)
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is PastEventDateTimeException)
+    }
+
+    @Test
+    fun `updateEvent fails if existing event has already started`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            id = "event123",
+            title = "Awesome Party Updated",
+            startDate = "2026-07-10",
+            endDate = "2026-07-10",
+            startTime = "10:00",
+            endTime = "11:00",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
+        )
+        every { eventsCollection.document("event123") } returns eventDoc
+        val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.exists() } returns true
+        every { oldDoc.getString("startDate") } returns "2020-01-01"
+        every { oldDoc.getString("startTime") } returns "10:00"
+        every { oldDoc.get("guestIds") } returns emptyList<String>()
+        every { oldDoc.getString("hostName") } returns "Host Name"
+        every { oldDoc.getString("hostEmail") } returns "host@test.com"
+
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.updateEvent(event)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is EventAlreadyStartedException)
     }
 
     @Test
