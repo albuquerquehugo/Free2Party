@@ -685,7 +685,7 @@ fun CreateEventScreen(
 
                 if (isStartDateInPast || isStartTimeInPast) {
                     Text(
-                        text = stringResource(R.string.error_past_event_date_time),
+                        text = stringResource(R.string.error_event_past_date_time),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.fillMaxWidth(),

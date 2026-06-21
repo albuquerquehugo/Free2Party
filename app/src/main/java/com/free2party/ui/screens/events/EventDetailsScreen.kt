@@ -97,6 +97,7 @@ fun EventDetailsScreen(
     val noMapAvailableMsg = stringResource(R.string.error_no_app_available)
     val photoUploadedMsg = stringResource(R.string.toast_photo_uploaded)
     val photoDeletedMsg = stringResource(R.string.toast_photo_deleted)
+    val editDisabledMsg = stringResource(R.string.error_event_edit_current_past)
 
     val event by viewModel.currentEvent.collectAsState()
     val comments by viewModel.comments.collectAsState()
@@ -189,14 +190,28 @@ fun EventDetailsScreen(
                 action = {
                     if (isHost) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (!isPastStartTime) {
-                                IconButton(onClick = { onNavigateToEditEvent(eventId) }) {
-                                    Icon(
-                                        Icons.Default.Edit,
-                                        contentDescription = stringResource(R.string.label_edit),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                            IconButton(
+                                onClick = {
+                                    if (isPastStartTime) {
+                                        Toast.makeText(
+                                            context,
+                                            editDisabledMsg,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        onNavigateToEditEvent(eventId)
+                                    }
                                 }
+                            ) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = stringResource(R.string.label_edit),
+                                    tint = if (isPastStartTime) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
                             }
                             IconButton(onClick = { showDeleteEventDialog = true }) {
                                 Icon(

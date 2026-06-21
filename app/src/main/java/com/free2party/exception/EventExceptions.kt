@@ -16,9 +16,9 @@ class InvalidEventDataException(
     message: String? = null
 ) : EventException(message ?: "InvalidEventDataException", R.string.error_invalid_event_data)
 
-class PastEventDateTimeException(
+class EventPastDateTimeException(
     message: String? = null
-) : EventException(message ?: "PastEventDateTimeException", R.string.error_past_event_date_time)
+) : EventException(message ?: "PastEventDateTimeException", R.string.error_event_past_date_time)
 
 class GuestsMandatoryPrivateException(
     message: String? = null
@@ -28,6 +28,6 @@ class LocationMandatoryException(
     message: String? = null
 ) : EventException(message ?: "LocationMandatoryException", R.string.error_location_mandatory)
 
-class EventAlreadyStartedException(
+class EventEditCurrentPastException(
     message: String? = null
-) : EventException(message ?: "EventAlreadyStartedException", R.string.error_event_already_started)
+) : EventException(message ?: "EventAlreadyStartedException", R.string.error_event_edit_current_past)

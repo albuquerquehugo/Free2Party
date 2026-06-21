@@ -19,7 +19,7 @@ import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.InvalidPlanDataException
 import com.free2party.exception.OverlappingPlanException
-import com.free2party.exception.PastDateTimeException
+import com.free2party.exception.PlanPastDateTimeException
 import com.free2party.util.UiText
 import com.free2party.util.parseDateToMillis
 import com.free2party.util.parseTimeToMillis
@@ -179,7 +179,7 @@ class CalendarViewModel @Inject constructor(
                 .onFailure { error ->
                     val message = when (error) {
                         is OverlappingPlanException -> UiText.StringResource(R.string.error_overlapping_plan)
-                        is PastDateTimeException -> UiText.StringResource(R.string.error_past_date_time)
+                        is PlanPastDateTimeException -> UiText.StringResource(R.string.error_plan_past_date_time)
                         is InvalidPlanDataException -> UiText.StringResource(R.string.error_invalid_plan_data)
                         else -> UiText.StringResource(R.string.error_failed_save_plan)
                     }
@@ -217,7 +217,7 @@ class CalendarViewModel @Inject constructor(
                 .onFailure { error ->
                     val message = when (error) {
                         is OverlappingPlanException -> UiText.StringResource(R.string.error_overlapping_plan)
-                        is PastDateTimeException -> UiText.StringResource(R.string.error_past_date_time)
+                        is PlanPastDateTimeException -> UiText.StringResource(R.string.error_plan_past_date_time)
                         is InvalidPlanDataException -> UiText.StringResource(R.string.error_invalid_plan_data)
                         else -> UiText.StringResource(R.string.error_failed_update_plan)
                     }

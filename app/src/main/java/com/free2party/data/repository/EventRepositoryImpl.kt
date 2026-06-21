@@ -8,9 +8,9 @@ import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.exception.DatabaseOperationException
 import com.free2party.exception.EventNotFoundException
-import com.free2party.exception.EventAlreadyStartedException
+import com.free2party.exception.EventEditCurrentPastException
 import com.free2party.exception.InvalidEventDataException
-import com.free2party.exception.PastEventDateTimeException
+import com.free2party.exception.EventPastDateTimeException
 import com.free2party.exception.GuestsMandatoryPrivateException
 import com.free2party.exception.LocationMandatoryException
 import com.free2party.exception.NetworkUnavailableException
@@ -258,7 +258,7 @@ class EventRepositoryImpl @Inject constructor(
             if (oldStartDate.isNotBlank() && oldStartTime.isNotBlank()) {
                 val oldStartDateMillis = parseDateToMillis(oldStartDate)
                 if (oldStartDateMillis != null && isDateTimeInPast(oldStartDateMillis, oldStartTime)) {
-                    throw EventAlreadyStartedException()
+                    throw EventEditCurrentPastException()
                 }
             }
 
@@ -487,7 +487,7 @@ class EventRepositoryImpl @Inject constructor(
             ?: throw InvalidEventDataException("Invalid end date format")
 
         if (isDateTimeInPast(startDateMillis, event.startTime)) {
-            throw PastEventDateTimeException()
+            throw EventPastDateTimeException()
         }
 
         if (startDateMillis > endDateMillis) {

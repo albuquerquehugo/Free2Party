@@ -261,17 +261,15 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
  * @param endDate The ending date in "yyyy-MM-dd" format.
  * @param startTime The starting time in "H:mm" or "HH:mm" format.
  * @param endTime The ending time in "H:mm" or "HH:mm" format.
- * @param context The context used to retrieve string resources.
- * @return A user-friendly string representing the duration.
+ * @return A UiText representing the duration.
  * Returns localized "0m" if the duration is zero or negative.
  */
 fun calculateDuration(
     startDate: String,
     endDate: String,
     startTime: String,
-    endTime: String,
-    context: Context
-): String {
+    endTime: String
+): UiText {
     val startDateMillis = parseDateToMillis(startDate) ?: 0L
     val endDateMillis = parseDateToMillis(endDate) ?: 0L
     val startTimeMinutes = parseTimeToMinutes(startTime) ?: 0
@@ -279,31 +277,20 @@ fun calculateDuration(
 
     val totalMins = ((endDateMillis - startDateMillis) / 60000L) + endTimeMinutes - startTimeMinutes
 
-    if (totalMins <= 0) return context.getString(R.string.duration_minutes, 0)
+    if (totalMins <= 0) return UiText.StringResource(R.string.duration_minutes, 0)
 
     val days = (totalMins / 1440).toInt()
     val remainingMinsAfterDays = (totalMins % 1440).toInt()
     val hours = remainingMinsAfterDays / 60
     val minutes = remainingMinsAfterDays % 60
 
-    return when {
-        days > 0 -> {
-            val d = context.getString(R.string.duration_days, days)
-            val h = if (hours > 0) " " + context.getString(R.string.duration_hours, hours) else ""
-            val m =
-                if (minutes > 0) " " + context.getString(R.string.duration_minutes, minutes) else ""
-            "$d$h$m".trim()
-        }
-
-        hours > 0 -> {
-            val h = context.getString(R.string.duration_hours, hours)
-            val m =
-                if (minutes > 0) " " + context.getString(R.string.duration_minutes, minutes) else ""
-            "$h$m".trim()
-        }
-
-        else -> context.getString(R.string.duration_minutes, minutes)
+    val parts = buildList {
+        if (days > 0) add(UiText.StringResource(R.string.duration_days, days))
+        if (hours > 0) add(UiText.StringResource(R.string.duration_hours, hours))
+        if (minutes > 0 || isEmpty()) add(UiText.StringResource(R.string.duration_minutes, minutes))
     }
+
+    return if (parts.size == 1) parts[0] else UiText.Composite(parts, " ")
 }
 
 /**

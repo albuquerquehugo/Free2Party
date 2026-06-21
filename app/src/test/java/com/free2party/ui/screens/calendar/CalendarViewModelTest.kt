@@ -7,6 +7,9 @@ import com.free2party.data.repository.PlanRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.OverlappingPlanException
+import com.free2party.exception.PlanPastDateTimeException
+import com.free2party.util.UiText
+import com.free2party.R
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -417,5 +420,64 @@ class CalendarViewModelTest {
         viewModel.selectedDateMillis = null
 
         assertTrue(viewModel.filteredPlans.isEmpty())
+    }
+
+    @Test
+    fun `savePlan maps PastDateTimeException to error_past_plan`() = runTest {
+        coEvery { planRepository.savePlan(any()) } returns Result.failure(PlanPastDateTimeException())
+        viewModel = CalendarViewModel(
+            planRepository,
+            userRepository,
+            socialRepository
+        )
+        var errorResId: Int? = null
+
+        viewModel.savePlan(
+            startDate = "2026-06-01",
+            endDate = "2026-06-01",
+            startTime = "10:00",
+            endTime = "11:00",
+            note = "Test Note",
+            visibility = PlanVisibility.EVERYONE,
+            friendsSelection = emptyList(),
+            onValidationError = { uiText ->
+                if (uiText is UiText.StringResource) {
+                    errorResId = uiText.resId
+                }
+            },
+            onSuccess = {}
+        )
+
+        assertEquals(R.string.error_past_plan, errorResId)
+    }
+
+    @Test
+    fun `updatePlan maps PastDateTimeException to error_past_plan`() = runTest {
+        coEvery { planRepository.updatePlan(any()) } returns Result.failure(PlanPastDateTimeException())
+        viewModel = CalendarViewModel(
+            planRepository,
+            userRepository,
+            socialRepository
+        )
+        var errorResId: Int? = null
+
+        viewModel.updatePlan(
+            planId = "plan123",
+            startDate = "2026-06-01",
+            endDate = "2026-06-01",
+            startTime = "10:00",
+            endTime = "11:00",
+            note = "Updated Note",
+            visibility = PlanVisibility.EVERYONE,
+            friendsSelection = emptyList(),
+            onError = { uiText ->
+                if (uiText is UiText.StringResource) {
+                    errorResId = uiText.resId
+                }
+            },
+            onSuccess = {}
+        )
+
+        assertEquals(R.string.error_past_plan, errorResId)
     }
 }

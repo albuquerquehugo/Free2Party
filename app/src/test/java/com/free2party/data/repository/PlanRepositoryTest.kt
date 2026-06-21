@@ -3,7 +3,7 @@ package com.free2party.data.repository
 import com.free2party.data.model.FuturePlan
 import com.free2party.exception.InvalidPlanDataException
 import com.free2party.exception.OverlappingPlanException
-import com.free2party.exception.PastDateTimeException
+import com.free2party.exception.PlanPastDateTimeException
 import com.free2party.exception.UnauthorizedException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
@@ -70,7 +70,7 @@ class PlanRepositoryTest {
         )
         val result = repository.savePlan(plan)
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PastDateTimeException)
+        assertTrue(result.exceptionOrNull() is PlanPastDateTimeException)
     }
 
     @Test

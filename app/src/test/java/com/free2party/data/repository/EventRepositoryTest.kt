@@ -4,11 +4,11 @@ import com.free2party.data.model.Event
 import com.free2party.data.model.GuestStatus
 import com.free2party.data.model.EventType
 import com.free2party.exception.InvalidEventDataException
-import com.free2party.exception.PastEventDateTimeException
+import com.free2party.exception.EventPastDateTimeException
 import com.free2party.exception.UnauthorizedException
 import com.free2party.exception.GuestsMandatoryPrivateException
 import com.free2party.exception.LocationMandatoryException
-import com.free2party.exception.EventAlreadyStartedException
+import com.free2party.exception.EventEditCurrentPastException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -112,7 +112,7 @@ class EventRepositoryTest {
         )
         val result = repository.saveEvent(event)
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PastEventDateTimeException)
+        assertTrue(result.exceptionOrNull() is EventPastDateTimeException)
     }
 
     @Test
@@ -412,7 +412,7 @@ class EventRepositoryTest {
         )
         val result = repository.updateEvent(event)
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is PastEventDateTimeException)
+        assertTrue(result.exceptionOrNull() is EventPastDateTimeException)
     }
 
     @Test
@@ -451,7 +451,7 @@ class EventRepositoryTest {
 
         val result = repository.updateEvent(event)
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is EventAlreadyStartedException)
+        assertTrue(result.exceptionOrNull() is EventEditCurrentPastException)
     }
 
     @Test

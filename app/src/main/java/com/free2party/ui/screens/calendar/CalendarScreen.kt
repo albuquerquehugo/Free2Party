@@ -179,6 +179,9 @@ fun CalendarScreen(
     val friends by viewModel.friendsList.collectAsState()
     val circles by viewModel.circles.collectAsState()
 
+    val context = LocalContext.current
+    val pastPlanMsg = stringResource(R.string.error_past_plan)
+
     val currentTimeMillis by produceState(initialValue = System.currentTimeMillis()) {
         while (true) {
             delay(BuildConfig.updateFrequency.milliseconds)
@@ -232,10 +235,13 @@ fun CalendarScreen(
 
                     IconButton(
                         onClick = {
-                            editingPlan = null
-                            setShowPlanDialog(true)
+                            if (isSelectedDateInPast) {
+                                Toast.makeText(context, pastPlanMsg, Toast.LENGTH_SHORT).show()
+                            } else {
+                                editingPlan = null
+                                setShowPlanDialog(true)
+                            }
                         },
-                        enabled = !isSelectedDateInPast,
                         modifier = Modifier
                             .padding(top = 8.dp)
                             .background(
@@ -290,10 +296,13 @@ fun CalendarScreen(
 
                 IconButton(
                     onClick = {
-                        editingPlan = null
-                        setShowPlanDialog(true)
+                        if (isSelectedDateInPast) {
+                            Toast.makeText(context, pastPlanMsg, Toast.LENGTH_SHORT).show()
+                        } else {
+                            editingPlan = null
+                            setShowPlanDialog(true)
+                        }
                     },
-                    enabled = !isSelectedDateInPast,
                     modifier = Modifier
                         .padding(top = 8.dp, bottom = 16.dp)
                         .background(

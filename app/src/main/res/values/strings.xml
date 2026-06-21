@@ -406,8 +406,9 @@
     <string name="error_email_not_verified_resend">Didn\'t receive the verification link?</string>
     <string name="error_email_not_verified_resend_clickable">Resend it.</string>
     <string name="error_end_date_mandatory">End date and time are mandatory</string>
-    <string name="error_event_already_started">Cannot edit an event that has already started</string>
+    <string name="error_event_edit_current_past">Cannot edit a current or past event</string>
     <string name="error_event_not_found">The event was not found.</string>
+    <string name="error_event_past_date_time">Cannot schedule events for a past date or time</string>
     <string name="error_failed_delete_plan">Failed to delete the plan.</string>
     <string name="error_failed_reset_password">Failed to send reset email</string>
     <string name="error_failed_save_plan">Failed to save the plan.</string>
@@ -440,9 +441,9 @@
     <string name="error_no_app_available">No app available to handle this request</string>
     <string name="error_overlapping_plan">This time slot overlaps with an existing plan. Please select a different time slot.</string>
     <string name="error_passwords_not_match">Passwords do not match</string>
-    <string name="error_past_date_time">Cannot schedule plans for a past date or time</string>
-    <string name="error_past_event_date_time">Cannot schedule events for a past date or time</string>
     <string name="error_past_plan">Cannot schedule plans in the past</string>
+    <string name="error_plan_edit_current_past">Cannot edit a current or past plan</string>
+    <string name="error_plan_past_date_time">Cannot schedule plans for a past date or time</string>
     <string name="error_plan_not_found">The plan you are looking for does not exist</string>
     <string name="error_profile_not_found">User profile not found. Please try logging out and in again.</string>
     <string name="error_recent_login_required">For security reasons, you must have logged in recently to delete your account. Please log out, log in, then try again.</string>
