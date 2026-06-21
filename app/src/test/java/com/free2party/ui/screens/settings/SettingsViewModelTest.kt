@@ -3,6 +3,7 @@ package com.free2party.ui.screens.settings
 import com.free2party.data.model.ThemeMode
 import com.free2party.data.model.User
 import com.free2party.data.model.UserSettings
+import com.free2party.data.model.DistanceUnit
 import com.free2party.data.repository.SettingsRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.util.UiText
@@ -153,6 +154,36 @@ class SettingsViewModelTest {
             state.user.birthdayShowType
         )
         assertEquals(listOf("friend1"), state.user.birthdayFriendsSelection)
+        coVerify { userRepository.updateUser(updatedUser) }
+    }
+
+    @Test
+    fun `updateSettings with distanceUnit success updates state and emits toast`() = runTest {
+        val updatedUser =
+            User(uid = "me", settings = UserSettings(distanceUnit = DistanceUnit.MILES))
+        coEvery { userRepository.updateUser(updatedUser) } answers {
+            userFlow.value = updatedUser
+            Result.success(Unit)
+        }
+
+        viewModel = SettingsViewModel(userRepository, settingsRepository, socialRepository)
+        runCurrent()
+
+        val events = mutableListOf<SettingsUiEvent>()
+        backgroundScope.launch {
+            viewModel.uiEvent.collect { events.add(it) }
+        }
+        runCurrent()
+
+        viewModel.updateSettings(updatedUser)
+        runCurrent()
+
+        val state = viewModel.uiState as SettingsUiState.Success
+        assertEquals(false, state.isSaving)
+        assertEquals(DistanceUnit.MILES, state.user.settings.distanceUnit)
+        val event = events.firstOrNull()
+        assertTrue(event is SettingsUiEvent.ShowToast)
+        assertTrue((event as SettingsUiEvent.ShowToast).message is UiText.StringResource)
         coVerify { userRepository.updateUser(updatedUser) }
     }
 }

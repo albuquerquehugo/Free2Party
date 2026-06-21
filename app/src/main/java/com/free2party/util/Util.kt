@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import com.free2party.data.model.Countries
 import com.free2party.data.model.BirthdayShowType
+import com.free2party.data.model.DistanceUnit
 import com.free2party.data.model.FuturePlan
 import com.free2party.R
 import java.text.SimpleDateFormat
@@ -657,24 +658,50 @@ fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: D
 }
 
 /**
- * Formats a distance in meters to a human readable localized string.
+ * Formats a distance in meters to a human-readable localized string.
  */
-fun formatDistance(context: Context, meters: Double): String {
-    return if (meters < 1000) {
-        context.getString(R.string.label_distance_m, meters.roundToInt())
-    } else {
-        val km = meters / 1000.0
-        context.getString(R.string.label_distance_km, km)
+fun formatDistance(
+    context: Context,
+    meters: Double,
+    unit: DistanceUnit = DistanceUnit.KILOMETERS
+): String {
+    return when (unit) {
+        DistanceUnit.KILOMETERS -> {
+            if (meters < 1000) {
+                context.getString(R.string.label_distance_m, meters.roundToInt())
+            } else {
+                val km = meters / 1000.0
+                context.getString(R.string.label_distance_km, km)
+            }
+        }
+
+        DistanceUnit.MILES -> {
+            val miles = meters * 0.000621371
+            if (miles < 0.1) {
+                val feet = meters * 3.28084
+                context.getString(R.string.label_distance_feet, feet.roundToInt())
+            } else {
+                context.getString(R.string.label_distance_miles, miles)
+            }
+        }
     }
 }
+
 
 /**
  * Gets the last known device location from available providers.
  */
 fun getLastKnownLocation(context: Context): Location? {
-    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
-    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    val locationManager =
+        context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+    if (ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED &&
+        ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
     ) {
         return null
     }

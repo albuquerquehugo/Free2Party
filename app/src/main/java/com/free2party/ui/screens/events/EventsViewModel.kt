@@ -57,6 +57,8 @@ class EventsViewModel @Inject constructor(
         private set
     var gradientBackground by mutableStateOf(true)
         private set
+    var distanceUnit by mutableStateOf(DistanceUnit.KILOMETERS)
+        private set
     var membership by mutableStateOf(Membership.REGULAR)
         private set
     var selectedTabIndex by mutableIntStateOf(0)
@@ -153,14 +155,18 @@ class EventsViewModel @Inject constructor(
                 EventFilter.ALL -> pendingEvents
                 EventFilter.GOING -> pendingEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
                 EventFilter.NOT_GOING -> pendingEvents.filter { it.guests[uid] == GuestStatus.DECLINED.name }
-                EventFilter.PENDING -> pendingEvents.filter { (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name }
+                EventFilter.PENDING -> pendingEvents.filter {
+                    (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
+                }
             }
 
             val finalPublicEvents = when (filter) {
                 EventFilter.ALL -> publicEvents
                 EventFilter.GOING -> publicEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
                 EventFilter.NOT_GOING -> publicEvents.filter { it.guests[uid] == GuestStatus.DECLINED.name }
-                EventFilter.PENDING -> publicEvents.filter { (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name }
+                EventFilter.PENDING -> publicEvents.filter {
+                    (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
+                }
             }
 
             EventsUiState.Success(
@@ -220,6 +226,7 @@ class EventsViewModel @Inject constructor(
             .onEach { user ->
                 gradientBackground = user.settings.gradientBackground
                 use24HourFormat = user.settings.use24HourFormat
+                distanceUnit = user.settings.distanceUnit
                 membership = user.membership
             }
             .catch { e -> Log.e("EventsViewModel", "Error observing user settings", e) }
@@ -441,22 +448,22 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-        fun editComment(
-            eventId: String,
-            commentId: String,
-            text: String,
-            onSuccess: () -> Unit,
-            onError: (UiText) -> Unit
-        ) {
-            viewModelScope.launch {
-                eventRepository.editComment(eventId, commentId, text)
-                    .onSuccess { onSuccess() }
-                    .onFailure { error ->
-                        Log.e("EventsViewModel", "Error editing comment", error)
-                        onError(UiText.StringResource(R.string.error_database_operation))
-                    }
-            }
+    fun editComment(
+        eventId: String,
+        commentId: String,
+        text: String,
+        onSuccess: () -> Unit,
+        onError: (UiText) -> Unit
+    ) {
+        viewModelScope.launch {
+            eventRepository.editComment(eventId, commentId, text)
+                .onSuccess { onSuccess() }
+                .onFailure { error ->
+                    Log.e("EventsViewModel", "Error editing comment", error)
+                    onError(UiText.StringResource(R.string.error_database_operation))
+                }
         }
+    }
 
     fun deleteComment(
         eventId: String,

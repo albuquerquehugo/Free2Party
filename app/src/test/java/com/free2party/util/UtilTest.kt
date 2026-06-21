@@ -1,6 +1,9 @@
 package com.free2party.util
 
+import com.free2party.data.model.DistanceUnit
 import com.free2party.data.model.FuturePlan
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -111,7 +114,7 @@ class UtilTest {
         val calendar = Calendar.getInstance(TimeZone.getDefault()).apply {
             timeInMillis = millis!!
         }
-        
+
         assertEquals(2026, calendar.get(Calendar.YEAR))
         assertEquals(Calendar.MAY, calendar.get(Calendar.MONTH))
         assertEquals(20, calendar.get(Calendar.DAY_OF_MONTH))
@@ -127,7 +130,7 @@ class UtilTest {
             startTime = "14:00",
             endTime = "16:00"
         )
-        
+
         val now = parseLocalDateTimeToMillis("2026-05-20", "15:00")!!
         assertTrue(isPlanActive(plan, now))
     }
@@ -140,10 +143,10 @@ class UtilTest {
             startTime = "14:00",
             endTime = "16:00"
         )
-        
+
         val before = parseLocalDateTimeToMillis("2026-05-20", "13:59")!!
         val after = parseLocalDateTimeToMillis("2026-05-20", "16:00")!!
-        
+
         assertFalse(isPlanActive(plan, before))
         assertFalse(isPlanActive(plan, after))
     }
@@ -188,5 +191,42 @@ class UtilTest {
         assertTrue(isDateTimeInPast(todayMillis, "12:30", now))
         assertFalse(isDateTimeInPast(todayMillis, "13:00", now))
         assertTrue(isDateTimeInPast(todayMillis, "invalid", now))
+    }
+
+    @Test
+    fun `formatDistance formatting for Kilometers and Miles`() {
+        val context = mockk<android.content.Context>(relaxed = true)
+
+        every { context.getString(com.free2party.R.string.label_distance_m, any()) } answers {
+            val formatArgs = secondArg<Any>()
+            val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
+            "$value m away"
+        }
+        every { context.getString(com.free2party.R.string.label_distance_km, any()) } answers {
+            val formatArgs = secondArg<Any>()
+            val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
+            "$value km away"
+        }
+        every { context.getString(com.free2party.R.string.label_distance_feet, any()) } answers {
+            val formatArgs = secondArg<Any>()
+            val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
+            "$value ft away"
+        }
+        every { context.getString(com.free2party.R.string.label_distance_miles, any()) } answers {
+            val formatArgs = secondArg<Any>()
+            val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
+            "$value mi away"
+        }
+
+        // Test Kilometers
+        assertEquals("500 m away", formatDistance(context, 500.0, DistanceUnit.KILOMETERS))
+        assertEquals("1.5 km away", formatDistance(context, 1500.0, DistanceUnit.KILOMETERS))
+
+        // Test Miles (meters to miles/feet)
+        // 50 meters is ~164 feet, which is < 0.1 miles (~160 meters) -> feet
+        assertEquals("164 ft away", formatDistance(context, 50.0, DistanceUnit.MILES))
+        // 2000 meters is ~1.24 miles -> miles
+        val milesText = formatDistance(context, 2000.0, DistanceUnit.MILES)
+        assertTrue(milesText.contains("mi away"))
     }
 }

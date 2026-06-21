@@ -208,6 +208,7 @@
     <string name="label_background">Plano de Fundo:</string>
     <string name="label_birthday_display_format">Como outros verão seu aniversário?</string>
     <string name="label_date_format">Formato da Data:</string>
+    <string name="label_distance_unit">Unidade de Distância:</string>
     <string name="label_everyone">Todos</string>
     <string name="label_everyone_except_label">Todos, exceto…</string>
     <string name="label_nobody">Ninguém</string>
@@ -218,6 +219,8 @@
     <string name="option_birthday_day_month">Apenas dia e mês</string>
     <string name="option_birthday_full">Data completa (com ano)</string>
     <string name="option_gradient">Gradiente</string>
+    <string name="option_kilometers">Quilômetros</string>
+    <string name="option_miles">Milhas</string>
     <string name="option_solid">Sólido</string>
     <string name="option_twenty_four_hour">24 horas</string>
     <string name="text_visibility_birthday">Quem pode ver seu aniversário?</string>
@@ -228,6 +231,7 @@
     <string name="title_settings">Configurações</string>
     <string name="title_theme_mode">Modo do Tema</string>
     <string name="toast_settings_updated">Configurações atualizadas com sucesso</string>
+
 
     <!-- Calendar Screen -->
     <string name="add_plan">Adicionar Plano</string>
@@ -331,8 +335,11 @@
     <string name="label_delete_comment_confirm">Tem certeza de que deseja excluir este comentário?</string>
     <string name="label_delete_event">Excluir Evento</string>
     <string name="label_delete_event_confirm">Tem certeza de que deseja excluir este evento? Esta ação não pode ser desfeita.</string>
+    <string name="label_distance_feet">%1$d ft de distância</string>
     <string name="label_distance_km">%1$.1f km de distância</string>
     <string name="label_distance_m">%1$d m de distância</string>
+    <string name="label_distance_miles">%1$.1f mi de distância</string>
+
     <string name="label_event_description">Descrição</string>
     <string name="label_event_guests_selection">Selecionar Convidados</string>
     <string name="label_event_title">Título</string>

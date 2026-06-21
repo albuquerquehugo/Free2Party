@@ -41,6 +41,7 @@ import com.free2party.data.model.Event
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.data.model.Membership
+import com.free2party.data.model.DistanceUnit
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
@@ -63,6 +64,7 @@ fun EventsRoute(
     val membership = viewModel.membership
     val currentUserId = viewModel.currentUserId
     val use24HourFormat = viewModel.use24HourFormat
+    val distanceUnit = viewModel.distanceUnit
     val selectedTabIndex = viewModel.selectedTabIndex
     val searchQuery by viewModel.searchQuery.collectAsState()
     val userLocation by viewModel.userLocation.collectAsState()
@@ -80,6 +82,7 @@ fun EventsRoute(
         membership = membership,
         currentUserId = currentUserId,
         use24HourFormat = use24HourFormat,
+        distanceUnit = distanceUnit,
         onNavigateToCreateEvent = onNavigateToCreateEvent,
         onNavigateToEventDetails = onNavigateToEventDetails,
         eventFilter = eventFilter,
@@ -100,6 +103,7 @@ fun EventsScreen(
     membership: Membership,
     currentUserId: String,
     use24HourFormat: Boolean,
+    distanceUnit: DistanceUnit,
     onNavigateToCreateEvent: () -> Unit,
     onNavigateToEventDetails: (String) -> Unit,
     eventFilter: EventFilter,
@@ -419,6 +423,7 @@ fun EventsScreen(
                                         currentUserId = currentUserId,
                                         use24Hour = use24HourFormat,
                                         userLocation = userLocation,
+                                        distanceUnit = distanceUnit,
                                         onClick = { onNavigateToEventDetails(event.id) }
                                     )
                                 }
@@ -459,6 +464,7 @@ fun EventCard(
     currentUserId: String,
     use24Hour: Boolean,
     userLocation: UserLocation?,
+    distanceUnit: DistanceUnit,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -470,7 +476,7 @@ fun EventCard(
         event.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.PENDING
     }
 
-    val distanceText = remember(event.latitude, event.longitude, userLocation) {
+    val distanceText = remember(event.latitude, event.longitude, userLocation, distanceUnit) {
         if (userLocation != null && event.latitude != null && event.longitude != null) {
             val meters = calculateHaversineDistance(
                 userLocation.latitude,
@@ -478,7 +484,7 @@ fun EventCard(
                 event.latitude,
                 event.longitude
             )
-            formatDistance(context, meters)
+            formatDistance(context, meters, distanceUnit)
         } else {
             null
         }
