@@ -227,8 +227,10 @@ fun MonthCalendar(
                             isPlanned && !isDateTimeInPast(dateMillis) ->
                                 MaterialTheme.colorScheme.onPrimaryContainer
 
-                            isDateTimeInPast(dateMillis) && !isToday ->
-                                MaterialTheme.colorScheme.inactive
+                            isDateTimeInPast(dateMillis) && !isToday -> {
+                                if (isPlanned) MaterialTheme.colorScheme.outline
+                                else MaterialTheme.colorScheme.inactive
+                            }
 
                             else -> MaterialTheme.colorScheme.onSurface
                         }

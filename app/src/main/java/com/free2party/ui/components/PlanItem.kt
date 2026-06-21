@@ -152,13 +152,13 @@ fun PlanItem(
             },
         colors = CardDefaults.cardColors(
             containerColor = (when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.tertiaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.surfaceVariant
+                planStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer
+                planStatus.isPast -> MaterialTheme.colorScheme.tertiaryContainer
                 else -> MaterialTheme.colorScheme.primaryContainer
             }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it },
             contentColor = when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.onTertiaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.onSurfaceVariant
+                planStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+                planStatus.isPast -> MaterialTheme.colorScheme.onTertiaryContainer
                 else -> MaterialTheme.colorScheme.onPrimaryContainer
             }
         )
@@ -332,8 +332,8 @@ private fun DateTimeLabel(time: String, date: String) {
 @Composable
 fun DurationBadge(text: String, status: PlanStatus) {
     val color = when {
-        status.isCurrent -> MaterialTheme.colorScheme.tertiary
-        status.isPast -> MaterialTheme.colorScheme.outline
+        status.isCurrent -> MaterialTheme.colorScheme.secondary
+        status.isPast -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.primary
     }
     Surface(
