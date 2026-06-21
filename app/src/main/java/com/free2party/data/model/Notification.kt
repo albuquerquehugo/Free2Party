@@ -6,17 +6,18 @@ import java.util.Date
 
 data class Notification(
     val id: String = "",
+    val type: NotificationType = NotificationType.GENERAL,
     val title: String = "",
+    val eventId: String = "",
     val message: String = "",
     @get:PropertyName("isRead")
     @set:PropertyName("isRead")
     var isRead: Boolean = false,
-    @ServerTimestamp
-    val timestamp: Date? = null,
-    val type: NotificationType = NotificationType.GENERAL,
     @get:PropertyName("isSilent")
     @set:PropertyName("isSilent")
-    var isSilent: Boolean = false
+    var isSilent: Boolean = false,
+    @ServerTimestamp
+    val timestamp: Date? = null
 )
 
 enum class NotificationType {
@@ -28,6 +29,7 @@ enum class NotificationType {
 
     // Events
     EVENT_INVITE,
+    EVENT_COMMENT,
 
     // System & Misc
     GENERAL,

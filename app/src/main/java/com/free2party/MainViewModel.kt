@@ -241,7 +241,9 @@ class MainViewModel @Inject constructor(
                         }
 
                         notifications.forEach { notification ->
-                            if (notification.type == NotificationType.FRIEND_ACCEPTED &&
+                            if ((notification.type == NotificationType.FRIEND_ACCEPTED ||
+                                        notification.type == NotificationType.EVENT_COMMENT ||
+                                        notification.type == NotificationType.EVENT_INVITE) &&
                                 !notification.isSilent &&
                                 !notification.isRead &&
                                 !shownIds.contains(notification.id) &&
@@ -275,7 +277,12 @@ class MainViewModel @Inject constructor(
                 if (!notification.isRead) {
                     socialRepository.markNotificationAsRead(notificationId)
                 }
-                _navigateToRoute.emit(Screen.Notifications.route)
+                if (notification.eventId.isNotBlank()) {
+                    val scrollToComments = notification.type == NotificationType.EVENT_COMMENT
+                    _navigateToRoute.emit(Screen.EventDetails.createRoute(notification.eventId, scrollToComments))
+                } else {
+                    _navigateToRoute.emit(Screen.Notifications.route)
+                }
                 return@launch
             }
 

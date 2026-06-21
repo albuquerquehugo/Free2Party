@@ -213,7 +213,8 @@ class EventRepositoryImpl @Inject constructor(
                         ),
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
-                        "type" to NotificationType.EVENT_INVITE.name
+                        "type" to NotificationType.EVENT_INVITE.name,
+                        "eventId" to eventWithDetails.id
                     )
                 )
             }
@@ -257,7 +258,11 @@ class EventRepositoryImpl @Inject constructor(
             val oldStartTime = oldDoc.getString("startTime") ?: ""
             if (oldStartDate.isNotBlank() && oldStartTime.isNotBlank()) {
                 val oldStartDateMillis = parseDateToMillis(oldStartDate)
-                if (oldStartDateMillis != null && isDateTimeInPast(oldStartDateMillis, oldStartTime)) {
+                if (oldStartDateMillis != null && isDateTimeInPast(
+                        oldStartDateMillis,
+                        oldStartTime
+                    )
+                ) {
                     throw EventEditCurrentPastException()
                 }
             }
@@ -288,7 +293,8 @@ class EventRepositoryImpl @Inject constructor(
                         ),
                         "isRead" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
-                        "type" to NotificationType.EVENT_INVITE.name
+                        "type" to NotificationType.EVENT_INVITE.name,
+                        "eventId" to event.id
                     )
                 )
             }
@@ -374,6 +380,9 @@ class EventRepositoryImpl @Inject constructor(
             "${userDoc.getString("firstName") ?: ""} ${userDoc.getString("lastName") ?: ""}".trim()
         val userProfilePic = userDoc.getString("profilePicUrl") ?: ""
 
+        val eventDoc = db.collection("events").document(eventId).get().await()
+        val event = eventDoc.toObject(Event::class.java) ?: throw EventNotFoundException()
+
         val commentRef = db.collection("events").document(eventId)
             .collection("comments").document()
 
@@ -385,21 +394,63 @@ class EventRepositoryImpl @Inject constructor(
             text = text,
             createdAt = Date()
         )
-        commentRef.set(comment).await()
+
+        // Find attending users to notify (excluding current user)
+        val attendingUserIds = mutableSetOf<String>()
+        if (event.hostId.isNotBlank() && event.hostId != uid) {
+            attendingUserIds.add(event.hostId)
+        }
+        event.guests.forEach { (guestId, status) ->
+            if (status == GuestStatus.ACCEPTED.name && guestId != uid) {
+                attendingUserIds.add(guestId)
+            }
+        }
+
+        val batch = db.batch()
+        batch.set(commentRef, comment)
+
+        attendingUserIds.forEach { targetUserId ->
+            val notifRef = db.collection("users").document(targetUserId)
+                .collection("notifications").document()
+            batch.set(
+                notifRef, mapOf(
+                    "id" to notifRef.id,
+                    "title" to context.getString(R.string.notification_event_comment_title),
+                    "message" to context.getString(
+                        R.string.notification_event_comment_body,
+                        userName.ifBlank { "Someone" },
+                        event.title,
+                        text
+                    ),
+                    "isRead" to false,
+                    "timestamp" to FieldValue.serverTimestamp(),
+                    "type" to NotificationType.EVENT_COMMENT.name,
+                    "eventId" to eventId
+                )
+            )
+        }
+
+        batch.commit().await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToEventException(e))
     }
 
-    override suspend fun editComment(eventId: String, commentId: String, newText: String): Result<Unit> = try {
+    override suspend fun editComment(
+        eventId: String,
+        commentId: String,
+        newText: String
+    ): Result<Unit> = try {
         validateSession()
         if (newText.isBlank()) throw InvalidEventDataException("Comment text cannot be empty")
         db.collection("events").document(eventId)
             .collection("comments").document(commentId)
-            .update(mapOf(
-                "text" to newText,
-                "edited" to true
-            ))
+            .update(
+                mapOf(
+                    "text" to newText,
+                    "edited" to true
+                )
+            )
             .await()
         Result.success(Unit)
     } catch (e: Exception) {

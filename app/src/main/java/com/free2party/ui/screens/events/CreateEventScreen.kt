@@ -82,6 +82,9 @@ import com.free2party.ui.components.dialogs.ConfirmationDialog
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.text.input.KeyboardType
 import com.free2party.ui.components.FriendSelector
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.ui.geometry.Rect
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
@@ -137,6 +140,8 @@ fun CreateEventScreen(
     var longitude by remember { mutableStateOf<Double?>(null) }
     var isLocationFocused by remember { mutableStateOf(false) }
     var hasInteractedWithLocation by remember { mutableStateOf(false) }
+    val locationBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     var selectedGuestsMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var hasInteractedWithGuests by remember { mutableStateOf(false) }
     var usefulLinksList by remember { mutableStateOf<List<EventLink>>(emptyList()) }
@@ -287,6 +292,15 @@ fun CreateEventScreen(
             }
         } else {
             locationSuggestions = emptyList()
+        }
+    }
+
+    LaunchedEffect(isLocationFocused) {
+        if (isLocationFocused) {
+            delay(100.milliseconds)
+            keyboardController?.show()
+            delay(100.milliseconds)
+            locationBringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 600f))
         }
     }
 
@@ -565,7 +579,6 @@ fun CreateEventScreen(
                             .weight(1f)
                             .height(44.dp),
                         onClick = {
-                            hasInteractedWithStart = true
                             setShowStartDatePicker(true)
                         }
                     ) {
@@ -584,7 +597,6 @@ fun CreateEventScreen(
                             .weight(0.6f)
                             .height(44.dp),
                         onClick = {
-                            hasInteractedWithStart = true
                             setShowStartTimePicker(true)
                         }
                     ) {
@@ -633,7 +645,6 @@ fun CreateEventScreen(
                             .weight(1f)
                             .height(44.dp),
                         onClick = {
-                            hasInteractedWithEnd = true
                             setShowEndDatePicker(true)
                         }
                     ) {
@@ -652,7 +663,6 @@ fun CreateEventScreen(
                             .weight(0.6f)
                             .height(44.dp),
                         onClick = {
-                            hasInteractedWithEnd = true
                             setShowEndTimePicker(true)
                         }
                     ) {
@@ -753,6 +763,7 @@ fun CreateEventScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .bringIntoViewRequester(locationBringIntoViewRequester)
                         .onFocusChanged { focusState ->
                             isLocationFocused = focusState.isFocused
                             if (focusState.isFocused) {
@@ -1226,9 +1237,15 @@ fun CreateEventScreen(
     // Date/Time selection dialog components (Reusing plan logic)
     if (showStartDatePicker) {
         DatePickerDialog(
-            onDismissRequest = { setShowStartDatePicker(false) },
+            onDismissRequest = {
+                setShowStartDatePicker(false)
+                hasInteractedWithStart = true
+            },
             confirmButton = {
-                TextButton(onClick = { setShowStartDatePicker(false) }) { Text(stringResource(R.string.label_ok)) }
+                TextButton(onClick = {
+                    setShowStartDatePicker(false)
+                    hasInteractedWithStart = true
+                }) { Text(stringResource(R.string.label_ok)) }
             }
         ) {
             DatePicker(state = startDatePickerState)
@@ -1237,9 +1254,15 @@ fun CreateEventScreen(
 
     if (showEndDatePicker) {
         DatePickerDialog(
-            onDismissRequest = { setShowEndDatePicker(false) },
+            onDismissRequest = {
+                setShowEndDatePicker(false)
+                hasInteractedWithEnd = true
+            },
             confirmButton = {
-                TextButton(onClick = { setShowEndDatePicker(false) }) { Text(stringResource(R.string.label_ok)) }
+                TextButton(onClick = {
+                    setShowEndDatePicker(false)
+                    hasInteractedWithEnd = true
+                }) { Text(stringResource(R.string.label_ok)) }
             }
         ) {
             DatePicker(state = endDatePickerState)
@@ -1253,6 +1276,12 @@ fun CreateEventScreen(
             is24Hour = use24Hour
         )
         BaseDialog(onDismissRequest = {
+            if (showStartTimePicker) {
+                hasInteractedWithStart = true
+            }
+            if (showEndTimePicker) {
+                hasInteractedWithEnd = true
+            }
             setShowStartTimePicker(false)
             setShowEndTimePicker(false)
         }) {
@@ -1278,9 +1307,11 @@ fun CreateEventScreen(
                         if (showStartTimePicker) {
                             startTimeState.hour = pickerState.hour
                             startTimeState.minute = pickerState.minute
+                            hasInteractedWithStart = true
                         } else {
                             endTimeState.hour = pickerState.hour
                             endTimeState.minute = pickerState.minute
+                            hasInteractedWithEnd = true
                         }
                         setShowStartTimePicker(false)
                         setShowEndTimePicker(false)

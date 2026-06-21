@@ -62,6 +62,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Locale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,7 +70,9 @@ import kotlin.time.Duration.Companion.milliseconds
 fun EventDetailsScreen(
     viewModel: EventsViewModel,
     eventId: String,
+    scrollToComments: Boolean = false,
     onNavigateToEditEvent: (String) -> Unit,
+    onNavigateToEvents: () -> Unit,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -83,12 +86,28 @@ fun EventDetailsScreen(
     val commentBringIntoViewRequester = remember { BringIntoViewRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val commentsBringIntoViewRequester = remember { BringIntoViewRequester() }
+
+    LaunchedEffect(scrollToComments, eventId) {
+        if (scrollToComments) {
+            delay(300.milliseconds)
+            commentsBringIntoViewRequester.bringIntoView()
+        }
+    }
+
     LaunchedEffect(isCommentFocused) {
         if (isCommentFocused) {
             delay(100.milliseconds)
             keyboardController?.show()
             delay(100.milliseconds)
             commentBringIntoViewRequester.bringIntoView(rect = Rect(0f, 0f, 0f, 200f))
+        }
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.eventNotFoundEvent.collectLatest {
+            Toast.makeText(context, R.string.error_event_not_found, Toast.LENGTH_SHORT).show()
+            onNavigateToEvents()
         }
     }
 
@@ -920,7 +939,9 @@ fun EventDetailsScreen(
 
             // Comment Section (All pending users)
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(commentsBringIntoViewRequester),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)

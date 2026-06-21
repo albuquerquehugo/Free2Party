@@ -80,6 +80,39 @@ fun String.matchNameAndEmail(context: Context): Pair<String, String>? {
 }
 
 /**
+ * Parses an event invitation notification message to extract the host name, host email, and event title.
+ * @return A [Triple] containing (hostName, hostEmail, eventTitle) if a match is found;
+ * otherwise, `null` if the message does not follow the expected pattern.
+ */
+fun String.matchEventInvitation(): Triple<String, String, String>? {
+    val regex = Regex("""^([^()]+) \(([^()]+)\).*[\\"]([^\\"]+)[\\"].*$""")
+    val matchResult = regex.find(this)
+    return if (matchResult != null && matchResult.groupValues.size >= 4) {
+        val name = matchResult.groupValues[1].trim()
+        val email = matchResult.groupValues[2].trim()
+        val eventTitle = matchResult.groupValues[3].trim()
+        Triple(name, email, eventTitle)
+    } else null
+}
+
+/**
+ * Parses an event comment notification message to extract the commenter's name, event title, and comment text.
+ * @return A [Triple] containing (commenterName, eventTitle, commentText) if a match is found;
+ * otherwise, `null` if the message does not follow the expected pattern.
+ */
+fun String.matchEventComment(): Triple<String, String, String>? {
+    val regex = Regex("""^([^"]+?)\s+(?:commented on event|comentou no evento)\s+\\?[\\"]([^\\"]+)\\?[\\"]:\s*(.*)$""", RegexOption.IGNORE_CASE)
+    val matchResult = regex.find(this)
+    return if (matchResult != null && matchResult.groupValues.size >= 4) {
+        val name = matchResult.groupValues[1].trim()
+        val eventTitle = matchResult.groupValues[2].trim()
+        val commentText = matchResult.groupValues[3].trim()
+        Triple(name, eventTitle, commentText)
+    } else null
+}
+
+
+/**
  * Capitalizes the first letter of each word in the string, separated by spaces.
  * @return A new string with each word capitalized.
  */

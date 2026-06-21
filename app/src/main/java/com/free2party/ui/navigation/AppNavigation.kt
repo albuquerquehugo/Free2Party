@@ -154,11 +154,11 @@ sealed class Screen(
     }
 
     object EventDetails : Screen(
-        route = "event_details/{eventId}",
+        route = "event_details/{eventId}?scrollToComments={scrollToComments}",
         labelResId = R.string.title_event_details
     ) {
-        fun createRoute(eventId: String): String {
-            return "event_details/$eventId"
+        fun createRoute(eventId: String, scrollToComments: Boolean = false): String {
+            return "event_details/$eventId?scrollToComments=$scrollToComments"
         }
     }
 
@@ -266,7 +266,8 @@ fun BottomNavigationBar(
     val unreadCountState = notificationsViewModel.itemsUnreadCount.collectAsState(initial = 0)
     val totalUnread = unreadCountState.value
 
-    val pendingInvitationsCountState = eventsViewModel.pendingInvitationsCount.collectAsState(initial = 0)
+    val pendingInvitationsCountState =
+        eventsViewModel.pendingInvitationsCount.collectAsState(initial = 0)
     val pendingInvitationsCount = pendingInvitationsCountState.value
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)) {
@@ -449,7 +450,17 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Notifications.route) {
-            NotificationsRoute(viewModel = notificationsViewModel)
+            NotificationsRoute(
+                viewModel = notificationsViewModel,
+                onNavigateToEventDetails = { eventId, scrollToComments ->
+                    navController.navigate(
+                        Screen.EventDetails.createRoute(
+                            eventId,
+                            scrollToComments
+                        )
+                    )
+                }
+            )
         }
 
         composable(Screen.Events.route) {
@@ -487,15 +498,26 @@ fun Free2PartyNavGraph(
             arguments = listOf(
                 navArgument("eventId") {
                     type = NavType.StringType
+                },
+                navArgument("scrollToComments") {
+                    type = NavType.BoolType
+                    defaultValue = false
                 }
             )
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            val scrollToComments = backStackEntry.arguments?.getBoolean("scrollToComments") ?: false
             EventDetailsScreen(
                 viewModel = hiltViewModel(),
                 eventId = eventId,
+                scrollToComments = scrollToComments,
                 onNavigateToEditEvent = { id ->
                     navController.navigate(Screen.CreateEvent.createRoute(id))
+                },
+                onNavigateToEvents = {
+                    navController.navigate(Screen.Events.route) {
+                        popUpTo(Screen.EventDetails.route) { inclusive = true }
+                    }
                 },
                 onBack = { navController.popBackStack() }
             )

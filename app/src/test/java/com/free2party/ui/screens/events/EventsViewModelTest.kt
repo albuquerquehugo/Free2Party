@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -451,5 +452,33 @@ class EventsViewModelTest {
         assertTrue(successState?.publicEvents?.isEmpty() == true)
 
         job.cancel()
+    }
+
+    @Test
+    fun `currentEvent load failure emits eventNotFoundEvent`() = runTest {
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+
+        every { eventRepository.getEventDetails("invalidId") } returns kotlinx.coroutines.flow.flow {
+            throw Exception("Not found")
+        }
+
+        var notFoundTriggered = false
+        val job = launch(testDispatcher) {
+            viewModel.eventNotFoundEvent.collect {
+                notFoundTriggered = true
+            }
+        }
+
+        viewModel.selectEvent("invalidId")
+
+        val job2 = launch(testDispatcher) {
+            viewModel.currentEvent.collect {}
+        }
+
+        runCurrent()
+
+        assertTrue(notFoundTriggered)
+        job.cancel()
+        job2.cancel()
     }
 }

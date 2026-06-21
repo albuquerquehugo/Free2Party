@@ -15,13 +15,16 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Transaction
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.storage.FirebaseStorage
 import android.content.Context
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
@@ -186,6 +189,11 @@ class EventRepositoryTest {
         val result = repository.saveEvent(event)
         assertTrue(result.isSuccess)
         assertTrue(result.getOrNull() == "newEventId")
+        verify {
+            transaction.set(any(), match<Map<String, Any>> { map ->
+                map["eventId"] == "newEventId" && map["type"] == "EVENT_INVITE"
+            })
+        }
     }
 
     @Test
@@ -319,6 +327,11 @@ class EventRepositoryTest {
 
         val result = repository.updateEvent(event)
         assertTrue(result.isSuccess)
+        verify {
+            transaction.set(any(), match<Map<String, Any>> { map ->
+                map["eventId"] == "event123" && map["type"] == "EVENT_INVITE"
+            })
+        }
     }
 
     @Test
@@ -621,5 +634,86 @@ class EventRepositoryTest {
         val result = repository.editComment("123", "commentId", "   ")
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+    }
+
+    @Test
+    fun `addComment succeeds and creates notifications for attendees`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        // Mock users/testUser fetch (commenter profile info)
+        val userDocSnapshot = mockk<DocumentSnapshot>()
+        val userRef = mockk<DocumentReference>()
+        val hostUserRef = mockk<DocumentReference>(relaxed = true)
+        val guest1Ref = mockk<DocumentReference>(relaxed = true)
+        val usersCollection = db.collection("users")
+        every { usersCollection.document("testUser") } returns userRef
+        every { usersCollection.document("hostUser") } returns hostUserRef
+        every { usersCollection.document("guest1") } returns guest1Ref
+        every { userRef.get() } returns Tasks.forResult(userDocSnapshot)
+        every { userDocSnapshot.getString("firstName") } returns "John"
+        every { userDocSnapshot.getString("lastName") } returns "Doe"
+        every { userDocSnapshot.getString("profilePicUrl") } returns "pic_url"
+
+        // Mock events/event123 fetch
+        val eventDocSnapshot = mockk<DocumentSnapshot>()
+        val eventRef = mockk<DocumentReference>()
+        every { db.collection("events").document("event123") } returns eventRef
+        every { eventRef.get() } returns Tasks.forResult(eventDocSnapshot)
+
+        // Mock event data deserialization
+        val event = Event(
+            id = "event123",
+            hostId = "hostUser",
+            title = "Awesome Party",
+            guests = mapOf(
+                "guest1" to GuestStatus.ACCEPTED.name,
+                "guest2" to GuestStatus.PENDING.name,
+                "testUser" to GuestStatus.ACCEPTED.name // commenter
+            )
+        )
+        every { eventDocSnapshot.toObject(Event::class.java) } returns event
+
+        // Mock subcollection comments
+        val commentsCollection = mockk<CollectionReference>()
+        val commentDoc = mockk<DocumentReference>()
+        every { eventRef.collection("comments") } returns commentsCollection
+        every { commentsCollection.document() } returns commentDoc
+        every { commentDoc.id } returns "commentId"
+
+        // Mock WriteBatch
+        val batch = mockk<WriteBatch>()
+        every { db.batch() } returns batch
+        every { batch.set(any(), any()) } returns batch
+        every { batch.commit() } returns Tasks.forResult(null)
+
+        // Mock FieldValue.serverTimestamp()
+        mockkStatic(FieldValue::class)
+        every { FieldValue.serverTimestamp() } returns mockk()
+
+        // Call the repository method
+        val result = repository.addComment("event123", "Hello World!")
+
+        assertTrue(result.isSuccess)
+
+        // John Doe is the commenter ("testUser").
+        // "hostUser" is the host, and "guest1" has status ACCEPTED.
+        // Therefore, "hostUser" and "guest1" should receive notifications.
+        // "guest2" (PENDING) and "testUser" (commenter) should not.
+        verify {
+            hostUserRef.collection("notifications")
+            guest1Ref.collection("notifications")
+        }
+
+        verify(atLeast = 1) {
+            batch.set(any(), match<Map<String, Any>> { map ->
+                map["eventId"] == "event123" && map["type"] == "EVENT_COMMENT"
+            })
+        }
+
+        verify(exactly = 0) {
+            usersCollection.document("guest2")
+            userRef.collection("notifications")
+        }
     }
 }

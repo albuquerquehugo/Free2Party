@@ -14,7 +14,6 @@ import androidx.compose.material3.adaptive.currentWindowSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -24,12 +23,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.navigation.AppNavigation
-import com.free2party.ui.navigation.Screen
 import com.free2party.ui.theme.Free2PartyTheme
 import com.free2party.util.NotificationHelper
 import com.free2party.util.matchNameAndEmail
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.free2party.util.matchEventInvitation
+import com.free2party.util.matchEventComment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
@@ -65,13 +63,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            val initialStartDestination = remember {
-                if ((currentNotificationId != null) && (Firebase.auth.currentUser != null)) {
-                    Screen.Notifications.route
-                } else {
-                    null
-                }
-            }
+            val initialStartDestination: String? = null
 
             // Handle notification clicks (from both startup and onNewIntent)
             LaunchedEffect(currentNotificationId) {
@@ -175,6 +167,34 @@ class MainActivity : ComponentActivity() {
                         R.string.notification_friend_removed_body,
                         match.first,
                         match.second
+                    )
+                } else notification.message
+                title to body
+            }
+
+            NotificationType.EVENT_INVITE -> {
+                val match = notification.message.matchEventInvitation()
+                val title = getString(R.string.notification_event_invitation_title)
+                val body = if (match != null) {
+                    getString(
+                        R.string.notification_event_invitation_body,
+                        match.first,
+                        match.second,
+                        match.third
+                    )
+                } else notification.message
+                title to body
+            }
+
+            NotificationType.EVENT_COMMENT -> {
+                val match = notification.message.matchEventComment()
+                val title = getString(R.string.notification_event_comment_title)
+                val body = if (match != null) {
+                    getString(
+                        R.string.notification_event_comment_body,
+                        match.first,
+                        match.second,
+                        match.third
                     )
                 } else notification.message
                 title to body

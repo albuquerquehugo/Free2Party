@@ -280,6 +280,8 @@
     <string name="title_schedule_plan">Agendar seu plano</string>
 
     <!-- Notifications -->
+    <string name="notification_event_comment_body">%1$s comentou no evento \"%2$s\": %3$s</string>
+    <string name="notification_event_comment_title">Novo Comentário</string>
     <string name="notification_event_invitation_body">%1$s (%2$s) convidou você para o evento \"%3$s\".</string>
     <string name="notification_event_invitation_title">Convite de Evento</string>
     <string name="notification_friend_removed_body">%1$s (%2$s) não é mais seu amigo.</string>

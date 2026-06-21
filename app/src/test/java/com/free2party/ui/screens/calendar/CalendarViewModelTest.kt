@@ -423,7 +423,7 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun `savePlan maps PastDateTimeException to error_past_plan`() = runTest {
+    fun `savePlan maps PastDateTimeException to error_plan_past_date_time`() = runTest {
         coEvery { planRepository.savePlan(any()) } returns Result.failure(PlanPastDateTimeException())
         viewModel = CalendarViewModel(
             planRepository,
@@ -448,11 +448,11 @@ class CalendarViewModelTest {
             onSuccess = {}
         )
 
-        assertEquals(R.string.error_past_plan, errorResId)
+        assertEquals(R.string.error_plan_past_date_time, errorResId)
     }
 
     @Test
-    fun `updatePlan maps PastDateTimeException to error_past_plan`() = runTest {
+    fun `updatePlan maps PastDateTimeException to error_plan_past_date_time`() = runTest {
         coEvery { planRepository.updatePlan(any()) } returns Result.failure(PlanPastDateTimeException())
         viewModel = CalendarViewModel(
             planRepository,
@@ -478,6 +478,6 @@ class CalendarViewModelTest {
             onSuccess = {}
         )
 
-        assertEquals(R.string.error_past_plan, errorResId)
+        assertEquals(R.string.error_plan_past_date_time, errorResId)
     }
 }

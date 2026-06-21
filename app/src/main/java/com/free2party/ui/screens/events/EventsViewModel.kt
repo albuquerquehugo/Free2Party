@@ -236,13 +236,19 @@ class EventsViewModel @Inject constructor(
     // Detail states (observed when detailed screen is active)
     private val _currentEventId = MutableStateFlow<String?>(null)
 
+    private val _eventNotFoundEvent = MutableSharedFlow<Unit>()
+    val eventNotFoundEvent = _eventNotFoundEvent.asSharedFlow()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentEvent: StateFlow<Event?> = _currentEventId
         .flatMapLatest { id ->
             if (id == null) flowOf(null)
             else eventRepository.getEventDetails(id)
                 .map<Event, Event?> { it }
-                .catch { emit(null) }
+                .catch {
+                    _eventNotFoundEvent.emit(Unit)
+                    emit(null)
+                }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 

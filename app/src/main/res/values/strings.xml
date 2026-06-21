@@ -279,6 +279,8 @@
     <string name="title_schedule_plan">Schedule your plan</string>
 
     <!-- Notifications -->
+    <string name="notification_event_comment_body">%1$s commented on event \"%2$s\": %3$s</string>
+    <string name="notification_event_comment_title">New Comment</string>
     <string name="notification_event_invitation_body">%1$s (%2$s) invited you to the event \"%3$s\".</string>
     <string name="notification_event_invitation_title">Event Invite</string>
     <string name="notification_friend_removed_body">%1$s (%2$s) is no longer your friend.</string>

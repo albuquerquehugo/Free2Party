@@ -229,4 +229,40 @@ class UtilTest {
         val milesText = formatDistance(context, 2000.0, DistanceUnit.MILES)
         assertTrue(milesText.contains("mi away"))
     }
+
+    @Test
+    fun `matchEventInvitation correctly parses english and portuguese invite messages`() {
+        val engMsg1 = "John Doe (john@example.com) invited you to the event \"My Birthday\"."
+        val ptMsg1 = "John Doe (john@example.com) convidou você para o evento \"My Birthday\"."
+        val engMsg2 = "John Doe (john@example.com) invited you to the event \\\"My Birthday\\\"."
+        val ptMsg2 = "John Doe (john@example.com) convidou você para o evento \\\"My Birthday\\\"."
+
+        val expected = Triple("John Doe", "john@example.com", "My Birthday")
+
+        assertEquals(expected, engMsg1.matchEventInvitation())
+        assertEquals(expected, ptMsg1.matchEventInvitation())
+        assertEquals(expected, engMsg2.matchEventInvitation())
+        assertEquals(expected, ptMsg2.matchEventInvitation())
+
+        assertNull("Invalid format".matchEventInvitation())
+    }
+
+    @Test
+    fun `matchEventComment correctly parses english and portuguese comment messages`() {
+        val engMsg1 = "Alice commented on event \"My Party\": Hey!"
+        val ptMsg1 = "Alice comentou no evento \"My Party\": Hey!"
+        val engMsg2 = "Alice Smith commented on event \\\"My Party\\\": Hey: \"what's up?\""
+        val ptMsg2 = "Alice Smith comentou no evento \\\"My Party\\\": Hey: \"what's up?\""
+
+        val expected1 = Triple("Alice", "My Party", "Hey!")
+        val expected2 = Triple("Alice Smith", "My Party", "Hey: \"what's up?\"")
+
+        assertEquals(expected1, engMsg1.matchEventComment())
+        assertEquals(expected1, ptMsg1.matchEventComment())
+        assertEquals(expected2, engMsg2.matchEventComment())
+        assertEquals(expected2, ptMsg2.matchEventComment())
+
+        assertNull("Invalid format".matchEventComment())
+    }
 }
+
