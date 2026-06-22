@@ -85,6 +85,7 @@ import com.free2party.ui.components.FriendSelector
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
@@ -141,7 +142,7 @@ fun CreateEventScreen(
     var isLocationFocused by remember { mutableStateOf(false) }
     var hasInteractedWithLocation by remember { mutableStateOf(false) }
     val locationBringIntoViewRequester = remember { BringIntoViewRequester() }
-    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     var selectedGuestsMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var hasInteractedWithGuests by remember { mutableStateOf(false) }
     var usefulLinksList by remember { mutableStateOf<List<EventLink>>(emptyList()) }
@@ -409,8 +410,8 @@ fun CreateEventScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = if (editingEventId == null) stringResource(R.string.title_create_event) else stringResource(
-                    R.string.title_edit_event
+                title = if (editingEventId == null) stringResource(R.string.label_create_event) else stringResource(
+                    R.string.label_edit_event
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = {

@@ -93,7 +93,8 @@ fun MonthCalendar(
                 Text(
                     text = monthName,
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 TextButton(
                     onClick = { viewModel.goToToday() },
@@ -102,6 +103,7 @@ fun MonthCalendar(
                     Text(
                         text = stringResource(R.string.label_today),
                         style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }

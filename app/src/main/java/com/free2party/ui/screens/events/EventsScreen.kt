@@ -165,6 +165,8 @@ fun EventsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TopBar(
+                title = stringResource(R.string.label_events),
+                color = MaterialTheme.colorScheme.onSurface,
                 showBackButton = false,
                 onBack = {},
                 action = {
@@ -452,7 +454,7 @@ fun EventsScreen(
         ) {
             Icon(
                 Icons.Default.Add,
-                contentDescription = stringResource(R.string.title_create_event)
+                contentDescription = stringResource(R.string.label_create_event)
             )
         }
     }

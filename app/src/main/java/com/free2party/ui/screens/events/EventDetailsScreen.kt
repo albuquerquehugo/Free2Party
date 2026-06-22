@@ -203,7 +203,7 @@ fun EventDetailsScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_event_details),
+                title = stringResource(R.string.label_event_details),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack,
                 action = {
@@ -1307,7 +1307,7 @@ fun EventDetailsScreen(
     // Delete Comment confirmation
     showDeleteCommentDialog?.let { comment ->
         ConfirmationDialog(
-            title = stringResource(R.string.title_delete_comment),
+            title = stringResource(R.string.label_delete_comment),
             text = stringResource(R.string.label_delete_comment_confirm),
             confirmButtonText = stringResource(R.string.label_delete),
             onConfirm = {

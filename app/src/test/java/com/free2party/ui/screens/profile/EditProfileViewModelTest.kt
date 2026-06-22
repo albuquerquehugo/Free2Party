@@ -1,0 +1,202 @@
+package com.free2party.ui.screens.profile
+
+import android.content.Context
+import android.net.Uri
+import com.free2party.R
+import com.free2party.data.model.User
+import com.free2party.data.repository.SocialRepository
+import com.free2party.data.repository.UserRepository
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class EditProfileViewModelTest {
+
+    private lateinit var viewModel: EditProfileViewModel
+    private val userRepository: UserRepository = mockk(relaxed = true)
+    private val socialRepository: SocialRepository = mockk(relaxed = true)
+    private val context: Context = mockk(relaxed = true)
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val userFlow = MutableStateFlow(User(uid = "me", firstName = "John", lastName = "Doe"))
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        every { userRepository.currentUserId } returns "me"
+        every { userRepository.observeUser("me") } returns userFlow
+
+        every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
+        every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
+        every { context.getString(R.string.date_pattern_dd_mm_yyyy) } returns "ddMMyyyy"
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `init loads user profile and initializes fields`() = runTest {
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        assertTrue(viewModel.uiState is EditProfileUiState.Success)
+        assertEquals("John", viewModel.firstName)
+        assertEquals("Doe", viewModel.lastName)
+        assertFalse(viewModel.hasChanges)
+        assertTrue(viewModel.isFormValid(context))
+    }
+
+    @Test
+    fun `field changes update hasChanges and isFormValid`() = runTest {
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        viewModel.firstName = "Jane"
+        assertTrue(viewModel.hasChanges)
+        assertTrue(viewModel.isFormValid(context))
+
+        viewModel.firstName = ""
+        assertFalse(viewModel.isFormValid(context))
+
+        viewModel.firstName = "John"
+        viewModel.countryCode = "US"
+        viewModel.phoneNumber = "" // Invalid: country selected but phone empty
+        assertFalse(viewModel.isFormValid(context))
+
+        viewModel.phoneNumber = "1234567890" // Valid for US
+        assertTrue(viewModel.isFormValid(context))
+
+        // Invalid birthday: invalid month
+        viewModel.birthday = "19901301"
+        assertFalse(viewModel.isFormValid(context))
+
+        // Valid birthday
+        viewModel.birthday = "19900101"
+        assertTrue(viewModel.isFormValid(context))
+    }
+
+    @Test
+    fun `discardChanges resets fields to original values`() = runTest {
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        viewModel.firstName = "Jane"
+        viewModel.phoneNumber = "1234567890"
+        assertTrue(viewModel.hasChanges)
+
+        viewModel.discardChanges()
+
+        assertEquals("John", viewModel.firstName)
+        assertEquals("", viewModel.phoneNumber)
+        assertFalse(viewModel.hasChanges)
+    }
+
+    @Test
+    fun `updateProfile success updates state and emits toast with navigateBack true`() = runTest {
+        coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
+
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        val events = mutableListOf<EditProfileUiEvent>()
+        backgroundScope.launch {
+            viewModel.uiEvent.collect { events.add(it) }
+        }
+        runCurrent()
+
+        viewModel.firstName = "Jane"
+        viewModel.updateProfile(context)
+        runCurrent()
+
+        val state = viewModel.uiState as EditProfileUiState.Success
+        assertEquals(false, state.isSaving)
+        val event = events.firstOrNull()
+        assertTrue(event is EditProfileUiEvent.ShowToast)
+        val toastEvent = event as EditProfileUiEvent.ShowToast
+        assertTrue(toastEvent.navigateBack)
+
+        coVerify { userRepository.updateUser(match { it.firstName == "Jane" }) }
+    }
+
+    @Test
+    fun `updateProfile failure emits error toast`() = runTest {
+        val errorMessage = "Update failed"
+        coEvery { userRepository.updateUser(any()) } returns Result.failure(Exception(errorMessage))
+
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        val events = mutableListOf<EditProfileUiEvent>()
+        backgroundScope.launch {
+            viewModel.uiEvent.collect { events.add(it) }
+        }
+        runCurrent()
+
+        viewModel.firstName = "Jane"
+        viewModel.updateProfile(context)
+        runCurrent()
+
+        assertTrue(events.any { it is EditProfileUiEvent.ShowToast })
+        assertFalse((viewModel.uiState as EditProfileUiState.Success).isSaving)
+    }
+
+    @Test
+    fun `uploadProfilePicture success updates user and state`() = runTest {
+        val uri = mockk<Uri>()
+        val downloadUrl = "https://example.com/pic.jpg"
+        coEvery { userRepository.uploadProfilePicture(uri) } returns Result.success(downloadUrl)
+        coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
+
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        val events = mutableListOf<EditProfileUiEvent>()
+        backgroundScope.launch {
+            viewModel.uiEvent.collect { events.add(it) }
+        }
+        runCurrent()
+
+        viewModel.uploadProfilePicture(uri)
+        runCurrent()
+
+        coVerify { userRepository.updateUser(match { it.profilePicUrl == downloadUrl }) }
+        val state = viewModel.uiState as EditProfileUiState.Success
+        assertEquals(false, state.isUploadingImage)
+        assertTrue(events.any { it is EditProfileUiEvent.ShowToast && !it.navigateBack })
+    }
+
+    @Test
+    fun `uiState transitions during updateProfile`() = runTest {
+        viewModel = EditProfileViewModel(userRepository, socialRepository)
+        runCurrent()
+
+        coEvery { userRepository.updateUser(any()) } coAnswers {
+            assertTrue((viewModel.uiState as EditProfileUiState.Success).isSaving)
+            Result.success(Unit)
+        }
+
+        viewModel.firstName = "Jane"
+        viewModel.updateProfile(context)
+        runCurrent()
+
+        assertFalse((viewModel.uiState as EditProfileUiState.Success).isSaving)
+    }
+}

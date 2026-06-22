@@ -235,6 +235,7 @@ class EventsViewModel @Inject constructor(
 
     // Detail states (observed when detailed screen is active)
     private val _currentEventId = MutableStateFlow<String?>(null)
+    private val deletingEventIds = mutableSetOf<String>()
 
     private val _eventNotFoundEvent = MutableSharedFlow<Unit>()
     val eventNotFoundEvent = _eventNotFoundEvent.asSharedFlow()
@@ -246,7 +247,9 @@ class EventsViewModel @Inject constructor(
             else eventRepository.getEventDetails(id)
                 .map<Event, Event?> { it }
                 .catch {
-                    _eventNotFoundEvent.emit(Unit)
+                    if (id !in deletingEventIds) {
+                        _eventNotFoundEvent.emit(Unit)
+                    }
                     emit(null)
                 }
         }
@@ -290,6 +293,7 @@ class EventsViewModel @Inject constructor(
 
     fun selectEvent(eventId: String?) {
         _currentEventId.value = eventId
+        deletingEventIds.clear()
     }
 
     fun saveEvent(
@@ -413,9 +417,11 @@ class EventsViewModel @Inject constructor(
 
     fun deleteEvent(eventId: String, onSuccess: () -> Unit, onError: (UiText) -> Unit) {
         viewModelScope.launch {
+            deletingEventIds.add(eventId)
             eventRepository.deleteEvent(eventId)
                 .onSuccess { onSuccess() }
                 .onFailure { error ->
+                    deletingEventIds.remove(eventId)
                     Log.e("EventsViewModel", "Error deleting event", error)
                     onError(UiText.StringResource(R.string.error_database_operation))
                 }

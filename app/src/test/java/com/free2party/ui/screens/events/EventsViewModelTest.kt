@@ -8,6 +8,7 @@ import com.free2party.data.model.UserSettings
 import com.free2party.data.repository.EventRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -478,6 +479,37 @@ class EventsViewModelTest {
         runCurrent()
 
         assertTrue(notFoundTriggered)
+        job.cancel()
+        job2.cancel()
+    }
+
+    @Test
+    fun `currentEvent load failure during deletion does not emit eventNotFoundEvent`() = runTest {
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+
+        val eventId = "deletingId"
+        coEvery { eventRepository.deleteEvent(eventId) } returns Result.success(Unit)
+        every { eventRepository.getEventDetails(eventId) } returns kotlinx.coroutines.flow.flow {
+            throw Exception("Document deleted")
+        }
+
+        var notFoundTriggered = false
+        val job = launch(testDispatcher) {
+            viewModel.eventNotFoundEvent.collect {
+                notFoundTriggered = true
+            }
+        }
+
+        viewModel.selectEvent(eventId)
+        viewModel.deleteEvent(eventId, onSuccess = {}, onError = {})
+
+        val job2 = launch(testDispatcher) {
+            viewModel.currentEvent.collect {}
+        }
+
+        runCurrent()
+
+        assertTrue(!notFoundTriggered)
         job.cancel()
         job2.cancel()
     }

@@ -59,7 +59,7 @@
     <string name="label_x">X/Twitter</string>
     <string name="text_hang_out_message">Hey! Saw you\'re Free2Party, want to hang out?</string>
 
-    <!-- Home Screen -->
+    <!-- Home -->
     <string name="description_collapse">Collapse</string>
     <string name="description_contact_options">Contact Options</string>
     <string name="description_expand">Expand</string>
@@ -109,7 +109,7 @@
     <string name="toast_invite_cancelled">Invite cancelled</string>
     <string name="toast_invite_sent">Invite sent</string>
 
-    <!-- Login & Register Screen -->
+    <!-- Login & Register -->
     <string name="button_login">Login</string>
     <string name="button_register">Register</string>
     <string name="button_send_link">Send link</string>
@@ -128,7 +128,7 @@
     <string name="title_register">Register</string>
     <string name="title_reset_password">Reset Password</string>
 
-    <!-- Profile Screen -->
+    <!-- Profile -->
     <string name="description_edit_photo">Edit photo</string>
     <string name="description_more_options">More options</string>
     <string name="description_phone_number">Call number</string>
@@ -146,6 +146,7 @@
     <string name="label_bio">Bio</string>
     <string name="label_birthday">Birthday</string>
     <string name="label_delete_account">Delete Account</string>
+    <string name="label_edit_profile">Edit Profile</string>
     <string name="label_email_required">Email *</string>
     <string name="label_first_name_required">First Name *</string>
     <string name="label_gender">Gender *</string>
@@ -156,6 +157,7 @@
     <string name="label_last_name_required">Last Name *</string>
     <string name="label_messenger_username">Facebook/Messenger Username</string>
     <string name="label_phone_number">Phone Number</string>
+    <string name="label_profile">Profile</string>
     <string name="label_section_socials">Socials</string>
     <string name="label_select_birthday">Select birthday</string>
     <string name="label_select_country">Select Country</string>
@@ -176,7 +178,6 @@
     <string name="text_placeholder_search_country">Search country or code…</string>
     <string name="text_required_fields_notice">The fields marked with * are required</string>
     <string name="text_socials_tooltip">Filling in your social app usernames allows friends to contact you directly through those apps</string>
-    <string name="title_profile">Profile</string>
     <string name="toast_account_deleted">Account deleted!</string>
     <string name="toast_profile_picture_updated">Profile picture updated</string>
     <string name="toast_profile_updated">Profile updated</string>
@@ -232,7 +233,7 @@
     <string name="toast_settings_updated">Settings updated successfully</string>
 
 
-    <!-- Calendar Screen -->
+    <!-- Calendar -->
     <string name="add_plan">Add Plan</string>
     <string name="day_friday_short">F</string>
     <string name="day_monday_short">M</string>
@@ -308,7 +309,7 @@
     <string name="toast_friend_request_declined">Friend request declined</string>
     <string name="toast_friend_request_declined_and_user_blocked">Friend request declined and user blocked</string>
 
-    <!-- About Screen -->
+    <!-- About -->
     <string name="app_description">A simple way to sync your availability with friends and never miss a meeting again.</string>
     <string name="copyright_template">© %1$d All Rights Reserved</string>
     <string name="developed_by">Developed by</string>
@@ -328,25 +329,32 @@
     <string name="time_minutes_ago">%1$dm ago</string>
     <string name="time_range">%1$s - %2$s</string>
 
-    <!-- Events Screen -->
+    <!-- Events -->
     <string name="label_add_link">Add Link</string>
     <string name="label_all_events">All Events</string>
+    <string name="label_comment_edited">(edited)</string>
     <string name="label_comments">Comments</string>
     <string name="label_comments_empty">No comments yet. Start the conversation!</string>
+    <string name="label_create_event">Create Event</string>
+    <string name="label_delete_comment">Delete Comment</string>
     <string name="label_delete_comment_confirm">Are you sure you want to delete this comment?</string>
     <string name="label_delete_event">Delete Event</string>
     <string name="label_delete_event_confirm">Are you sure you want to delete this event? This action cannot be undone.</string>
+    <string name="label_discard">Discard</string>
     <string name="label_distance_feet">%1$d ft away</string>
     <string name="label_distance_km">%1$.1f km away</string>
     <string name="label_distance_m">%1$d m away</string>
     <string name="label_distance_miles">%1$.1f mi away</string>
-
+    <string name="label_edit_event">Edit Event</string>
+    <string name="label_editing_comment">Editing comment</string>
+    <string name="label_event_details">Event Details</string>
     <string name="label_event_description">Description</string>
     <string name="label_event_guests_selection">Select Guests</string>
     <string name="label_event_title">Title</string>
     <string name="label_event_type">Type</string>
     <string name="label_event_type_desc_private">Invite-only</string>
     <string name="label_event_type_desc_public">Anyone can view and join</string>
+    <string name="label_events">Events</string>
     <string name="label_going">Going</string>
     <string name="label_going_self">Going</string>
     <string name="label_guests">Guests (%1$d)</string>
@@ -386,15 +394,7 @@
     <string name="placeholder_link_url">Link URL (e.g. https://…)</string>
     <string name="placeholder_location">Enter location name or address</string>
     <string name="placeholder_search_events">Search events…</string>
-    <string name="title_create_event">Create Event</string>
-    <string name="title_delete_comment">Delete Comment</string>
-    <string name="title_edit_event">Edit Event</string>
-    <string name="title_event_details">Event Details</string>
-    <string name="title_events">Events</string>
     <string name="toast_comment_deleted">Comment deleted</string>
-    <string name="label_comment_edited">(edited)</string>
-    <string name="label_discard">Discard</string>
-    <string name="label_editing_comment">Editing comment</string>
     <string name="toast_comment_posted">Comment posted!</string>
     <string name="toast_event_created">Event created successfully!</string>
     <string name="toast_event_deleted">Event deleted!</string>

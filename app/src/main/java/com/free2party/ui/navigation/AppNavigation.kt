@@ -1,13 +1,27 @@
 package com.free2party.ui.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -17,6 +31,7 @@ import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material.icons.outlined.Home
@@ -25,9 +40,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,47 +49,58 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.free2party.util.TextFieldRegistry
+import androidx.navigation.navArgument
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavType
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.res.stringResource
+import coil.compose.AsyncImage
 import com.free2party.MainViewModel
 import com.free2party.R
 import com.free2party.ui.components.AppBackground
 import com.free2party.ui.screens.appearance.AppearanceRoute
+import com.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.free2party.ui.screens.circles.CirclesRoute
 import com.free2party.ui.screens.calendar.CalendarRoute
+import com.free2party.ui.screens.events.CreateEventScreen
+import com.free2party.ui.screens.events.EventsRoute
+import com.free2party.ui.screens.events.EventsViewModel
+import com.free2party.ui.screens.events.EventDetailsScreen
 import com.free2party.ui.screens.home.HomeRoute
 import com.free2party.ui.screens.friends.InviteFriendRoute
 import com.free2party.ui.screens.login.LoginRoute
 import com.free2party.ui.screens.notifications.NotificationsRoute
 import com.free2party.ui.screens.notifications.NotificationsViewModel
+import com.free2party.ui.screens.profile.EditProfileRoute
 import com.free2party.ui.screens.profile.ProfileRoute
-import com.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
-import com.free2party.ui.screens.events.EventsRoute
-import com.free2party.ui.screens.events.EventsViewModel
-import com.free2party.ui.screens.events.CreateEventScreen
-import com.free2party.ui.screens.events.EventDetailsScreen
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
+import com.free2party.ui.theme.available
+import com.free2party.ui.theme.busy
+import com.free2party.util.TextFieldRegistry
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
@@ -101,7 +124,13 @@ sealed class Screen(
     )
 
     object Profile :
-        Screen(route = "profile", labelResId = R.string.title_profile, icon = Icons.Default.Person)
+        Screen(route = "profile", labelResId = R.string.label_profile, icon = Icons.Default.Person)
+
+    object EditProfile : Screen(
+        route = "edit_profile",
+        labelResId = R.string.label_edit_profile,
+        icon = Icons.Default.Person
+    )
 
     object BlockedUsers : Screen(
         route = "blocked_users",
@@ -139,14 +168,14 @@ sealed class Screen(
 
     object Events : Screen(
         route = "events",
-        labelResId = R.string.title_events,
+        labelResId = R.string.label_events,
         icon = Icons.Outlined.Celebration,
         iconSelected = Icons.Filled.Celebration
     )
 
     object CreateEvent : Screen(
         route = "create_event?eventId={eventId}",
-        labelResId = R.string.title_create_event
+        labelResId = R.string.label_create_event
     ) {
         fun createRoute(eventId: String? = null): String {
             return if (eventId != null) "create_event?eventId=$eventId" else "create_event"
@@ -155,7 +184,7 @@ sealed class Screen(
 
     object EventDetails : Screen(
         route = "event_details/{eventId}?scrollToComments={scrollToComments}",
-        labelResId = R.string.title_event_details
+        labelResId = R.string.label_event_details
     ) {
         fun createRoute(eventId: String, scrollToComments: Boolean = false): String {
             return "event_details/$eventId?scrollToComments=$scrollToComments"
@@ -179,10 +208,11 @@ sealed class Screen(
 }
 
 val BottomNavItems = listOf(
-    Screen.Home,
     Screen.Calendar,
     Screen.Events,
-    Screen.Notifications
+    Screen.Home,
+    Screen.Notifications,
+    Screen.Profile
 )
 
 @Composable
@@ -217,7 +247,12 @@ fun AppNavigation(
             containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
             bottomBar = {
                 if (showBottomBar) {
-                    BottomNavigationBar(navController, notificationsViewModel, eventsViewModel)
+                    BottomNavigationBar(
+                        navController,
+                        notificationsViewModel,
+                        eventsViewModel,
+                        mainViewModel
+                    )
                 }
             }
         ) { innerPadding ->
@@ -255,10 +290,66 @@ fun AppNavigation(
 }
 
 @Composable
+fun FloatingHomeButton(
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.15f else 1.0f,
+        label = "HomeScale"
+    )
+    val startColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        label = "HomeStartColor"
+    )
+    val endColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant,
+        label = "HomeEndColor"
+    )
+    val iconTint by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "HomeIconTint"
+    )
+    val elevation = if (isSelected) 12.dp else 4.dp
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .size(56.dp)
+            .shadow(elevation = elevation, shape = CircleShape, clip = false)
+            .background(
+                brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                    colors = listOf(startColor, endColor)
+                ),
+                shape = CircleShape
+            )
+            .border(
+                width = 3.dp,
+                color = MaterialTheme.colorScheme.surface,
+                shape = CircleShape
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isSelected) Icons.Filled.Home else Icons.Outlined.Home,
+            contentDescription = stringResource(R.string.title_home),
+            tint = iconTint,
+            modifier = Modifier.size(28.dp)
+        )
+    }
+}
+
+@Composable
 fun BottomNavigationBar(
     navController: NavHostController,
     notificationsViewModel: NotificationsViewModel,
-    eventsViewModel: EventsViewModel
+    eventsViewModel: EventsViewModel,
+    mainViewModel: MainViewModel
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -270,81 +361,168 @@ fun BottomNavigationBar(
         eventsViewModel.pendingInvitationsCount.collectAsState(initial = 0)
     val pendingInvitationsCount = pendingInvitationsCountState.value
 
-    NavigationBar(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)) {
-        BottomNavItems.forEach { screen ->
-            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-            val label = screen.labelResId?.let { stringResource(it) }
+    val userNavStateState = mainViewModel.userNavState.collectAsState(initial = null)
+    val userNavState = userNavStateState.value
 
-            NavigationBarItem(
-                icon = {
-                    if ((screen is Screen.Notifications) && (totalUnread > 0)) {
-                        BadgedBox(
-                            badge = {
-                                Badge {
-                                    Text(totalUnread.toString())
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                .border(
+                    width = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            BottomNavItems.forEach { screen ->
+                val isSelected =
+                    currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                val label = screen.labelResId?.let { stringResource(it) }
+
+                if (screen is Screen.Home) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(72.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FloatingHomeButton(
+                            isSelected = isSelected,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
                             }
-                        ) {
-                            Icon(
-                                if (isSelected) screen.iconSelected!! else screen.icon!!,
-                                contentDescription = label
-                            )
-
-                        }
-                    } else if ((screen is Screen.Events) && (pendingInvitationsCount > 0)) {
-                        BadgedBox(
-                            badge = {
-                                Badge {
-                                    Text(pendingInvitationsCount.toString())
-                                }
-                            }
-                        ) {
-                            Icon(
-                                if (isSelected) screen.iconSelected!! else screen.icon!!,
-                                contentDescription = label
-                            )
-
-                        }
-                    } else {
-                        if (isSelected && screen.iconSelected != null) {
-                            Icon(screen.iconSelected, contentDescription = label)
-                        } else {
-                            screen.icon?.let {
-                                Icon(it, contentDescription = label)
-                            }
-                        }
-                    }
-                },
-                label = {
-                    label?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal
                         )
                     }
-                },
-                selected = isSelected,
-                onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(72.dp)
+                            .clickable(
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            modifier = Modifier.size(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            when (screen) {
+                                is Screen.Notifications if totalUnread > 0 -> {
+                                    BadgedBox(
+                                        badge = { Badge { Text(totalUnread.toString()) } }
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                            contentDescription = label,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+
+                                is Screen.Events if pendingInvitationsCount > 0 -> {
+                                    BadgedBox(
+                                        badge = { Badge { Text(pendingInvitationsCount.toString()) } }
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                            contentDescription = label,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+
+                                is Screen.Profile -> {
+                                    val isUserFree = userNavState?.isUserFree ?: false
+                                    val profilePicUrl = userNavState?.profilePicUrl
+                                    val statusColor = if (isUserFree) {
+                                        MaterialTheme.colorScheme.available
+                                    } else {
+                                        MaterialTheme.colorScheme.busy
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .border(1.5.dp, statusColor, CircleShape)
+                                            .padding(2.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (!profilePicUrl.isNullOrBlank()) {
+                                            AsyncImage(
+                                                model = profilePicUrl,
+                                                contentDescription = label,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CircleShape),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        } else {
+                                            Icon(
+                                                imageVector = Icons.Default.Person,
+                                                contentDescription = label,
+                                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
+                                    }
+                                }
+
+                                else -> {
+                                    Icon(
+                                        imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                        contentDescription = label,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
                         }
-                        launchSingleTop = true
-                        restoreState = true
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        label?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            )
+                }
+            }
         }
+
     }
 }
+
 
 @Composable
 fun Free2PartyNavGraph(
@@ -396,28 +574,8 @@ fun Free2PartyNavGraph(
         composable(Screen.Home.route) {
             HomeRoute(
                 homeViewModel = hiltViewModel(),
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
-                },
-                onNavigateToBlockedUsers = {
-                    navController.navigate(Screen.BlockedUsers.route)
-                },
-                onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
-                },
                 onNavigateToInviteFriend = {
                     navController.navigate(Screen.InviteFriend.route)
-                },
-                onNavigateToCircles = {
-                    navController.navigate(Screen.Circles.route)
-                },
-                onNavigateToAppearance = {
-                    navController.navigate(Screen.Appearance.route)
                 }
             )
         }
@@ -525,6 +683,31 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Profile.route) {
             ProfileRoute(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.EditProfile.route)
+                },
+                onNavigateToBlockedUsers = {
+                    navController.navigate(Screen.BlockedUsers.route)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
+                },
+                onNavigateToCircles = {
+                    navController.navigate(Screen.Circles.route)
+                },
+                onNavigateToAppearance = {
+                    navController.navigate(Screen.Appearance.route)
+                }
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileRoute(
                 onBack = { navController.popBackStack() },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {

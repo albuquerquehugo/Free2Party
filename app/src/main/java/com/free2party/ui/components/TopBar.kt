@@ -3,6 +3,7 @@ package com.free2party.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -37,7 +38,8 @@ fun TopBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .height(56.dp)
+                .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             if (showBackButton) {
@@ -57,7 +59,7 @@ fun TopBar(
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_foreground_color),
                 contentDescription = stringResource(R.string.description_logo_content),
-                modifier = Modifier.height(20.dp),
+                modifier = Modifier.fillMaxHeight(0.5f),
                 contentScale = ContentScale.Fit
             )
 

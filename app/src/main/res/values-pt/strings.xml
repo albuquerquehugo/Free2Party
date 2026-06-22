@@ -59,7 +59,7 @@
     <string name="label_x">X/Twitter</string>
     <string name="text_hang_out_message">Ei! Vi que você está livre no Free2Party, vamos marcar alguma coisa?</string>
 
-    <!-- Home Screen -->
+    <!-- Home -->
     <string name="description_collapse">Recolher</string>
     <string name="description_contact_options">Opções de Contato</string>
     <string name="description_expand">Expandir</string>
@@ -110,7 +110,7 @@
     <string name="toast_invite_cancelled">Convite cancelado</string>
     <string name="toast_invite_sent">Convite enviado</string>
 
-    <!-- Login & Register Screen -->
+    <!-- Login & Register -->
     <string name="button_login">Entrar</string>
     <string name="button_register">Registrar</string>
     <string name="button_send_link">Enviar link</string>
@@ -129,7 +129,7 @@
     <string name="title_register">Registrar</string>
     <string name="title_reset_password">Redefinir Senha</string>
 
-    <!-- Profile Screen -->
+    <!-- Profile -->
     <string name="description_edit_photo">Editar foto</string>
     <string name="description_more_options">Mais opções</string>
     <string name="description_phone_number">Ligar para número</string>
@@ -147,6 +147,7 @@
     <string name="label_bio">Bio</string>
     <string name="label_birthday">Data de Nascimento</string>
     <string name="label_delete_account">Excluir Conta</string>
+    <string name="label_edit_profile">Editar Perfil</string>
     <string name="label_email_required">E-mail *</string>
     <string name="label_first_name_required">Nome *</string>
     <string name="label_gender">Gênero *</string>
@@ -157,6 +158,7 @@
     <string name="label_last_name_required">Sobrenome *</string>
     <string name="label_messenger_username">Usuário do Facebook/Messenger</string>
     <string name="label_phone_number">Número de Telefone</string>
+    <string name="label_profile">Perfil</string>
     <string name="label_section_socials">Redes Sociais</string>
     <string name="label_select_birthday">Selecionar data de nascimento</string>
     <string name="label_select_country">Selecionar País</string>
@@ -177,7 +179,6 @@
     <string name="text_placeholder_search_country">Pesquisar país ou código…</string>
     <string name="text_required_fields_notice">Os campos marcados com * são obrigatórios</string>
     <string name="text_socials_tooltip">Preencher os seus nomes de usuário de redes sociais permite que seus amigos entrem em contato direto por meio desses aplicativos</string>
-    <string name="title_profile">Perfil</string>
     <string name="toast_account_deleted">Conta excluída!</string>
     <string name="toast_profile_picture_updated">Foto de perfil atualizada!</string>
     <string name="toast_profile_updated">Perfil atualizado com sucesso!</string>
@@ -204,7 +205,7 @@
     <string name="toast_user_reported">Usuário denunciado com sucesso</string>
     <string name="toast_user_unblocked">Usuário desbloqueado</string>
 
-    <!-- Settings Screen -->
+    <!-- Settings -->
     <string name="label_background">Plano de Fundo:</string>
     <string name="label_birthday_display_format">Como outros verão seu aniversário?</string>
     <string name="label_date_format">Formato da Data:</string>
@@ -233,7 +234,7 @@
     <string name="toast_settings_updated">Configurações atualizadas com sucesso</string>
 
 
-    <!-- Calendar Screen -->
+    <!-- Calendar -->
     <string name="add_plan">Adicionar Plano</string>
     <string name="day_friday_short">S</string>
     <string name="day_monday_short">S</string>
@@ -309,7 +310,7 @@
     <string name="toast_friend_request_declined">Pedido de amizade recusado</string>
     <string name="toast_friend_request_declined_and_user_blocked">Pedido de amizade recusado e usuário bloqueado</string>
 
-    <!-- About Screen -->
+    <!-- About -->
     <string name="app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos e nunca mais perder um encontro.</string>
     <string name="copyright_template">© %1$d Todos os Direitos Reservados</string>
     <string name="developed_by">Desenvolvido por</string>
@@ -329,25 +330,32 @@
     <string name="time_minutes_ago">%1$dm atrás</string>
     <string name="time_range">%1$s - %2$s</string>
 
-    <!-- Events Screen -->
+    <!-- Events -->
     <string name="label_add_link">Adicionar Link</string>
     <string name="label_all_events">Todos os Eventos</string>
+    <string name="label_comment_edited">(editado)</string>
     <string name="label_comments">Comentários</string>
     <string name="label_comments_empty">Nenhum comentário ainda. Comece a conversa!</string>
+    <string name="label_create_event">Criar Evento</string>
+    <string name="label_delete_comment">Excluir Comentário</string>
     <string name="label_delete_comment_confirm">Tem certeza de que deseja excluir este comentário?</string>
     <string name="label_delete_event">Excluir Evento</string>
     <string name="label_delete_event_confirm">Tem certeza de que deseja excluir este evento? Esta ação não pode ser desfeita.</string>
+    <string name="label_discard">Descartar</string>
     <string name="label_distance_feet">%1$d ft de distância</string>
     <string name="label_distance_km">%1$.1f km de distância</string>
     <string name="label_distance_m">%1$d m de distância</string>
     <string name="label_distance_miles">%1$.1f mi de distância</string>
-
+    <string name="label_edit_event">Editar Evento</string>
+    <string name="label_editing_comment">Editando comentário</string>
+    <string name="label_event_details">Detalhes do Evento</string>
     <string name="label_event_description">Descrição</string>
     <string name="label_event_guests_selection">Selecionar Convidados</string>
     <string name="label_event_title">Título</string>
     <string name="label_event_type">Tipo</string>
     <string name="label_event_type_desc_private">Apenas convidados</string>
     <string name="label_event_type_desc_public">Qualquer pessoa pode ver e participar</string>
+    <string name="label_events">Eventos</string>
     <string name="label_going">Vai</string>
     <string name="label_going_self">Vou</string>
     <string name="label_guests">Convidados (%1$d)</string>
@@ -388,15 +396,7 @@
     <string name="placeholder_link_url">URL do Link (ex: https://…)</string>
     <string name="placeholder_location">Digite o nome do local ou endereço</string>
     <string name="placeholder_search_events">Buscar eventos…</string>
-    <string name="title_create_event">Criar Evento</string>
-    <string name="title_delete_comment">Excluir Comentário</string>
-    <string name="title_edit_event">Editar Evento</string>
-    <string name="title_event_details">Detalhes do Evento</string>
-    <string name="title_events">Eventos</string>
     <string name="toast_comment_deleted">Comentário excluído</string>
-    <string name="label_comment_edited">(editado)</string>
-    <string name="label_discard">Descartar</string>
-    <string name="label_editing_comment">Editando comentário</string>
     <string name="toast_comment_posted">Comentário enviado!</string>
     <string name="toast_event_created">Evento criado com sucesso!</string>
     <string name="toast_event_deleted">Evento excluído!</string>
