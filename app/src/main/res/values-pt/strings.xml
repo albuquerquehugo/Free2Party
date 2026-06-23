@@ -432,7 +432,6 @@
     <string name="error_google_config">Erro de configuração ao entrar com o Google. Por favor, tente novamente mais tarde.</string>
     <string name="error_google_failed">Falha ao entrar com o Google</string>
     <string name="error_google_invalid_token">Falha ao entrar com o Google: Token inválido</string>
-    <string name="error_google_no_accounts">Nenhuma conta do Google encontrada neste dispositivo</string>
     <string name="error_google_unexpected_response">Falha ao entrar com o Google: Resposta inesperada</string>
     <string name="error_guests_mandatory_private">A seleção de convidados é obrigatória para eventos privados</string>
     <string name="error_infrastructure">Erro de infraestrutura</string>

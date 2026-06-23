@@ -1,7 +1,12 @@
 package com.free2party.ui.screens.login
 
+import android.app.Activity
+import com.free2party.MainActivity
+import android.content.ContextWrapper
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -68,12 +73,18 @@ import com.free2party.R
 import com.free2party.data.model.ThemeMode
 import com.free2party.ui.components.InputTextField
 import com.free2party.ui.components.dialogs.EmailDialog
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.GoogleAuthProvider
+import androidx.compose.runtime.rememberUpdatedState
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun LoginRoute(
@@ -82,13 +93,22 @@ fun LoginRoute(
     onNavigateToRegister: () -> Unit
 ) {
     val context = LocalContext.current
+    val activity = remember(context) {
+        var currentContext = context
+        while (currentContext is ContextWrapper) {
+            if (currentContext is Activity) {
+                return@remember currentContext
+            }
+            currentContext = currentContext.baseContext
+        }
+        null
+    }
     val coroutineScope = rememberCoroutineScope()
     val (showForgotPasswordDialog, setShowForgotPasswordDialog) = remember { mutableStateOf(false) }
     val serverClientId = stringResource(R.string.default_web_client_id)
     val googleConfigError = stringResource(R.string.error_google_config)
     val googleInvalidTokenError = stringResource(R.string.error_google_invalid_token)
     val googleUnexpectedResponseError = stringResource(R.string.error_google_unexpected_response)
-    val googleNoAccountsError = stringResource(R.string.error_google_no_accounts)
     val googleSignInFailedError = stringResource(R.string.error_google_failed)
 
     LaunchedEffect(Unit) {
@@ -106,6 +126,88 @@ fun LoginRoute(
         }
     }
 
+    val legacyGoogleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val idToken = account.idToken
+                if (idToken != null) {
+                    val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+                    viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
+                } else {
+                    Log.e("LoginScreen", "Legacy Google Sign-In: ID Token is null")
+                    Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT).show()
+                    viewModel.resetState()
+                }
+            } catch (e: ApiException) {
+                Log.e("LoginScreen", "Legacy Google Sign-In failed to parse result", e)
+                Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
+        } else {
+            viewModel.resetState()
+        }
+    }
+
+    val launchLegacyGoogleSignIn = {
+        coroutineScope.launch {
+            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(serverClientId)
+                .requestEmail()
+                .build()
+            val googleSignInClient = GoogleSignIn.getClient(activity ?: context, gso)
+            try {
+                googleSignInClient.signOut().await()
+            } catch (e: Exception) {
+                Log.w("LoginScreen", "launchLegacyGoogleSignIn: Sign-out failed (non-fatal)", e)
+            }
+
+            val mainActivity = activity as? MainActivity
+            if (mainActivity != null) {
+                mainActivity.launchGoogleSignIn(googleSignInClient.signInIntent) { data, resultCode ->
+                    if (resultCode == Activity.RESULT_OK) {
+                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                        try {
+                            val account = task.getResult(ApiException::class.java)
+                            val idToken = account.idToken
+                            if (idToken != null) {
+                                val firebaseCredential =
+                                    GoogleAuthProvider.getCredential(idToken, null)
+                                viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
+                            } else {
+                                Log.e(
+                                    "LoginScreen",
+                                    "MainActivity delegate legacy Google Sign-In: ID Token is null"
+                                )
+                                Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT)
+                                    .show()
+                                viewModel.resetState()
+                            }
+                        } catch (e: ApiException) {
+                            Log.e(
+                                "LoginScreen",
+                                "MainActivity delegate legacy Google Sign-In failed to parse result",
+                                e
+                            )
+                            Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT)
+                                .show()
+                            viewModel.resetState()
+                        }
+                    } else {
+                        viewModel.resetState()
+                    }
+                }
+            } else {
+                legacyGoogleSignInLauncher.launch(googleSignInClient.signInIntent)
+            }
+        }
+    }
+
+    val currentLaunchLegacyGoogleSignIn by rememberUpdatedState(launchLegacyGoogleSignIn)
+
     val onGoogleSignInClick: () -> Unit = {
         // Modern Google Sign-In with Credential Manager
         if (serverClientId.isEmpty()) {
@@ -114,6 +216,9 @@ fun LoginRoute(
                 googleConfigError,
                 Toast.LENGTH_LONG
             ).show()
+        } else if (viewModel.useLegacyGoogleSignIn) {
+            viewModel.setGoogleSignInLoading()
+            currentLaunchLegacyGoogleSignIn()
         } else {
             val credentialManager = CredentialManager.create(context)
 
@@ -126,10 +231,13 @@ fun LoginRoute(
 
             coroutineScope.launch {
                 try {
-                    val result = credentialManager.getCredential(
-                        context = context,
-                        request = request
-                    )
+                    val targetContext = activity ?: context
+                    val result = kotlinx.coroutines.withTimeout(3000.milliseconds) {
+                        credentialManager.getCredential(
+                            context = targetContext,
+                            request = request
+                        )
+                    }
 
                     val credential = result.credential
                     if (credential is CustomCredential &&
@@ -161,33 +269,40 @@ fun LoginRoute(
                         ).show()
                         viewModel.resetState()
                     }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    Log.e(
+                        "LoginScreen",
+                        "Google Sign-In timed out waiting for credential manager. Falling back to legacy Google Sign-In and saving preference.",
+                        e
+                    )
+                    viewModel.saveUseLegacyGoogleSignInPreference(true)
+                    currentLaunchLegacyGoogleSignIn()
                 } catch (_: GetCredentialCancellationException) {
-                    Log.d("LoginScreen", "Google Sign-In was cancelled by the user")
                     viewModel.resetState()
                 } catch (e: NoCredentialException) {
-                    Log.e("LoginScreen", "No Google accounts available", e)
-                    Toast.makeText(
-                        context,
-                        googleNoAccountsError,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    viewModel.resetState()
+                    Log.e(
+                        "LoginScreen",
+                        "No Google accounts available. Falling back to legacy Google Sign-In and saving preference.",
+                        e
+                    )
+                    viewModel.saveUseLegacyGoogleSignInPreference(true)
+                    currentLaunchLegacyGoogleSignIn()
                 } catch (e: GetCredentialException) {
-                    Log.e("LoginScreen", "Google Sign-In failed", e)
-                    Toast.makeText(
-                        context,
-                        googleSignInFailedError,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    viewModel.resetState()
+                    Log.e(
+                        "LoginScreen",
+                        "Google Sign-In failed. Falling back to legacy Google Sign-In and saving preference.",
+                        e
+                    )
+                    viewModel.saveUseLegacyGoogleSignInPreference(true)
+                    currentLaunchLegacyGoogleSignIn()
                 } catch (e: Exception) {
-                    Log.e("LoginScreen", "An unexpected error occurred during Google Sign-In", e)
-                    Toast.makeText(
-                        context,
-                        e.localizedMessage ?: "Google Sign-In error",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    viewModel.resetState()
+                    Log.e(
+                        "LoginScreen",
+                        "An unexpected error occurred during Google Sign-In. Falling back to legacy Google Sign-In and saving preference.",
+                        e
+                    )
+                    viewModel.saveUseLegacyGoogleSignInPreference(true)
+                    currentLaunchLegacyGoogleSignIn()
                 }
             }
         }

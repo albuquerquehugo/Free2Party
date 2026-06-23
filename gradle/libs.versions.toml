@@ -27,6 +27,7 @@ mockk = "1.14.11"
 navigationCompose = "2.9.8"
 playIntegrity = "1.6.0"
 playServicesAds = "25.3.0"
+playServicesAuth = "21.2.0"
 room = "2.8.4"
 uiTextGoogleFonts = "1.11.2"
 workManager = "2.11.2"
@@ -79,6 +80,7 @@ mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

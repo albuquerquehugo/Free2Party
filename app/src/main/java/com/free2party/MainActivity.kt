@@ -41,6 +41,20 @@ class MainActivity : ComponentActivity() {
         // Handle permission result if needed
     }
 
+    private var googleSignInCallback: ((Intent?, Int) -> Unit)? = null
+
+    private val googleSignInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        googleSignInCallback?.invoke(result.data, result.resultCode)
+        googleSignInCallback = null
+    }
+
+    fun launchGoogleSignIn(intent: Intent, callback: (Intent?, Int) -> Unit) {
+        this.googleSignInCallback = callback
+        googleSignInLauncher.launch(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

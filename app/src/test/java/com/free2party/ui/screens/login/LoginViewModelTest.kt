@@ -38,6 +38,7 @@ class LoginViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
         every { settingsRepository.gradientBackgroundFlow } returns flowOf(true)
+        every { settingsRepository.useLegacyGoogleSignInFlow } returns flowOf(false)
         viewModel = LoginViewModel(authRepository, settingsRepository)
     }
 

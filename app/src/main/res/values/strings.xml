@@ -430,7 +430,6 @@
     <string name="error_google_config">Google Sign-In configuration error. Please try again later.</string>
     <string name="error_google_failed">Google Sign-In failed</string>
     <string name="error_google_invalid_token">Google Sign-In failed: Invalid token</string>
-    <string name="error_google_no_accounts">No Google accounts found on this device</string>
     <string name="error_google_unexpected_response">Google Sign-In failed: Unexpected response</string>
     <string name="error_guests_mandatory_private">Guests selection is mandatory for private events</string>
     <string name="error_infrastructure">Infrastructure error</string>
