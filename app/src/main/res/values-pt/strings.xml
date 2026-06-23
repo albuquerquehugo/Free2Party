@@ -481,4 +481,7 @@
     <string name="error_user_disabled">Esta conta de usuário foi desativada</string>
     <string name="error_user_not_found">Usuário não encontrado</string>
     <string name="error_weak_password">A senha é muito fraca</string>
+
+    <!-- Offline Banner -->
+    <string name="offline_banner_message">Você está offline, por favor verifique sua conexão. Algumas funcionalidades não estarão disponíveis.</string>
 </resources>

@@ -16,17 +16,20 @@ import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.ui.navigation.Screen
 import com.free2party.util.isPlanActive
+import com.free2party.util.NetworkMonitor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
@@ -42,12 +45,20 @@ class MainViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val socialRepository: SocialRepository,
     private val userRepository: UserRepository,
-    private val planRepository: PlanRepository
+    private val planRepository: PlanRepository,
+    networkMonitor: NetworkMonitor
 ) : ViewModel() {
     private var initialHandledNotificationId: String? = null
 
     private val _userNavState = MutableStateFlow<UserNavState?>(null)
     val userNavState = _userNavState.asStateFlow()
+
+    val isOnline = networkMonitor.isOnline
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
 
     fun setInitialNotificationId(id: String?) {
         initialHandledNotificationId = id

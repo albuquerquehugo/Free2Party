@@ -479,4 +479,7 @@
     <string name="error_user_disabled">This user account has been disabled</string>
     <string name="error_user_not_found">User not found</string>
     <string name="error_weak_password">The password is too weak</string>
+
+    <!-- Offline Banner -->
+    <string name="offline_banner_message">You are offline, please check your connection. Some features will not be available.</string>
 </resources>

@@ -2,6 +2,8 @@ package com.free2party.di
 
 import android.content.Context
 import com.free2party.data.repository.*
+import com.free2party.util.NetworkMonitor
+import com.free2party.util.ConnectivityManagerNetworkMonitor
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -52,6 +54,12 @@ abstract class DataModule {
     abstract fun bindSocialRepository(
         socialRepositoryImpl: SocialRepositoryImpl
     ): SocialRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNetworkMonitor(
+        connectivityManagerNetworkMonitor: ConnectivityManagerNetworkMonitor
+    ): NetworkMonitor
 
     companion object {
         @Provides

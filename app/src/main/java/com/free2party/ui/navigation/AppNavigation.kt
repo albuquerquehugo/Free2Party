@@ -1,8 +1,13 @@
 package com.free2party.ui.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,12 +23,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Home
@@ -244,6 +252,43 @@ fun AppNavigation(
 
     AppBackground(enabled = gradientBackground) {
         Scaffold(
+            topBar = {
+                val isOnline by mainViewModel.isOnline.collectAsState()
+                AnimatedVisibility(
+                    visible = !isOnline,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.error)
+                            .statusBarsPadding()
+                            .padding(vertical = 8.dp, horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.WifiOff,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onError,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.offline_banner_message),
+                                color = MaterialTheme.colorScheme.onError,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            },
             containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
             bottomBar = {
                 if (showBottomBar) {
@@ -339,7 +384,7 @@ fun FloatingHomeButton(
             imageVector = if (isSelected) Icons.Filled.Home else Icons.Outlined.Home,
             contentDescription = stringResource(R.string.title_home),
             tint = iconTint,
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier.size(32.dp)
         )
     }
 }
@@ -427,7 +472,7 @@ fun BottomNavigationBar(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Box(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(28.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             when (screen) {
@@ -439,7 +484,7 @@ fun BottomNavigationBar(
                                             imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
                                             contentDescription = label,
                                             tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(24.dp)
+                                            modifier = Modifier.size(28.dp)
                                         )
                                     }
                                 }
@@ -452,7 +497,7 @@ fun BottomNavigationBar(
                                             imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
                                             contentDescription = label,
                                             tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(24.dp)
+                                            modifier = Modifier.size(28.dp)
                                         )
                                     }
                                 }
@@ -468,7 +513,7 @@ fun BottomNavigationBar(
 
                                     Box(
                                         modifier = Modifier
-                                            .size(24.dp)
+                                            .size(28.dp)
                                             .border(1.5.dp, statusColor, CircleShape)
                                             .padding(2.dp),
                                         contentAlignment = Alignment.Center
@@ -498,7 +543,7 @@ fun BottomNavigationBar(
                                         imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
                                         contentDescription = label,
                                         tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(28.dp)
                                     )
                                 }
                             }
