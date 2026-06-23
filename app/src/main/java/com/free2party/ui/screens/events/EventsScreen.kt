@@ -60,6 +60,7 @@ fun EventsRoute(
     onNavigateToEventDetails: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val pendingInvitationsCount by viewModel.pendingInvitationsCount.collectAsState()
     val gradientBackground = viewModel.gradientBackground
     val membership = viewModel.membership
     val currentUserId = viewModel.currentUserId
@@ -72,6 +73,7 @@ fun EventsRoute(
 
     EventsScreen(
         uiState = uiState,
+        pendingInvitationsCount = pendingInvitationsCount,
         selectedTabIndex = selectedTabIndex,
         onTabSelected = { viewModel.selectedTabIndex = it },
         searchQuery = searchQuery,
@@ -93,6 +95,7 @@ fun EventsRoute(
 @Composable
 fun EventsScreen(
     uiState: EventsUiState,
+    pendingInvitationsCount: Int,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
     searchQuery: String,
@@ -327,10 +330,21 @@ fun EventsScreen(
                     selected = selectedTabIndex == 1,
                     onClick = { onTabSelected(1) },
                     text = {
-                        Text(
-                            stringResource(R.string.label_invited),
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                stringResource(R.string.label_invited),
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (pendingInvitationsCount > 0) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Badge {
+                                    Text(pendingInvitationsCount.toString())
+                                }
+                            }
+                        }
                     }
                 )
                 Tab(
