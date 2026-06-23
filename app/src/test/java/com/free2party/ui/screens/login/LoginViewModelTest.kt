@@ -4,6 +4,7 @@ import com.free2party.data.model.ThemeMode
 import com.free2party.data.repository.AuthRepository
 import com.free2party.data.repository.SettingsRepository
 import com.free2party.util.UiText
+import com.google.firebase.auth.AuthCredential
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -177,4 +178,28 @@ class LoginViewModelTest {
         assertEquals("", viewModel.password)
         assertEquals(LoginUiState.Idle, viewModel.uiState)
     }
+
+    @Test
+    fun `setGoogleSignInLoading sets state to Loading`() {
+        assertEquals(LoginUiState.Idle, viewModel.uiState)
+        viewModel.setGoogleSignInLoading()
+        assertEquals(LoginUiState.Loading, viewModel.uiState)
+    }
+
+    @Test
+    fun `onGoogleSignIn success signs in and calls onSuccess even if loading`() =
+        runTest(testDispatcher) {
+            val credential = mockk<AuthCredential>()
+            coEvery { authRepository.signInWithGoogle(credential) } returns Result.success(mockk())
+
+            viewModel.setGoogleSignInLoading()
+            assertEquals(LoginUiState.Loading, viewModel.uiState)
+
+            var onSuccessCalled = false
+            viewModel.onGoogleSignIn(credential) { onSuccessCalled = true }
+            runCurrent()
+
+            assertTrue(onSuccessCalled)
+            assertEquals(LoginUiState.Success, viewModel.uiState)
+        }
 }

@@ -51,7 +51,9 @@ fun EditProfileRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is EditProfileUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT)
+                    val duration =
+                        if (event.isLongDuration) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+                    Toast.makeText(context, event.message.asString(context), duration)
                         .show()
                     if (event.navigateBack) {
                         onBack()

@@ -62,6 +62,10 @@ class EventRepositoryImpl @Inject constructor(
                 .whereEqualTo("hostId", uid)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                            return@addSnapshotListener
+                        }
                         close(mapToEventException(error))
                         return@addSnapshotListener
                     }
@@ -79,6 +83,10 @@ class EventRepositoryImpl @Inject constructor(
                 .whereArrayContains("guestIds", uid)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                            return@addSnapshotListener
+                        }
                         close(mapToEventException(error))
                         return@addSnapshotListener
                     }
@@ -96,6 +104,10 @@ class EventRepositoryImpl @Inject constructor(
                 .whereEqualTo("type", EventType.PUBLIC.name)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                            return@addSnapshotListener
+                        }
                         close(mapToEventException(error))
                         return@addSnapshotListener
                     }
@@ -123,6 +135,10 @@ class EventRepositoryImpl @Inject constructor(
         val listener = db.collection("events").document(eventId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToEventException(error))
                     return@addSnapshotListener
                 }
@@ -147,6 +163,10 @@ class EventRepositoryImpl @Inject constructor(
             .orderBy("createdAt", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToEventException(error))
                     return@addSnapshotListener
                 }
@@ -169,6 +189,10 @@ class EventRepositoryImpl @Inject constructor(
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToEventException(error))
                     return@addSnapshotListener
                 }

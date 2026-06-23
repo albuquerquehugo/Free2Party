@@ -43,8 +43,11 @@ sealed interface EditProfileUiState {
 }
 
 sealed class EditProfileUiEvent {
-    data class ShowToast(val message: UiText, val navigateBack: Boolean = false) :
-        EditProfileUiEvent()
+    data class ShowToast(
+        val message: UiText,
+        val navigateBack: Boolean = false,
+        val isLongDuration: Boolean = false
+    ) : EditProfileUiEvent()
 
     object AccountDeleted : EditProfileUiEvent()
 }
@@ -290,7 +293,8 @@ class EditProfileViewModel @Inject constructor(
                         (uiState as? EditProfileUiState.Success)?.copy(isSaving = false) ?: uiState
                     _uiEvent.emit(
                         EditProfileUiEvent.ShowToast(
-                            mapToUiText(e, R.string.error_updating_profile)
+                            message = mapToUiText(e, R.string.error_updating_profile),
+                            isLongDuration = true
                         )
                     )
                 }
@@ -321,7 +325,8 @@ class EditProfileViewModel @Inject constructor(
                                     ?: uiState
                             _uiEvent.emit(
                                 EditProfileUiEvent.ShowToast(
-                                    mapToUiText(e, R.string.error_updating_profile)
+                                    message = mapToUiText(e, R.string.error_updating_profile),
+                                    isLongDuration = true
                                 )
                             )
                         }
@@ -338,7 +343,10 @@ class EditProfileViewModel @Inject constructor(
                         else -> UiText.StringResource(R.string.error_uploading_image)
                     }
                     _uiEvent.emit(
-                        EditProfileUiEvent.ShowToast(errorText)
+                        EditProfileUiEvent.ShowToast(
+                            message = errorText,
+                            isLongDuration = true
+                        )
                     )
                 }
         }
@@ -357,7 +365,8 @@ class EditProfileViewModel @Inject constructor(
                         (uiState as? EditProfileUiState.Success)?.copy(isSaving = false) ?: uiState
                     _uiEvent.emit(
                         EditProfileUiEvent.ShowToast(
-                            mapToUiText(e, R.string.error_database_operation)
+                            message = mapToUiText(e, R.string.error_database_operation),
+                            isLongDuration = true
                         )
                     )
                 }

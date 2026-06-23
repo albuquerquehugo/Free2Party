@@ -122,6 +122,8 @@ fun LoginRoute(
                 .addCredentialOption(signInWithGoogleOption)
                 .build()
 
+            viewModel.setGoogleSignInLoading()
+
             coroutineScope.launch {
                 try {
                     val result = credentialManager.getCredential(
@@ -148,6 +150,7 @@ fun LoginRoute(
                                 googleInvalidTokenError,
                                 Toast.LENGTH_SHORT
                             ).show()
+                            viewModel.resetState()
                         }
                     } else {
                         Log.e("LoginScreen", "Unexpected credential type: ${credential.type}")
@@ -156,9 +159,11 @@ fun LoginRoute(
                             googleUnexpectedResponseError,
                             Toast.LENGTH_SHORT
                         ).show()
+                        viewModel.resetState()
                     }
                 } catch (_: GetCredentialCancellationException) {
                     Log.d("LoginScreen", "Google Sign-In was cancelled by the user")
+                    viewModel.resetState()
                 } catch (e: NoCredentialException) {
                     Log.e("LoginScreen", "No Google accounts available", e)
                     Toast.makeText(
@@ -166,6 +171,7 @@ fun LoginRoute(
                         googleNoAccountsError,
                         Toast.LENGTH_SHORT
                     ).show()
+                    viewModel.resetState()
                 } catch (e: GetCredentialException) {
                     Log.e("LoginScreen", "Google Sign-In failed", e)
                     Toast.makeText(
@@ -173,6 +179,7 @@ fun LoginRoute(
                         googleSignInFailedError,
                         Toast.LENGTH_SHORT
                     ).show()
+                    viewModel.resetState()
                 } catch (e: Exception) {
                     Log.e("LoginScreen", "An unexpected error occurred during Google Sign-In", e)
                     Toast.makeText(
@@ -180,6 +187,7 @@ fun LoginRoute(
                         e.localizedMessage ?: "Google Sign-In error",
                         Toast.LENGTH_SHORT
                     ).show()
+                    viewModel.resetState()
                 }
             }
         }

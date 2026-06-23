@@ -143,7 +143,6 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onGoogleSignIn(credential: AuthCredential, onSuccess: () -> Unit) {
-        if (uiState is LoginUiState.Loading) return
         uiState = LoginUiState.Loading
         viewModelScope.launch {
             authRepository.signInWithGoogle(credential)
@@ -192,6 +191,10 @@ class LoginViewModel @Inject constructor(
 
     fun resetState() {
         uiState = LoginUiState.Idle
+    }
+
+    fun setGoogleSignInLoading() {
+        uiState = LoginUiState.Loading
     }
 
     fun resetFields() {

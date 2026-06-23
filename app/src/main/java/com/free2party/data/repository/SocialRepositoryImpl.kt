@@ -64,7 +64,15 @@ class SocialRepositoryImpl @Inject constructor(
         val blockedUsersFlow = callbackFlow {
             val listener = db.collection("users").document(currentUserId)
                 .collection("blocked")
-                .addSnapshotListener { snapshot, _ ->
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                            return@addSnapshotListener
+                        }
+                        close(mapToSocialException(error))
+                        return@addSnapshotListener
+                    }
                     val blockedIds = snapshot?.documents?.map { it.id } ?: emptyList()
                     trySend(blockedIds)
                 }
@@ -77,6 +85,10 @@ class SocialRepositoryImpl @Inject constructor(
                 .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                            return@addSnapshotListener
+                        }
                         close(mapToSocialException(error))
                         return@addSnapshotListener
                     }
@@ -104,6 +116,10 @@ class SocialRepositoryImpl @Inject constructor(
             .collection("friends")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToSocialException(error))
                     return@addSnapshotListener
                 }
@@ -181,6 +197,10 @@ class SocialRepositoryImpl @Inject constructor(
     private fun Query.addSnapshotListenerFlow(): Flow<List<Notification>> = callbackFlow {
         val listener = addSnapshotListener { snapshot, error ->
             if (error != null) {
+                if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    close()
+                    return@addSnapshotListener
+                }
                 close(mapToSocialException(error))
                 return@addSnapshotListener
             }
@@ -203,6 +223,10 @@ class SocialRepositoryImpl @Inject constructor(
             .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToSocialException(error))
                     return@addSnapshotListener
                 }
@@ -225,6 +249,10 @@ class SocialRepositoryImpl @Inject constructor(
             .orderBy("blockedAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToSocialException(error))
                     return@addSnapshotListener
                 }
@@ -866,6 +894,10 @@ class SocialRepositoryImpl @Inject constructor(
     private fun Query.addSnapshotListenerFlowCircles(): Flow<List<Circle>> = callbackFlow {
         val listener = addSnapshotListener { snapshot, error ->
             if (error != null) {
+                if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    close()
+                    return@addSnapshotListener
+                }
                 close(mapToSocialException(error))
                 return@addSnapshotListener
             }

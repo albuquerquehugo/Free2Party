@@ -44,6 +44,10 @@ class PlanRepositoryImpl @Inject constructor(
             .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToPlanException(error))
                     return@addSnapshotListener
                 }
@@ -66,6 +70,10 @@ class PlanRepositoryImpl @Inject constructor(
             .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToPlanException(error))
                     return@addSnapshotListener
                 }
@@ -91,6 +99,10 @@ class PlanRepositoryImpl @Inject constructor(
             .collection("plans")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToPlanException(error))
                     return@addSnapshotListener
                 }

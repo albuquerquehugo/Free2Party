@@ -99,26 +99,41 @@ class AuthRepositoryImpl @Inject constructor(
         val result = auth.signInWithCredential(credential).await()
         val firebaseUser = result.user ?: throw UserNullException()
 
+        // Force a token refresh to ensure Firestore has the latest authentication state
+        // and reduce the chance of PERMISSION_DENIED during the following checks.
+        try {
+            firebaseUser.getIdToken(true).await()
+        } catch (e: Exception) {
+            Log.w("AuthRepository", "Token refresh failed during Google sign-in (non-fatal)", e)
+        }
+
         // Check if user profile already exists - with a small retry logic for slow networks/older devices
         var userProfileResult = userRepository.getUserById(firebaseUser.uid)
-        
-        if (userProfileResult.isFailure) {
-            kotlinx.coroutines.delay(500.milliseconds) // Brief pause to allow Firestore/Auth synchronization
+
+        if (userProfileResult.isFailure && userProfileResult.exceptionOrNull() !is UserNotFoundException) {
+            kotlinx.coroutines.delay(1000.milliseconds) // Brief pause to allow Firestore/Auth synchronization
             userProfileResult = userRepository.getUserById(firebaseUser.uid)
         }
 
         if (userProfileResult.isFailure) {
-            // If user profile doesn't exist, create a basic one from Google data
-            val newUser = User(
-                uid = firebaseUser.uid,
-                profilePicUrl = firebaseUser.photoUrl?.toString() ?: "",
-                firstName = firebaseUser.displayName?.split(" ")?.getOrNull(0) ?: "",
-                lastName = firebaseUser.displayName?.split(" ")?.getOrNull(1) ?: "",
-                email = firebaseUser.email ?: "",
-                isFreeNow = false,
-                registrationMethod = "google"
-            )
-            userRepository.createUserProfile(newUser).getOrThrow()
+            val exception = userProfileResult.exceptionOrNull()
+            if (exception is UserNotFoundException) {
+                // If user profile doesn't exist, create a basic one from Google data
+                val newUser = User(
+                    uid = firebaseUser.uid,
+                    profilePicUrl = firebaseUser.photoUrl?.toString() ?: "",
+                    firstName = firebaseUser.displayName?.split(" ")?.getOrNull(0) ?: "",
+                    lastName = firebaseUser.displayName?.split(" ")?.getOrNull(1) ?: "",
+                    email = firebaseUser.email ?: "",
+                    isFreeNow = false,
+                    registrationMethod = "google"
+                )
+                userRepository.createUserProfile(newUser).getOrThrow()
+            } else {
+                // If it's still failing with something else (like PERMISSION_DENIED), 
+                // it might be a real issue or persistent sync problem.
+                throw exception ?: Exception("Failed to verify user profile")
+            }
         }
 
         Result.success(firebaseUser)
