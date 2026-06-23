@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -411,53 +412,40 @@ fun BottomNavigationBar(
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding(),
+            .fillMaxWidth(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
-                .border(
-                    width = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.2f))
         ) {
-            BottomNavItems.forEach { screen ->
-                val isSelected =
-                    currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                val label = screen.labelResId?.let { stringResource(it) }
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
-                if (screen is Screen.Home) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(72.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        FloatingHomeButton(
-                            isSelected = isSelected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(72.dp)
-                            .clickable(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                BottomNavItems.forEach { screen ->
+                    val isSelected =
+                        currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                    val label = screen.labelResId?.let { stringResource(it) }
+
+                    if (screen is Screen.Home) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(72.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            FloatingHomeButton(
+                                isSelected = isSelected,
                                 onClick = {
                                     navController.navigate(screen.route) {
                                         popUpTo(navController.graph.findStartDestination().id) {
@@ -467,104 +455,123 @@ fun BottomNavigationBar(
                                         restoreState = true
                                     }
                                 }
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier.size(28.dp),
-                            contentAlignment = Alignment.Center
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(72.dp)
+                                .clickable(
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            when (screen) {
-                                is Screen.Notifications if totalUnread > 0 -> {
-                                    BadgedBox(
-                                        badge = { Badge { Text(totalUnread.toString()) } }
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
-                                            contentDescription = label,
-                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                    }
-                                }
-
-                                is Screen.Events if pendingInvitationsCount > 0 -> {
-                                    BadgedBox(
-                                        badge = { Badge { Text(pendingInvitationsCount.toString()) } }
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
-                                            contentDescription = label,
-                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                    }
-                                }
-
-                                is Screen.Profile -> {
-                                    val isUserFree = userNavState?.isUserFree ?: false
-                                    val profilePicUrl = userNavState?.profilePicUrl
-                                    val statusColor = if (isUserFree) {
-                                        MaterialTheme.colorScheme.available
-                                    } else {
-                                        MaterialTheme.colorScheme.busy
-                                    }
-
-                                    Box(
-                                        modifier = Modifier
-                                            .size(28.dp)
-                                            .border(1.5.dp, statusColor, CircleShape)
-                                            .padding(2.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if (!profilePicUrl.isNullOrBlank()) {
-                                            AsyncImage(
-                                                model = profilePicUrl,
-                                                contentDescription = label,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        } else {
+                            Box(
+                                modifier = Modifier.size(28.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                when (screen) {
+                                    is Screen.Notifications if totalUnread > 0 -> {
+                                        BadgedBox(
+                                            badge = { Badge { Text(totalUnread.toString()) } }
+                                        ) {
                                             Icon(
-                                                imageVector = Icons.Default.Person,
+                                                imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
                                                 contentDescription = label,
                                                 tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.fillMaxSize()
+                                                modifier = Modifier.size(28.dp)
                                             )
                                         }
                                     }
-                                }
 
-                                else -> {
-                                    Icon(
-                                        imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
-                                        contentDescription = label,
-                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(28.dp)
-                                    )
+                                    is Screen.Events if pendingInvitationsCount > 0 -> {
+                                        BadgedBox(
+                                            badge = { Badge { Text(pendingInvitationsCount.toString()) } }
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                                contentDescription = label,
+                                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                        }
+                                    }
+
+                                    is Screen.Profile -> {
+                                        val isUserFree = userNavState?.isUserFree ?: false
+                                        val profilePicUrl = userNavState?.profilePicUrl
+                                        val statusColor = if (isUserFree) {
+                                            MaterialTheme.colorScheme.available
+                                        } else {
+                                            MaterialTheme.colorScheme.busy
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .size(28.dp)
+                                                .border(1.5.dp, statusColor, CircleShape)
+                                                .padding(2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (!profilePicUrl.isNullOrBlank()) {
+                                                AsyncImage(
+                                                    model = profilePicUrl,
+                                                    contentDescription = label,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Default.Person,
+                                                    contentDescription = label,
+                                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    else -> {
+                                        Icon(
+                                            imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                            contentDescription = label,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                        label?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
-                                textAlign = TextAlign.Center
-                            )
+                            label?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
+            Spacer(modifier = Modifier.navigationBarsPadding())
+        }
     }
 }
 

@@ -34,11 +34,12 @@ fun AdBanner(
             thickness = 0.5.dp,
             color = MaterialTheme.colorScheme.outlineVariant
         )
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp) // Standard banner height
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
             contentAlignment = Alignment.Center
         ) {
             AndroidView(
@@ -62,9 +63,5 @@ fun AdBanner(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
             )
         }
-        HorizontalDivider(
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
     }
 }
