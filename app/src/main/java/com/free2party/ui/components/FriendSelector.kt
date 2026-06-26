@@ -9,14 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -32,6 +29,8 @@ import com.free2party.R
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.InviteStatus
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedCard
 
 @Composable
 fun FriendSelector(
@@ -45,7 +44,7 @@ fun FriendSelector(
     onUnselectAll: () -> Unit
 ) {
     Column {
-        OutlinedCard(
+        AppOutlinedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
@@ -60,7 +59,8 @@ fun FriendSelector(
                 ) {
                     Text(
                         stringResource(R.string.label_no_friends_to_select),
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -89,7 +89,11 @@ fun FriendSelector(
                                 }
                             )
                         }
-                        item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+                        item {
+                            AppHorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
                     }
 
                     items(friends) { friend ->
@@ -145,6 +149,7 @@ fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> 
                 Text(
                     text = friend.name,
                     style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
                 if (isPending) {
@@ -190,6 +195,7 @@ fun CircleSelectorItem(
             Text(
                 text = circleName,
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
             )
             Text(

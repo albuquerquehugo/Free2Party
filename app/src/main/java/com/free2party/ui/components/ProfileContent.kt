@@ -47,7 +47,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -87,6 +86,8 @@ import com.free2party.data.model.Countries
 import com.free2party.data.model.DatePattern
 import com.free2party.data.model.Gender
 import com.free2party.R
+import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.appOutlinedTextFieldColors
 import com.free2party.ui.components.dialogs.CountryPickerDialog
 import com.free2party.util.DateVisualTransformation
 import com.free2party.util.PhoneVisualTransformation
@@ -420,10 +421,10 @@ fun ProfileContent(
             modifier = Modifier.padding(vertical = 4.dp)
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = firstName,
             onValueChange = onFirstNameChange,
-            label = stringResource(R.string.label_first_name_required),
+            labelText = stringResource(R.string.label_first_name_required),
             icon = Icons.Default.AccountCircle,
             modifier = Modifier.testTag("first_name_field"),
             enabled = !isLoading,
@@ -436,10 +437,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = lastName,
             onValueChange = onLastNameChange,
-            label = stringResource(R.string.label_last_name_required),
+            labelText = stringResource(R.string.label_last_name_required),
             icon = Icons.Default.AccountCircle,
             modifier = Modifier.testTag("last_name_field"),
             enabled = !isLoading,
@@ -452,10 +453,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
-            label = stringResource(R.string.label_email_required),
+            labelText = stringResource(R.string.label_email_required),
             icon = Icons.Default.Email,
             modifier = Modifier.testTag("email_field"),
             enabled = !isLoading && isEmailEnabled,
@@ -593,7 +594,7 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        InputTextField(
+        AppOutlinedTextField(
             value = phoneNumber,
             onValueChange = { newValue ->
                 if (selectedCountry != null) {
@@ -606,12 +607,12 @@ fun ProfileContent(
                     }
                 }
             },
-            label = stringResource(R.string.label_phone_number),
+            labelText = stringResource(R.string.label_phone_number),
             isError = isPhoneError,
-            colors = OutlinedTextFieldDefaults.colors(
+            colors = appOutlinedTextFieldColors(
                 unfocusedLabelColor = phoneLabelColor
             ),
-            placeholder = selectedCountry?.phoneMask
+            placeholderText = selectedCountry?.phoneMask
                 ?: stringResource(R.string.text_phone_mask_placeholder),
             placeholderColor =
                 if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
@@ -665,15 +666,15 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = birthday.filter { it.isDigit() },
             onValueChange = { newValue ->
                 if (newValue.length <= 8) {
                     onBirthdayChange(newValue)
                 }
             },
-            label = stringResource(R.string.label_birthday),
-            placeholder = stringResource(datePattern.labelResId),
+            labelText = stringResource(R.string.label_birthday),
+            placeholderText = stringResource(datePattern.labelResId),
             icon = Icons.Default.Cake,
             modifier = Modifier.testTag("birthday_field"),
             interactionSource = birthdayInteractionSource,
@@ -705,11 +706,11 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = bio,
             onValueChange = onBioChange,
-            label = stringResource(R.string.label_bio),
-            placeholder = stringResource(R.string.text_bio_placeholder),
+            labelText = stringResource(R.string.label_bio),
+            placeholderText = stringResource(R.string.text_bio_placeholder),
             icon = Icons.AutoMirrored.Filled.Notes,
             modifier = Modifier.testTag("bio_field"),
             minLines = 1,
@@ -792,7 +793,7 @@ fun ProfileContent(
             Color.Unspecified
         }
 
-        InputTextField(
+        AppOutlinedTextField(
             value = whatsappNumber,
             onValueChange = { newValue ->
                 if (selectedWhatsappCountry != null) {
@@ -801,12 +802,12 @@ fun ProfileContent(
                     }
                 }
             },
-            label = stringResource(R.string.label_whatsapp_number),
+            labelText = stringResource(R.string.label_whatsapp_number),
             isError = isWhatsappError,
-            colors = OutlinedTextFieldDefaults.colors(
+            colors = appOutlinedTextFieldColors(
                 unfocusedLabelColor = whatsappLabelColor
             ),
-            placeholder = selectedWhatsappCountry?.phoneMask
+            placeholderText = selectedWhatsappCountry?.phoneMask
                 ?: stringResource(R.string.text_phone_mask_placeholder),
             placeholderColor =
                 if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
@@ -903,10 +904,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = telegramUsername,
             onValueChange = onTelegramUsernameChange,
-            label = stringResource(R.string.label_telegram_username),
+            labelText = stringResource(R.string.label_telegram_username),
             painter = painterResource(id = R.drawable.telegram),
             modifier = Modifier.testTag("telegram_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -917,10 +918,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = facebookUsername,
             onValueChange = onFacebookUsernameChange,
-            label = stringResource(R.string.label_messenger_username),
+            labelText = stringResource(R.string.label_messenger_username),
             painter = painterResource(id = R.drawable.messenger),
             modifier = Modifier.testTag("facebook_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -931,10 +932,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = instagramUsername,
             onValueChange = onInstagramUsernameChange,
-            label = stringResource(R.string.label_instagram_username),
+            labelText = stringResource(R.string.label_instagram_username),
             painter = painterResource(id = R.drawable.instagram),
             modifier = Modifier.testTag("instagram_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -945,10 +946,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = tiktokUsername,
             onValueChange = onTiktokUsernameChange,
-            label = stringResource(R.string.label_tiktok_username),
+            labelText = stringResource(R.string.label_tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
             modifier = Modifier.testTag("tiktok_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },
@@ -959,10 +960,10 @@ fun ProfileContent(
             )
         )
 
-        InputTextField(
+        AppOutlinedTextField(
             value = xUsername,
             onValueChange = onXUsernameChange,
-            label = stringResource(R.string.label_x_username),
+            labelText = stringResource(R.string.label_x_username),
             painter = painterResource(id = R.drawable.x),
             modifier = Modifier.testTag("x_field"),
             prefix = { Text(stringResource(R.string.handle_prefix)) },

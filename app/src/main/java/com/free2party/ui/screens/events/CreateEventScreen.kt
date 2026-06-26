@@ -4,7 +4,9 @@ import android.location.Address
 import android.location.Geocoder
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,18 +37,15 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -65,10 +66,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.free2party.data.model.Event
@@ -76,16 +80,14 @@ import com.free2party.data.model.EventLink
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.R
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.BaseDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
-import androidx.activity.compose.BackHandler
-import androidx.compose.ui.text.input.KeyboardType
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedButton
+import com.free2party.ui.components.basic.AppOutlinedCard
+import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.FriendSelector
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
@@ -444,11 +446,11 @@ fun CreateEventScreen(
 
             // Title Input
             Column(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text(stringResource(R.string.label_event_title) + " *") },
-                    placeholder = { Text(stringResource(R.string.placeholder_event_title)) },
+                    labelText = stringResource(R.string.label_event_title) + " *",
+                    placeholderText = stringResource(R.string.placeholder_event_title),
                     modifier = Modifier
                         .fillMaxWidth()
                         .onFocusChanged { focusState ->
@@ -474,11 +476,11 @@ fun CreateEventScreen(
             }
 
             // Description Input
-            OutlinedTextField(
+            AppOutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text(stringResource(R.string.label_event_description)) },
-                placeholder = { Text(stringResource(R.string.placeholder_event_description)) },
+                labelText = stringResource(R.string.label_event_description),
+                placeholderText = stringResource(R.string.placeholder_event_description),
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
@@ -558,7 +560,7 @@ fun CreateEventScreen(
                 }
             }
 
-            HorizontalDivider()
+            AppHorizontalDivider()
 
             // Date / Time Section
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -575,7 +577,7 @@ fun CreateEventScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -589,11 +591,11 @@ fun CreateEventScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color =
                                     if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else Color.Unspecified
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
@@ -612,7 +614,7 @@ fun CreateEventScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color =
                                     if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else Color.Unspecified
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -641,7 +643,7 @@ fun CreateEventScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -655,11 +657,11 @@ fun CreateEventScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color =
                                     if (!isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else Color.Unspecified
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
@@ -678,7 +680,7 @@ fun CreateEventScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color =
                                     if (!isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else Color.Unspecified
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -715,8 +717,16 @@ fun CreateEventScreen(
             }
 
             // Timezone Picker Button
-            OutlinedButton(
+            AppOutlinedButton(
                 onClick = { showTimezonePicker = true },
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline
+                ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Schedule, contentDescription = null)
@@ -737,18 +747,18 @@ fun CreateEventScreen(
                 )
             }
 
-            HorizontalDivider()
+            AppHorizontalDivider()
 
             // Location picker with suggestions
             Column(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = locationName,
                     onValueChange = {
                         locationName = it
                         showLocationSuggestions = true
                     },
-                    label = { Text(stringResource(R.string.label_location) + " *") },
-                    placeholder = { Text(stringResource(R.string.placeholder_location)) },
+                    labelText = stringResource(R.string.label_location) + " *",
+                    placeholderText = stringResource(R.string.placeholder_location),
                     leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                     trailingIcon = {
                         if (locationName.isNotBlank()) {
@@ -820,7 +830,7 @@ fun CreateEventScreen(
                 }
             }
 
-            HorizontalDivider()
+            AppHorizontalDivider()
 
             // Guests Picker
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -883,7 +893,7 @@ fun CreateEventScreen(
                 }
             }
 
-            HorizontalDivider()
+            AppHorizontalDivider()
 
             // Useful Links Card
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -1106,10 +1116,10 @@ fun CreateEventScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = timezoneSearchQuery,
                     onValueChange = { timezoneSearchQuery = it },
-                    placeholder = { Text(stringResource(R.string.label_timezone_search)) },
+                    placeholderText = stringResource(R.string.label_timezone_search),
                     modifier = Modifier.fillMaxWidth(),
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
                 )
@@ -1162,11 +1172,11 @@ fun CreateEventScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = linkTitle,
                     onValueChange = { linkTitle = it },
-                    label = { Text(stringResource(R.string.label_link_title)) },
-                    placeholder = { Text(stringResource(R.string.placeholder_link_title)) },
+                    labelText = stringResource(R.string.label_link_title),
+                    placeholderText = stringResource(R.string.placeholder_link_title),
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
@@ -1194,11 +1204,11 @@ fun CreateEventScreen(
                     formattedLinkUrl.isNotBlank() && usefulLinksList.any { it.url == formattedLinkUrl }
                 }
 
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = linkUrl,
                     onValueChange = { linkUrl = it },
-                    label = { Text(stringResource(R.string.label_link_url)) },
-                    placeholder = { Text(stringResource(R.string.placeholder_link_url)) },
+                    labelText = stringResource(R.string.label_link_url),
+                    placeholderText = stringResource(R.string.placeholder_link_url),
                     modifier = Modifier.fillMaxWidth(),
                     isError = !isUrlFormatValid || isDuplicate,
                     supportingText = {

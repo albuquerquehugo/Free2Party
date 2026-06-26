@@ -44,6 +44,7 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.DistanceUnit
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
@@ -361,13 +362,13 @@ fun EventsScreen(
 
             // Search Bar for Public Tab
             if (selectedTabIndex == 2) {
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text(stringResource(R.string.placeholder_search_events)) },
+                    placeholderText = stringResource(R.string.placeholder_search_events),
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {

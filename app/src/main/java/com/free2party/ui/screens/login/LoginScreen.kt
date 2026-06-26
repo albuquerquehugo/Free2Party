@@ -33,11 +33,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -69,10 +67,12 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
-import com.free2party.R
 import com.free2party.data.model.ThemeMode
-import com.free2party.ui.components.InputTextField
+import com.free2party.R
 import com.free2party.ui.components.dialogs.EmailDialog
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppOutlinedButton
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -429,7 +429,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                HorizontalDivider()
+                AppHorizontalDivider()
 
                 Text(
                     text = stringResource(R.string.title_background),
@@ -496,10 +496,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            InputTextField(
+            AppOutlinedTextField(
                 value = email,
                 onValueChange = onEmailChange,
-                label = stringResource(R.string.label_email),
+                labelText = stringResource(R.string.label_email),
                 icon = Icons.Default.Email,
                 enabled = uiState !is LoginUiState.Loading,
                 keyboardOptions = KeyboardOptions(
@@ -513,10 +513,10 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            InputTextField(
+            AppOutlinedTextField(
                 value = password,
                 onValueChange = onPasswordChange,
-                label = stringResource(R.string.label_password),
+                labelText = stringResource(R.string.label_password),
                 isPassword = true,
                 passwordVisible = passwordVisible,
                 changeVisibility = { passwordVisible = !passwordVisible },
@@ -608,7 +608,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    HorizontalDivider(
+                    AppHorizontalDivider(
                         modifier = Modifier.weight(1f),
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
                     )
@@ -618,7 +618,7 @@ fun LoginScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
                     )
-                    HorizontalDivider(
+                    AppHorizontalDivider(
                         modifier = Modifier.weight(1f),
                         color = if (gradientBackground) MaterialTheme.colorScheme.outline.copy(alpha = 0.7f) else MaterialTheme.colorScheme.outline
                     )
@@ -626,14 +626,14 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedButton(
+                AppOutlinedButton(
                     onClick = onGoogleSignInClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     enabled = uiState !is LoginUiState.Loading,
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         containerColor = if (gradientBackground) MaterialTheme.colorScheme.surface.copy(
                             alpha = 0.7f
                         ) else Color.Transparent

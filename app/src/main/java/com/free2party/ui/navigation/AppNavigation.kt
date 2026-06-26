@@ -346,18 +346,22 @@ fun FloatingHomeButton(
         label = "HomeScale"
     )
     val startColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(
+            alpha = 0.7f
+        ),
         label = "HomeStartColor"
     )
     val endColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant,
+        targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant.copy(
+            alpha = 0.7f
+        ),
         label = "HomeEndColor"
     )
     val iconTint by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "HomeIconTint"
     )
-    val elevation = if (isSelected) 12.dp else 4.dp
+    val elevation = if (isSelected) 12.dp else 0.dp
 
     Box(
         modifier = modifier

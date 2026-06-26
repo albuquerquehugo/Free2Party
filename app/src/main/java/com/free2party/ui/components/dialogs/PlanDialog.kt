@@ -22,31 +22,27 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
-import com.free2party.util.TextFieldRegistry
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -54,24 +50,27 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.free2party.R
-import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.PlanVisibility
+import com.free2party.ui.components.FriendSelector
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedCard
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.theme.inactive
+import com.free2party.util.capitalizeWords
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
-import com.free2party.ui.components.FriendSelector
 import com.free2party.util.isDateTimeInPast
 import com.free2party.util.parseDateToMillis
 import com.free2party.util.parseTimeToMinutes
+import com.free2party.util.TextFieldRegistry
 import com.free2party.util.unformatTime
-import com.free2party.util.capitalizeWords
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -349,7 +348,7 @@ fun PlanDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -359,11 +358,13 @@ fun PlanDialog(
                             Text(
                                 text = startDateText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
@@ -378,7 +379,9 @@ fun PlanDialog(
                                     ), use24HourFormat
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
@@ -396,7 +399,7 @@ fun PlanDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -406,11 +409,13 @@ fun PlanDialog(
                             Text(
                                 text = endDateText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
@@ -425,7 +430,9 @@ fun PlanDialog(
                                     ), use24HourFormat
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
@@ -450,22 +457,11 @@ fun PlanDialog(
                     )
                 }
 
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    textStyle = MaterialTheme.typography.bodySmall,
-                    label = {
-                        Text(
-                            stringResource(R.string.label_plan_note),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            stringResource(R.string.placeholder_plan_note),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
+                    labelText = stringResource(R.string.label_plan_note),
+                    placeholderText = stringResource(R.string.placeholder_plan_note),
                     modifier = Modifier
                         .fillMaxWidth()
                         .onGloballyPositioned { coordinates ->
@@ -477,7 +473,7 @@ fun PlanDialog(
                     )
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                AppHorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 // Visibility Section
                 Column {
@@ -510,7 +506,8 @@ fun PlanDialog(
                             exceptFriendIds,
                             { id ->
                                 exceptFriendIds =
-                                    if (id in exceptFriendIds) exceptFriendIds - id else exceptFriendIds + id
+                                    if (id in exceptFriendIds) exceptFriendIds - id
+                                    else exceptFriendIds + id
                             },
                             { ids ->
                                 exceptFriendIds = (exceptFriendIds + ids).distinct()
@@ -533,7 +530,8 @@ fun PlanDialog(
                             onlyFriendIds,
                             { id ->
                                 onlyFriendIds =
-                                    if (id in onlyFriendIds) onlyFriendIds - id else onlyFriendIds + id
+                                    if (id in onlyFriendIds) onlyFriendIds - id
+                                    else onlyFriendIds + id
                             },
                             { ids ->
                                 onlyFriendIds = (onlyFriendIds + ids).distinct()

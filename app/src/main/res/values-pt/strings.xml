@@ -415,7 +415,7 @@
     <string name="error_email_already_in_use">Este e-mail já está em uso.</string>
     <string name="error_email_not_verified">Por favor, verifique seu endereço de e-mail antes de entrar. Verifique sua caixa de entrada (incluindo a pasta de SPAM) pelo link de verificação.</string>
     <string name="error_email_not_verified_resend">Não recebeu o link de verificação?</string>
-    <string name="error_email_not_verified_resend_clickable">Reenviar.</string>
+    <string name="error_email_not_verified_resend_clickable">Reenviar</string>
     <string name="error_end_date_mandatory">A data e hora de término são obrigatórias</string>
     <string name="error_event_edit_current_past">Não é possível editar um evento em curso ou passado</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>

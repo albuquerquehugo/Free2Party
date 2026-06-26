@@ -413,7 +413,7 @@
     <string name="error_email_already_in_use">This email is already in use.</string>
     <string name="error_email_not_verified">Please verify your email address before logging in. Check your inbox (including SPAM folder) for the verification link.</string>
     <string name="error_email_not_verified_resend">Didn\'t receive the verification link?</string>
-    <string name="error_email_not_verified_resend_clickable">Resend it.</string>
+    <string name="error_email_not_verified_resend_clickable">Resend it</string>
     <string name="error_end_date_mandatory">End date and time are mandatory</string>
     <string name="error_event_edit_current_past">Cannot edit a current or past event</string>
     <string name="error_event_not_found">The event was not found.</string>

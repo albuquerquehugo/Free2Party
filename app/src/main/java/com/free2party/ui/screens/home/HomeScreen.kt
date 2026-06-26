@@ -804,7 +804,7 @@ fun FriendItem(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
-                                tint = statusColor.copy(alpha = 0.6f)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }

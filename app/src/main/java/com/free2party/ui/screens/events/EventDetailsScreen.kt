@@ -49,10 +49,11 @@ import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.*
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.BaseDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.ui.components.dialogs.PublicProfileDialog
+import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
 import com.free2party.util.formatPlanDateInFull
@@ -1194,19 +1195,10 @@ fun EventDetailsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            OutlinedTextField(
+                            AppOutlinedTextField(
                                 value = commentText,
                                 onValueChange = { commentText = it },
-                                textStyle = MaterialTheme.typography.bodyMedium,
-                                placeholder = {
-                                    Text(
-                                        stringResource(R.string.placeholder_comment),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                            alpha = 0.6f
-                                        )
-                                    )
-                                },
+                                placeholderText = stringResource(R.string.placeholder_comment),
                                 modifier = Modifier
                                     .weight(1f)
                                     .bringIntoViewRequester(commentBringIntoViewRequester),
