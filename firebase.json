@@ -43,6 +43,7 @@
     }
   ],
   "hosting": {
+    "site": "free2party",
     "public": "public",
     "cleanUrls": true,
     "ignore": [
