@@ -127,7 +127,9 @@ class Free2PartyApp : Application() {
     }
 
     private fun startUserStatusAutomation(uid: String) {
-        if (currentAutomationUid == uid && automationJob?.isActive == true) return
+        if (currentAutomationUid == uid && automationJob?.isActive == true) {
+            return
+        }
 
         stopUserStatusAutomation()
         currentAutomationUid = uid
@@ -150,17 +152,12 @@ class Free2PartyApp : Application() {
                             activePlans.any { it.visibility == PlanVisibility.EVERYONE }
 
                         if (lastAutomatedStatus != hasAnyActivePlan) {
-                            Log.d(
-                                "Automation",
-                                "Status transition: $hasAnyActivePlan (Public: $shouldBeFreePublicly)"
-                            )
-
                             userRepository.toggleAvailability(
                                 shouldBeFreePublicly,
                                 fromPlan = hasAnyActivePlan
                             ).onFailure { e ->
+                                Log.e("Automation", "Failed to toggle availability", e)
                                 if (e is UnauthorizedException || e is UserNotFoundException) {
-                                    Log.d("Automation", "User no longer valid, stopping.")
                                     stopUserStatusAutomation()
                                     return@collectLatest
                                 }
@@ -175,13 +172,10 @@ class Free2PartyApp : Application() {
                     }
                 }
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                if (e is UnauthorizedException || e is UserNotFoundException) {
-                    Log.d(
-                        "Automation",
-                        "Unauthorized access or user not found, stopping automation"
-                    )
-                } else {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    throw e
+                }
+                if (e !is UnauthorizedException && e !is UserNotFoundException) {
                     Log.e("Automation", "Error in automation loop", e)
                 }
                 stopUserStatusAutomation()

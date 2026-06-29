@@ -54,6 +54,9 @@ class LoginViewModel @Inject constructor(
     var gradientBackground by mutableStateOf(true)
         private set
 
+    var useLegacyGoogleSignIn by mutableStateOf(false)
+        private set
+
     private val _uiEvent = MutableSharedFlow<LoginUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
@@ -72,6 +75,11 @@ class LoginViewModel @Inject constructor(
                 gradientBackground = enabled
             }
         }
+        viewModelScope.launch {
+            settingsRepository.useLegacyGoogleSignInFlow.collectLatest { enabled ->
+                useLegacyGoogleSignIn = enabled
+            }
+        }
     }
 
     fun updateThemeMode(mode: ThemeMode) {
@@ -83,6 +91,12 @@ class LoginViewModel @Inject constructor(
     fun updateGradientBackground(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setGradientBackground(enabled)
+        }
+    }
+
+    fun saveUseLegacyGoogleSignInPreference(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setUseLegacyGoogleSignIn(enabled)
         }
     }
 
@@ -142,12 +156,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onGoogleSignIn(
-        credential: AuthCredential,
-        onSuccess: () -> Unit,
-        onFailure: (Throwable) -> Unit
-    ) {
-        if (uiState is LoginUiState.Loading) return
+    fun onGoogleSignIn(credential: AuthCredential, onSuccess: () -> Unit) {
         uiState = LoginUiState.Loading
         viewModelScope.launch {
             authRepository.signInWithGoogle(credential)
@@ -197,6 +206,10 @@ class LoginViewModel @Inject constructor(
 
     fun resetState() {
         uiState = LoginUiState.Idle
+    }
+
+    fun setGoogleSignInLoading() {
+        uiState = LoginUiState.Loading
     }
 
     fun resetFields() {

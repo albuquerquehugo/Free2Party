@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.data.model.DatePattern
+import com.free2party.data.model.DistanceUnit
 import com.free2party.data.model.User
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
@@ -52,7 +53,7 @@ import com.free2party.data.model.BirthdayVisibility
 import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
-import com.free2party.ui.components.dialogs.FriendSelector
+import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
@@ -153,6 +154,9 @@ fun SettingsScreenContent(
     var datePattern by remember(user.settings.datePattern) {
         mutableStateOf(user.settings.datePattern)
     }
+    var distanceUnit by remember(user.settings.distanceUnit) {
+        mutableStateOf(user.settings.distanceUnit)
+    }
     var manualStatusVisibility by remember(user.manualStatusVisibility) {
         mutableStateOf(user.manualStatusVisibility)
     }
@@ -217,8 +221,10 @@ fun SettingsScreenContent(
         manualStatusChanged || birthdayChanged
     }
 
-    val isPreferencesChanged = remember(user, use24HourFormat, datePattern) {
-        use24HourFormat != user.settings.use24HourFormat || datePattern != user.settings.datePattern
+    val isPreferencesChanged = remember(user, use24HourFormat, datePattern, distanceUnit) {
+        use24HourFormat != user.settings.use24HourFormat ||
+                datePattern != user.settings.datePattern ||
+                distanceUnit != user.settings.distanceUnit
     }
 
     val hasChanges = isPrivacyChanged || isPreferencesChanged
@@ -559,6 +565,43 @@ fun SettingsScreenContent(
                     }
                 }
             }
+
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.label_distance_unit),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .selectableGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    SettingsOption(
+                        label = stringResource(R.string.option_kilometers),
+                        selected = distanceUnit == DistanceUnit.KILOMETERS,
+                        onClick = { distanceUnit = DistanceUnit.KILOMETERS },
+                        enabled = !isSaving
+                    )
+                    SettingsOption(
+                        label = stringResource(R.string.option_miles),
+                        selected = distanceUnit == DistanceUnit.MILES,
+                        onClick = { distanceUnit = DistanceUnit.MILES },
+                        enabled = !isSaving
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -568,6 +611,7 @@ fun SettingsScreenContent(
                 onClick = {
                     use24HourFormat = user.settings.use24HourFormat
                     datePattern = user.settings.datePattern
+                    distanceUnit = user.settings.distanceUnit
                     manualStatusVisibility = user.manualStatusVisibility
                     manualStatusFriendsSelection = user.manualStatusFriendsSelection
                     birthdayVisibility = user.birthdayVisibility
@@ -584,7 +628,7 @@ fun SettingsScreenContent(
                 Text(
                     text = stringResource(R.string.label_discard_changes),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    color = MaterialTheme.colorScheme.error
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -623,7 +667,8 @@ fun SettingsScreenContent(
                         birthday = updatedBirthday,
                         settings = user.settings.copy(
                             use24HourFormat = use24HourFormat,
-                            datePattern = datePattern
+                            datePattern = datePattern,
+                            distanceUnit = distanceUnit
                         ),
                         manualStatusVisibility = manualStatusVisibility,
                         manualStatusFriendsSelection = manualStatusFriendsSelection,

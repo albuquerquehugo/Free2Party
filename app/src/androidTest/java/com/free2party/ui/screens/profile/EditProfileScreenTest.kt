@@ -26,17 +26,17 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class ProfileScreenTest {
+class EditProfileScreenTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<TestActivity>()
 
     /**
-     * A wrapper to provide state management for testing ProfileScreenContent,
+     * A wrapper to provide state management for testing EditProfileScreenContent,
      * which is now a stateless component.
      */
     @Composable
-    private fun ProfileScreenTestWrapper(
+    private fun EditProfileScreenTestWrapper(
         initialUser: User,
         onUpdateProfileClicked: (User) -> Unit = {}
     ) {
@@ -46,7 +46,7 @@ class ProfileScreenTest {
         val gender = remember { mutableStateOf(initialUser.gender) }
         val isWhatsappSameAsPhone = remember { mutableStateOf(false) }
 
-        val uiState = ProfileUiState.Success(user = initialUser)
+        val uiState = EditProfileUiState.Success(user = initialUser)
 
         val hasChanges = firstName.value != initialUser.firstName ||
                 lastName.value != initialUser.lastName ||
@@ -58,7 +58,7 @@ class ProfileScreenTest {
 
         Free2PartyTheme {
             Surface {
-                ProfileScreenContent(
+                EditProfileScreenContent(
                     paddingValues = PaddingValues(0.dp),
                     uiState = uiState,
                     onUploadImage = {},
@@ -129,7 +129,7 @@ class ProfileScreenTest {
         )
 
         composeTestRule.setContent {
-            ProfileScreenTestWrapper(initialUser = initialUser)
+            EditProfileScreenTestWrapper(initialUser = initialUser)
         }
 
         // Initially, the discard button should not exist
@@ -168,7 +168,7 @@ class ProfileScreenTest {
         )
 
         composeTestRule.setContent {
-            ProfileScreenTestWrapper(initialUser = initialUser)
+            EditProfileScreenTestWrapper(initialUser = initialUser)
         }
 
         // Initially, save button should be disabled (no changes)
@@ -201,7 +201,7 @@ class ProfileScreenTest {
         var updatedUser: User? = null
 
         composeTestRule.setContent {
-            ProfileScreenTestWrapper(
+            EditProfileScreenTestWrapper(
                 initialUser = initialUser,
                 onUpdateProfileClicked = { updatedUser = it }
             )

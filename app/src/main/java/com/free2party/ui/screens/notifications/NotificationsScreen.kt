@@ -2,7 +2,6 @@ package com.free2party.ui.screens.notifications
 
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -58,7 +56,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,13 +66,19 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
+import com.free2party.util.matchEventInvitation
+import com.free2party.util.matchEventComment
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun NotificationsRoute(viewModel: NotificationsViewModel) {
+fun NotificationsRoute(
+    viewModel: NotificationsViewModel,
+    onNavigateToEventDetails: (String, Boolean) -> Unit
+) {
     val context = LocalContext.current
     val items by viewModel.notificationItems.collectAsState()
     val itemsUnreadCount by viewModel.itemsUnreadCount.collectAsState()
@@ -108,7 +111,8 @@ fun NotificationsRoute(viewModel: NotificationsViewModel) {
         onDeclineAndBlockRequest = { viewModel.declineAndBlockFriendRequest(it.id) },
         onToggleRead = { viewModel.toggleReadStatus(it) },
         onDelete = { viewModel.deleteNotification(it) },
-        onMarkAllAsRead = { viewModel.markAllAsRead() }
+        onMarkAllAsRead = { viewModel.markAllAsRead() },
+        onNavigateToEventDetails = onNavigateToEventDetails
     )
 }
 
@@ -124,7 +128,8 @@ fun NotificationsScreen(
     onDeclineAndBlockRequest: (FriendRequest) -> Unit,
     onToggleRead: (Notification) -> Unit,
     onDelete: (String) -> Unit,
-    onMarkAllAsRead: () -> Unit
+    onMarkAllAsRead: () -> Unit,
+    onNavigateToEventDetails: (String, Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
 
@@ -135,31 +140,17 @@ fun NotificationsScreen(
             .padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 20.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.free2party_full_foreground_color),
-                contentDescription = stringResource(R.string.description_logo_content),
-                modifier = Modifier.height(20.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-
         val titleText = if (itemsUnreadCount > 0) {
             stringResource(R.string.title_notifications_with_count, itemsUnreadCount)
         } else {
             stringResource(R.string.title_notifications)
         }
 
-        Text(
-            text = titleText,
+        TopBar(
+            title = titleText,
             color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            showBackButton = false,
+            onBack = {}
         )
 
         Box(modifier = Modifier.weight(1f)) {
@@ -234,7 +225,8 @@ fun NotificationsScreen(
                                 notification = item.notification,
                                 gradientBackground = gradientBackground,
                                 onToggleRead = { onToggleRead(item.notification) },
-                                onDelete = { onDelete(item.notification.id) }
+                                onDelete = { onDelete(item.notification.id) },
+                                onNavigateToEventDetails = onNavigateToEventDetails
                             )
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
@@ -407,7 +399,8 @@ fun DismissibleNotificationItem(
     notification: Notification,
     gradientBackground: Boolean,
     onToggleRead: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onNavigateToEventDetails: (String, Boolean) -> Unit
 ) {
     val currentOnToggleRead by rememberUpdatedState(onToggleRead)
     val currentOnDelete by rememberUpdatedState(onDelete)
@@ -441,7 +434,8 @@ fun DismissibleNotificationItem(
                     notification = notification,
                     gradientBackground = gradientBackground,
                     onToggleRead = currentOnToggleRead,
-                    onDelete = currentOnDelete
+                    onDelete = currentOnDelete,
+                    onNavigateToEventDetails = onNavigateToEventDetails
                 )
             }
         )
@@ -505,7 +499,8 @@ fun NotificationBox(
     notification: Notification,
     gradientBackground: Boolean,
     onToggleRead: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onNavigateToEventDetails: (String, Boolean) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -547,6 +542,30 @@ fun NotificationBox(
             } else notification.message
         }
 
+        NotificationType.EVENT_INVITE -> {
+            val match = notification.message.matchEventInvitation()
+            if (match != null) {
+                stringResource(
+                    R.string.notification_event_invitation_body,
+                    match.first,
+                    match.second,
+                    match.third
+                )
+            } else notification.message
+        }
+
+        NotificationType.EVENT_COMMENT -> {
+            val match = notification.message.matchEventComment()
+            if (match != null) {
+                stringResource(
+                    R.string.notification_event_comment_body,
+                    match.first,
+                    match.second,
+                    match.third
+                )
+            } else notification.message
+        }
+
         else -> notification.message
     }
 
@@ -554,6 +573,17 @@ fun NotificationBox(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
+            .then(
+                if (notification.eventId.isNotBlank()) {
+                    Modifier.clickable {
+                        if (!notification.isRead) {
+                            onToggleRead()
+                        }
+                        val scrollToComments = notification.type == NotificationType.EVENT_COMMENT
+                        onNavigateToEventDetails(notification.eventId, scrollToComments)
+                    }
+                } else Modifier
+            )
             .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

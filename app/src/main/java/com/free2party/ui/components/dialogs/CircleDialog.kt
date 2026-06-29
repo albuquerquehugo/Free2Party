@@ -25,7 +25,7 @@ import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
-import com.free2party.ui.components.InputTextField
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.util.capitalizeFirstLetter
 
 @Composable
@@ -67,10 +67,10 @@ fun CircleDialog(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            InputTextField(
+            AppOutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = stringResource(R.string.label_circle_name),
+                labelText = stringResource(R.string.label_circle_name),
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading,
                 keyboardOptions = KeyboardOptions(

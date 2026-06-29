@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.DateRange
@@ -35,14 +34,9 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.HourglassEmpty
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -52,7 +46,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -90,9 +83,7 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.InviteStatus
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
-import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.BlockUserDialog
-import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.free2party.ui.components.dialogs.PublicProfileDialog
 import com.free2party.ui.components.dialogs.RemoveFriendDialog
@@ -119,13 +110,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun HomeRoute(
     homeViewModel: HomeViewModel,
     circleViewModel: CircleViewModel = hiltViewModel(),
-    onLogout: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onNavigateToBlockedUsers: () -> Unit,
-    onNavigateToSettings: () -> Unit,
-    onNavigateToInviteFriend: () -> Unit,
-    onNavigateToCircles: () -> Unit,
-    onNavigateToAppearance: () -> Unit
+    onNavigateToInviteFriend: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -139,8 +124,6 @@ fun HomeRoute(
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-
-                is HomeUiEvent.Logout -> onLogout()
             }
         }
     }
@@ -169,10 +152,6 @@ fun HomeRoute(
     HomeScreen(
         homeUiState = homeViewModel.uiState,
         gradientBackground = gradientBackground,
-        onLogoutClick = { homeViewModel.logout(onLogout) },
-        onNavigateToProfile = onNavigateToProfile,
-        onNavigateToBlockedUsers = onNavigateToBlockedUsers,
-        onNavigateToSettings = onNavigateToSettings,
         onToggleAvailability = { homeViewModel.toggleAvailability() },
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
         onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
@@ -181,9 +160,7 @@ fun HomeRoute(
         onInviteFriendClick = onNavigateToInviteFriend,
         circles = circleViewModel.circles,
         selectedCircleId = circleViewModel.selectedCircleId,
-        onCircleSelected = { circleViewModel.updateSelectedCircleId(it) },
-        onNavigateToCircles = onNavigateToCircles,
-        onNavigateToAppearance = onNavigateToAppearance
+        onCircleSelected = { circleViewModel.updateSelectedCircleId(it) }
     )
 }
 
@@ -192,10 +169,6 @@ fun HomeRoute(
 fun HomeScreen(
     homeUiState: HomeUiState,
     gradientBackground: Boolean,
-    onLogoutClick: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onNavigateToBlockedUsers: () -> Unit,
-    onNavigateToSettings: () -> Unit,
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (String) -> Unit,
     onRemoveAndBlockFriend: (String) -> Unit,
@@ -204,17 +177,12 @@ fun HomeScreen(
     onInviteFriendClick: () -> Unit,
     circles: List<Circle>,
     selectedCircleId: String?,
-    onCircleSelected: (String?) -> Unit,
-    onNavigateToCircles: () -> Unit,
-    onNavigateToAppearance: () -> Unit
+    onCircleSelected: (String?) -> Unit
 ) {
-    var showUserMenu by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
     var showRemoveFriendDialog by remember { mutableStateOf(false) }
     var friendToRemove by remember { mutableStateOf<FriendInfo?>(null) }
     var showBlockUserDialog by remember { mutableStateOf(false) }
     var friendToBlock by remember { mutableStateOf<FriendInfo?>(null) }
-    var showAboutDialog by remember { mutableStateOf(false) }
     var showReportDialog by remember { mutableStateOf(false) }
     var friendIdToReport by remember { mutableStateOf<String?>(null) }
     var selectedFriend by remember { mutableStateOf<FriendInfo?>(null) }
@@ -235,209 +203,6 @@ fun HomeScreen(
                 .focusRequester(rootFocusRequester)
                 .focusable()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .clip(CircleShape)
-                        .clickable { showUserMenu = true }
-                        .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val successState = homeUiState as? HomeUiState.Success
-                    val profilePicUrl = successState?.profilePicUrl
-                    val isUserFree = successState?.isUserFree ?: false
-                    val isStatusFromPlan = successState?.isStatusFromPlan ?: false
-                    val statusColor =
-                        if (isUserFree) MaterialTheme.colorScheme.available
-                        else MaterialTheme.colorScheme.busy
-
-                    if (successState != null) {
-                        Column(
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            Text(
-                                text = successState.userName,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.ExtraBold,
-                                modifier = Modifier.padding(end = 4.dp)
-                            )
-                            Text(
-                                text =
-                                    if (isUserFree) stringResource(R.string.label_status_free)
-                                    else stringResource(
-                                        successState.userGender.getStringRes(R.string.label_status_busy)
-                                    ),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = statusColor,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-                                        shape = CircleShape
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 2.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-
-                    Box(
-                        modifier = Modifier.size(46.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .border(3.dp, statusColor, CircleShape)
-                                .padding(6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (!profilePicUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = profilePicUrl,
-                                    contentDescription = stringResource(R.string.description_user_menu),
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AccountCircle,
-                                    contentDescription = stringResource(R.string.description_user_menu),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(36.dp)
-                                )
-                            }
-                        }
-
-                        if (isStatusFromPlan) {
-                            Icon(
-                                imageVector = Icons.Default.DateRange,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .align(Alignment.BottomEnd)
-                                    .background(MaterialTheme.colorScheme.surface, CircleShape)
-                                    .padding(1.dp),
-                                tint = statusColor
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = showUserMenu,
-                            onDismissRequest = { showUserMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.title_profile)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    onNavigateToProfile()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.title_circles)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    onNavigateToCircles()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Groups,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.title_blocked_users)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    onNavigateToBlockedUsers()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Block,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.title_appearance)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    onNavigateToAppearance()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Palette,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.title_settings)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    onNavigateToSettings()
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.title_about)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    showAboutDialog = true
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Info,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.label_logout)) },
-                                onClick = {
-                                    showUserMenu = false
-                                    showLogoutDialog = true
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.Logout,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
             when (homeUiState) {
                 is HomeUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -496,21 +261,6 @@ fun HomeScreen(
             }
         }
 
-        if (showLogoutDialog) {
-            ConfirmationDialog(
-                title = stringResource(R.string.label_logout),
-                text = stringResource(R.string.text_logout_confirmation),
-                confirmButtonText = stringResource(R.string.label_logout),
-                onConfirm = {
-                    showLogoutDialog = false
-                    onLogoutClick()
-                },
-                dismissButtonText = stringResource(R.string.label_cancel),
-                onDismiss = { showLogoutDialog = false },
-                isDestructive = true
-            )
-        }
-
         if (showRemoveFriendDialog && friendToRemove != null) {
             RemoveFriendDialog(
                 friend = friendToRemove!!,
@@ -545,10 +295,6 @@ fun HomeScreen(
                     friendToBlock = null
                 }
             )
-        }
-
-        if (showAboutDialog) {
-            AboutDialog(onDismiss = { showAboutDialog = false })
         }
 
         if (showReportDialog) {
@@ -617,6 +363,7 @@ fun HomeContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
             val logoScale by animateFloatAsState(targetValue = if (isUserFree) 0.9f else 1.0f)
             val glowColor =
                 if (isUserFree) MaterialTheme.colorScheme.busy else MaterialTheme.colorScheme.available
@@ -896,17 +643,19 @@ fun FriendsListSection(
                     onFriendItemClick = onFriendItemClick
                 )
             }
-            item {
-                ExpandableFriendSection(
-                    title = stringResource(R.string.title_friend_section_pending),
-                    friends = pendingFriends,
-                    gradientBackground = gradientBackground,
-                    onRemoveFriend = onRemoveFriend,
-                    onBlockUser = onBlockUser,
-                    onCancelInvite = onCancelInvite,
-                    onOpenCalendar = onOpenFriendCalendar,
-                    onFriendItemClick = onFriendItemClick
-                )
+            if (pendingFriends.isNotEmpty()) {
+                item {
+                    ExpandableFriendSection(
+                        title = stringResource(R.string.title_friend_section_pending),
+                        friends = pendingFriends,
+                        gradientBackground = gradientBackground,
+                        onRemoveFriend = onRemoveFriend,
+                        onBlockUser = onBlockUser,
+                        onCancelInvite = onCancelInvite,
+                        onOpenCalendar = onOpenFriendCalendar,
+                        onFriendItemClick = onFriendItemClick
+                    )
+                }
             }
             item {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1055,7 +804,7 @@ fun FriendItem(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
-                                tint = statusColor.copy(alpha = 0.6f)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }

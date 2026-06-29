@@ -38,7 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.data.model.Gender
-import com.free2party.ui.components.InputTextField
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.ProfileContent
 import com.free2party.ui.components.TopBar
 
@@ -206,10 +206,10 @@ fun RegisterScreen(
                 onEmailChange = onEmailChange,
                 passwordField = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        InputTextField(
+                        AppOutlinedTextField(
                             value = password,
                             onValueChange = onPasswordChange,
-                            label = stringResource(R.string.password_required),
+                            labelText = stringResource(R.string.password_required),
                             isPassword = true,
                             passwordVisible = passwordVisible,
                             changeVisibility = { passwordVisible = !passwordVisible },
@@ -220,10 +220,10 @@ fun RegisterScreen(
                                 imeAction = ImeAction.Next
                             )
                         )
-                        InputTextField(
+                        AppOutlinedTextField(
                             value = confirmPassword,
                             onValueChange = onConfirmPasswordChange,
-                            label = stringResource(R.string.confirm_password_required),
+                            labelText = stringResource(R.string.confirm_password_required),
                             isPassword = true,
                             isError = isConfirmPasswordError,
                             passwordVisible = confirmPasswordVisible,

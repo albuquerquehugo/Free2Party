@@ -1,4 +1,4 @@
-package com.free2party.ui.components
+package com.free2party.ui.components.basic
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -23,10 +23,10 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,49 +39,82 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.layout.onGloballyPositioned
-import com.free2party.util.TextFieldRegistry
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.free2party.util.TextFieldRegistry
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun InputTextField(
+fun appOutlinedTextFieldColors(
+    focusedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedContainerColor: Color = Color.Transparent,
+    unfocusedContainerColor: Color = Color.Transparent,
+    focusedBorderColor: Color = MaterialTheme.colorScheme.outline,
+    unfocusedBorderColor: Color = MaterialTheme.colorScheme.outline,
+    focusedLabelColor: Color = MaterialTheme.colorScheme.outline,
+    unfocusedLabelColor: Color = MaterialTheme.colorScheme.outline,
+    focusedPlaceholderColor: Color = MaterialTheme.colorScheme.outline,
+    unfocusedPlaceholderColor: Color = MaterialTheme.colorScheme.outline,
+) = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = focusedTextColor,
+    unfocusedTextColor = unfocusedTextColor,
+    focusedContainerColor = focusedContainerColor,
+    unfocusedContainerColor = unfocusedContainerColor,
+    focusedBorderColor = focusedBorderColor,
+    unfocusedBorderColor = unfocusedBorderColor,
+    focusedLabelColor = focusedLabelColor,
+    unfocusedLabelColor = unfocusedLabelColor,
+    focusedPlaceholderColor = focusedPlaceholderColor,
+    unfocusedPlaceholderColor = unfocusedPlaceholderColor
+)
+
+@Composable
+fun AppOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
     modifier: Modifier = Modifier,
-    placeholder: String? = null,
-    placeholderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-    icon: ImageVector? = null,
-    painter: Painter? = null,
-    leadingIconExtra: @Composable (() -> Unit)? = null,
-    prefix: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true,
+    readOnly: Boolean = false,
+    singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+    minLines: Int = 1,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
     changeVisibility: () -> Unit = {},
-    enabled: Boolean = true,
-    isError: Boolean = false,
-    showClearIcon: Boolean = true,
-    onClear: (() -> Unit)? = null,
-    minLines: Int = 1,
-    maxLines: Int = 1,
-    supportingText: @Composable (() -> Unit)? = null,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
+    labelText: String? = null,
+    placeholderText: String? = null,
+    placeholderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+    icon: ImageVector? = null,
+    painter: Painter? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    leadingIconExtra: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
+    showClearIcon: Boolean = true,
+    prefix: @Composable (() -> Unit)? = null,
+    suffix: @Composable (() -> Unit)? = null,
+    supportingText: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    focusRequester: FocusRequester = remember { FocusRequester() },
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    colors: TextFieldColors? = null
+    shape: Shape = OutlinedTextFieldDefaults.shape,
+    colors: TextFieldColors? = null,
+    onClear: (() -> Unit)? = null,
+    focusRequester: FocusRequester = remember { FocusRequester() },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -92,6 +125,7 @@ fun InputTextField(
         }
     }
 
+    val finalSingleLine = if (maxLines > 1) false else singleLine
     val isMultiLine = maxLines > 1
     val isFocused by interactionSource.collectIsFocusedAsState()
     val clearButtonInteractionSource = remember { MutableInteractionSource() }
@@ -107,14 +141,14 @@ fun InputTextField(
         }
     }
 
-    val labelColor = if (value.isEmpty() && !isFocused) {
+    val resolvedLabelColor = if (value.isEmpty() && !isFocused) {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     } else {
         Color.Unspecified
     }
 
-    val defaultColors = OutlinedTextFieldDefaults.colors(
-        unfocusedLabelColor = labelColor
+    val defaultColors = appOutlinedTextFieldColors(
+        unfocusedLabelColor = resolvedLabelColor
     )
 
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -136,40 +170,22 @@ fun InputTextField(
         }
     }
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.bodyMedium) },
-        textStyle = MaterialTheme.typography.bodyMedium,
-        placeholder = placeholder?.let {
-            {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = placeholderColor
-                )
-            }
-        },
-        modifier = modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester)
-            .bringIntoViewRequester(bringIntoViewRequester)
-            .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier)
-            .onGloballyPositioned { coordinates ->
-                TextFieldRegistry.register(key, coordinates)
-            },
-        enabled = enabled,
-        isError = isError,
-        supportingText = supportingText,
-        interactionSource = interactionSource,
-        visualTransformation = if (isPassword && !passwordVisible) {
-            PasswordVisualTransformation()
-        } else {
-            visualTransformation
-        },
-        prefix = prefix,
-        colors = colors ?: defaultColors,
-        leadingIcon = if (icon != null || painter != null || leadingIconExtra != null) {
+    val finalLabel: @Composable (() -> Unit)? = labelText?.let { text ->
+        { Text(text, style = MaterialTheme.typography.bodyMedium) }
+    }
+
+    val finalPlaceholder: @Composable (() -> Unit)? = placeholderText?.let { text ->
+        {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = placeholderColor
+            )
+        }
+    }
+
+    val finalLeadingIcon: @Composable (() -> Unit)? =
+        leadingIcon ?: if (icon != null || painter != null || leadingIconExtra != null) {
             {
                 Row(
                     modifier = if (isMultiLine) Modifier.fillMaxHeight() else Modifier,
@@ -200,46 +216,82 @@ fun InputTextField(
                             }
                         }
                     }
-
                     leadingIconExtra?.invoke()
                 }
             }
-        } else null,
-        trailingIcon = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (showClearIcon &&
-                    (isFocusedBuffered || isClearButtonPressed) &&
-                    (value.isNotEmpty() || onClear != null)
-                ) {
-                    IconButton(
-                        onClick = { onClear?.invoke() ?: onValueChange("") },
-                        modifier = Modifier.focusProperties { canFocus = false },
-                        interactionSource = clearButtonInteractionSource
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+        } else null
 
-                if (isPassword) {
-                    val image =
-                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-                    IconButton(onClick = changeVisibility) {
-                        Icon(imageVector = image, contentDescription = description)
-                    }
-                }
+    val hasClearIcon =
+        showClearIcon && (isFocusedBuffered || isClearButtonPressed) && (value.isNotEmpty() || onClear != null)
+    val hasPasswordIcon = isPassword
+    val hasCustomTrailingIcon = trailingIcon != null
 
-                trailingIcon?.invoke()
+    val finalTrailingIcon: @Composable (() -> Unit)? =
+        if (hasClearIcon || hasPasswordIcon || hasCustomTrailingIcon) {
+            {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (hasClearIcon) {
+                        IconButton(
+                            onClick = { onClear?.invoke() ?: onValueChange("") },
+                            modifier = Modifier.focusProperties { canFocus = false },
+                            interactionSource = clearButtonInteractionSource
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
+                    if (hasPasswordIcon) {
+                        val image =
+                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        val description = if (passwordVisible) "Hide password" else "Show password"
+                        IconButton(onClick = changeVisibility) {
+                            Icon(imageVector = image, contentDescription = description)
+                        }
+                    }
+
+                    trailingIcon?.invoke()
+                }
             }
+        } else null
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester)
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier)
+            .onGloballyPositioned { coordinates ->
+                TextFieldRegistry.register(key, coordinates)
+            },
+        enabled = enabled,
+        readOnly = readOnly,
+        textStyle = textStyle,
+        label = finalLabel,
+        placeholder = finalPlaceholder,
+        leadingIcon = finalLeadingIcon,
+        trailingIcon = finalTrailingIcon,
+        prefix = prefix,
+        suffix = suffix,
+        supportingText = supportingText,
+        isError = isError,
+        visualTransformation = if (isPassword && !passwordVisible) {
+            PasswordVisualTransformation()
+        } else {
+            visualTransformation
         },
-        singleLine = !isMultiLine,
-        minLines = minLines,
-        maxLines = maxLines,
         keyboardOptions = keyboardOptions,
-        keyboardActions = finalKeyboardActions
+        keyboardActions = finalKeyboardActions,
+        singleLine = finalSingleLine,
+        maxLines = maxLines,
+        minLines = minLines,
+        interactionSource = interactionSource,
+        shape = shape,
+        colors = colors ?: defaultColors
     )
 }

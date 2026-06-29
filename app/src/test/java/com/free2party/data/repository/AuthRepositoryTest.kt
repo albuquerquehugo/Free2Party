@@ -1,5 +1,6 @@
 package com.free2party.data.repository
 
+import com.free2party.data.model.Gender
 import com.free2party.data.model.UserSocials
 import com.free2party.exception.EmailAlreadyInUseException
 import com.free2party.exception.WeakPasswordException
@@ -16,8 +17,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -30,12 +36,19 @@ class AuthRepositoryTest {
     private val userRepository: UserRepository = mockk()
     private val firebaseUser: FirebaseUser = mockk()
     private val authResult: AuthResult = mockk()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
+        Dispatchers.setMain(testDispatcher)
         repository = AuthRepositoryImpl(auth, userRepository)
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
         every { auth.currentUser } returns null
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     private fun mockLogError() {
@@ -70,6 +83,7 @@ class AuthRepositoryTest {
             phoneNumber = phoneNumber,
             birthday = birthday,
             bio = "",
+            gender = Gender.MAN,
             socials = socials
         )
         
@@ -84,6 +98,7 @@ class AuthRepositoryTest {
                 it.email == email &&
                 it.phoneNumber == phoneNumber &&
                 it.birthday == birthday &&
+                it.gender == Gender.MAN &&
                 it.socials == socials &&
                 it.registrationMethod == "email"
             }) 
@@ -109,6 +124,7 @@ class AuthRepositoryTest {
             phoneNumber = "",
             birthday = "",
             bio = "",
+            gender = Gender.OTHER,
             socials = UserSocials()
         )
         
@@ -135,6 +151,7 @@ class AuthRepositoryTest {
             phoneNumber = "",
             birthday = "",
             bio = "",
+            gender = Gender.OTHER,
             socials = UserSocials()
         )
         

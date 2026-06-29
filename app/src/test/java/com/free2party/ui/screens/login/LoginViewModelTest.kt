@@ -38,6 +38,7 @@ class LoginViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
         every { settingsRepository.gradientBackgroundFlow } returns flowOf(true)
+        every { settingsRepository.useLegacyGoogleSignInFlow } returns flowOf(false)
         viewModel = LoginViewModel(authRepository, settingsRepository)
     }
 
@@ -180,46 +181,26 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `onGoogleSignIn success updates state and calls onSuccess`() = runTest(testDispatcher) {
-        val credential = mockk<AuthCredential>()
-        coEvery { authRepository.signInWithGoogle(credential) } returns Result.success(mockk())
-
-        var onSuccessCalled = false
-        var onFailureCalled = false
-        viewModel.onGoogleSignIn(
-            credential = credential,
-            onSuccess = { onSuccessCalled = true },
-            onFailure = { onFailureCalled = true }
-        )
-        runCurrent()
-
-        assertTrue(onSuccessCalled)
-        assertFalse(onFailureCalled)
-        assertEquals(LoginUiState.Success, viewModel.uiState)
+    fun `setGoogleSignInLoading sets state to Loading`() {
+        assertEquals(LoginUiState.Idle, viewModel.uiState)
+        viewModel.setGoogleSignInLoading()
+        assertEquals(LoginUiState.Loading, viewModel.uiState)
     }
 
     @Test
-    fun `onGoogleSignIn failure updates state and calls onFailure`() = runTest(testDispatcher) {
-        val credential = mockk<AuthCredential>()
-        val exception = Exception("Sign-in failed")
-        coEvery { authRepository.signInWithGoogle(credential) } returns Result.failure(exception)
+    fun `onGoogleSignIn success signs in and calls onSuccess even if loading`() =
+        runTest(testDispatcher) {
+            val credential = mockk<AuthCredential>()
+            coEvery { authRepository.signInWithGoogle(credential) } returns Result.success(mockk())
 
-        var onSuccessCalled = false
-        var onFailureCalled = false
-        var failureReason: Throwable? = null
-        viewModel.onGoogleSignIn(
-            credential = credential,
-            onSuccess = { onSuccessCalled = true },
-            onFailure = { e ->
-                onFailureCalled = true
-                failureReason = e
-            }
-        )
-        runCurrent()
+            viewModel.setGoogleSignInLoading()
+            assertEquals(LoginUiState.Loading, viewModel.uiState)
 
-        assertFalse(onSuccessCalled)
-        assertTrue(onFailureCalled)
-        assertEquals(exception, failureReason)
-        assertTrue(viewModel.uiState is LoginUiState.Error)
-    }
+            var onSuccessCalled = false
+            viewModel.onGoogleSignIn(credential) { onSuccessCalled = true }
+            runCurrent()
+
+            assertTrue(onSuccessCalled)
+            assertEquals(LoginUiState.Success, viewModel.uiState)
+        }
 }

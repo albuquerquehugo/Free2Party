@@ -32,7 +32,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.free2party.R
-import com.free2party.ui.components.InputTextField
+import com.free2party.ui.components.basic.AppOutlinedTextField
 
 @Composable
 fun EmailDialog(
@@ -91,10 +91,10 @@ fun EmailDialog(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            InputTextField(
+            AppOutlinedTextField(
                 value = email.trim(),
                 onValueChange = onValueChange,
-                label = stringResource(R.string.label_email),
+                labelText = stringResource(R.string.label_email),
                 icon = Icons.Default.Email,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading,

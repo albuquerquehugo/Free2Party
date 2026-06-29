@@ -10,50 +10,40 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
-import com.free2party.util.TextFieldRegistry
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -63,20 +53,24 @@ import com.free2party.R
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.FuturePlan
-import com.free2party.data.model.InviteStatus
 import com.free2party.data.model.PlanVisibility
+import com.free2party.ui.components.FriendSelector
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedCard
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.theme.inactive
+import com.free2party.util.capitalizeWords
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
 import com.free2party.util.parseDateToMillis
 import com.free2party.util.parseTimeToMinutes
+import com.free2party.util.TextFieldRegistry
 import com.free2party.util.unformatTime
-import com.free2party.util.capitalizeWords
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,6 +118,7 @@ fun PlanDialog(
     val (showEndDatePicker, setShowEndDatePicker) = remember { mutableStateOf(false) }
     val (showStartTimePicker, setShowStartTimePicker) = remember { mutableStateOf(false) }
     val (showEndTimePicker, setShowEndTimePicker) = remember { mutableStateOf(false) }
+    var showDiscardConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(friends) {
         val currentFriendIds = friends.map { it.uid }.toSet()
@@ -276,8 +271,11 @@ fun PlanDialog(
         editingPlan,
         friends
     ) {
-        if (editingPlan == null) true
-        else {
+        if (editingPlan == null) {
+            note.isNotEmpty() ||
+                    visibility != PlanVisibility.EVERYONE ||
+                    currentSelectedIds.isNotEmpty()
+        } else {
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }
@@ -303,9 +301,17 @@ fun PlanDialog(
 
     val isConfirmEnabled = isDateTimeValid && !isStartDateInPast && !isStartTimeInPast &&
             (visibility == PlanVisibility.EVERYONE || currentSelectedIds.isNotEmpty()) &&
-            hasChanges
+            (editingPlan == null || hasChanges)
 
-    BaseDialog(onDismissRequest = onDismiss) {
+    val handleDismiss = {
+        if (hasChanges) {
+            showDiscardConfirm = true
+        } else {
+            onDismiss()
+        }
+    }
+
+    BaseDialog(onDismissRequest = handleDismiss) {
         Column(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 20.dp)
@@ -339,10 +345,10 @@ fun PlanDialog(
                     Text(
                         text = stringResource(R.string.label_start),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -352,11 +358,13 @@ fun PlanDialog(
                             Text(
                                 text = startDateText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
@@ -371,7 +379,9 @@ fun PlanDialog(
                                     ), use24HourFormat
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
@@ -386,10 +396,10 @@ fun PlanDialog(
                     Text(
                         text = stringResource(R.string.label_end),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(60.dp)
                     )
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -399,11 +409,13 @@ fun PlanDialog(
                             Text(
                                 text = endDateText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
-                    OutlinedCard(
+                    AppOutlinedCard(
                         modifier = Modifier
                             .weight(0.6f)
                             .height(44.dp),
@@ -418,7 +430,9 @@ fun PlanDialog(
                                     ), use24HourFormat
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (!isDateTimeValid) MaterialTheme.colorScheme.error else Color.Unspecified
+                                color =
+                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
+                                    else Color.Unspecified
                             )
                         }
                     }
@@ -443,22 +457,11 @@ fun PlanDialog(
                     )
                 }
 
-                OutlinedTextField(
+                AppOutlinedTextField(
                     value = note,
                     onValueChange = { note = it },
-                    textStyle = MaterialTheme.typography.bodySmall,
-                    label = {
-                        Text(
-                            stringResource(R.string.label_plan_note),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            stringResource(R.string.placeholder_plan_note),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
+                    labelText = stringResource(R.string.label_plan_note),
+                    placeholderText = stringResource(R.string.placeholder_plan_note),
                     modifier = Modifier
                         .fillMaxWidth()
                         .onGloballyPositioned { coordinates ->
@@ -470,14 +473,14 @@ fun PlanDialog(
                     )
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                AppHorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 // Visibility Section
                 Column {
                     Text(
                         text = stringResource(R.string.text_visibility),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = stringResource(R.string.label_visibility_discretion),
@@ -503,7 +506,8 @@ fun PlanDialog(
                             exceptFriendIds,
                             { id ->
                                 exceptFriendIds =
-                                    if (id in exceptFriendIds) exceptFriendIds - id else exceptFriendIds + id
+                                    if (id in exceptFriendIds) exceptFriendIds - id
+                                    else exceptFriendIds + id
                             },
                             { ids ->
                                 exceptFriendIds = (exceptFriendIds + ids).distinct()
@@ -526,7 +530,8 @@ fun PlanDialog(
                             onlyFriendIds,
                             { id ->
                                 onlyFriendIds =
-                                    if (id in onlyFriendIds) onlyFriendIds - id else onlyFriendIds + id
+                                    if (id in onlyFriendIds) onlyFriendIds - id
+                                    else onlyFriendIds + id
                             },
                             { ids ->
                                 onlyFriendIds = (onlyFriendIds + ids).distinct()
@@ -545,7 +550,7 @@ fun PlanDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.label_cancel)) }
+                TextButton(onClick = handleDismiss) { Text(stringResource(R.string.label_cancel)) }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -676,6 +681,21 @@ fun PlanDialog(
             }
         }
     }
+
+    if (showDiscardConfirm) {
+        ConfirmationDialog(
+            title = stringResource(R.string.label_discard_changes),
+            text = stringResource(R.string.text_discard_changes_confirmation),
+            confirmButtonText = stringResource(R.string.label_discard_changes),
+            onConfirm = {
+                showDiscardConfirm = false
+                onDismiss()
+            },
+            dismissButtonText = stringResource(R.string.label_cancel),
+            onDismiss = { showDiscardConfirm = false },
+            isDestructive = true
+        )
+    }
 }
 
 @Composable
@@ -706,177 +726,5 @@ fun VisibilityOption(
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 4.dp)
         )
-    }
-}
-
-@Composable
-fun FriendSelector(
-    friends: List<FriendInfo>,
-    circles: List<Circle>,
-    selectedFriendIds: List<String>,
-    onToggleFriend: (String) -> Unit,
-    onAddFriends: (List<String>) -> Unit,
-    onRemoveFriends: (List<String>) -> Unit,
-    onSelectAll: () -> Unit,
-    onUnselectAll: () -> Unit
-) {
-    Column {
-        OutlinedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .heightIn(max = 200.dp)
-        ) {
-            if (friends.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        stringResource(R.string.label_no_friends_to_select),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            } else {
-                LazyColumn(modifier = Modifier.padding(4.dp)) {
-                    if (circles.isNotEmpty()) {
-                        items(circles) { circle ->
-                            val validCircleFriendIds = remember(circle, friends) {
-                                val currentIds = friends.map { it.uid }.toSet()
-                                circle.friendIds.filter { it in currentIds }
-                            }
-                            val isEnabled = validCircleFriendIds.isNotEmpty()
-                            val isCircleSelected = isEnabled &&
-                                    validCircleFriendIds.all { it in selectedFriendIds }
-
-                            CircleSelectorItem(
-                                circleName = circle.name,
-                                memberCount = validCircleFriendIds.size,
-                                isSelected = isCircleSelected,
-                                enabled = isEnabled,
-                                onToggle = {
-                                    if (isCircleSelected) {
-                                        onRemoveFriends(validCircleFriendIds)
-                                    } else {
-                                        onAddFriends(validCircleFriendIds)
-                                    }
-                                }
-                            )
-                        }
-                        item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
-                    }
-
-                    items(friends) { friend ->
-                        FriendSelectorItem(
-                            friend = friend,
-                            isSelected = friend.uid in selectedFriendIds,
-                            onToggle = { onToggleFriend(friend.uid) }
-                        )
-                    }
-                }
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Text(
-                text = stringResource(R.string.label_unselect_all),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .testTag("unselect_all")
-                    .clickable { onUnselectAll() }
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.label_select_all),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .testTag("select_all")
-                    .clickable { onSelectAll() }
-            )
-        }
-    }
-}
-
-@Composable
-fun FriendSelectorItem(friend: FriendInfo, isSelected: Boolean, onToggle: () -> Unit) {
-    val isPending = friend.inviteStatus == InviteStatus.PENDING
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onToggle() }
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(checked = isSelected, onCheckedChange = null)
-        Column(modifier = Modifier.padding(start = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = friend.name,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold
-                )
-                if (isPending) {
-                    Text(
-                        text = " " + stringResource(R.string.label_pending_observation),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Normal
-                    )
-                }
-            }
-            Text(
-                text = friend.email,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun CircleSelectorItem(
-    circleName: String,
-    memberCount: Int,
-    isSelected: Boolean,
-    enabled: Boolean = true,
-    onToggle: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (enabled) Modifier.clickable { onToggle() } else Modifier)
-            .padding(8.dp)
-            .graphicsLayer { alpha = if (enabled) 1f else 0.5f },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(
-            checked = isSelected,
-            onCheckedChange = null,
-            enabled = enabled
-        )
-        Column(modifier = Modifier.padding(start = 8.dp)) {
-            Text(
-                text = circleName,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = pluralStringResource(
-                    R.plurals.label_circle_member_count,
-                    memberCount,
-                    memberCount
-                ),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
     }
 }

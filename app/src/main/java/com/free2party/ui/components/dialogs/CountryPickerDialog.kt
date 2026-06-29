@@ -13,15 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,18 +28,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.free2party.util.TextFieldRegistry
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
-import com.free2party.R
 import com.free2party.data.model.Country
 import com.free2party.data.model.Countries
+import com.free2party.R
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.util.TextFieldRegistry
 import java.util.Locale
 
 @Composable
@@ -102,7 +102,7 @@ fun CountryPickerDialog(
                 modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 8.dp)
             )
 
-            OutlinedTextField(
+            AppOutlinedTextField(
                 value = searchQuery.trim(),
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
@@ -111,12 +111,7 @@ fun CountryPickerDialog(
                     .onGloballyPositioned { coordinates ->
                         TextFieldRegistry.register(key, coordinates)
                     },
-                placeholder = {
-                    Text(
-                        stringResource(R.string.text_placeholder_search_country),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
+                placeholderText = stringResource(R.string.text_placeholder_search_country),
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
@@ -233,7 +228,7 @@ private fun CountryItem(
                 fontWeight = FontWeight.Bold
             )
         }
-        HorizontalDivider(
+        AppHorizontalDivider(
             modifier = Modifier.padding(horizontal = 12.dp),
             thickness = 0.5.dp,
             color = MaterialTheme.colorScheme.outlineVariant

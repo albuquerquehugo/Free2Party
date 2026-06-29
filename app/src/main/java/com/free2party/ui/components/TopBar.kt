@@ -3,6 +3,7 @@ package com.free2party.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,20 +23,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import androidx.compose.foundation.layout.BoxScope
 
 @Composable
 fun TopBar(
-    title: String,
+    title: String? = null,
     color: Color = Color.Unspecified,
     onBack: () -> Unit,
     showBackButton: Boolean = true,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    action: @Composable (BoxScope.() -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .height(56.dp)
+                .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             if (showBackButton) {
@@ -55,22 +59,32 @@ fun TopBar(
             Image(
                 painter = painterResource(id = R.drawable.free2party_full_foreground_color),
                 contentDescription = stringResource(R.string.description_logo_content),
-                modifier = Modifier.height(20.dp),
+                modifier = Modifier.fillMaxHeight(0.5f),
                 contentScale = ContentScale.Fit
             )
+
+            if (action != null) {
+                Box(
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    action()
+                }
+            }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = color,
-                fontWeight = FontWeight.Bold
-            )
+        if (!title.isNullOrBlank()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = color,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }

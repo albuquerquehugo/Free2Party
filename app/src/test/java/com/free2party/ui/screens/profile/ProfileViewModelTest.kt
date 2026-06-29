@@ -1,15 +1,17 @@
 package com.free2party.ui.screens.profile
 
-import android.content.Context
-import android.net.Uri
-import com.free2party.R
+import com.free2party.data.model.FuturePlan
+import com.free2party.data.model.Gender
+import com.free2party.data.model.Membership
 import com.free2party.data.model.User
-import com.free2party.data.repository.SocialRepository
+import com.free2party.data.repository.AuthRepository
+import com.free2party.data.repository.PlanRepository
 import com.free2party.data.repository.UserRepository
-import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,172 +33,116 @@ class ProfileViewModelTest {
 
     private lateinit var viewModel: ProfileViewModel
     private val userRepository: UserRepository = mockk(relaxed = true)
-    private val socialRepository: SocialRepository = mockk(relaxed = true)
-    private val context: Context = mockk(relaxed = true)
+    private val planRepository: PlanRepository = mockk(relaxed = true)
+    private val authRepository: AuthRepository = mockk(relaxed = true)
+
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val userFlow = MutableStateFlow(User(uid = "me", firstName = "John", lastName = "Doe"))
+    private val userFlow = MutableStateFlow(
+        User(
+            uid = "me",
+            firstName = "John",
+            lastName = "Doe",
+            gender = Gender.MAN,
+            profilePicUrl = "https://example.com/john.jpg",
+            isFreeNow = true,
+            isStatusFromPlan = false,
+            membership = Membership.REGULAR
+        )
+    )
+    private val plansFlow = MutableStateFlow<List<FuturePlan>>(emptyList())
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { userRepository.currentUserId } returns "me"
         every { userRepository.observeUser("me") } returns userFlow
-
-        every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
-        every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
-        every { context.getString(R.string.date_pattern_dd_mm_yyyy) } returns "ddMMyyyy"
+        every { planRepository.getOwnPlans() } returns plansFlow
+        mockkStatic("com.free2party.util.UtilKt")
     }
 
     @After
     fun tearDown() {
+        unmockkAll()
         Dispatchers.resetMain()
     }
 
     @Test
-    fun `init loads user profile and initializes fields`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+    fun `init observes user data and sets success state`() = runTest {
+        viewModel = ProfileViewModel(userRepository, planRepository, authRepository)
         runCurrent()
 
         assertTrue(viewModel.uiState is ProfileUiState.Success)
-        assertEquals("John", viewModel.firstName)
-        assertEquals("Doe", viewModel.lastName)
-        assertFalse(viewModel.hasChanges)
-        assertTrue(viewModel.isFormValid(context))
-    }
-
-    @Test
-    fun `field changes update hasChanges and isFormValid`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
-        runCurrent()
-
-        viewModel.firstName = "Jane"
-        assertTrue(viewModel.hasChanges)
-        assertTrue(viewModel.isFormValid(context))
-
-        viewModel.firstName = ""
-        assertFalse(viewModel.isFormValid(context))
-
-        viewModel.firstName = "John"
-        viewModel.countryCode = "US"
-        viewModel.phoneNumber = "" // Invalid: country selected but phone empty
-        assertFalse(viewModel.isFormValid(context))
-
-        viewModel.phoneNumber = "1234567890" // Valid for US
-        assertTrue(viewModel.isFormValid(context))
-
-        // Invalid birthday: invalid month
-        viewModel.birthday = "19901301"
-        assertFalse(viewModel.isFormValid(context))
-
-        // Valid birthday
-        viewModel.birthday = "19900101"
-        assertTrue(viewModel.isFormValid(context))
-    }
-
-    @Test
-    fun `discardChanges resets fields to original values`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
-        runCurrent()
-
-        viewModel.firstName = "Jane"
-        viewModel.phoneNumber = "1234567890"
-        assertTrue(viewModel.hasChanges)
-
-        viewModel.discardChanges()
-
-        assertEquals("John", viewModel.firstName)
-        assertEquals("", viewModel.phoneNumber)
-        assertFalse(viewModel.hasChanges)
-    }
-
-    @Test
-    fun `updateProfile success updates state and emits toast with navigateBack true`() = runTest {
-        coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
-
-        viewModel = ProfileViewModel(userRepository, socialRepository)
-        runCurrent()
-
-        val events = mutableListOf<ProfileUiEvent>()
-        backgroundScope.launch {
-            viewModel.uiEvent.collect { events.add(it) }
-        }
-        runCurrent()
-
-        viewModel.firstName = "Jane"
-        viewModel.updateProfile(context)
-        runCurrent()
-
         val state = viewModel.uiState as ProfileUiState.Success
-        assertEquals(false, state.isSaving)
-        val event = events.firstOrNull()
-        assertTrue(event is ProfileUiEvent.ShowToast)
-        val toastEvent = event as ProfileUiEvent.ShowToast
-        assertTrue(toastEvent.navigateBack)
-
-        coVerify { userRepository.updateUser(match { it.firstName == "Jane" }) }
+        assertEquals("John", state.userName)
+        assertEquals("John Doe", state.userFullName)
+        assertEquals(Gender.MAN, state.userGender)
+        assertEquals("https://example.com/john.jpg", state.profilePicUrl)
+        assertEquals(true, state.isUserFree)
+        assertEquals(false, state.isStatusFromPlan)
+        assertEquals(Membership.REGULAR, state.membership)
     }
 
     @Test
-    fun `updateProfile failure emits error toast`() = runTest {
-        val errorMessage = "Update failed"
-        coEvery { userRepository.updateUser(any()) } returns Result.failure(Exception(errorMessage))
+    fun `isUserFree is true when user has active plans and isStatusFromPlan is true`() = runTest {
+        val plan = FuturePlan(id = "plan1")
+        plansFlow.value = listOf(plan)
+        userFlow.value = userFlow.value.copy(
+            isFreeNow = false,
+            isStatusFromPlan = true
+        )
+        // Mock isPlanActive to return true
+        every { com.free2party.util.isPlanActive(any(), any()) } returns true
 
-        viewModel = ProfileViewModel(userRepository, socialRepository)
+        viewModel = ProfileViewModel(userRepository, planRepository, authRepository)
         runCurrent()
 
-        val events = mutableListOf<ProfileUiEvent>()
-        backgroundScope.launch {
-            viewModel.uiEvent.collect { events.add(it) }
-        }
-        runCurrent()
-
-        viewModel.firstName = "Jane"
-        viewModel.updateProfile(context)
-        runCurrent()
-
-        assertTrue(events.any { it is ProfileUiEvent.ShowToast })
-        assertFalse((viewModel.uiState as ProfileUiState.Success).isSaving)
-    }
-
-    @Test
-    fun `uploadProfilePicture success updates user and state`() = runTest {
-        val uri = mockk<Uri>()
-        val downloadUrl = "https://example.com/pic.jpg"
-        coEvery { userRepository.uploadProfilePicture(uri) } returns Result.success(downloadUrl)
-        coEvery { userRepository.updateUser(any()) } returns Result.success(Unit)
-
-        viewModel = ProfileViewModel(userRepository, socialRepository)
-        runCurrent()
-
-        val events = mutableListOf<ProfileUiEvent>()
-        backgroundScope.launch {
-            viewModel.uiEvent.collect { events.add(it) }
-        }
-        runCurrent()
-
-        viewModel.uploadProfilePicture(uri)
-        runCurrent()
-
-        coVerify { userRepository.updateUser(match { it.profilePicUrl == downloadUrl }) }
+        assertTrue(viewModel.uiState is ProfileUiState.Success)
         val state = viewModel.uiState as ProfileUiState.Success
-        assertEquals(false, state.isUploadingImage)
-        assertTrue(events.any { it is ProfileUiEvent.ShowToast && !it.navigateBack })
+        assertTrue(state.isUserFree)
+        assertTrue(state.isStatusFromPlan)
     }
 
     @Test
-    fun `uiState transitions during updateProfile`() = runTest {
-        viewModel = ProfileViewModel(userRepository, socialRepository)
-        runCurrent()
+    fun `isUserFree is false when user has inactive plans and isStatusFromPlan is true`() =
+        runTest {
+            val plan = FuturePlan(id = "plan1")
+            plansFlow.value = listOf(plan)
+            userFlow.value = userFlow.value.copy(
+                isFreeNow = false,
+                isStatusFromPlan = true
+            )
+            // Mock isPlanActive to return false
+            every { com.free2party.util.isPlanActive(any(), any()) } returns false
 
-        coEvery { userRepository.updateUser(any()) } coAnswers {
-            assertTrue((viewModel.uiState as ProfileUiState.Success).isSaving)
-            Result.success(Unit)
+            viewModel = ProfileViewModel(userRepository, planRepository, authRepository)
+            runCurrent()
+
+
+            assertTrue(viewModel.uiState is ProfileUiState.Success)
+            val state = viewModel.uiState as ProfileUiState.Success
+            assertFalse(state.isUserFree)
+            assertFalse(state.isStatusFromPlan)
         }
 
-        viewModel.firstName = "Jane"
-        viewModel.updateProfile(context)
+    @Test
+    fun `logout signs out from auth repository and triggers callback and emits event`() = runTest {
+        viewModel = ProfileViewModel(userRepository, planRepository, authRepository)
         runCurrent()
 
-        assertFalse((viewModel.uiState as ProfileUiState.Success).isSaving)
+        var callbackInvoked = false
+        val events = mutableListOf<ProfileUiEvent>()
+        backgroundScope.launch {
+            viewModel.uiEvent.collect { events.add(it) }
+        }
+        runCurrent()
+
+        viewModel.logout {
+            callbackInvoked = true
+        }
+        runCurrent()
+
+        coVerify { authRepository.logout() }
+        assertTrue(callbackInvoked)
+        assertTrue(events.contains(ProfileUiEvent.Logout))
     }
 }

@@ -10,7 +10,6 @@ import com.free2party.data.model.Gender
 import com.free2party.data.model.Membership
 import com.free2party.data.model.InviteStatus
 import com.free2party.data.model.FriendInfo
-import com.free2party.data.repository.AuthRepository
 import com.free2party.data.repository.PlanRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
@@ -54,14 +53,12 @@ sealed interface HomeUiState {
 
 sealed class HomeUiEvent {
     data class ShowToast(val message: UiText) : HomeUiEvent()
-    object Logout : HomeUiEvent()
 }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val socialRepository: SocialRepository,
-    private val authRepository: AuthRepository,
     private val planRepository: PlanRepository
 ) : ViewModel() {
 
@@ -87,7 +84,8 @@ class HomeViewModel @Inject constructor(
                     planRepository.getOwnPlans()
                 ) { user, friends, outgoingRequests, plans ->
                     val isAnyPlanActiveNow = plans.any { isPlanActive(it) }
-                    val effectiveIsFree = if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
+                    val effectiveIsFree =
+                        if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
                     val effectiveFromPlan = user.isStatusFromPlan && isAnyPlanActiveNow
 
                     // Map outgoing requests to FriendInfo with PENDING status
@@ -133,12 +131,8 @@ class HomeViewModel @Inject constructor(
             .catch { e ->
                 Log.e("HomeViewModel", "Error observing data", e)
 
-                if (e is UnauthorizedException) {
-                    _uiEvent.emit(HomeUiEvent.Logout)
-                    return@catch
-                }
-
                 val errorText = when (e) {
+                    is UnauthorizedException -> UiText.StringResource(R.string.error_unauthorized)
                     is InfrastructureException ->
                         if (e.messageRes != null) UiText.StringResource(e.messageRes)
                         else UiText.StringResource(R.string.error_infrastructure)
@@ -152,14 +146,6 @@ class HomeViewModel @Inject constructor(
                 uiState = HomeUiState.Error(errorText)
             }
             .launchIn(viewModelScope)
-    }
-
-    fun logout(onLogoutSuccess: () -> Unit) {
-        viewModelScope.launch {
-            authRepository.logout()
-            onLogoutSuccess()
-            _uiEvent.emit(HomeUiEvent.Logout)
-        }
     }
 
     fun toggleAvailability() {

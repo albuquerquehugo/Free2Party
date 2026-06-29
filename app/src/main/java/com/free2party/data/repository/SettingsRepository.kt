@@ -20,6 +20,7 @@ class SettingsRepository(private val context: Context) {
         val GRADIENT_BACKGROUND = booleanPreferencesKey("gradient_background")
         val SHOWN_NOTIFICATION_IDS = stringSetPreferencesKey("shown_notification_ids")
         val LAST_USED_CIRCLE_ID = stringPreferencesKey("last_used_circle_id")
+        val USE_LEGACY_GOOGLE_SIGN_IN = booleanPreferencesKey("use_legacy_google_sign_in")
     }
 
     val themeModeFlow: Flow<ThemeMode> = context.dataStore.data
@@ -47,6 +48,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setGradientBackground(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GRADIENT_BACKGROUND] = enabled
+        }
+    }
+
+    val useLegacyGoogleSignInFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.USE_LEGACY_GOOGLE_SIGN_IN] ?: false
+        }
+
+    suspend fun setUseLegacyGoogleSignIn(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.USE_LEGACY_GOOGLE_SIGN_IN] = enabled
         }
     }
 

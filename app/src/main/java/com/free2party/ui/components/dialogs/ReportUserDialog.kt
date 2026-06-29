@@ -14,7 +14,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,13 +26,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import com.free2party.util.TextFieldRegistry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.util.TextFieldRegistry
 
 @Composable
 fun ReportUserDialog(
@@ -100,10 +100,10 @@ fun ReportUserDialog(
                 }
 
                 if (selectedOption == options.last()) {
-                    OutlinedTextField(
+                    AppOutlinedTextField(
                         value = otherReason,
                         onValueChange = { otherReason = it },
-                        placeholder = { Text(stringResource(R.string.placeholder_report_reason_other)) },
+                        placeholderText = stringResource(R.string.placeholder_report_reason_other),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp)

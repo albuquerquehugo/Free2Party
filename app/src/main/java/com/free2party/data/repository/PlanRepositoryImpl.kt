@@ -7,7 +7,7 @@ import com.free2party.exception.InfrastructureException
 import com.free2party.exception.InvalidPlanDataException
 import com.free2party.exception.NetworkUnavailableException
 import com.free2party.exception.OverlappingPlanException
-import com.free2party.exception.PastDateTimeException
+import com.free2party.exception.PlanPastDateTimeException
 import com.free2party.exception.PlanException
 import com.free2party.exception.PlanNotFoundException
 import com.free2party.exception.UnauthorizedException
@@ -44,6 +44,10 @@ class PlanRepositoryImpl @Inject constructor(
             .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToPlanException(error))
                     return@addSnapshotListener
                 }
@@ -66,6 +70,10 @@ class PlanRepositoryImpl @Inject constructor(
             .orderBy("startDate", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToPlanException(error))
                     return@addSnapshotListener
                 }
@@ -91,6 +99,10 @@ class PlanRepositoryImpl @Inject constructor(
             .collection("plans")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                        return@addSnapshotListener
+                    }
                     close(mapToPlanException(error))
                     return@addSnapshotListener
                 }
@@ -180,7 +192,7 @@ class PlanRepositoryImpl @Inject constructor(
             ?: throw InvalidPlanDataException()
 
         if (isDateTimeInPast(startDateMillis, plan.startTime)) {
-            throw PastDateTimeException()
+            throw PlanPastDateTimeException()
         }
 
         if (startDateMillis > endDateMillis) {

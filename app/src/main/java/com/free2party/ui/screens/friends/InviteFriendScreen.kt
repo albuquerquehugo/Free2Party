@@ -47,7 +47,7 @@ import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.UserRelationship
 import com.free2party.data.model.UserSearchResult
-import com.free2party.ui.components.InputTextField
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import kotlinx.coroutines.flow.collectLatest
@@ -137,15 +137,15 @@ fun InviteFriendScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            InputTextField(
+            AppOutlinedTextField(
                 value = query,
                 onValueChange = {
                     query = it
                     onQueryChange(it)
                     if (uiState is InviteFriendUiState.Error) onResetState()
                 },
-                label = stringResource(R.string.title_search),
-                placeholder = stringResource(R.string.text_placeholder_search_user),
+                labelText = stringResource(R.string.title_search),
+                placeholderText = stringResource(R.string.text_placeholder_search_user),
                 icon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth()
             )

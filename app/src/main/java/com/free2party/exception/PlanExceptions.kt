@@ -20,6 +20,6 @@ class InvalidPlanDataException(
     message: String? = null
 ) : PlanException(message ?: "InvalidPlanDataException", R.string.error_invalid_plan_data)
 
-class PastDateTimeException(
+class PlanPastDateTimeException(
     message: String? = null
-) : PlanException(message ?: "PastDateTimeException", R.string.error_past_date_time)
+) : PlanException(message ?: "PastDateTimeException", R.string.error_plan_past_date_time)

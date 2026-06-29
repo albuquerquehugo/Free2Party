@@ -183,6 +183,7 @@ class UserRepositoryTest {
         val statusFlow = repository.getCurrentUserStatus()
         
         val snapshot = mockk<DocumentSnapshot>()
+        every { snapshot.exists() } returns true
         every { snapshot.getBoolean("isFreeNow") } returns true
         
         launch(UnconfinedTestDispatcher()) {
@@ -218,6 +219,8 @@ class UserRepositoryTest {
 
     @Test
     fun `createUserProfile success`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "new_user"
         val user = User(uid = "new_user", email = "new@test.com")
         every { usersCollection.document("new_user") } returns userDoc
         every { userDoc.set(user, any()) } returns Tasks.forResult(null)

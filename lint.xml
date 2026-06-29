@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Ignore Google Play Console policy checks that are managed in the Play Console -->
+    <issue id="LoginCredentials" severity="ignore" />
+    <issue id="AccessibilityPolicy" severity="ignore" />
+    <issue id="AdvertisingIdPolicy" severity="ignore" />
+    <issue id="AllFilesAccessPolicy" severity="ignore" />
+    <issue id="BackgroundLocationPolicy" severity="ignore" />
+    <issue id="ExactAlarmPolicy" severity="ignore" />
+    <issue id="ForegroundServicesPolicy" severity="ignore" />
+    <issue id="FullScreenIntentPolicy" severity="ignore" />
+    <issue id="HealthConnectPolicy" severity="ignore" />
+    <issue id="PackageVisibilityPolicy" severity="ignore" />
+    <issue id="PhotoAndVideoPolicy" severity="ignore" />
+    <issue id="RequestInstallPackagesPolicy" severity="ignore" />
+    <issue id="SmsAndCallLogPolicy" severity="ignore" />
+    <issue id="VpnServicePolicy" severity="ignore" />
+</lint>

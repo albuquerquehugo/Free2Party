@@ -1,12 +1,18 @@
 package com.free2party.util
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import com.free2party.data.model.Countries
 import com.free2party.data.model.BirthdayShowType
+import com.free2party.data.model.DistanceUnit
 import com.free2party.data.model.FuturePlan
 import com.free2party.R
 import java.text.SimpleDateFormat
@@ -14,6 +20,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.Date
+import kotlin.math.*
 
 /**
  * Formats the given hour and minute into a string with the format "H:mm" or "HH:mm".
@@ -71,6 +78,39 @@ fun String.matchNameAndEmail(context: Context): Pair<String, String>? {
         cleanName.trim() to matchResult.groupValues[2].trim()
     } else null
 }
+
+/**
+ * Parses an event invitation notification message to extract the host name, host email, and event title.
+ * @return A [Triple] containing (hostName, hostEmail, eventTitle) if a match is found;
+ * otherwise, `null` if the message does not follow the expected pattern.
+ */
+fun String.matchEventInvitation(): Triple<String, String, String>? {
+    val regex = Regex("""^([^()]+) \(([^()]+)\).*[\\"]([^\\"]+)[\\"].*$""")
+    val matchResult = regex.find(this)
+    return if (matchResult != null && matchResult.groupValues.size >= 4) {
+        val name = matchResult.groupValues[1].trim()
+        val email = matchResult.groupValues[2].trim()
+        val eventTitle = matchResult.groupValues[3].trim()
+        Triple(name, email, eventTitle)
+    } else null
+}
+
+/**
+ * Parses an event comment notification message to extract the commenter's name, event title, and comment text.
+ * @return A [Triple] containing (commenterName, eventTitle, commentText) if a match is found;
+ * otherwise, `null` if the message does not follow the expected pattern.
+ */
+fun String.matchEventComment(): Triple<String, String, String>? {
+    val regex = Regex("""^([^"]+?)\s+(?:commented on event|comentou no evento)\s+\\?[\\"]([^\\"]+)\\?[\\"]:\s*(.*)$""", RegexOption.IGNORE_CASE)
+    val matchResult = regex.find(this)
+    return if (matchResult != null && matchResult.groupValues.size >= 4) {
+        val name = matchResult.groupValues[1].trim()
+        val eventTitle = matchResult.groupValues[2].trim()
+        val commentText = matchResult.groupValues[3].trim()
+        Triple(name, eventTitle, commentText)
+    } else null
+}
+
 
 /**
  * Capitalizes the first letter of each word in the string, separated by spaces.
@@ -255,17 +295,15 @@ fun isPlanActive(plan: FuturePlan, currentTimeMillis: Long = System.currentTimeM
  * @param endDate The ending date in "yyyy-MM-dd" format.
  * @param startTime The starting time in "H:mm" or "HH:mm" format.
  * @param endTime The ending time in "H:mm" or "HH:mm" format.
- * @param context The context used to retrieve string resources.
- * @return A user-friendly string representing the duration.
+ * @return A UiText representing the duration.
  * Returns localized "0m" if the duration is zero or negative.
  */
 fun calculateDuration(
     startDate: String,
     endDate: String,
     startTime: String,
-    endTime: String,
-    context: Context
-): String {
+    endTime: String
+): UiText {
     val startDateMillis = parseDateToMillis(startDate) ?: 0L
     val endDateMillis = parseDateToMillis(endDate) ?: 0L
     val startTimeMinutes = parseTimeToMinutes(startTime) ?: 0
@@ -273,31 +311,20 @@ fun calculateDuration(
 
     val totalMins = ((endDateMillis - startDateMillis) / 60000L) + endTimeMinutes - startTimeMinutes
 
-    if (totalMins <= 0) return context.getString(R.string.duration_minutes, 0)
+    if (totalMins <= 0) return UiText.StringResource(R.string.duration_minutes, 0)
 
     val days = (totalMins / 1440).toInt()
     val remainingMinsAfterDays = (totalMins % 1440).toInt()
     val hours = remainingMinsAfterDays / 60
     val minutes = remainingMinsAfterDays % 60
 
-    return when {
-        days > 0 -> {
-            val d = context.getString(R.string.duration_days, days)
-            val h = if (hours > 0) " " + context.getString(R.string.duration_hours, hours) else ""
-            val m =
-                if (minutes > 0) " " + context.getString(R.string.duration_minutes, minutes) else ""
-            "$d$h$m".trim()
-        }
-
-        hours > 0 -> {
-            val h = context.getString(R.string.duration_hours, hours)
-            val m =
-                if (minutes > 0) " " + context.getString(R.string.duration_minutes, minutes) else ""
-            "$h$m".trim()
-        }
-
-        else -> context.getString(R.string.duration_minutes, minutes)
+    val parts = buildList {
+        if (days > 0) add(UiText.StringResource(R.string.duration_days, days))
+        if (hours > 0) add(UiText.StringResource(R.string.duration_hours, hours))
+        if (minutes > 0 || isEmpty()) add(UiText.StringResource(R.string.duration_minutes, minutes))
     }
+
+    return if (parts.size == 1) parts[0] else UiText.Composite(parts, " ")
 }
 
 /**
@@ -508,6 +535,20 @@ fun openSocialMessage(
 }
 
 /**
+ * Validates whether the given string is a valid URL.
+ * @param url The URL string to validate.
+ * @return `true` if the URL is valid; `false` otherwise.
+ */
+fun isUrlValid(url: String): Boolean {
+    val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        "https://$url"
+    } else {
+        url
+    }
+    return android.util.Patterns.WEB_URL.matcher(formattedUrl).matches()
+}
+
+/**
  * Detects the country code from a 3-digit North American Numbering Plan (NANP) area code.
  * This function maps specific area codes to their respective ISO 3166-1 alpha-2 country codes.
  * If the area code is not found in the specific mapping but starts with a digit between 2 and 9,
@@ -629,4 +670,81 @@ fun formatPhoneNumber(number: String, mask: String): String {
     }
 
     return out.toString()
+}
+
+/**
+ * Calculates the distance between two geographical coordinates using the Haversine formula.
+ * @return The distance in meters.
+ */
+fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val r = 6371e3 // Earth's radius in meters
+    val phi1 = Math.toRadians(lat1)
+    val phi2 = Math.toRadians(lat2)
+    val deltaPhi = Math.toRadians(lat2 - lat1)
+    val deltaLambda = Math.toRadians(lon2 - lon1)
+
+    val a = sin(deltaPhi / 2.0).pow(2.0) +
+            cos(phi1) * cos(phi2) * sin(deltaLambda / 2.0).pow(2.0)
+    val c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a))
+
+    return r * c
+}
+
+/**
+ * Formats a distance in meters to a human-readable localized string.
+ */
+fun formatDistance(
+    context: Context,
+    meters: Double,
+    unit: DistanceUnit = DistanceUnit.KILOMETERS
+): String {
+    return when (unit) {
+        DistanceUnit.KILOMETERS -> {
+            if (meters < 1000) {
+                context.getString(R.string.label_distance_m, meters.roundToInt())
+            } else {
+                val km = meters / 1000.0
+                context.getString(R.string.label_distance_km, km)
+            }
+        }
+
+        DistanceUnit.MILES -> {
+            val miles = meters * 0.000621371
+            if (miles < 0.1) {
+                val feet = meters * 3.28084
+                context.getString(R.string.label_distance_feet, feet.roundToInt())
+            } else {
+                context.getString(R.string.label_distance_miles, miles)
+            }
+        }
+    }
+}
+
+
+/**
+ * Gets the last known device location from available providers.
+ */
+fun getLastKnownLocation(context: Context): Location? {
+    val locationManager =
+        context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+    if (ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED &&
+        ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return null
+    }
+    val providers = locationManager.getProviders(true)
+    var bestLocation: Location? = null
+    for (provider in providers) {
+        val l = locationManager.getLastKnownLocation(provider) ?: continue
+        if (bestLocation == null || l.accuracy < bestLocation.accuracy) {
+            bestLocation = l
+        }
+    }
+    return bestLocation
 }

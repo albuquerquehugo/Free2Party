@@ -1,111 +1,98 @@
 package com.free2party.ui.screens.profile
 
-import android.net.Uri
-import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.free2party.R
-import com.free2party.data.model.Gender
-import com.free2party.ui.components.ProfileContent
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.data.model.Membership
+import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.dialogs.AboutDialog
+import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.theme.available
+import com.free2party.ui.theme.busy
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ProfileRoute(
-    onBack: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToCircles: () -> Unit,
+    onNavigateToAppearance: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val viewModel: ProfileViewModel = hiltViewModel()
-    val deleteMsg = stringResource(R.string.toast_account_deleted)
-
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
-                is ProfileUiEvent.ShowToast -> {
-                    Toast.makeText(context, event.message.asString(context), Toast.LENGTH_SHORT)
-                        .show()
-                    if (event.navigateBack) {
-                        onBack()
-                    }
-                }
-
-                ProfileUiEvent.AccountDeleted -> {
-                    Toast.makeText(context, deleteMsg, Toast.LENGTH_LONG).show()
-                    onLogout()
-                }
+                is ProfileUiEvent.Logout -> onLogout()
             }
         }
     }
 
+    val gradientBackground =
+        (viewModel.uiState as? ProfileUiState.Success)?.gradientBackground ?: true
+
     ProfileScreen(
         uiState = viewModel.uiState,
-        gradientBackground = viewModel.gradientBackground,
-        onBack = onBack,
-        onUploadImage = { viewModel.uploadProfilePicture(it) },
-        firstName = viewModel.firstName,
-        onFirstNameChange = { viewModel.firstName = it },
-        lastName = viewModel.lastName,
-        onLastNameChange = { viewModel.lastName = it },
-        countryCode = viewModel.countryCode,
-        onCountryCodeChange = { viewModel.countryCode = it },
-        phoneNumber = viewModel.phoneNumber,
-        onPhoneNumberChange = { viewModel.phoneNumber = it },
-        birthday = viewModel.birthday,
-        onBirthdayChange = { viewModel.birthday = it },
-        bio = viewModel.bio,
-        onBioChange = { viewModel.bio = it },
-        gender = viewModel.gender,
-        onGenderChange = { viewModel.gender = it },
-        whatsappCountryCode = viewModel.whatsappCountryCode,
-        onWhatsappCountryCodeChange = { viewModel.whatsappCountryCode = it },
-        whatsappNumber = viewModel.whatsappNumber,
-        onWhatsappNumberChange = { viewModel.whatsappNumber = it },
-        isWhatsappSameAsPhone = viewModel.isWhatsappSameAsPhone,
-        onWhatsappSameAsPhoneChange = { viewModel.onWhatsappSameAsPhoneChange(it) },
-        telegramUsername = viewModel.telegramUsername,
-        onTelegramUsernameChange = { viewModel.telegramUsername = it },
-        facebookUsername = viewModel.facebookUsername,
-        onFacebookUsernameChange = { viewModel.facebookUsername = it },
-        instagramUsername = viewModel.instagramUsername,
-        onInstagramUsernameChange = { viewModel.instagramUsername = it },
-        tiktokUsername = viewModel.tiktokUsername,
-        onTiktokUsernameChange = { viewModel.tiktokUsername = it },
-        xUsername = viewModel.xUsername,
-        onXUsernameChange = { viewModel.xUsername = it },
-        hasChanges = viewModel.hasChanges,
-        isFormValid = viewModel.isFormValid(context),
-        onDiscardChanges = { viewModel.discardChanges() },
-        onUpdateProfile = { viewModel.updateProfile(context) },
-        onDeleteAccount = { viewModel.deleteAccount() }
+        gradientBackground = gradientBackground,
+        onLogoutClick = { viewModel.logout(onLogout) },
+        onNavigateToProfile = onNavigateToProfile,
+        onNavigateToBlockedUsers = onNavigateToBlockedUsers,
+        onNavigateToSettings = onNavigateToSettings,
+        onNavigateToCircles = onNavigateToCircles,
+        onNavigateToAppearance = onNavigateToAppearance
     )
 }
 
@@ -113,285 +100,319 @@ fun ProfileRoute(
 fun ProfileScreen(
     uiState: ProfileUiState,
     gradientBackground: Boolean,
-    onBack: () -> Unit,
-    onUploadImage: (Uri) -> Unit,
-    firstName: String,
-    onFirstNameChange: (String) -> Unit,
-    lastName: String,
-    onLastNameChange: (String) -> Unit,
-    countryCode: String,
-    onCountryCodeChange: (String) -> Unit,
-    phoneNumber: String,
-    onPhoneNumberChange: (String) -> Unit,
-    birthday: String,
-    onBirthdayChange: (String) -> Unit,
-    bio: String,
-    onBioChange: (String) -> Unit,
-    gender: Gender,
-    onGenderChange: (Gender) -> Unit,
-    whatsappCountryCode: String,
-    onWhatsappCountryCodeChange: (String) -> Unit,
-    whatsappNumber: String,
-    onWhatsappNumberChange: (String) -> Unit,
-    isWhatsappSameAsPhone: Boolean,
-    onWhatsappSameAsPhoneChange: (Boolean) -> Unit,
-    telegramUsername: String,
-    onTelegramUsernameChange: (String) -> Unit,
-    facebookUsername: String,
-    onFacebookUsernameChange: (String) -> Unit,
-    instagramUsername: String,
-    onInstagramUsernameChange: (String) -> Unit,
-    tiktokUsername: String,
-    onTiktokUsernameChange: (String) -> Unit,
-    xUsername: String,
-    onXUsernameChange: (String) -> Unit,
-    hasChanges: Boolean,
-    isFormValid: Boolean,
-    onDiscardChanges: () -> Unit,
-    onUpdateProfile: () -> Unit,
-    onDeleteAccount: () -> Unit
+    onLogoutClick: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToBlockedUsers: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToCircles: () -> Unit,
+    onNavigateToAppearance: () -> Unit
 ) {
-    Scaffold(
-        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopBar(
-                title = stringResource(R.string.title_profile),
-                color = MaterialTheme.colorScheme.onSurface,
-                onBack = onBack,
-                enabled = uiState !is ProfileUiState.Loading
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                if (gradientBackground) Color.Transparent
+                else MaterialTheme.colorScheme.surface
+            )
+            .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TopBar(
+            showBackButton = false,
+            color = MaterialTheme.colorScheme.onSurface,
+            onBack = {}
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            when (uiState) {
+                is ProfileUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is ProfileUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = uiState.message.asString(),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                is ProfileUiState.Success -> {
+                    val statusColor = if (uiState.isUserFree) {
+                        MaterialTheme.colorScheme.available
+                    } else {
+                        MaterialTheme.colorScheme.busy
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Large Centered Avatar with thick status border
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .shadow(elevation = 8.dp, shape = CircleShape, clip = false)
+                                .border(4.dp, statusColor, CircleShape)
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (uiState.profilePicUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = uiState.profilePicUrl,
+                                    contentDescription = stringResource(R.string.label_profile),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.AccountCircle,
+                                    contentDescription = stringResource(R.string.label_profile),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Display Name
+                        Text(
+                            text = uiState.userFullName.ifBlank { uiState.userName },
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Status Capsule/Pill
+                        val statusText = if (uiState.isUserFree) {
+                            stringResource(R.string.label_status_free)
+                        } else {
+                            stringResource(uiState.userGender.getStringRes(R.string.label_status_busy))
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = statusColor.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = statusColor.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(statusColor, CircleShape)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = statusText,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = statusColor,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Top
+                        ) {
+                            // Menu items grouped inside a sleek Card
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .shadow(0.dp, shape = RoundedCornerShape(16.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.5f
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                        MenuItem(
+                                            icon = Icons.Default.Person,
+                                            title = stringResource(R.string.label_edit_profile),
+                                            onClick = onNavigateToProfile
+                                        )
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        MenuItem(
+                                            icon = Icons.Default.Groups,
+                                            title = stringResource(R.string.title_circles),
+                                            onClick = onNavigateToCircles
+                                        )
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        MenuItem(
+                                            icon = Icons.Default.Block,
+                                            title = stringResource(R.string.title_blocked_users),
+                                            onClick = onNavigateToBlockedUsers
+                                        )
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        MenuItem(
+                                            icon = Icons.Default.Palette,
+                                            title = stringResource(R.string.title_appearance),
+                                            onClick = onNavigateToAppearance
+                                        )
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        MenuItem(
+                                            icon = Icons.Default.Settings,
+                                            title = stringResource(R.string.title_settings),
+                                            onClick = onNavigateToSettings
+                                        )
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        MenuItem(
+                                            icon = Icons.Default.Info,
+                                            title = stringResource(R.string.title_about),
+                                            onClick = { showAboutDialog = true }
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+
+                            // Destructive Action: Logout
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .shadow(0.dp, shape = RoundedCornerShape(16.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.5f
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    MenuItem(
+                                        icon = Icons.AutoMirrored.Filled.Logout,
+                                        title = stringResource(R.string.label_logout),
+                                        tint = MaterialTheme.colorScheme.error,
+                                        onClick = { showLogoutDialog = true }
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(24.dp))
+                            }
+                        }
+
+                        // Ads Banner at the bottom
+                        if (uiState.membership == Membership.REGULAR) {
+                            AdBanner()
+                        }
+                    }
+                }
+            }
+        }
+
+        if (showLogoutDialog) {
+            ConfirmationDialog(
+                title = stringResource(R.string.label_logout),
+                text = stringResource(R.string.text_logout_confirmation),
+                confirmButtonText = stringResource(R.string.label_logout),
+                onConfirm = {
+                    showLogoutDialog = false
+                    onLogoutClick()
+                },
+                dismissButtonText = stringResource(R.string.label_cancel),
+                onDismiss = { showLogoutDialog = false },
+                isDestructive = true
             )
         }
-    ) { paddingValues ->
-        when (uiState) {
-            is ProfileUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
 
-            is ProfileUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = uiState.message.asString(), color = MaterialTheme.colorScheme.error)
-                }
-            }
-
-            is ProfileUiState.Success -> {
-                ProfileScreenContent(
-                    paddingValues = paddingValues,
-                    uiState = uiState,
-                    onUploadImage = onUploadImage,
-                    firstName = firstName,
-                    onFirstNameChange = onFirstNameChange,
-                    lastName = lastName,
-                    onLastNameChange = onLastNameChange,
-                    countryCode = countryCode,
-                    onCountryCodeChange = onCountryCodeChange,
-                    phoneNumber = phoneNumber,
-                    onPhoneNumberChange = onPhoneNumberChange,
-                    birthday = birthday,
-                    onBirthdayChange = onBirthdayChange,
-                    bio = bio,
-                    onBioChange = onBioChange,
-                    gender = gender,
-                    onGenderChange = onGenderChange,
-                    whatsappCountryCode = whatsappCountryCode,
-                    onWhatsappCountryCodeChange = onWhatsappCountryCodeChange,
-                    whatsappNumber = whatsappNumber,
-                    onWhatsappNumberChange = onWhatsappNumberChange,
-                    isWhatsappSameAsPhone = isWhatsappSameAsPhone,
-                    onWhatsappSameAsPhoneChange = onWhatsappSameAsPhoneChange,
-                    telegramUsername = telegramUsername,
-                    onTelegramUsernameChange = onTelegramUsernameChange,
-                    facebookUsername = facebookUsername,
-                    onFacebookUsernameChange = onFacebookUsernameChange,
-                    instagramUsername = instagramUsername,
-                    onInstagramUsernameChange = onInstagramUsernameChange,
-                    tiktokUsername = tiktokUsername,
-                    onTiktokUsernameChange = onTiktokUsernameChange,
-                    xUsername = xUsername,
-                    onXUsernameChange = onXUsernameChange,
-                    hasChanges = hasChanges,
-                    isFormValid = isFormValid,
-                    onDiscardChanges = onDiscardChanges,
-                    onUpdateProfile = onUpdateProfile,
-                    onDeleteAccount = onDeleteAccount
-                )
-            }
+        if (showAboutDialog) {
+            AboutDialog(onDismiss = { showAboutDialog = false })
         }
     }
 }
 
 @Composable
-fun ProfileScreenContent(
-    paddingValues: PaddingValues,
-    uiState: ProfileUiState.Success,
-    onUploadImage: (Uri) -> Unit,
-    firstName: String,
-    onFirstNameChange: (String) -> Unit,
-    lastName: String,
-    onLastNameChange: (String) -> Unit,
-    countryCode: String,
-    onCountryCodeChange: (String) -> Unit,
-    phoneNumber: String,
-    onPhoneNumberChange: (String) -> Unit,
-    birthday: String,
-    onBirthdayChange: (String) -> Unit,
-    bio: String,
-    onBioChange: (String) -> Unit,
-    gender: Gender,
-    onGenderChange: (Gender) -> Unit,
-    whatsappCountryCode: String,
-    onWhatsappCountryCodeChange: (String) -> Unit,
-    whatsappNumber: String,
-    onWhatsappNumberChange: (String) -> Unit,
-    isWhatsappSameAsPhone: Boolean,
-    onWhatsappSameAsPhoneChange: (Boolean) -> Unit,
-    telegramUsername: String,
-    onTelegramUsernameChange: (String) -> Unit,
-    facebookUsername: String,
-    onFacebookUsernameChange: (String) -> Unit,
-    instagramUsername: String,
-    onInstagramUsernameChange: (String) -> Unit,
-    tiktokUsername: String,
-    onTiktokUsernameChange: (String) -> Unit,
-    xUsername: String,
-    onXUsernameChange: (String) -> Unit,
-    hasChanges: Boolean,
-    isFormValid: Boolean,
-    onDiscardChanges: () -> Unit,
-    onUpdateProfile: () -> Unit,
-    onDeleteAccount: () -> Unit
+fun MenuItem(
+    icon: ImageVector,
+    title: String,
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    onClick: () -> Unit
 ) {
-    val user = uiState.user
-    val isSaving = uiState.isSaving
-    val isUploadingImage = uiState.isUploadingImage
-    val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
-
-    if (showDeleteDialog) {
-        ConfirmationDialog(
-            title = stringResource(R.string.label_delete_account),
-            text = stringResource(R.string.text_delete_account_confirmation),
-            confirmButtonText = stringResource(R.string.label_delete),
-            onConfirm = {
-                setShowDeleteDialog(false)
-                onDeleteAccount()
-            },
-            onDismiss = { setShowDeleteDialog(false) },
-            isDestructive = true
-        )
-    }
-
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(top = paddingValues.calculateTopPadding())
-            .consumeWindowInsets(paddingValues)
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        ProfileContent(
-            isLoading = isSaving || isUploadingImage,
-            profilePicture = user.profilePicUrl,
-            onProfilePicChange = { onUploadImage(it) },
-            firstName = firstName,
-            onFirstNameChange = onFirstNameChange,
-            lastName = lastName,
-            onLastNameChange = onLastNameChange,
-            isEmailEnabled = false,
-            email = user.email,
-            onEmailChange = {},
-            countryCode = countryCode,
-            onCountryCodeChange = onCountryCodeChange,
-            phoneNumber = phoneNumber,
-            onPhoneNumberChange = onPhoneNumberChange,
-            birthday = birthday,
-            onBirthdayChange = onBirthdayChange,
-            datePattern = user.settings.datePattern,
-            bio = bio,
-            onBioChange = onBioChange,
-            gender = gender,
-            onGenderChange = onGenderChange,
-            whatsappCountryCode = whatsappCountryCode,
-            onWhatsappCountryCodeChange = onWhatsappCountryCodeChange,
-            whatsappNumber = whatsappNumber,
-            onWhatsappNumberChange = onWhatsappNumberChange,
-            isWhatsappSameAsPhone = isWhatsappSameAsPhone,
-            onWhatsappSameAsPhoneChange = onWhatsappSameAsPhoneChange,
-            telegramUsername = telegramUsername,
-            onTelegramUsernameChange = onTelegramUsernameChange,
-            facebookUsername = facebookUsername,
-            onFacebookUsernameChange = onFacebookUsernameChange,
-            instagramUsername = instagramUsername,
-            onInstagramUsernameChange = onInstagramUsernameChange,
-            tiktokUsername = tiktokUsername,
-            onTiktokUsernameChange = onTiktokUsernameChange,
-            xUsername = xUsername,
-            onXUsernameChange = onXUsernameChange,
-            confirmButtons = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (hasChanges) {
-                        TextButton(
-                            onClick = onDiscardChanges,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .testTag("discard_button"),
-                            enabled = !isSaving
-                        ) {
-                            Text(
-                                text = stringResource(R.string.label_discard_changes),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = onUpdateProfile,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .testTag("save_button"),
-                        enabled = hasChanges && !isSaving && isFormValid
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                stringResource(R.string.label_save_changes),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    TextButton(
-                        onClick = { setShowDeleteDialog(true) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        enabled = !isSaving && !isUploadingImage,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.label_delete_account),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (tint == MaterialTheme.colorScheme.error) tint else MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            tint = tint.copy(alpha = 0.5f),
+            modifier = Modifier.size(16.dp)
         )
     }
 }

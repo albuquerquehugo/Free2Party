@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import android.widget.Toast
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -85,7 +86,6 @@ fun PlanItem(
     val currentUserId = remember { Firebase.auth.currentUser?.uid }
     val isOwnPlan = plan.userId == currentUserId
     val isReadOnly = onEdit == null && onDelete == null || !isOwnPlan
-    val context = androidx.compose.ui.platform.LocalContext.current
 
     val planStatus by remember(plan, currentTimeMillis) {
         derivedStateOf {
@@ -119,8 +119,8 @@ fun PlanItem(
     }
 
     val duration = remember(plan.startDate, plan.endDate, plan.startTime, plan.endTime) {
-        calculateDuration(plan.startDate, plan.endDate, plan.startTime, plan.endTime, context)
-    }
+        calculateDuration(plan.startDate, plan.endDate, plan.startTime, plan.endTime)
+    }.asString()
 
     val friendsSelection = when (plan.visibility) {
         PlanVisibility.EVERYONE -> stringResource(R.string.label_everyone)
@@ -152,13 +152,13 @@ fun PlanItem(
             },
         colors = CardDefaults.cardColors(
             containerColor = (when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.tertiaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.surfaceVariant
+                planStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer
+                planStatus.isPast -> MaterialTheme.colorScheme.tertiaryContainer
                 else -> MaterialTheme.colorScheme.primaryContainer
             }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it },
             contentColor = when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.onTertiaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.onSurfaceVariant
+                planStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+                planStatus.isPast -> MaterialTheme.colorScheme.onTertiaryContainer
                 else -> MaterialTheme.colorScheme.onPrimaryContainer
             }
         )
@@ -332,8 +332,8 @@ private fun DateTimeLabel(time: String, date: String) {
 @Composable
 fun DurationBadge(text: String, status: PlanStatus) {
     val color = when {
-        status.isCurrent -> MaterialTheme.colorScheme.tertiary
-        status.isPast -> MaterialTheme.colorScheme.outline
+        status.isCurrent -> MaterialTheme.colorScheme.secondary
+        status.isPast -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.primary
     }
     Surface(
@@ -363,19 +363,41 @@ fun PlanActionsMenu(
     onDelete: (() -> Unit)?,
     editEnabled: Boolean = true
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val editDisabledMsg = stringResource(R.string.error_plan_edit_current_past)
     DropdownMenu(
         expanded = expanded, onDismissRequest = onDismissRequest,
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         onEdit?.let {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.label_edit)) },
-                enabled = editEnabled,
+                text = {
+                    Text(
+                        text = stringResource(R.string.label_edit),
+                        color = if (editEnabled) MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
+                },
                 onClick = {
                     onDismissRequest()
-                    it()
+                    if (editEnabled) {
+                        it()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            editDisabledMsg,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 },
-                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = if (editEnabled) MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    )
+                }
             )
         }
         onDelete?.let {
