@@ -250,13 +250,23 @@ fun LoginRoute(
                                 googleIdTokenCredential.idToken,
                                 null
                             )
-                            viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
+                            viewModel.onGoogleSignIn(
+                                credential = firebaseCredential,
+                                onSuccess = onLoginSuccess,
+                                onFailure = { e ->
+                                    Toast.makeText(
+                                        context,
+                                        "$googleSignInFailedError: ${e.localizedMessage ?: e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
                         } catch (e: GoogleIdTokenParsingException) {
                             Log.e("LoginScreen", "Received an invalid google id token response", e)
                             Toast.makeText(
                                 context,
-                                googleInvalidTokenError,
-                                Toast.LENGTH_SHORT
+                                "$googleInvalidTokenError: ${e.localizedMessage ?: e.message}",
+                                Toast.LENGTH_LONG
                             ).show()
                             viewModel.resetState()
                         }
@@ -264,8 +274,8 @@ fun LoginRoute(
                         Log.e("LoginScreen", "Unexpected credential type: ${credential.type}")
                         Toast.makeText(
                             context,
-                            googleUnexpectedResponseError,
-                            Toast.LENGTH_SHORT
+                            "$googleUnexpectedResponseError: ${credential.type}",
+                            Toast.LENGTH_LONG
                         ).show()
                         viewModel.resetState()
                     }

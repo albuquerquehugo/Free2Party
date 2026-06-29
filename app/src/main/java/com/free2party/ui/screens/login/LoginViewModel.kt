@@ -171,6 +171,7 @@ class LoginViewModel @Inject constructor(
                         UiText.StringResource(R.string.error_google_failed)
                     }
                     uiState = LoginUiState.Error(errorText)
+                    onFailure(e)
                 }
         }
     }

@@ -19,8 +19,8 @@ android {
         applicationId = "com.free2party"
         minSdk = 24
         targetSdk = 37
-        versionCode = 11
-        versionName = "0.5.4"
+        versionCode = 12
+        versionName = "0.5.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
