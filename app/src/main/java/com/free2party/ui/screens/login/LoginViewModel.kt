@@ -156,7 +156,11 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onGoogleSignIn(credential: AuthCredential, onSuccess: () -> Unit) {
+    fun onGoogleSignIn(
+        credential: AuthCredential,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit = {}
+    ) {
         uiState = LoginUiState.Loading
         viewModelScope.launch {
             authRepository.signInWithGoogle(credential)
