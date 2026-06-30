@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Celebration
@@ -46,7 +47,6 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -90,6 +90,7 @@ import coil.compose.AsyncImage
 import com.free2party.MainViewModel
 import com.free2party.R
 import com.free2party.ui.components.AppBackground
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.screens.appearance.AppearanceRoute
 import com.free2party.ui.screens.blocked.BlockedUsersRoute
 import com.free2party.ui.screens.circles.CirclesRoute
@@ -104,6 +105,7 @@ import com.free2party.ui.screens.login.LoginRoute
 import com.free2party.ui.screens.notifications.NotificationsRoute
 import com.free2party.ui.screens.notifications.NotificationsViewModel
 import com.free2party.ui.screens.profile.EditProfileRoute
+import com.free2party.ui.screens.profile.InterestsRoute
 import com.free2party.ui.screens.profile.ProfileRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
@@ -122,13 +124,13 @@ sealed class Screen(
 ) {
     object Login : Screen(
         route = "login",
-        labelResId = R.string.title_login,
+        labelResId = R.string.label_login,
         icon = Icons.AutoMirrored.Filled.Login
     )
 
     object Register : Screen(
         route = "register",
-        labelResId = R.string.title_register,
+        labelResId = R.string.label_register,
         icon = Icons.Default.HowToReg
     )
 
@@ -141,21 +143,27 @@ sealed class Screen(
         icon = Icons.Default.Person
     )
 
+    object Interests : Screen(
+        route = "interests",
+        labelResId = R.string.label_interests,
+        icon = Icons.Default.Favorite
+    )
+
     object BlockedUsers : Screen(
         route = "blocked_users",
-        labelResId = R.string.title_blocked_users,
+        labelResId = R.string.label_blocked_users,
         icon = Icons.Default.Block
     )
 
     object Settings : Screen(
         route = "settings",
-        labelResId = R.string.title_settings,
+        labelResId = R.string.label_settings,
         icon = Icons.Default.Settings
     )
 
     object Home : Screen(
         route = "home",
-        labelResId = R.string.title_home,
+        labelResId = R.string.label_home,
         icon = Icons.Outlined.Home,
         iconSelected = Icons.Filled.Home
     )
@@ -202,17 +210,17 @@ sealed class Screen(
 
     object InviteFriend : Screen(
         route = "invite_friend",
-        labelResId = R.string.title_invite_friend
+        labelResId = R.string.label_invite_friend
     )
 
     object Circles : Screen(
         route = "circles",
-        labelResId = R.string.title_circles
+        labelResId = R.string.label_circles
     )
 
     object Appearance : Screen(
         route = "appearance",
-        labelResId = R.string.title_appearance
+        labelResId = R.string.label_appearance
     )
 }
 
@@ -387,7 +395,7 @@ fun FloatingHomeButton(
     ) {
         Icon(
             imageVector = if (isSelected) Icons.Filled.Home else Icons.Outlined.Home,
-            contentDescription = stringResource(R.string.title_home),
+            contentDescription = stringResource(R.string.label_home),
             tint = iconTint,
             modifier = Modifier.size(32.dp)
         )
@@ -424,7 +432,7 @@ fun BottomNavigationBar(
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.2f))
         ) {
-            HorizontalDivider(
+            AppHorizontalDivider(
                 thickness = 0.5.dp,
                 color = MaterialTheme.colorScheme.outlineVariant
             )
@@ -758,7 +766,16 @@ fun Free2PartyNavGraph(
                 },
                 onNavigateToAppearance = {
                     navController.navigate(Screen.Appearance.route)
+                },
+                onNavigateToInterests = {
+                    navController.navigate(Screen.Interests.route)
                 }
+            )
+        }
+
+        composable(Screen.Interests.route) {
+            InterestsRoute(
+                onBack = { navController.popBackStack() }
             )
         }
 

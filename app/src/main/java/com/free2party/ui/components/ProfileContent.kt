@@ -101,6 +101,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileContent(
+    modifier: Modifier = Modifier,
     isLoading: Boolean,
     profilePicture: Any?,
     onProfilePicChange: (Uri) -> Unit,
@@ -341,7 +342,7 @@ fun ProfileContent(
 
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .imePadding()
             .padding(horizontal = 24.dp)

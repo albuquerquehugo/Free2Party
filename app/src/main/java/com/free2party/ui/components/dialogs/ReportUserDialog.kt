@@ -60,7 +60,7 @@ fun ReportUserDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.title_report_user)) },
+        title = { Text(text = stringResource(R.string.label_report_user)) },
         text = {
             Column(
                 modifier = Modifier.selectableGroup(),

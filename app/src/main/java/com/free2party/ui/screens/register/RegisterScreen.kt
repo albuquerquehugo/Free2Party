@@ -51,7 +51,7 @@ fun RegisterRoute(
     val context = LocalContext.current
     val uiState = viewModel.uiState
 
-    val accountCreatedTemplate = stringResource(R.string.success_account_created)
+    val accountCreatedTemplate = stringResource(R.string.text_success_account_created)
 
 
     LaunchedEffect(uiState) {
@@ -181,7 +181,7 @@ fun RegisterScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_create_account),
+                title = stringResource(R.string.label_create_account),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBackToLogin,
                 enabled = uiState !is RegisterUiState.Loading

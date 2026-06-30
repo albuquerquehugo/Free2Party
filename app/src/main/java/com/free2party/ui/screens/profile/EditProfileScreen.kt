@@ -283,13 +283,14 @@ fun EditProfileScreenContent(
         )
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = paddingValues.calculateTopPadding())
             .consumeWindowInsets(paddingValues)
     ) {
         ProfileContent(
+            modifier = Modifier.weight(1f),
             isLoading = isSaving || isUploadingImage,
             profilePicture = user.profilePicUrl,
             onProfilePicChange = { onUploadImage(it) },
@@ -326,74 +327,73 @@ fun EditProfileScreenContent(
             tiktokUsername = tiktokUsername,
             onTiktokUsernameChange = onTiktokUsernameChange,
             xUsername = xUsername,
-            onXUsernameChange = onXUsernameChange,
-            confirmButtons = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+            onXUsernameChange = onXUsernameChange
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (hasChanges) {
+                TextButton(
+                    onClick = onDiscardChanges,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .testTag("discard_button"),
+                    enabled = !isSaving
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.label_discard_changes),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-                    if (hasChanges) {
-                        TextButton(
-                            onClick = onDiscardChanges,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .testTag("discard_button"),
-                            enabled = !isSaving
-                        ) {
-                            Text(
-                                text = stringResource(R.string.label_discard_changes),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = onUpdateProfile,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .testTag("save_button"),
-                        enabled = hasChanges && !isSaving && isFormValid
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                stringResource(R.string.label_save_changes),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    TextButton(
-                        onClick = { setShowDeleteDialog(true) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        enabled = !isSaving && !isUploadingImage,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.label_delete_account),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onUpdateProfile,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .testTag("save_button"),
+                enabled = hasChanges && !isSaving && isFormValid
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.label_save_changes),
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
             }
-        )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { setShowDeleteDialog(true) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                enabled = !isSaving && !isUploadingImage,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.label_delete_account),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+        }
     }
 }

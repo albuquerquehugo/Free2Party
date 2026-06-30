@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +66,7 @@ import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
@@ -182,7 +182,7 @@ fun NotificationsScreen(
                 ) {
                     if (requests.isNotEmpty()) {
                         item {
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp,
                                 modifier = Modifier.padding(top = 24.dp)
@@ -196,7 +196,7 @@ fun NotificationsScreen(
                                 onDecline = { onDeclineRequest(item.friendRequest) },
                                 onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
                             )
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
@@ -215,7 +215,7 @@ fun NotificationsScreen(
                             }
                         }
                         item {
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
@@ -228,7 +228,7 @@ fun NotificationsScreen(
                                 onDelete = { onDelete(item.notification.id) },
                                 onNavigateToEventDetails = onNavigateToEventDetails
                             )
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )

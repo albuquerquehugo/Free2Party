@@ -115,6 +115,7 @@ data class User(
     val birthdayFriendsSelection: List<String> = emptyList(),
     val birthdayShowType: BirthdayShowType = BirthdayShowType.FULL,
     val settings: UserSettings = UserSettings(),
+    val interests: List<String> = emptyList(),
     val registrationMethod: String = "",
     @ServerTimestamp
     val createdAt: Date? = null

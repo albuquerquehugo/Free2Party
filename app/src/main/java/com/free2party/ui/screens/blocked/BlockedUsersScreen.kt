@@ -91,7 +91,7 @@ fun BlockedUsersScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_blocked_users),
+                title = stringResource(R.string.label_blocked_users),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack,
                 enabled = uiState !is BlockedUsersUiState.Loading

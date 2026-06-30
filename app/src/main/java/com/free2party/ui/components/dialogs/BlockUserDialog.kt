@@ -78,7 +78,7 @@ fun BlockUserDialog(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = stringResource(R.string.title_block_user_name, friend.name),
+                text = stringResource(R.string.label_block_user_name, friend.name),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -89,7 +89,7 @@ fun BlockUserDialog(
             Text(
                 text = stringResource(
                     R.string.text_block_user_confirmation,
-                    stringResource(R.string.title_blocked_users)
+                    stringResource(R.string.label_blocked_users)
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
