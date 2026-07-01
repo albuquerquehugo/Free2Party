@@ -75,6 +75,7 @@ import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.basic.AppOutlinedButton
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -126,30 +127,113 @@ fun LoginRoute(
         }
     }
 
-    val legacyGoogleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+    val handleLegacyGoogleSignInResult = { resultCode: Int, data: android.content.Intent? ->
+        if (resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
                 val idToken = account.idToken
                 if (idToken != null) {
                     val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-                    viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
+                    viewModel.onGoogleSignIn(
+                        credential = firebaseCredential,
+                        onSuccess = onLoginSuccess,
+                        onFailure = { e ->
+                            Toast.makeText(
+                                context,
+                                "$googleSignInFailedError: ${e.localizedMessage ?: e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    )
                 } else {
                     Log.e("LoginScreen", "Legacy Google Sign-In: ID Token is null")
-                    Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "$googleSignInFailedError: ID Token is null",
+                        Toast.LENGTH_LONG
+                    ).show()
                     viewModel.resetState()
                 }
             } catch (e: ApiException) {
                 Log.e("LoginScreen", "Legacy Google Sign-In failed to parse result", e)
-                Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT).show()
+                val statusString = when (e.statusCode) {
+                    GoogleSignInStatusCodes.DEVELOPER_ERROR -> "DEVELOPER_ERROR (Check SHA-1 signature)"
+                    GoogleSignInStatusCodes.NETWORK_ERROR -> "NETWORK_ERROR (Check connection)"
+                    GoogleSignInStatusCodes.SIGN_IN_FAILED -> "SIGN_IN_FAILED"
+                    else -> "Status code ${e.statusCode}"
+                }
+                Toast.makeText(
+                    context,
+                    "$googleSignInFailedError: $statusString",
+                    Toast.LENGTH_LONG
+                ).show()
                 viewModel.resetState()
             }
         } else {
-            viewModel.resetState()
+            // Result is not RESULT_OK. If there is intent data, check if there is an error status code.
+            if (data != null) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                try {
+                    val account = task.getResult(ApiException::class.java)
+                    val idToken = account.idToken
+                    if (idToken != null) {
+                        val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+                        viewModel.onGoogleSignIn(
+                            credential = firebaseCredential,
+                            onSuccess = onLoginSuccess,
+                            onFailure = { e ->
+                                Toast.makeText(
+                                    context,
+                                    "$googleSignInFailedError: ${e.localizedMessage ?: e.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        )
+                    } else {
+                        viewModel.resetState()
+                    }
+                } catch (e: ApiException) {
+                    val statusCode = e.statusCode
+                    if (statusCode != GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                        Log.e(
+                            "LoginScreen",
+                            "Legacy Google Sign-In failed with status: $statusCode",
+                            e
+                        )
+                        val statusString = when (statusCode) {
+                            GoogleSignInStatusCodes.DEVELOPER_ERROR -> "DEVELOPER_ERROR (Check SHA-1 signature)"
+                            GoogleSignInStatusCodes.NETWORK_ERROR -> "NETWORK_ERROR (Check connection)"
+                            GoogleSignInStatusCodes.SIGN_IN_FAILED -> "SIGN_IN_FAILED"
+                            else -> "Status code $statusCode"
+                        }
+                        Toast.makeText(
+                            context,
+                            "$googleSignInFailedError: $statusString",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Log.i("LoginScreen", "Legacy Google Sign-In cancelled by user")
+                    }
+                    viewModel.resetState()
+                } catch (e: Exception) {
+                    Log.e("LoginScreen", "Legacy Google Sign-In failed to parse task", e)
+                    viewModel.resetState()
+                }
+            } else {
+                Log.i(
+                    "LoginScreen",
+                    "Legacy Google Sign-In returned result code $resultCode with null data"
+                )
+                viewModel.resetState()
+            }
         }
+    }
+
+    val legacyGoogleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        handleLegacyGoogleSignInResult(result.resultCode, result.data)
     }
 
     val launchLegacyGoogleSignIn = {
@@ -168,37 +252,7 @@ fun LoginRoute(
             val mainActivity = activity as? MainActivity
             if (mainActivity != null) {
                 mainActivity.launchGoogleSignIn(googleSignInClient.signInIntent) { data, resultCode ->
-                    if (resultCode == Activity.RESULT_OK) {
-                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                        try {
-                            val account = task.getResult(ApiException::class.java)
-                            val idToken = account.idToken
-                            if (idToken != null) {
-                                val firebaseCredential =
-                                    GoogleAuthProvider.getCredential(idToken, null)
-                                viewModel.onGoogleSignIn(firebaseCredential, onLoginSuccess)
-                            } else {
-                                Log.e(
-                                    "LoginScreen",
-                                    "MainActivity delegate legacy Google Sign-In: ID Token is null"
-                                )
-                                Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT)
-                                    .show()
-                                viewModel.resetState()
-                            }
-                        } catch (e: ApiException) {
-                            Log.e(
-                                "LoginScreen",
-                                "MainActivity delegate legacy Google Sign-In failed to parse result",
-                                e
-                            )
-                            Toast.makeText(context, googleSignInFailedError, Toast.LENGTH_SHORT)
-                                .show()
-                            viewModel.resetState()
-                        }
-                    } else {
-                        viewModel.resetState()
-                    }
+                    handleLegacyGoogleSignInResult(resultCode, data)
                 }
             } else {
                 legacyGoogleSignInLauncher.launch(googleSignInClient.signInIntent)
