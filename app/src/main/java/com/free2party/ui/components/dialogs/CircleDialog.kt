@@ -60,8 +60,8 @@ fun CircleDialog(
         ) {
             Text(
                 text =
-                    if (circle == null) stringResource(R.string.title_create_circle)
-                    else stringResource(R.string.title_edit_circle),
+                    if (circle == null) stringResource(R.string.label_create_circle)
+                    else stringResource(R.string.label_edit_circle),
                 style = MaterialTheme.typography.headlineSmall
             )
 

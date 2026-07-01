@@ -558,7 +558,7 @@ fun FriendsListSection(
         }
 
         Text(
-            text = stringResource(R.string.title_friends),
+            text = stringResource(R.string.label_friends),
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
@@ -571,7 +571,7 @@ fun FriendsListSection(
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = stringResource(R.string.title_invite_friend),
+                contentDescription = stringResource(R.string.label_invite_friend),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -621,7 +621,7 @@ fun FriendsListSection(
         ) {
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.title_friend_section_free),
+                    title = stringResource(R.string.label_friend_section_free),
                     friends = freeFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
@@ -633,7 +633,7 @@ fun FriendsListSection(
             }
             item {
                 ExpandableFriendSection(
-                    title = stringResource(R.string.title_friend_section_busy),
+                    title = stringResource(R.string.label_friend_section_busy),
                     friends = busyFriends,
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
@@ -646,7 +646,7 @@ fun FriendsListSection(
             if (pendingFriends.isNotEmpty()) {
                 item {
                     ExpandableFriendSection(
-                        title = stringResource(R.string.title_friend_section_pending),
+                        title = stringResource(R.string.label_friend_section_pending),
                         friends = pendingFriends,
                         gradientBackground = gradientBackground,
                         onRemoveFriend = onRemoveFriend,
@@ -691,7 +691,7 @@ fun ExpandableFriendSection(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.title_friend_section, title, friends.size),
+                text = stringResource(R.string.label_friend_section, title, friends.size),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
@@ -1071,7 +1071,7 @@ fun FriendItem(
                             text = {
                                 Text(
                                     if (isPending) stringResource(R.string.label_cancel_invite) else stringResource(
-                                        R.string.title_remove_friend
+                                        R.string.label_remove_friend
                                     ),
                                     color = MaterialTheme.colorScheme.error
                                 )

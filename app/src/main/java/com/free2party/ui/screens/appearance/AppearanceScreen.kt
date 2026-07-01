@@ -16,6 +16,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.model.ThemeMode
 import com.free2party.R
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.screens.settings.SettingsOption
 
 @Composable
@@ -45,7 +46,7 @@ fun AppearanceScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_appearance),
+                title = stringResource(R.string.label_appearance),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack
             )
@@ -69,7 +70,7 @@ fun AppearanceScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = stringResource(R.string.label_theme_mode),
+                        text = stringResource(R.string.label_theme_mode_colon),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -92,10 +93,10 @@ fun AppearanceScreen(
                         }
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                    AppHorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
                     Text(
-                        text = stringResource(R.string.label_background),
+                        text = stringResource(R.string.label_background_colon),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

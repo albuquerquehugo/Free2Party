@@ -33,7 +33,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +63,7 @@ import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
 import com.free2party.R
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.CircleDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import kotlinx.coroutines.flow.collectLatest
@@ -121,7 +121,7 @@ fun CirclesScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_circles),
+                title = stringResource(R.string.label_circles),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack
             )
@@ -134,7 +134,7 @@ fun CirclesScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.title_create_circle)
+                    contentDescription = stringResource(R.string.label_create_circle)
                 )
             }
         }
@@ -174,7 +174,7 @@ fun CirclesScreen(
 
         circleToDelete?.let { circle ->
             ConfirmationDialog(
-                title = stringResource(R.string.title_delete_circle),
+                title = stringResource(R.string.label_delete_circle),
                 text = stringResource(R.string.text_delete_circle_confirmation),
                 confirmButtonText = stringResource(R.string.label_delete),
                 onConfirm = {
@@ -333,7 +333,7 @@ private fun CircleListItem(
                                 showMenu = false
                             }
                         )
-                        HorizontalDivider()
+                        AppHorizontalDivider()
                         DropdownMenuItem(
                             text = {
                                 Text(

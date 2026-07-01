@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +66,7 @@ import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
@@ -141,9 +141,9 @@ fun NotificationsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val titleText = if (itemsUnreadCount > 0) {
-            stringResource(R.string.title_notifications_with_count, itemsUnreadCount)
+            stringResource(R.string.label_notifications_with_count, itemsUnreadCount)
         } else {
-            stringResource(R.string.title_notifications)
+            stringResource(R.string.label_notifications)
         }
 
         TopBar(
@@ -182,7 +182,7 @@ fun NotificationsScreen(
                 ) {
                     if (requests.isNotEmpty()) {
                         item {
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp,
                                 modifier = Modifier.padding(top = 24.dp)
@@ -196,7 +196,7 @@ fun NotificationsScreen(
                                 onDecline = { onDeclineRequest(item.friendRequest) },
                                 onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
                             )
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
@@ -215,7 +215,7 @@ fun NotificationsScreen(
                             }
                         }
                         item {
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
@@ -228,7 +228,7 @@ fun NotificationsScreen(
                                 onDelete = { onDelete(item.notification.id) },
                                 onNavigateToEventDetails = onNavigateToEventDetails
                             )
-                            HorizontalDivider(
+                            AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
@@ -284,7 +284,7 @@ fun FriendRequestItem(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = stringResource(R.string.title_friend_request),
+                text = stringResource(R.string.label_friend_request),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -381,7 +381,7 @@ fun DeclineFriendRequestDialog(
     onDeclineAndBlock: () -> Unit
 ) {
     ConfirmationDialog(
-        title = stringResource(R.string.title_decline_friend_request_dialog),
+        title = stringResource(R.string.label_decline_friend_request_dialog),
         text = stringResource(R.string.text_decline_friend_request_dialog),
         confirmButtonText = stringResource(R.string.label_decline_only),
         onConfirm = onDeclineOnly,

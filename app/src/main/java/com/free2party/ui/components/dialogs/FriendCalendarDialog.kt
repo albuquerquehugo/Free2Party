@@ -79,9 +79,9 @@ fun FriendCalendarDialog(
                 contentAlignment = Alignment.Center
             ) {
                 val title = if (friend.name.endsWith("s")) {
-                    stringResource(R.string.title_friend_calendar_s, friend.name)
+                    stringResource(R.string.label_friend_calendar_s, friend.name)
                 } else {
-                    stringResource(R.string.title_friend_calendar, friend.name)
+                    stringResource(R.string.label_friend_calendar, friend.name)
                 }
                 Text(
                     text = title,

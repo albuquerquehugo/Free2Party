@@ -4,17 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -41,8 +46,10 @@ import com.free2party.R
 import com.free2party.data.model.Countries
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.User
+import com.free2party.ui.screens.profile.InterestCategories
 import com.free2party.data.model.BirthdayVisibility
 import com.free2party.data.repository.UserRepository
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
 import com.free2party.ui.theme.available
@@ -119,6 +126,17 @@ fun PublicProfileDialog(
         }
     }
 
+    val (showInterestsDialog, setShowInterestsDialog) = remember { mutableStateOf(false) }
+
+    val user = userState
+    if (showInterestsDialog && user != null) {
+        FriendInterestsDialog(
+            friendName = user.fullName.takeIf { it.isNotBlank() } ?: friend.name,
+            interests = user.interests,
+            onDismiss = { setShowInterestsDialog(false) }
+        )
+    }
+
     BaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -165,7 +183,7 @@ fun PublicProfileDialog(
                         imageVector = Icons.Default.AccountCircle,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        tint = statusColor.copy(alpha = 0.6f)
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -199,6 +217,8 @@ fun PublicProfileDialog(
                     onDismiss()
                     onViewCalendar()
                 },
+                modifier = Modifier.height(40.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
@@ -219,7 +239,7 @@ fun PublicProfileDialog(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
+                        .padding(top = 16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
@@ -242,11 +262,11 @@ fun PublicProfileDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Details List
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Birthday
@@ -280,13 +300,24 @@ fun PublicProfileDialog(
                         onClick = { openDialer(context, rawDialNumber) }
                     )
                 }
+
+                // Interests
+                val currentUser = userState
+                if (currentUser != null && currentUser.interests.isNotEmpty()) {
+                    ProfileDetailRow(
+                        icon = Icons.Default.Favorite,
+                        text = stringResource(R.string.label_interests),
+                        contentDescription = stringResource(R.string.label_interests),
+                        onClick = { setShowInterestsDialog(true) }
+                    )
+                }
             }
 
             // Socials Row
             val socials = userState?.socials ?: friend.socials
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            AppHorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
@@ -407,8 +438,6 @@ fun PublicProfileDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Actions row (Close button)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -417,9 +446,11 @@ fun PublicProfileDialog(
                 val closeText = stringResource(R.string.label_close)
                 TextButton(
                     onClick = onDismiss,
-                    modifier = Modifier.semantics {
-                        contentDescription = closeText
-                    }
+                    modifier = Modifier
+                        .height(40.dp)
+                        .semantics {
+                            contentDescription = closeText
+                        }
                 ) {
                     Text(closeText)
                 }
@@ -437,13 +468,16 @@ private fun ProfileDetailRow(
 ) {
     if (onClick != null) {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Button(
                 onClick = onClick,
+                modifier = Modifier.height(40.dp),
                 shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -467,7 +501,8 @@ private fun ProfileDetailRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
@@ -505,5 +540,100 @@ private fun SocialIconButton(
             tint = tint,
             modifier = Modifier.size(24.dp)
         )
+    }
+}
+
+@Composable
+fun FriendInterestsDialog(
+    friendName: String,
+    interests: List<String>,
+    onDismiss: () -> Unit
+) {
+    val friendInterests = remember(interests) {
+        InterestCategories.filter { it.id in interests }
+    }
+
+    BaseDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.label_friend_interests, friendName),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 100.dp),
+                modifier = Modifier
+                    .heightIn(max = 300.dp)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(friendInterests, key = { it.id }) { category ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.5f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = when (val icon = category.icon) {
+                                    is ImageVector -> rememberVectorPainter(icon)
+                                    is Int -> painterResource(id = icon)
+                                    else -> rememberVectorPainter(Icons.Default.Favorite)
+                                },
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(category.labelResId),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.height(40.dp)
+                ) {
+                    Text(text = stringResource(R.string.label_close))
+                }
+            }
+        }
     }
 }

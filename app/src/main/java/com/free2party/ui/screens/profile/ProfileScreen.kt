@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
@@ -30,7 +31,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -57,6 +57,7 @@ import com.free2party.R
 import com.free2party.data.model.Membership
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.ui.theme.available
@@ -71,6 +72,7 @@ fun ProfileRoute(
     onNavigateToSettings: () -> Unit,
     onNavigateToCircles: () -> Unit,
     onNavigateToAppearance: () -> Unit,
+    onNavigateToInterests: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -92,7 +94,8 @@ fun ProfileRoute(
         onNavigateToBlockedUsers = onNavigateToBlockedUsers,
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToCircles = onNavigateToCircles,
-        onNavigateToAppearance = onNavigateToAppearance
+        onNavigateToAppearance = onNavigateToAppearance,
+        onNavigateToInterests = onNavigateToInterests
     )
 }
 
@@ -105,7 +108,8 @@ fun ProfileScreen(
     onNavigateToBlockedUsers: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToCircles: () -> Unit,
-    onNavigateToAppearance: () -> Unit
+    onNavigateToAppearance: () -> Unit,
+    onNavigateToInterests: () -> Unit
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -269,54 +273,64 @@ fun ProfileScreen(
                                             title = stringResource(R.string.label_edit_profile),
                                             onClick = onNavigateToProfile
                                         )
-                                        HorizontalDivider(
+                                        AppHorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        MenuItem(
+                                            icon = Icons.Default.Favorite,
+                                            title = stringResource(R.string.label_interests),
+                                            onClick = onNavigateToInterests
+                                        )
+                                        AppHorizontalDivider(
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(
                                                 alpha = 0.5f
                                             )
                                         )
                                         MenuItem(
                                             icon = Icons.Default.Groups,
-                                            title = stringResource(R.string.title_circles),
+                                            title = stringResource(R.string.label_circles),
                                             onClick = onNavigateToCircles
                                         )
-                                        HorizontalDivider(
+                                        AppHorizontalDivider(
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(
                                                 alpha = 0.5f
                                             )
                                         )
                                         MenuItem(
                                             icon = Icons.Default.Block,
-                                            title = stringResource(R.string.title_blocked_users),
+                                            title = stringResource(R.string.label_blocked_users),
                                             onClick = onNavigateToBlockedUsers
                                         )
-                                        HorizontalDivider(
+                                        AppHorizontalDivider(
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(
                                                 alpha = 0.5f
                                             )
                                         )
                                         MenuItem(
                                             icon = Icons.Default.Palette,
-                                            title = stringResource(R.string.title_appearance),
+                                            title = stringResource(R.string.label_appearance),
                                             onClick = onNavigateToAppearance
                                         )
-                                        HorizontalDivider(
+                                        AppHorizontalDivider(
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(
                                                 alpha = 0.5f
                                             )
                                         )
                                         MenuItem(
                                             icon = Icons.Default.Settings,
-                                            title = stringResource(R.string.title_settings),
+                                            title = stringResource(R.string.label_settings),
                                             onClick = onNavigateToSettings
                                         )
-                                        HorizontalDivider(
+                                        AppHorizontalDivider(
                                             color = MaterialTheme.colorScheme.outlineVariant.copy(
                                                 alpha = 0.5f
                                             )
                                         )
                                         MenuItem(
                                             icon = Icons.Default.Info,
-                                            title = stringResource(R.string.title_about),
+                                            title = stringResource(R.string.label_about),
                                             onClick = { showAboutDialog = true }
                                         )
                                     }

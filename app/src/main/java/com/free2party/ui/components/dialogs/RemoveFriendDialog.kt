@@ -73,7 +73,7 @@ fun RemoveFriendDialog(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = stringResource(R.string.title_remove_friend_name, friend.name),
+                text = stringResource(R.string.label_remove_friend_name, friend.name),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center

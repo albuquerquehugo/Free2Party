@@ -143,7 +143,7 @@ class LoginViewModel @Inject constructor(
             authRepository.resendVerificationEmail(normalizedEmail, password)
                 .onSuccess {
                     uiState = LoginUiState.Idle
-                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.message_resend_verification_success)))
+                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.text_resend_verification_success)))
                 }
                 .onFailure { e ->
                     val errorText = if (e is AuthException && e.messageRes != null) {
@@ -195,7 +195,7 @@ class LoginViewModel @Inject constructor(
             authRepository.sendPasswordResetEmail(normalizedEmail)
                 .onSuccess {
                     uiState = LoginUiState.Idle
-                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.message_reset_password_sent)))
+                    _uiEvent.emit(LoginUiEvent.ShowToast(UiText.StringResource(R.string.text_reset_password_sent)))
                 }
                 .onFailure { e ->
                     val errorText = if (e is AuthException && e.messageRes != null) {

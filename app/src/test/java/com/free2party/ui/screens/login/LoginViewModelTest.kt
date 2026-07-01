@@ -197,7 +197,10 @@ class LoginViewModelTest {
             assertEquals(LoginUiState.Loading, viewModel.uiState)
 
             var onSuccessCalled = false
-            viewModel.onGoogleSignIn(credential) { onSuccessCalled = true }
+            viewModel.onGoogleSignIn(
+                credential = credential,
+                onSuccess = { onSuccessCalled = true }
+            )
             runCurrent()
 
             assertTrue(onSuccessCalled)

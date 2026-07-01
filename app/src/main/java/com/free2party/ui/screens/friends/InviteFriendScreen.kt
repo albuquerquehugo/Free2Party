@@ -122,7 +122,7 @@ fun InviteFriendScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_invite_friend),
+                title = stringResource(R.string.label_invite_friend),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack
             )
@@ -144,7 +144,7 @@ fun InviteFriendScreen(
                     onQueryChange(it)
                     if (uiState is InviteFriendUiState.Error) onResetState()
                 },
-                labelText = stringResource(R.string.title_search),
+                labelText = stringResource(R.string.label_search),
                 placeholderText = stringResource(R.string.text_placeholder_search_user),
                 icon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth()
@@ -247,7 +247,7 @@ fun InviteFriendScreen(
 
         if (userToInvite != null) {
             ConfirmationDialog(
-                title = stringResource(R.string.title_invite_friend),
+                title = stringResource(R.string.label_invite_friend),
                 text = stringResource(
                     R.string.text_send_invite_confirmation,
                     userToInvite!!.fullName,

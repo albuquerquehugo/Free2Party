@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -55,6 +54,7 @@ import com.free2party.data.model.PlanVisibility
 import com.free2party.R
 import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppHorizontalDivider
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -103,7 +103,7 @@ fun SettingsScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.title_settings),
+                title = stringResource(R.string.label_settings),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack,
                 enabled = uiState !is SettingsUiState.Loading
@@ -264,7 +264,7 @@ fun SettingsScreenContent(
     ) {
         // Section 1: Privacy (Requires Save)
         Text(
-            text = stringResource(R.string.title_privacy),
+            text = stringResource(R.string.label_privacy),
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
@@ -454,7 +454,7 @@ fun SettingsScreenContent(
                             .padding(start = 16.dp)
                             .fillMaxWidth()
                     ) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                        AppHorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
                         Text(
                             text = stringResource(R.string.label_birthday_display_format),
@@ -484,7 +484,7 @@ fun SettingsScreenContent(
 
         // Section 2: Preferences (Requires Save)
         Text(
-            text = stringResource(R.string.title_preferences),
+            text = stringResource(R.string.label_preferences),
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
@@ -504,7 +504,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.label_time_format),
+                    text = stringResource(R.string.label_time_format_colon),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -533,7 +533,7 @@ fun SettingsScreenContent(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            AppHorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -541,7 +541,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.label_date_format),
+                    text = stringResource(R.string.label_date_format_colon),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -566,7 +566,7 @@ fun SettingsScreenContent(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            AppHorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -574,7 +574,7 @@ fun SettingsScreenContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(R.string.label_distance_unit),
+                    text = stringResource(R.string.label_distance_unit_colon),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,

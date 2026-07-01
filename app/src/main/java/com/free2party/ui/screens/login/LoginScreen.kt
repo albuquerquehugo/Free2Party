@@ -399,7 +399,7 @@ fun LoginScreen(
             Icon(
                 imageVector = Icons.Default.Contrast,
                 tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = stringResource(R.string.title_appearance)
+                contentDescription = stringResource(R.string.label_appearance)
             )
 
             DropdownMenu(
@@ -409,7 +409,7 @@ fun LoginScreen(
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Text(
-                    text = stringResource(R.string.title_theme_mode),
+                    text = stringResource(R.string.label_theme_mode),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp, bottom = 8.dp),
@@ -442,7 +442,7 @@ fun LoginScreen(
                 AppHorizontalDivider()
 
                 Text(
-                    text = stringResource(R.string.title_background),
+                    text = stringResource(R.string.label_background),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 8.dp),
@@ -609,7 +609,7 @@ fun LoginScreen(
                         ) else MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text(stringResource(R.string.button_login))
+                    Text(stringResource(R.string.label_login))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -660,7 +660,7 @@ fun LoginScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.button_sign_in_with_google),
+                            stringResource(R.string.label_sign_in_with_google),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -684,7 +684,7 @@ fun LoginScreen(
     if (showForgotPasswordDialog) {
         val (forgotPasswordEmail, setForgotPasswordEmail) = remember { mutableStateOf("") }
         EmailDialog(
-            title = stringResource(R.string.title_reset_password),
+            title = stringResource(R.string.label_reset_password),
             description = stringResource(R.string.description_reset_password),
             email = forgotPasswordEmail,
             onValueChange = {
@@ -695,7 +695,7 @@ fun LoginScreen(
             onConfirm = { onForgotPasswordConfirm(forgotPasswordEmail) },
             isLoading = uiState is LoginUiState.Loading,
             errorMessage = if (uiState is LoginUiState.Error) uiState.message.asString() else null,
-            confirmButtonLabel = stringResource(R.string.button_send_link)
+            confirmButtonLabel = stringResource(R.string.label_send_link)
         )
     }
 }

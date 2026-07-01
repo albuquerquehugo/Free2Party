@@ -59,7 +59,7 @@ fun AboutDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.title_about),
+                    text = stringResource(R.string.label_about),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -77,7 +77,7 @@ fun AboutDialog(
             )
 
             Text(
-                text = stringResource(R.string.version_label, versionName),
+                text = stringResource(R.string.label_version, versionName),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
@@ -86,7 +86,7 @@ fun AboutDialog(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = stringResource(R.string.app_description),
+                text = stringResource(R.string.text_app_description),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -95,13 +95,13 @@ fun AboutDialog(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = stringResource(R.string.developed_by),
+                text = stringResource(R.string.text_developed_by),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
-            val feedbackSubject = stringResource(R.string.email_subject_feedback)
+            val feedbackSubject = stringResource(R.string.text_email_subject_feedback)
             Text(
-                text = stringResource(R.string.developer_name),
+                text = stringResource(R.string.text_developer_name),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
@@ -119,7 +119,7 @@ fun AboutDialog(
 
             Text(
                 text = stringResource(
-                    R.string.copyright_template,
+                    R.string.text_copyright_template,
                     java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
                 ),
                 style = MaterialTheme.typography.labelSmall,
