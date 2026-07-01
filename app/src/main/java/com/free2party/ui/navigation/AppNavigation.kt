@@ -171,14 +171,14 @@ sealed class Screen(
     object Calendar :
         Screen(
             route = "calendar",
-            labelResId = R.string.title_calendar,
+            labelResId = R.string.label_calendar,
             icon = Icons.Outlined.CalendarMonth,
             iconSelected = Icons.Filled.CalendarMonth
         )
 
     object Notifications : Screen(
         route = "notifications",
-        labelResId = R.string.title_notifications,
+        labelResId = R.string.label_notifications,
         icon = Icons.Outlined.Notifications,
         iconSelected = Icons.Filled.Notifications
     )

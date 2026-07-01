@@ -543,7 +543,7 @@ class SocialRepositoryImpl @Inject constructor(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
-                        "title" to context.getString(R.string.title_friend_request_accepted),
+                        "title" to context.getString(R.string.label_friend_request_accepted),
                         "message" to context.getString(
                             R.string.notification_friend_request_accepted_body,
                             receiverName,
@@ -564,7 +564,7 @@ class SocialRepositoryImpl @Inject constructor(
                     .collection("notifications").document()
                 transaction.set(
                     senderNotifRef, mapOf(
-                        "title" to context.getString(R.string.title_friend_request_declined),
+                        "title" to context.getString(R.string.label_friend_request_declined),
                         "message" to context.getString(
                             R.string.notification_friend_request_declined_body,
                             receiverName,
@@ -625,7 +625,7 @@ class SocialRepositoryImpl @Inject constructor(
                 .collection("notifications").document()
             transaction.set(
                 senderNotifRef, mapOf(
-                    "title" to context.getString(R.string.title_friend_request_declined),
+                    "title" to context.getString(R.string.label_friend_request_declined),
                     "message" to context.getString(
                         R.string.notification_friend_request_declined_body,
                         receiverName,
@@ -709,7 +709,7 @@ class SocialRepositoryImpl @Inject constructor(
                 .collection("notifications").document()
             transaction.set(
                 receiverNotifRef, mapOf(
-                    "title" to context.getString(R.string.title_friend_removed),
+                    "title" to context.getString(R.string.label_friend_removed),
                     "message" to context.getString(
                         R.string.notification_friend_removed_body,
                         sender.fullName,

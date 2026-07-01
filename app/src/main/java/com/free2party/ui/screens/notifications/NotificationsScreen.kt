@@ -141,9 +141,9 @@ fun NotificationsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val titleText = if (itemsUnreadCount > 0) {
-            stringResource(R.string.title_notifications_with_count, itemsUnreadCount)
+            stringResource(R.string.label_notifications_with_count, itemsUnreadCount)
         } else {
-            stringResource(R.string.title_notifications)
+            stringResource(R.string.label_notifications)
         }
 
         TopBar(
@@ -284,7 +284,7 @@ fun FriendRequestItem(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = stringResource(R.string.title_friend_request),
+                text = stringResource(R.string.label_friend_request),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -381,7 +381,7 @@ fun DeclineFriendRequestDialog(
     onDeclineAndBlock: () -> Unit
 ) {
     ConfirmationDialog(
-        title = stringResource(R.string.title_decline_friend_request_dialog),
+        title = stringResource(R.string.label_decline_friend_request_dialog),
         text = stringResource(R.string.text_decline_friend_request_dialog),
         confirmButtonText = stringResource(R.string.label_decline_only),
         onConfirm = onDeclineOnly,

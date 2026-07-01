@@ -315,9 +315,9 @@ fun CreateEventScreen(
     }
     val startDateText =
         startDatePickerState.selectedDateMillis?.let { dateFormatter.format(Date(it)) }
-            ?: stringResource(R.string.select_start_date)
+            ?: stringResource(R.string.label_select_start_date)
     val endDateText = endDatePickerState.selectedDateMillis?.let { dateFormatter.format(Date(it)) }
-        ?: stringResource(R.string.select_end_date)
+        ?: stringResource(R.string.label_select_end_date)
 
     // Form validation
     val isDateTimeValid = remember(

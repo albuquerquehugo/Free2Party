@@ -111,22 +111,20 @@
     <string name="toast_invite_sent">Convite enviado</string>
 
     <!-- Login & Register -->
-    <string name="button_login">Entrar</string>
-    <string name="button_register">Registrar</string>
-    <string name="button_send_link">Enviar link</string>
-    <string name="button_sign_in_with_google">Entrar com Google</string>
-    <string name="confirm_password_required">Confirmar Senha *</string>
     <string name="description_reset_password">Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.\n\n(Lembre-se de verificar a pasta de SPAM no seu e-mail)</string>
-    <string name="label_already_have_account_log_in">Já tem uma conta? Entre</string>
+    <string name="label_confirm_password_required">Confirmar Senha *</string>
     <string name="label_create_account">Criar Conta</string>
     <string name="label_login">Entrar</string>
+    <string name="label_password_required">Senha *</string>
     <string name="label_register">Registrar</string>
     <string name="label_reset_password">Redefinir Senha</string>
+    <string name="label_send_link">Enviar link</string>
+    <string name="label_sign_in_with_google">Entrar com Google</string>
+    <string name="link_already_have_account_log_in">Já tem uma conta? Entre</string>
     <string name="link_forgot_password">Esqueceu a senha?</string>
     <string name="link_sign_up">Não tem uma conta? Cadastre-se</string>
-    <string name="message_resend_verification_success">E-mail de verificação reenviado! Verifique sua caixa de entrada.</string>
-    <string name="message_reset_password_sent">E-mail de redefinição de senha enviado! Verifique sua caixa de entrada.</string>
-    <string name="password_required">Senha *</string>
+    <string name="text_resend_verification_success">E-mail de verificação reenviado! Verifique sua caixa de entrada.</string>
+    <string name="text_reset_password_sent">E-mail de redefinição de senha enviado! Verifique sua caixa de entrada.</string>
     <string name="text_success_account_created">Conta criada com sucesso! Verifique seu e-mail para validar sua conta.</string>
 
     <!-- Profile -->
@@ -236,39 +234,41 @@
 
 
     <!-- Calendar -->
-    <string name="add_plan">Adicionar Plano</string>
-    <string name="day_friday_short">S</string>
-    <string name="day_monday_short">S</string>
-    <string name="day_saturday_short">S</string>
-    <string name="day_sunday_short">D</string>
-    <string name="day_thursday_short">Q</string>
-    <string name="day_tuesday_short">T</string>
-    <string name="day_wednesday_short">Q</string>
-    <string name="delete_plan">Excluir Plano</string>
-    <string name="delete_plan_confirmation_text">Tem certeza que deseja excluir este plano?</string>
     <string name="description_next_month">Próximo mês</string>
     <string name="description_previous_month">Mês anterior</string>
+    <string name="label_add_plan">Adicionar Plano</string>
+    <string name="label_calendar">Calendário</string>
+    <string name="label_day_friday_short">S</string>
+    <string name="label_day_monday_short">S</string>
+    <string name="label_day_saturday_short">S</string>
+    <string name="label_day_sunday_short">D</string>
+    <string name="label_day_thursday_short">Q</string>
+    <string name="label_day_tuesday_short">T</string>
+    <string name="label_day_wednesday_short">Q</string>
+    <string name="label_delete_plan">Excluir Plano</string>
+    <string name="label_friend_calendar">Calendário de %1$s</string>
+    <string name="label_friend_calendar_s">Calendário de %1$s</string>
+    <string name="label_results_for">Resultados para: %1$s</string>
+    <string name="label_select_end_date">Selecionar data de término</string>
+    <string name="label_select_start_date">Selecionar data de início</string>
     <string name="label_today">Hoje</string>
-    <string name="no_plans_for_day">Nenhum plano para este dia</string>
-    <string name="plan_added_successfully">Plano adicionado com sucesso!</string>
-    <string name="plan_deleted">Plano excluído!</string>
-    <string name="plan_updated_successfully">Plano atualizado com sucesso!</string>
-    <string name="results_for">Resultados para: %1$s</string>
-    <string name="select_day_on_calendar">Selecione um dia no calendário para ver os planos</string>
-    <string name="select_end_date">Selecionar data de término</string>
-    <string name="select_start_date">Selecionar data de início</string>
-    <string name="title_calendar">Calendário</string>
-    <string name="title_friend_calendar">Calendário de %1$s</string>
-    <string name="title_friend_calendar_s">Calendário de %1$s</string>
+    <string name="text_delete_plan_confirmation_text">Tem certeza que deseja excluir este plano?</string>
+    <string name="text_no_plans_for_day">Nenhum plano para este dia</string>
+    <string name="text_select_day_on_calendar">Selecione um dia no calendário para ver os planos</string>
+    <string name="toast_plan_added_successfully">Plano adicionado com sucesso!</string>
+    <string name="toast_plan_deleted">Plano excluído!</string>
+    <string name="toast_plan_updated_successfully">Plano atualizado com sucesso!</string>
 
     <!-- Plan Dialog -->
     <string name="description_plan_actions_content">Ações do Plano</string>
+    <string name="label_edit_plan">Edite seu plano</string>
     <string name="label_end">Fim:</string>
     <string name="label_everyone_except">Todos, exceto: %1$s</string>
     <string name="label_no_friends_to_select">Nenhum amigo para selecionar</string>
     <string name="label_only_selected_people">Apenas: %1$s</string>
     <string name="label_only_you">Apenas você</string>
     <string name="label_plan_note">O que você está planejando?</string>
+    <string name="label_schedule_plan">Agendar seu plano</string>
     <string name="label_select_all">Marcar todos</string>
     <string name="label_select_end_time">Selecionar hora de término</string>
     <string name="label_select_start_time">Selecionar hora de início</string>
@@ -278,8 +278,6 @@
     <string name="placeholder_plan_note">Digite uma breve nota…</string>
     <string name="text_visibility">Quem pode ver este plano?</string>
     <string name="text_visibility_manual_free_status">Quem pode ver o seu status \"Livre\" manual?</string>
-    <string name="title_edit_plan">Edite seu plano</string>
-    <string name="title_schedule_plan">Agendar seu plano</string>
 
     <!-- Notifications -->
     <string name="notification_event_comment_body">%1$s comentou no evento \"%2$s\": %3$s</string>
@@ -300,25 +298,25 @@
     </string-array>
     <string name="text_all_caught_up">Você está em dia</string>
     <string name="text_decline_friend_request_dialog">Como você deseja recusar este pedido?</string>
-    <string name="title_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
-    <string name="title_friend_removed">Amigo Removido</string>
-    <string name="title_friend_request">Pedido de Amizade</string>
-    <string name="title_friend_request_accepted">Pedido de Amizade Aceito</string>
-    <string name="title_friend_request_declined">Pedido de Amizade Recusado</string>
-    <string name="title_notifications">Notificações</string>
-    <string name="title_notifications_with_count">Notificações (%1$d)</string>
+    <string name="label_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
+    <string name="label_friend_removed">Amigo Removido</string>
+    <string name="label_friend_request">Pedido de Amizade</string>
+    <string name="label_friend_request_accepted">Pedido de Amizade Aceito</string>
+    <string name="label_friend_request_declined">Pedido de Amizade Recusado</string>
+    <string name="label_notifications">Notificações</string>
+    <string name="label_notifications_with_count">Notificações (%1$d)</string>
     <string name="toast_friend_request_accepted">Pedido de amizade aceito</string>
     <string name="toast_friend_request_declined">Pedido de amizade recusado</string>
     <string name="toast_friend_request_declined_and_user_blocked">Pedido de amizade recusado e usuário bloqueado</string>
 
     <!-- About -->
-    <string name="app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos e nunca mais perder um encontro.</string>
-    <string name="copyright_template">© %1$d Todos os Direitos Reservados</string>
-    <string name="developed_by">Desenvolvido por</string>
-    <string name="developer_name">Hugo Albuquerque</string>
-    <string name="email_subject_feedback">Feedback do App Free2Party</string>
-    <string name="title_about">Sobre</string>
-    <string name="version_label">Versão %1$s</string>
+    <string name="text_app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos e nunca mais perder um encontro.</string>
+    <string name="text_copyright_template">© %1$d Todos os Direitos Reservados</string>
+    <string name="text_developed_by">Desenvolvido por</string>
+    <string name="text_developer_name">Hugo Albuquerque</string>
+    <string name="text_email_subject_feedback">Feedback do App Free2Party</string>
+    <string name="label_about">Sobre</string>
+    <string name="label_version">Versão %1$s</string>
 
     <!-- Time and Duration -->
     <string name="date_in_parentheses">(%1$s)</string>

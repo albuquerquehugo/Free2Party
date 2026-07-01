@@ -209,7 +209,7 @@ fun RegisterScreen(
                         AppOutlinedTextField(
                             value = password,
                             onValueChange = onPasswordChange,
-                            labelText = stringResource(R.string.password_required),
+                            labelText = stringResource(R.string.label_password_required),
                             isPassword = true,
                             passwordVisible = passwordVisible,
                             changeVisibility = { passwordVisible = !passwordVisible },
@@ -223,7 +223,7 @@ fun RegisterScreen(
                         AppOutlinedTextField(
                             value = confirmPassword,
                             onValueChange = onConfirmPasswordChange,
-                            labelText = stringResource(R.string.confirm_password_required),
+                            labelText = stringResource(R.string.label_confirm_password_required),
                             isPassword = true,
                             isError = isConfirmPasswordError,
                             passwordVisible = confirmPasswordVisible,
@@ -307,14 +307,14 @@ fun RegisterScreen(
                                 )
                             ) {
                                 Text(
-                                    stringResource(R.string.button_register),
+                                    stringResource(R.string.label_register),
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             }
 
                             TextButton(onClick = onBackToLogin) {
                                 Text(
-                                    stringResource(R.string.label_already_have_account_log_in),
+                                    stringResource(R.string.link_already_have_account_log_in),
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }

@@ -100,9 +100,9 @@ fun CalendarRoute() {
         }
     }
 
-    val planAddedMessage = stringResource(R.string.plan_added_successfully)
-    val planUpdatedMessage = stringResource(R.string.plan_updated_successfully)
-    val planDeletedMessage = stringResource(R.string.plan_deleted)
+    val planAddedMessage = stringResource(R.string.toast_plan_added_successfully)
+    val planUpdatedMessage = stringResource(R.string.toast_plan_updated_successfully)
+    val planDeletedMessage = stringResource(R.string.toast_plan_deleted)
 
     CalendarScreen(
         viewModel = viewModel,
@@ -252,7 +252,7 @@ fun CalendarScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.add_plan),
+                            contentDescription = stringResource(R.string.label_add_plan),
                             tint = if (isSelectedDateInPast) {
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             } else MaterialTheme.colorScheme.onPrimary
@@ -313,7 +313,7 @@ fun CalendarScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add_plan),
+                        contentDescription = stringResource(R.string.label_add_plan),
                         tint = if (isSelectedDateInPast) {
                             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                         } else MaterialTheme.colorScheme.onPrimary
@@ -374,8 +374,8 @@ fun CalendarScreen(
 
     if (showDeleteDialog && planToDelete != null) {
         ConfirmationDialog(
-            title = stringResource(R.string.delete_plan),
-            text = stringResource(R.string.delete_plan_confirmation_text),
+            title = stringResource(R.string.label_delete_plan),
+            text = stringResource(R.string.text_delete_plan_confirmation_text),
             confirmButtonText = stringResource(R.string.label_delete),
             onConfirm = {
                 onDeletePlan(planToDelete!!.id)

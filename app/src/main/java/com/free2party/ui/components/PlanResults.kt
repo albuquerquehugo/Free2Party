@@ -48,7 +48,7 @@ fun PlanResults(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.results_for, selectedDateText),
+            text = stringResource(R.string.label_results_for, selectedDateText),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -107,8 +107,8 @@ private fun EmptyStateMessage(isDateSelected: Boolean) {
     ) {
         Text(
             text =
-                if (isDateSelected) stringResource(R.string.no_plans_for_day)
-                else stringResource(R.string.select_day_on_calendar),
+                if (isDateSelected) stringResource(R.string.text_no_plans_for_day)
+                else stringResource(R.string.text_select_day_on_calendar),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error
         )

@@ -130,13 +130,13 @@ fun MonthCalendar(
                 .padding(bottom = 4.dp)
         ) {
             val daysOfWeek = listOf(
-                R.string.day_sunday_short,
-                R.string.day_monday_short,
-                R.string.day_tuesday_short,
-                R.string.day_wednesday_short,
-                R.string.day_thursday_short,
-                R.string.day_friday_short,
-                R.string.day_saturday_short
+                R.string.label_day_sunday_short,
+                R.string.label_day_monday_short,
+                R.string.label_day_tuesday_short,
+                R.string.label_day_wednesday_short,
+                R.string.label_day_thursday_short,
+                R.string.label_day_friday_short,
+                R.string.label_day_saturday_short
             )
             daysOfWeek.forEach { dayResId ->
                 Text(

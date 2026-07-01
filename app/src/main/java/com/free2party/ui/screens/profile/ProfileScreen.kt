@@ -330,7 +330,7 @@ fun ProfileScreen(
                                         )
                                         MenuItem(
                                             icon = Icons.Default.Info,
-                                            title = stringResource(R.string.title_about),
+                                            title = stringResource(R.string.label_about),
                                             onClick = { showAboutDialog = true }
                                         )
                                     }

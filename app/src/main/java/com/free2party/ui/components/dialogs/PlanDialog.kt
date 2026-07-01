@@ -137,10 +137,10 @@ fun PlanDialog(
     }
     val startDateText =
         startDatePickerState.selectedDateMillis?.let { format.format(Date(it)).capitalizeWords() }
-            ?: stringResource(R.string.select_start_date)
+            ?: stringResource(R.string.label_select_start_date)
     val endDateText =
         endDatePickerState.selectedDateMillis?.let { format.format(Date(it)).capitalizeWords() }
-            ?: stringResource(R.string.select_end_date)
+            ?: stringResource(R.string.label_select_end_date)
 
     val isDateTimeValid = remember(
         startDatePickerState.selectedDateMillis,
@@ -320,8 +320,8 @@ fun PlanDialog(
         ) {
             Text(
                 text =
-                    if (editingPlan == null) stringResource(R.string.title_schedule_plan)
-                    else stringResource(R.string.title_edit_plan),
+                    if (editingPlan == null) stringResource(R.string.label_schedule_plan)
+                    else stringResource(R.string.label_edit_plan),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
@@ -598,7 +598,7 @@ fun PlanDialog(
                 colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
-                        text = stringResource(R.string.select_start_date),
+                        text = stringResource(R.string.label_select_start_date),
                         modifier = Modifier.padding(start = 24.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )
@@ -621,7 +621,7 @@ fun PlanDialog(
                 colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
-                        text = stringResource(R.string.select_end_date),
+                        text = stringResource(R.string.label_select_end_date),
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )

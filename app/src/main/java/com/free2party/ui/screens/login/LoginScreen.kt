@@ -609,7 +609,7 @@ fun LoginScreen(
                         ) else MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text(stringResource(R.string.button_login))
+                    Text(stringResource(R.string.label_login))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -660,7 +660,7 @@ fun LoginScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            stringResource(R.string.button_sign_in_with_google),
+                            stringResource(R.string.label_sign_in_with_google),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -695,7 +695,7 @@ fun LoginScreen(
             onConfirm = { onForgotPasswordConfirm(forgotPasswordEmail) },
             isLoading = uiState is LoginUiState.Loading,
             errorMessage = if (uiState is LoginUiState.Error) uiState.message.asString() else null,
-            confirmButtonLabel = stringResource(R.string.button_send_link)
+            confirmButtonLabel = stringResource(R.string.label_send_link)
         )
     }
 }
