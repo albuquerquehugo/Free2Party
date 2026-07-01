@@ -327,7 +327,25 @@ fun EditProfileScreenContent(
             tiktokUsername = tiktokUsername,
             onTiktokUsernameChange = onTiktokUsernameChange,
             xUsername = xUsername,
-            onXUsernameChange = onXUsernameChange
+            onXUsernameChange = onXUsernameChange,
+            confirmButtons = {
+                TextButton(
+                    onClick = { setShowDeleteDialog(true) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .testTag("delete_account_button"),
+                    enabled = !isSaving && !isUploadingImage,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_delete_account),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
         )
 
         Column(
@@ -355,7 +373,7 @@ fun EditProfileScreenContent(
             }
 
             Button(
-                onClick = onUpdateProfile,
+                onClick = { onUpdateProfile() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -374,25 +392,6 @@ fun EditProfileScreenContent(
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { setShowDeleteDialog(true) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = !isSaving && !isUploadingImage,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.label_delete_account),
-                    style = MaterialTheme.typography.titleMedium
-                )
             }
         }
     }
