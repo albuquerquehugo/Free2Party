@@ -242,6 +242,20 @@ fun AppNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    // Log screen view to Firebase Analytics
+    LaunchedEffect(currentDestination) {
+        currentDestination?.route?.let { route ->
+            val context = navController.context
+            val analytics = com.google.firebase.analytics.FirebaseAnalytics.getInstance(context)
+            val bundle = android.os.Bundle().apply {
+                putString(com.google.firebase.analytics.FirebaseAnalytics.Param.SCREEN_NAME, route)
+                putString(com.google.firebase.analytics.FirebaseAnalytics.Param.SCREEN_CLASS, route)
+            }
+            analytics.logEvent(com.google.firebase.analytics.FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+        }
+    }
+
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
     val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
     val focusManager = LocalFocusManager.current
