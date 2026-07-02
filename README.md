@@ -101,7 +101,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
   - [ ] Status History/Trends: See when friends are typically free during the week (Passive Analytics).
   - [ ] Rich Notifications: Interactive notifications (Accept/Decline invitations from the lock screen).
 - [ ] Phase 8: Production Polish
-  - [ ] App Analytics & Crashlytics: Integrating Firebase Crashlytics to monitor stability.
+  - [x] App Analytics & Crashlytics: Integrating Firebase Analytics and Crashlytics to monitor stability and track usage.
   - [ ] Theming: User-selectable "Status Colors" or custom emojis for the "Free" state.
   - [ ] Onboarding: A dedicated tutorial flow for new users explaining the "Passive Interaction" concept.
 
