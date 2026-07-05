@@ -435,8 +435,6 @@ fun CreateEventScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = stringResource(R.string.text_required_fields_notice),
                 style = MaterialTheme.typography.bodySmall,
