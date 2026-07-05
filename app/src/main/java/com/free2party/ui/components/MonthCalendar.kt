@@ -39,6 +39,8 @@ import com.free2party.R
 import com.free2party.ui.screens.calendar.CalendarViewModel
 import com.free2party.ui.theme.inactive
 import com.free2party.ui.theme.onInactiveContainer
+import com.free2party.ui.theme.eventContainer
+import com.free2party.ui.theme.onEventContainer
 import com.free2party.util.capitalizeFirstLetter
 import com.free2party.util.isDateTimeInPast
 import java.text.SimpleDateFormat
@@ -49,6 +51,7 @@ import java.util.TimeZone
 fun MonthCalendar(
     viewModel: CalendarViewModel,
     plannedDays: Set<Int>,
+    eventDays: Set<Int>,
     modifier: Modifier = Modifier
 ) {
     val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -161,6 +164,7 @@ fun MonthCalendar(
             items(daysInMonth) { index ->
                 val day = index + 1
                 val isPlanned = plannedDays.contains(day)
+                val isEvent = eventDays.contains(day)
 
                 val dateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
                     set(Calendar.YEAR, viewModel.displayedYear)
@@ -201,12 +205,38 @@ fun MonthCalendar(
                                 .size(28.dp)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                         )
+                    } else if (isPlanned && isEvent) {
+                        val planColor = MaterialTheme.colorScheme.primaryContainer
+                        val eventColor = MaterialTheme.colorScheme.eventContainer
+                        androidx.compose.foundation.Canvas(modifier = Modifier.size(24.dp)) {
+                            drawArc(
+                                color = planColor,
+                                startAngle = 90f,
+                                sweepAngle = 180f,
+                                useCenter = true
+                            )
+                            drawArc(
+                                color = eventColor,
+                                startAngle = 270f,
+                                sweepAngle = 180f,
+                                useCenter = true
+                            )
+                        }
                     } else if (isPlanned) {
                         Box(
                             modifier = Modifier
                                 .size(24.dp)
                                 .background(
                                     MaterialTheme.colorScheme.primaryContainer,
+                                    shape = CircleShape
+                                )
+                        )
+                    } else if (isEvent) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.eventContainer,
                                     shape = CircleShape
                                 )
                         )
@@ -226,11 +256,16 @@ fun MonthCalendar(
                         fontWeight = if (isToday) FontWeight.ExtraBold else FontWeight.Normal,
                         color = when {
                             isSelected -> MaterialTheme.colorScheme.onPrimary
-                            isPlanned && !isDateTimeInPast(dateMillis) ->
-                                MaterialTheme.colorScheme.onPrimaryContainer
+                            !isDateTimeInPast(dateMillis) -> {
+                                when {
+                                    isPlanned -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    isEvent -> MaterialTheme.colorScheme.onEventContainer
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                }
+                            }
 
                             isDateTimeInPast(dateMillis) && !isToday -> {
-                                if (isPlanned) MaterialTheme.colorScheme.outline
+                                if (isPlanned || isEvent) MaterialTheme.colorScheme.outline
                                 else MaterialTheme.colorScheme.inactive
                             }
 

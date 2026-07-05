@@ -32,7 +32,9 @@ fun TopBar(
     onBack: () -> Unit,
     showBackButton: Boolean = true,
     enabled: Boolean = true,
-    action: @Composable (BoxScope.() -> Unit)? = null
+    action: @Composable (BoxScope.() -> Unit)? = null,
+    titleStartAction: @Composable (BoxScope.() -> Unit)? = null,
+    titleEndAction: @Composable (BoxScope.() -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
@@ -75,15 +77,30 @@ fun TopBar(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 8.dp),
+                    .height(56.dp)
+                    .padding(horizontal = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
+                if (titleStartAction != null) {
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        titleStartAction()
+                    }
+                }
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
                     color = color,
                     fontWeight = FontWeight.Bold
                 )
+                if (titleEndAction != null) {
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        titleEndAction()
+                    }
+                }
             }
         }
     }

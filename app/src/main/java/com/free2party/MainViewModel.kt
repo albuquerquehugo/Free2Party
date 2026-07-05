@@ -37,7 +37,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 data class UserNavState(
     val profilePicUrl: String = "",
-    val isUserFree: Boolean = false
+    val isUserFree: Boolean = false,
+    val isStatusFromPlan: Boolean = false
 )
 
 @HiltViewModel
@@ -74,6 +75,7 @@ class MainViewModel @Inject constructor(
         private set
 
     val gradientBackgroundFlow = settingsRepository.gradientBackgroundFlow
+    val onboardingCompletedFlow = settingsRepository.onboardingCompletedFlow
 
     private val _navigateToRoute = MutableSharedFlow<String>()
     val navigateToRoute = _navigateToRoute.asSharedFlow()
@@ -298,9 +300,11 @@ class MainViewModel @Inject constructor(
                         val isAnyPlanActiveNow = plans.any { isPlanActive(it) }
                         val effectiveIsFree =
                             if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
+                        val effectiveFromPlan = user.isStatusFromPlan && isAnyPlanActiveNow
                         UserNavState(
                             profilePicUrl = user.profilePicUrl,
-                            isUserFree = effectiveIsFree
+                            isUserFree = effectiveIsFree,
+                            isStatusFromPlan = effectiveFromPlan
                         )
                     }.collect { state ->
                         _userNavState.value = state

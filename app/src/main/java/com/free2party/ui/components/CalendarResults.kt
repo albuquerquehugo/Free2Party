@@ -23,13 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.data.model.FriendInfo
-import com.free2party.data.model.FuturePlan
+import com.free2party.ui.screens.calendar.CalendarEntry
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun PlanResults(
-    plans: List<FuturePlan>,
+fun CalendarResults(
+    calendarEntries: List<CalendarEntry>,
     isDateSelected: Boolean,
     selectedDateText: String,
     currentTimeMillis: Long,
@@ -37,11 +37,12 @@ fun PlanResults(
     friends: List<FriendInfo>,
     modifier: Modifier = Modifier,
     gradientBackground: Boolean = false,
-    onEdit: ((FuturePlan) -> Unit)? = null,
-    onDelete: ((FuturePlan) -> Unit)? = null
+    onEditPlan: ((CalendarEntry.Plan) -> Unit)? = null,
+    onDeletePlan: ((CalendarEntry.Plan) -> Unit)? = null,
+    onNavigateToEventDetails: ((String) -> Unit)? = null
 ) {
     val listState = rememberLazyListState()
-    var expandedPlanId by remember { mutableStateOf<String?>(null) }
+    var expandedItemId by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -60,36 +61,53 @@ fun PlanResults(
             contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (plans.isEmpty()) {
+            if (calendarEntries.isEmpty()) {
                 item {
                     EmptyStateMessage(isDateSelected)
                 }
             } else {
-                items(plans, key = { it.id }) { plan ->
-                    val isExpanded = expandedPlanId == plan.id
+                items(calendarEntries, key = { it.id }) { entry ->
+                    val isExpanded = expandedItemId == entry.id
 
-                    PlanItem(
-                        plan = plan,
-                        use24HourFormat = use24HourFormat,
-                        currentTimeMillis = currentTimeMillis,
-                        friends = friends,
-                        gradientBackground = gradientBackground,
-                        onEdit = onEdit?.let { { it(plan) } },
-                        onDelete = onDelete?.let { { it(plan) } },
-                        isExpandedExternally = isExpanded,
-                        onExpandChange = { expanded: Boolean ->
-                            expandedPlanId = if (expanded) plan.id else null
+                    when (entry) {
+                        is CalendarEntry.Plan -> {
+                            PlanItem(
+                                plan = entry.plan,
+                                use24HourFormat = use24HourFormat,
+                                currentTimeMillis = currentTimeMillis,
+                                friends = friends,
+                                gradientBackground = gradientBackground,
+                                onEdit = onEditPlan?.let { { it(entry) } },
+                                onDelete = onDeletePlan?.let { { it(entry) } },
+                                isExpandedExternally = isExpanded,
+                                onExpandChange = { expanded: Boolean ->
+                                    expandedItemId = if (expanded) entry.id else null
+                                }
+                            )
                         }
-                    )
+                        is CalendarEntry.EventItem -> {
+                            EventItem(
+                                event = entry.event,
+                                use24HourFormat = use24HourFormat,
+                                currentTimeMillis = currentTimeMillis,
+                                gradientBackground = gradientBackground,
+                                onClick = { onNavigateToEventDetails?.invoke(entry.event.id) },
+                                isExpandedExternally = isExpanded,
+                                onExpandChange = { expanded: Boolean ->
+                                    expandedItemId = if (expanded) entry.id else null
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 
     // Scroll to the expanded item to ensure it's visible
-    LaunchedEffect(expandedPlanId) {
-        if (expandedPlanId != null) {
-            val index = plans.indexOfFirst { it.id == expandedPlanId }
+    LaunchedEffect(expandedItemId) {
+        if (expandedItemId != null) {
+            val index = calendarEntries.indexOfFirst { it.id == expandedItemId }
             if (index >= 0) {
                 // Small delay to allow the item to finish its expansion animation before scrolling
                 delay(100.milliseconds)
@@ -107,7 +125,7 @@ private fun EmptyStateMessage(isDateSelected: Boolean) {
     ) {
         Text(
             text =
-                if (isDateSelected) stringResource(R.string.text_no_plans_for_day)
+                if (isDateSelected) stringResource(R.string.text_no_activities_for_day)
                 else stringResource(R.string.text_select_day_on_calendar),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error

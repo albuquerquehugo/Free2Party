@@ -45,14 +45,22 @@ import com.free2party.data.model.DistanceUnit
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.PlanStatus
 import com.free2party.ui.components.TopBar
-import com.free2party.ui.theme.available
-import com.free2party.ui.theme.busy
+import com.free2party.ui.theme.availableContainer
+import com.free2party.ui.theme.busyContainer
+import com.free2party.ui.theme.eventContainer
+import com.free2party.ui.theme.onAvailableContainer
+import com.free2party.ui.theme.onBusyContainer
+import com.free2party.ui.theme.onEventContainer
 import com.free2party.util.calculateHaversineDistance
 import com.free2party.util.formatDistance
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.getLastKnownLocation
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun EventsRoute(
@@ -322,7 +330,7 @@ fun EventsScreen(
                     onClick = { onTabSelected(0) },
                     text = {
                         Text(
-                            stringResource(R.string.label_my_events),
+                            stringResource(R.string.label_tab_my_events),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -441,6 +449,7 @@ fun EventsScreen(
                                         use24Hour = use24HourFormat,
                                         userLocation = userLocation,
                                         distanceUnit = distanceUnit,
+                                        gradientBackground = gradientBackground,
                                         onClick = { onNavigateToEventDetails(event.id) }
                                     )
                                 }
@@ -482,6 +491,7 @@ fun EventCard(
     use24Hour: Boolean,
     userLocation: UserLocation?,
     distanceUnit: DistanceUnit,
+    gradientBackground: Boolean = false,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -507,13 +517,67 @@ fun EventCard(
         }
     }
 
+    val durationText = remember(event.startDate, event.endDate, event.startTime, event.endTime) {
+        val duration = com.free2party.util.calculateDuration(
+            event.startDate,
+            event.endDate,
+            event.startTime,
+            event.endTime
+        )
+        val startDateMillis = com.free2party.util.parseDateToMillis(event.startDate) ?: 0L
+        val endDateMillis = com.free2party.util.parseDateToMillis(event.endDate) ?: 0L
+        val startTimeMinutes = com.free2party.util.parseTimeToMinutes(event.startTime) ?: 0
+        val endTimeMinutes = com.free2party.util.parseTimeToMinutes(event.endTime) ?: 0
+        val totalMins =
+            ((endDateMillis - startDateMillis) / 60000L) + endTimeMinutes - startTimeMinutes
+        if (totalMins <= 0) null else duration
+    }
+
+    val eventStatus = remember(event) {
+        val timeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone(event.timezone)
+        }
+        val startDateTime =
+            runCatching { timeFormatter.parse("${event.startDate} ${event.startTime}") }
+                .getOrNull()?.time ?: 0L
+        val endDateTime =
+            runCatching { timeFormatter.parse("${event.endDate} ${event.endTime}") }
+                .getOrNull()?.time ?: 0L
+        val now = System.currentTimeMillis()
+        val isCurrent = now in startDateTime..<endDateTime
+        val isPast = now >= endDateTime
+        PlanStatus(isCurrent = isCurrent, isPast = isPast, isEditDisabled = false)
+    }
+
+    val containerColor = when {
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer.let {
+            if (gradientBackground) it.copy(
+                alpha = 0.7f
+            ) else it
+        }
+
+        eventStatus.isPast -> MaterialTheme.colorScheme.eventContainer.copy(
+            alpha =
+                if (gradientBackground) 0.4f * 0.7f else 0.4f
+        )
+
+        else -> MaterialTheme.colorScheme.eventContainer.let {
+            if (gradientBackground) it.copy(alpha = 0.7f) else it
+        }
+    }
+
+    val baseContentColor = when {
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onEventContainer
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = containerColor
         )
     ) {
         Column(
@@ -555,7 +619,7 @@ fun EventCard(
                         text = event.title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = baseContentColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -563,18 +627,13 @@ fun EventCard(
                         Text(
                             text = stringResource(R.string.label_hosted_by, event.hostName),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = baseContentColor
                         )
                     }
                 }
 
                 // Status Badge (for pending events)
                 if (!isMyEvent) {
-                    val badgeColor = when (myStatus) {
-                        GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.available
-                        GuestStatus.DECLINED -> MaterialTheme.colorScheme.busy
-                        GuestStatus.PENDING -> MaterialTheme.colorScheme.primary
-                    }
                     val badgeText = when (myStatus) {
                         GuestStatus.ACCEPTED -> stringResource(R.string.label_going_self)
                         GuestStatus.DECLINED -> stringResource(R.string.label_not_going_self)
@@ -584,10 +643,19 @@ fun EventCard(
                         text = badgeText,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = badgeColor,
+                        color = when (myStatus) {
+                            GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.onAvailableContainer
+                            GuestStatus.DECLINED -> MaterialTheme.colorScheme.onBusyContainer
+                            GuestStatus.PENDING -> MaterialTheme.colorScheme.onPrimaryContainer
+                        },
                         modifier = Modifier
-                            .background(badgeColor.copy(alpha = 0.15f), CircleShape)
-                            .border(1.dp, badgeColor.copy(alpha = 0.5f), CircleShape)
+                            .background(
+                                when (myStatus) {
+                                    GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.availableContainer
+                                    GuestStatus.DECLINED -> MaterialTheme.colorScheme.busyContainer
+                                    GuestStatus.PENDING -> MaterialTheme.colorScheme.primaryContainer
+                                }, CircleShape
+                            )
                             .padding(horizontal = 10.dp, vertical = 2.dp)
                     )
                 }
@@ -603,7 +671,7 @@ fun EventCard(
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = baseContentColor,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -612,8 +680,31 @@ fun EventCard(
                 Text(
                     text = "$dateText @ $timeText (${event.timezone})",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = baseContentColor
                 )
+                if (durationText != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                baseContentColor.copy(alpha = 0.1f),
+                                CircleShape
+                            )
+                            .border(
+                                1.dp,
+                                baseContentColor.copy(alpha = 0.2f),
+                                CircleShape
+                            )
+                            .padding(horizontal = 8.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = durationText.asString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = baseContentColor
+                        )
+                    }
+                }
             }
 
             // Location
@@ -626,7 +717,7 @@ fun EventCard(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = baseContentColor,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -643,7 +734,7 @@ fun EventCard(
                     Text(
                         text = displayText,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = baseContentColor,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -661,7 +752,7 @@ fun EventCard(
                     Icon(
                         imageVector = Icons.Default.People,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = baseContentColor,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -672,15 +763,10 @@ fun EventCard(
                             acceptedCount
                         ),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = baseContentColor
                     )
                 }
 
-                val typeColor = if (event.type == EventType.PUBLIC) {
-                    MaterialTheme.colorScheme.secondary
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
                 Text(
                     text = when (event.type) {
                         EventType.PUBLIC -> stringResource(R.string.label_public)
@@ -688,10 +774,16 @@ fun EventCard(
                     },
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = typeColor,
+                    color =
+                        if (event.type == EventType.PUBLIC) MaterialTheme.colorScheme.onSecondary
+                        else MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
-                        .background(typeColor.copy(alpha = 0.15f), CircleShape)
-                        .border(1.dp, typeColor.copy(alpha = 0.5f), CircleShape)
+                        .background(
+                            color =
+                                if (event.type == EventType.PUBLIC) MaterialTheme.colorScheme.secondary
+                                else MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
                         .padding(horizontal = 10.dp, vertical = 2.dp)
                 )
             }

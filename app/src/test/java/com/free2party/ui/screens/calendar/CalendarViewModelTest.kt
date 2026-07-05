@@ -4,6 +4,9 @@ import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.PlanVisibility
 import com.free2party.data.model.User
 import com.free2party.data.repository.PlanRepository
+import com.free2party.data.repository.EventRepository
+import com.free2party.data.model.Event
+import com.free2party.data.model.GuestStatus
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.OverlappingPlanException
@@ -36,29 +39,36 @@ class CalendarViewModelTest {
     private val planRepository: PlanRepository = mockk(relaxed = true)
     private val userRepository: UserRepository = mockk(relaxed = true)
     private val socialRepository: SocialRepository = mockk(relaxed = true)
+    private val eventRepository: EventRepository = mockk(relaxed = true)
+    private val eventsFlow = MutableStateFlow<List<Event>>(emptyList())
     private val testDispatcher = UnconfinedTestDispatcher()
     private val plansFlow = MutableStateFlow<List<FuturePlan>>(emptyList())
     private val userFlow = MutableStateFlow(User(uid = "testUser"))
+
+    private fun createViewModel() = CalendarViewModel(
+        planRepository,
+        userRepository,
+        eventRepository,
+        socialRepository
+    )
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         plansFlow.value = emptyList()
+        eventsFlow.value = emptyList()
         userFlow.value = User(uid = "testUser")
 
         // Default behavior for getPlans and observeUser to prevent issues during init
         every { planRepository.getOwnPlans() } returns plansFlow
         every { planRepository.getPublicPlans(any()) } returns plansFlow
+        every { eventRepository.getEvents() } returns eventsFlow
         every { userRepository.currentUserId } returns "testUser"
         every { userRepository.userIdFlow } returns flowOf("testUser")
         every { userRepository.observeUser(any()) } returns userFlow
         every { socialRepository.getFriendsList() } returns flowOf(emptyList())
 
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
     }
 
     @After
@@ -79,11 +89,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToNextMonth rolls over year correctly`() = runTest {
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         viewModel.displayedMonth = Calendar.DECEMBER
         viewModel.displayedYear = 2025
 
@@ -95,11 +101,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToPreviousMonth decrements month correctly`() = runTest {
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         viewModel.displayedMonth = Calendar.FEBRUARY
         viewModel.displayedYear = 2026
 
@@ -111,11 +113,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `moveToPreviousMonth rolls over year correctly`() = runTest {
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         viewModel.displayedMonth = Calendar.JANUARY
         viewModel.displayedYear = 2026
 
@@ -143,11 +141,7 @@ class CalendarViewModelTest {
         )
 
         plansFlow.value = plans
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
 
         val plannedDays = viewModel.getPlannedDaysForMonth(2026, Calendar.MAY)
 
@@ -165,11 +159,7 @@ class CalendarViewModelTest {
             )
         )
         plansFlow.value = plans
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
 
         val plannedDays = viewModel.getPlannedDaysForMonth(2026, Calendar.MAY)
 
@@ -203,11 +193,7 @@ class CalendarViewModelTest {
             )
         )
         plansFlow.value = plans
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
 
         // Set selected date to 2026-05-10 in UTC
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -226,11 +212,7 @@ class CalendarViewModelTest {
     @Test
     fun `savePlan calls repository and triggers onSuccess`() = runTest {
         coEvery { planRepository.savePlan(any()) } returns Result.success(Unit)
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var successCalled = false
 
         val friendsSelection = listOf("friend1", "friend2")
@@ -259,11 +241,7 @@ class CalendarViewModelTest {
     @Test
     fun `savePlan triggers onValidationError on failure`() = runTest {
         coEvery { planRepository.savePlan(any()) } returns Result.failure(OverlappingPlanException())
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var errorReceived = ""
 
         viewModel.savePlan(
@@ -284,11 +262,7 @@ class CalendarViewModelTest {
     @Test
     fun `updatePlan calls repository and triggers onSuccess`() = runTest {
         coEvery { planRepository.updatePlan(any()) } returns Result.success(Unit)
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var successCalled = false
 
         val friendsSelection = listOf("friend3")
@@ -319,11 +293,7 @@ class CalendarViewModelTest {
     @Test
     fun `updatePlan triggers onError on failure`() = runTest {
         coEvery { planRepository.updatePlan(any()) } returns Result.failure(OverlappingPlanException())
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var errorReceived = ""
 
         viewModel.updatePlan(
@@ -345,11 +315,7 @@ class CalendarViewModelTest {
     @Test
     fun `deletePlan calls repository and triggers onSuccess`() = runTest {
         coEvery { planRepository.deletePlan(any()) } returns Result.success(Unit)
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var successCalled = false
 
         viewModel.deletePlan(
@@ -364,11 +330,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `selectDate updates selectedDateMillis correctly`() = runTest {
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         viewModel.displayedYear = 2026
         viewModel.displayedMonth = Calendar.JUNE
 
@@ -385,11 +347,7 @@ class CalendarViewModelTest {
 
     @Test
     fun `goToToday resets view to current date`() = runTest {
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         // Move to some other date first
         viewModel.displayedYear = 2000
         viewModel.displayedMonth = Calendar.JANUARY
@@ -412,11 +370,7 @@ class CalendarViewModelTest {
     @Test
     fun `filteredPlans returns empty list when no date is selected`() = runTest {
         plansFlow.value = listOf(FuturePlan(startDate = "2026-05-10", endDate = "2026-05-10"))
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         viewModel.selectedDateMillis = null
 
         assertTrue(viewModel.filteredPlans.isEmpty())
@@ -425,11 +379,7 @@ class CalendarViewModelTest {
     @Test
     fun `savePlan maps PastDateTimeException to error_plan_past_date_time`() = runTest {
         coEvery { planRepository.savePlan(any()) } returns Result.failure(PlanPastDateTimeException())
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var errorResId: Int? = null
 
         viewModel.savePlan(
@@ -454,11 +404,7 @@ class CalendarViewModelTest {
     @Test
     fun `updatePlan maps PastDateTimeException to error_plan_past_date_time`() = runTest {
         coEvery { planRepository.updatePlan(any()) } returns Result.failure(PlanPastDateTimeException())
-        viewModel = CalendarViewModel(
-            planRepository,
-            userRepository,
-            socialRepository
-        )
+        viewModel = createViewModel()
         var errorResId: Int? = null
 
         viewModel.updatePlan(
@@ -479,5 +425,79 @@ class CalendarViewModelTest {
         )
 
         assertEquals(R.string.error_plan_past_date_time, errorResId)
+    }
+
+    @Test
+    fun `getEventDaysForMonth identifies correct days`() = runTest {
+        val events = listOf(
+            Event(
+                id = "event1",
+                startDate = "2026-05-10",
+                endDate = "2026-05-12",
+                startTime = "10:00",
+                endTime = "18:00",
+                guests = mapOf("testUser" to GuestStatus.ACCEPTED.name)
+            ),
+            Event(
+                id = "event2",
+                startDate = "2026-05-20",
+                endDate = "2026-05-20",
+                startTime = "08:00",
+                endTime = "09:00",
+                guests = mapOf("testUser" to GuestStatus.ACCEPTED.name)
+            )
+        )
+
+        eventsFlow.value = events
+        viewModel = createViewModel()
+
+        val eventDays = viewModel.getEventDaysForMonth(2026, Calendar.MAY)
+
+        assertEquals(setOf(10, 11, 12, 20), eventDays)
+    }
+
+    @Test
+    fun `filteredItems combines and sorts plans and events correctly`() = runTest {
+        val plans = listOf(
+            FuturePlan(
+                id = "plan1",
+                startDate = "2026-05-10",
+                endDate = "2026-05-10",
+                startTime = "14:00",
+                endTime = "15:00",
+                note = "Later plan"
+            )
+        )
+        val events = listOf(
+            Event(
+                id = "event1",
+                startDate = "2026-05-10",
+                endDate = "2026-05-10",
+                startTime = "09:00",
+                endTime = "10:00",
+                title = "Earlier event",
+                guests = mapOf("testUser" to GuestStatus.ACCEPTED.name)
+            )
+        )
+
+        plansFlow.value = plans
+        eventsFlow.value = events
+        viewModel = createViewModel()
+
+        // Set selected date to 2026-05-10 in UTC
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            set(2026, Calendar.MAY, 10, 0, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        viewModel.selectedDateMillis = calendar.timeInMillis
+
+        val items = viewModel.filteredItems
+
+        assertEquals(2, items.size)
+        // Check sorting (Earlier event at 09:00 first, then Later plan at 14:00)
+        assertTrue(items[0] is CalendarEntry.EventItem)
+        assertEquals("Earlier event", (items[0] as CalendarEntry.EventItem).event.title)
+        assertTrue(items[1] is CalendarEntry.Plan)
+        assertEquals("Later plan", (items[1] as CalendarEntry.Plan).plan.note)
     }
 }

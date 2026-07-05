@@ -181,6 +181,29 @@ fun EventDetailsScreen(
     val eventDateTime = remember(ev.startDate, ev.startTime) {
         runCatching { timeFormatter.parse("${ev.startDate} ${ev.startTime}") }.getOrNull()
     }
+    val eventEndDateTime = remember(ev.endDate, ev.endTime) {
+        runCatching { timeFormatter.parse("${ev.endDate} ${ev.endTime}") }.getOrNull()
+    }
+
+    val durationData = remember(eventDateTime, eventEndDateTime) {
+        if (eventDateTime == null || eventEndDateTime == null) return@remember null
+        val diffMillis = eventEndDateTime.time - eventDateTime.time
+        if (diffMillis <= 0) return@remember null
+
+        val diffMin = diffMillis / 60000L
+        val d = (diffMin / (24 * 60)).toInt()
+        val h = ((diffMin % (24 * 60)) / 60).toInt()
+        val m = (diffMin % 60).toInt()
+        Triple(d, h, m)
+    }
+
+    val durationText = durationData?.let { (d, h, m) ->
+        val parts = mutableListOf<String>()
+        if (d > 0) parts.add(stringResource(R.string.duration_days, d))
+        if (h > 0) parts.add(stringResource(R.string.duration_hours, h))
+        if (m > 0 || parts.isEmpty()) parts.add(stringResource(R.string.duration_minutes, m))
+        parts.joinToString(" ")
+    }
 
     val localDateText = remember(eventDateTime) {
         eventDateTime?.let {
@@ -269,7 +292,7 @@ fun EventDetailsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = ev.title,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -351,7 +374,7 @@ fun EventDetailsScreen(
                             Text(
                                 text = "$localDateText @ $localTimeText",
                                 fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -373,6 +396,23 @@ fun EventDetailsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        }
+                    }
+
+                    if (durationText != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.AccessTime,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.label_duration, durationText),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -416,7 +456,7 @@ fun EventDetailsScreen(
                                     text = ev.locationName,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2,
+                                    maxLines = 3,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
@@ -594,8 +634,7 @@ fun EventDetailsScreen(
                         text = stringResource(R.string.label_guests, ev.guests.size),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (isHost && visibleGuests.isNotEmpty()) {
                         val acceptedCount = remember(visibleGuests) {
@@ -878,21 +917,19 @@ fun EventDetailsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        Text(
+                            text = stringResource(R.string.label_photo_album),
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
                         Box(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = stringResource(R.string.label_photo_album),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(top = 4.dp)
-                            )
                             TextButton(
                                 onClick = { photoPickerLauncher.launch("image/*") },
-                                modifier = Modifier.align(Alignment.CenterEnd)
+                                modifier = Modifier.align(Alignment.Center)
                             ) {
                                 Icon(Icons.Default.AddAPhoto, contentDescription = null)
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -956,11 +993,8 @@ fun EventDetailsScreen(
                         text = stringResource(R.string.label_comments),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
 
                     if (comments.isEmpty()) {
                         Text(

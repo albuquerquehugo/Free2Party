@@ -109,8 +109,12 @@ import com.free2party.ui.screens.profile.InterestsRoute
 import com.free2party.ui.screens.profile.ProfileRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
+import com.free2party.ui.screens.onboarding.OnboardingRoute
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
+import com.free2party.ui.theme.eventContainer
+import com.free2party.ui.theme.onEventContainer
+import androidx.compose.material.icons.filled.DateRange
 import com.free2party.util.TextFieldRegistry
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -222,6 +226,11 @@ sealed class Screen(
         route = "appearance",
         labelResId = R.string.label_appearance
     )
+
+    object Onboarding : Screen(
+        route = "onboarding",
+        labelResId = R.string.label_onboarding
+    )
 }
 
 val BottomNavItems = listOf(
@@ -258,6 +267,7 @@ fun AppNavigation(
 
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
     val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
+    val onboardingCompleted by mainViewModel.onboardingCompletedFlow.collectAsState(initial = null)
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -273,85 +283,88 @@ fun AppNavigation(
         }
     }
 
-    AppBackground(enabled = gradientBackground) {
-        Scaffold(
-            topBar = {
-                val isOnline by mainViewModel.isOnline.collectAsState()
-                AnimatedVisibility(
-                    visible = !isOnline,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.error)
-                            .statusBarsPadding()
-                            .padding(vertical = 8.dp, horizontal = 16.dp),
-                        contentAlignment = Alignment.Center
+    if (onboardingCompleted != null) {
+        AppBackground(enabled = gradientBackground) {
+            Scaffold(
+                topBar = {
+                    val isOnline by mainViewModel.isOnline.collectAsState()
+                    AnimatedVisibility(
+                        visible = !isOnline,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.error)
+                                .statusBarsPadding()
+                                .padding(vertical = 8.dp, horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.WifiOff,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onError,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.offline_banner_message),
-                                color = MaterialTheme.colorScheme.onError,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            },
-            containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
-            bottomBar = {
-                if (showBottomBar) {
-                    BottomNavigationBar(
-                        navController,
-                        notificationsViewModel,
-                        eventsViewModel,
-                        mainViewModel
-                    )
-                }
-            }
-        ) { innerPadding ->
-            var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .onGloballyPositioned { rootCoordinates = it }
-                    .pointerInput(rootCoordinates) {
-                        awaitEachGesture {
-                            val down = awaitFirstDown(pass = PointerEventPass.Initial)
-                            val isInsideTextField = TextFieldRegistry.isPointInsideAnyTextField(
-                                down.position,
-                                rootCoordinates
-                            )
-                            if (!isInsideTextField) {
-                                val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                                if (up != null) {
-                                    focusManager.clearFocus(force = true)
-                                    keyboardController?.hide()
-                                }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WifiOff,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onError,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.offline_banner_message),
+                                    color = MaterialTheme.colorScheme.onError,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                     }
-                    .focusable()
-            ) {
-                Free2PartyNavGraph(
-                    navController = navController,
-                    notificationsViewModel = notificationsViewModel,
-                    startDestinationOverride = startDestination
-                )
+                },
+                containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
+                bottomBar = {
+                    if (showBottomBar) {
+                        BottomNavigationBar(
+                            navController,
+                            notificationsViewModel,
+                            eventsViewModel,
+                            mainViewModel
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .onGloballyPositioned { rootCoordinates = it }
+                        .pointerInput(rootCoordinates) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(pass = PointerEventPass.Initial)
+                                val isInsideTextField = TextFieldRegistry.isPointInsideAnyTextField(
+                                    down.position,
+                                    rootCoordinates
+                                )
+                                if (!isInsideTextField) {
+                                    val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                                    if (up != null) {
+                                        focusManager.clearFocus(force = true)
+                                        keyboardController?.hide()
+                                    }
+                                }
+                            }
+                        }
+                        .focusable()
+                ) {
+                    Free2PartyNavGraph(
+                        navController = navController,
+                        notificationsViewModel = notificationsViewModel,
+                        onboardingCompleted = onboardingCompleted ?: false,
+                        startDestinationOverride = startDestination
+                    )
+                }
             }
         }
     }
@@ -536,6 +549,8 @@ fun BottomNavigationBar(
                                     is Screen.Profile -> {
                                         val isUserFree = userNavState?.isUserFree ?: false
                                         val profilePicUrl = userNavState?.profilePicUrl
+                                        val isStatusFromPlan =
+                                            userNavState?.isStatusFromPlan ?: false
                                         val statusColor = if (isUserFree) {
                                             MaterialTheme.colorScheme.available
                                         } else {
@@ -543,27 +558,50 @@ fun BottomNavigationBar(
                                         }
 
                                         Box(
-                                            modifier = Modifier
-                                                .size(28.dp)
-                                                .border(1.5.dp, statusColor, CircleShape)
-                                                .padding(2.dp),
+                                            modifier = Modifier.size(28.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            if (!profilePicUrl.isNullOrBlank()) {
-                                                AsyncImage(
-                                                    model = profilePicUrl,
-                                                    contentDescription = label,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .clip(CircleShape),
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                            } else {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .border(1.5.dp, statusColor, CircleShape)
+                                                    .padding(2.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                if (!profilePicUrl.isNullOrBlank()) {
+                                                    AsyncImage(
+                                                        model = profilePicUrl,
+                                                        contentDescription = label,
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .clip(CircleShape),
+                                                        contentScale = ContentScale.Crop
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Person,
+                                                        contentDescription = label,
+                                                        tint =
+                                                            if (isSelected) MaterialTheme.colorScheme.primary
+                                                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                }
+                                            }
+
+                                            if (isStatusFromPlan) {
                                                 Icon(
-                                                    imageVector = Icons.Default.Person,
-                                                    contentDescription = label,
-                                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    modifier = Modifier.fillMaxSize()
+                                                    imageVector = Icons.Default.DateRange,
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(12.dp)
+                                                        .align(Alignment.BottomEnd)
+                                                        .background(
+                                                            MaterialTheme.colorScheme.eventContainer,
+                                                            CircleShape
+                                                        )
+                                                        .padding(1.dp),
+                                                    tint = MaterialTheme.colorScheme.onEventContainer
                                                 )
                                             }
                                         }
@@ -606,12 +644,17 @@ fun BottomNavigationBar(
 fun Free2PartyNavGraph(
     navController: NavHostController,
     notificationsViewModel: NotificationsViewModel,
+    onboardingCompleted: Boolean,
     modifier: Modifier = Modifier,
     startDestinationOverride: String? = null
 ) {
-    val startDest = remember(startDestinationOverride) {
+    val startDest = remember(startDestinationOverride, onboardingCompleted) {
         startDestinationOverride
-            ?: if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
+            ?: if (Firebase.auth.currentUser != null) {
+                if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+            } else {
+                Screen.Login.route
+            }
     }
 
     NavHost(
@@ -623,7 +666,9 @@ fun Free2PartyNavGraph(
             LoginRoute(
                 viewModel = hiltViewModel(),
                 onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
+                    val dest =
+                        if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+                    navController.navigate(dest) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -645,6 +690,17 @@ fun Free2PartyNavGraph(
                 },
                 onBackToLogin = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.Onboarding.route) {
+            OnboardingRoute(
+                viewModel = hiltViewModel(),
+                onOnboardingComplete = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -682,7 +738,11 @@ fun Free2PartyNavGraph(
         }
 
         composable(Screen.Calendar.route) {
-            CalendarRoute()
+            CalendarRoute(
+                onNavigateToEventDetails = { eventId ->
+                    navController.navigate(Screen.EventDetails.createRoute(eventId, false))
+                }
+            )
         }
 
         composable(Screen.Notifications.route) {
@@ -813,7 +873,10 @@ fun Free2PartyNavGraph(
         composable(Screen.Settings.route) {
             SettingsRoute(
                 viewModel = hiltViewModel(),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToOnboarding = {
+                    navController.navigate(Screen.Onboarding.route)
+                }
             )
         }
     }

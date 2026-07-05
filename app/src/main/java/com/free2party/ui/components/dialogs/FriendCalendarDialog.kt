@@ -27,7 +27,7 @@ import com.free2party.BuildConfig
 import com.free2party.data.model.FriendInfo
 import com.free2party.R
 import com.free2party.ui.components.MonthCalendar
-import com.free2party.ui.components.PlanResults
+import com.free2party.ui.components.CalendarResults
 import com.free2party.ui.screens.calendar.CalendarViewModel
 import com.free2party.util.capitalizeFirstLetter
 import kotlinx.coroutines.delay
@@ -96,7 +96,15 @@ fun FriendCalendarDialog(
                 viewModel.displayedYear,
                 viewModel.displayedMonth
             )
-            MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+            val eventDays = viewModel.getEventDaysForMonth(
+                viewModel.displayedYear,
+                viewModel.displayedMonth
+            )
+            MonthCalendar(
+                viewModel = viewModel,
+                plannedDays = plannedDays,
+                eventDays = eventDays
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -106,15 +114,15 @@ fun FriendCalendarDialog(
                 format.format(Date(it)).capitalizeFirstLetter()
             } ?: ""
 
-            PlanResults(
-                plans = viewModel.filteredPlans,
+            CalendarResults(
+                calendarEntries = viewModel.filteredItems,
                 isDateSelected = viewModel.selectedDateMillis != null,
                 selectedDateText = selectedDateText,
                 currentTimeMillis = currentTimeMillis,
                 use24HourFormat = use24HourFormat,
                 friends = friends,
-                onEdit = null,
-                onDelete = null,
+                onEditPlan = null,
+                onDeletePlan = null,
                 modifier = Modifier.weight(1f)
             )
 

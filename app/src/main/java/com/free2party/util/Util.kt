@@ -701,10 +701,10 @@ fun formatDistance(
     return when (unit) {
         DistanceUnit.KILOMETERS -> {
             if (meters < 1000) {
-                context.getString(R.string.label_distance_m, meters.roundToInt())
+                context.getString(R.string.label_distance_metric_m, meters.roundToInt())
             } else {
                 val km = meters / 1000.0
-                context.getString(R.string.label_distance_km, km)
+                context.getString(R.string.label_distance_metric_km, km)
             }
         }
 
@@ -712,9 +712,9 @@ fun formatDistance(
             val miles = meters * 0.000621371
             if (miles < 0.1) {
                 val feet = meters * 3.28084
-                context.getString(R.string.label_distance_feet, feet.roundToInt())
+                context.getString(R.string.label_distance_imperial_ft, feet.roundToInt())
             } else {
-                context.getString(R.string.label_distance_miles, miles)
+                context.getString(R.string.label_distance_imperial_mi, miles)
             }
         }
     }

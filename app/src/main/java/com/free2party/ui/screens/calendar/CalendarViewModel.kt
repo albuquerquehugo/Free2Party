@@ -14,9 +14,13 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.PlanVisibility
 import com.free2party.data.model.FriendInfo
+import com.free2party.data.model.Event
+import com.free2party.data.model.GuestStatus
+import com.free2party.data.model.EventType
 import com.free2party.data.repository.PlanRepository
 import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
+import com.free2party.data.repository.EventRepository
 import com.free2party.exception.InvalidPlanDataException
 import com.free2party.exception.OverlappingPlanException
 import com.free2party.exception.PlanPastDateTimeException
@@ -37,6 +41,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.Calendar
@@ -46,6 +52,7 @@ import java.util.TimeZone
 class CalendarViewModel @Inject constructor(
     private val planRepository: PlanRepository,
     private val userRepository: UserRepository,
+    private val eventRepository: EventRepository,
     socialRepository: SocialRepository
 ) : ViewModel() {
 
@@ -73,6 +80,39 @@ class CalendarViewModel @Inject constructor(
                 // Overlap: max(start1, start2) < min(end1, end2)
                 planDateTimeStart.coerceAtLeast(selectedDate) < planDateTimeEnd.coerceAtMost(nextDay)
             }.sortedBy { plan -> parseTimeToMinutes(plan.startTime) ?: 0 }
+        }
+
+    var eventsList by mutableStateOf<List<Event>>(emptyList())
+    val filteredEvents: List<Event>
+        get() {
+            val selectedDate = selectedDateMillis ?: return emptyList()
+
+            return eventsList.filter { event ->
+                val eventStartMillis = parseDateToMillis(event.startDate) ?: return@filter false
+                val eventEndMillis = parseDateToMillis(event.endDate) ?: return@filter false
+
+                val eventDateTimeStart =
+                    eventStartMillis + (parseTimeToMillis(event.startTime) ?: 0L)
+                val eventDateTimeEnd = eventEndMillis + (parseTimeToMillis(event.endTime) ?: 0L)
+
+                val nextDay = selectedDate + 86400000L // 24 hours later
+
+                eventDateTimeStart.coerceAtLeast(selectedDate) < eventDateTimeEnd.coerceAtMost(
+                    nextDay
+                )
+            }.sortedBy { event -> parseTimeToMinutes(event.startTime) ?: 0 }
+        }
+
+    val filteredItems: List<CalendarEntry>
+        get() {
+            val plans = filteredPlans.map { CalendarEntry.Plan(it) }
+            val events = filteredEvents.map { CalendarEntry.EventItem(it) }
+            return (plans + events).sortedBy { item ->
+                when (item) {
+                    is CalendarEntry.Plan -> parseTimeToMinutes(item.plan.startTime) ?: 0
+                    is CalendarEntry.EventItem -> parseTimeToMinutes(item.event.startTime) ?: 0
+                }
+            }
         }
 
     var displayedMonth by mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH))
@@ -106,6 +146,7 @@ class CalendarViewModel @Inject constructor(
         goToToday()
         observeUserSettings()
         observePlans()
+        observeEvents()
     }
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -308,5 +349,80 @@ class CalendarViewModel @Inject constructor(
             set(Calendar.MILLISECOND, 0)
         }
         selectedDateMillis = calendar.timeInMillis
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private fun observeEvents() {
+        combine(userRepository.userIdFlow, targetUserId) { currentUid, targetUid ->
+            currentUid to targetUid
+        }
+            .flatMapLatest { (currentUid, targetUid) ->
+                if (currentUid.isBlank()) {
+                    flowOf(Triple(currentUid, targetUid, emptyList()))
+                } else {
+                    eventRepository.getEvents().map { events ->
+                        Triple(currentUid, targetUid, events)
+                    }
+                }
+            }
+            .onEach { (currentUid, targetUid, events) ->
+                eventsList = if (targetUid == null || targetUid == currentUid) {
+                    // Own calendar: show all events the current user is attending (as host or accepted guest)
+                    events.filter { event ->
+                        event.hostId == currentUid || event.guests[currentUid] == GuestStatus.ACCEPTED.name
+                    }
+                } else {
+                    // Friend's calendar: show only public events the friend is attending,
+                    // or events that both the current user and the friend are attending.
+                    events.filter { event ->
+                        val friendAttending =
+                            event.hostId == targetUid ||
+                                    event.guests[targetUid] == GuestStatus.ACCEPTED.name
+                        if (friendAttending) {
+                            val isPublic = event.type == EventType.PUBLIC
+                            val currentUserAttending =
+                                event.hostId == currentUid ||
+                                        event.guests[currentUid] == GuestStatus.ACCEPTED.name
+                            isPublic || currentUserAttending
+                        } else {
+                            false
+                        }
+                    }
+                }
+            }
+            .catch { e ->
+                Log.e("CalendarViewModel", "Error observing events", e)
+                eventsList = emptyList()
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun getEventDaysForMonth(year: Int, month: Int): Set<Int> {
+        val targetMonth = YearMonth.of(year, month + 1)
+        val monthStart = targetMonth.atDay(1)
+        val monthEnd = targetMonth.atEndOfMonth()
+
+        return eventsList.flatMap { event ->
+            val eventStart = runCatching { LocalDate.parse(event.startDate) }.getOrNull()
+                ?: return@flatMap emptyList<Int>()
+            var eventEnd = runCatching { LocalDate.parse(event.endDate) }.getOrNull()
+                ?: return@flatMap emptyList<Int>()
+
+            // If it ends at exactly midnight (0:00), the end date is exclusive.
+            if (parseTimeToMinutes(event.endTime) == 0 && eventEnd.isAfter(eventStart)) {
+                eventEnd = eventEnd.minusDays(1)
+            }
+
+            // Check if event range overlaps with the target month
+            if (!eventStart.isAfter(monthEnd) && !eventEnd.isBefore(monthStart)) {
+                val startDay = if (eventStart.isBefore(monthStart)) 1 else eventStart.dayOfMonth
+                val endDay =
+                    if (eventEnd.isAfter(monthEnd)) targetMonth.lengthOfMonth()
+                    else eventEnd.dayOfMonth
+                startDay..endDay
+            } else {
+                emptyList()
+            }
+        }.toSet()
     }
 }

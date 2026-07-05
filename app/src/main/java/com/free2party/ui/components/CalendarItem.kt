@@ -47,10 +47,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.free2party.R
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.FuturePlan
+import com.free2party.data.model.Event
+import com.free2party.data.model.GuestStatus
 import com.free2party.data.model.PlanVisibility
+import com.free2party.R
+import com.free2party.ui.theme.eventContainer
+import com.free2party.ui.theme.onEventContainer
 import com.free2party.util.calculateDuration
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.formatTimeForDisplay
@@ -59,6 +63,8 @@ import com.free2party.util.parseTimeToMillis
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import java.util.Calendar
+import java.util.Locale
+import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 data class PlanStatus(
@@ -151,14 +157,26 @@ fun PlanItem(
                 }
             },
         colors = CardDefaults.cardColors(
-            containerColor = (when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.tertiaryContainer
-                else -> MaterialTheme.colorScheme.primaryContainer
-            }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it },
+            containerColor = when {
+                planStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer.let {
+                    if (gradientBackground) it.copy(
+                        alpha = 0.7f
+                    ) else it
+                }
+
+                planStatus.isPast -> MaterialTheme.colorScheme.primaryContainer.copy(
+                    alpha = if (gradientBackground) 0.4f * 0.7f else 0.4f
+                )
+
+                else -> MaterialTheme.colorScheme.primaryContainer.let {
+                    if (gradientBackground) it.copy(
+                        alpha = 0.7f
+                    ) else it
+                }
+            },
             contentColor = when {
                 planStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.onTertiaryContainer
+                planStatus.isPast -> MaterialTheme.colorScheme.onPrimaryContainer
                 else -> MaterialTheme.colorScheme.onPrimaryContainer
             }
         )
@@ -313,6 +331,245 @@ fun PlanItem(
 }
 
 @Composable
+fun EventItem(
+    modifier: Modifier = Modifier,
+    event: Event,
+    use24HourFormat: Boolean,
+    currentTimeMillis: Long,
+    gradientBackground: Boolean = false,
+    onClick: () -> Unit,
+    isExpandedExternally: Boolean = false,
+    onExpandChange: (Boolean) -> Unit = {}
+) {
+    var hasOverflow by remember { mutableStateOf(false) }
+
+    val currentUserId = remember { Firebase.auth.currentUser?.uid ?: "" }
+    val isHost = event.hostId == currentUserId
+
+    val duration = remember(event.startDate, event.endDate, event.startTime, event.endTime) {
+        calculateDuration(event.startDate, event.endDate, event.startTime, event.endTime)
+    }.asString()
+
+    val eventStatus by remember(event, currentTimeMillis) {
+        derivedStateOf {
+            val timeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone(event.timezone)
+            }
+            val startDateTime =
+                runCatching { timeFormatter.parse("${event.startDate} ${event.startTime}") }.getOrNull()?.time
+                    ?: 0L
+            val endDateTime =
+                runCatching { timeFormatter.parse("${event.endDate} ${event.endTime}") }.getOrNull()?.time
+                    ?: 0L
+
+            val isCurrent = currentTimeMillis in startDateTime..<endDateTime
+            val isPast = currentTimeMillis >= endDateTime
+
+            PlanStatus(isCurrent = isCurrent, isPast = isPast, isEditDisabled = false)
+        }
+    }
+
+    val containerColor = when {
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer.let {
+            if (gradientBackground) it.copy(
+                alpha = 0.7f
+            ) else it
+        }
+
+        eventStatus.isPast -> MaterialTheme.colorScheme.eventContainer.copy(
+            alpha = if (gradientBackground) 0.4f * 0.7f else 0.4f
+        )
+
+        else -> MaterialTheme.colorScheme.eventContainer.let {
+            if (gradientBackground) it.copy(alpha = 0.7f) else it
+        }
+    }
+
+    val baseContentColor = when {
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+        eventStatus.isPast -> MaterialTheme.colorScheme.onEventContainer
+        else -> MaterialTheme.colorScheme.onEventContainer
+    }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clickable {
+                onClick()
+            },
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor,
+            contentColor = baseContentColor
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, top = 16.dp, bottom = 16.dp, end = 24.dp)
+            ) {
+                // Event Badge and Title
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = event.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = baseContentColor,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Small "Event" badge to clearly differentiate from plans
+                    Surface(
+                        color = baseContentColor.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.badge_event),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = baseContentColor,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Time and Duration Section
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FlowRow(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (event.startDate == event.endDate) {
+                            Text(
+                                text = stringResource(
+                                    R.string.time_range,
+                                    formatTimeForDisplay(event.startTime, use24HourFormat),
+                                    formatTimeForDisplay(event.endTime, use24HourFormat)
+                                ),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        } else {
+                            DateTimeLabel(
+                                time = formatTimeForDisplay(event.startTime, use24HourFormat),
+                                date = event.startDate
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowRightAlt,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = baseContentColor.copy(alpha = 0.6f)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                DateTimeLabel(
+                                    time = formatTimeForDisplay(event.endTime, use24HourFormat),
+                                    date = event.endDate
+                                )
+                            }
+                        }
+
+                        // Event duration badge
+                        Surface(
+                            color = baseContentColor.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.wrapContentHeight()
+                        ) {
+                            Box(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = duration,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = baseContentColor
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Hosted by / Location Section
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val hostString = if (isHost) {
+                        stringResource(R.string.label_hosted_by, R.string.label_you)
+                    } else {
+                        stringResource(R.string.label_hosted_by, event.hostName)
+                    }
+                    Text(
+                        text = "$hostString • ${event.locationName}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = baseContentColor.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Description (if any)
+                if (event.description.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = event.description,
+                            color = baseContentColor.copy(alpha = 0.9f),
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis,
+                            onTextLayout = { textLayoutResult ->
+                                hasOverflow =
+                                    textLayoutResult.hasVisualOverflow || textLayoutResult.lineCount > 1
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (hasOverflow || isExpandedExternally) {
+                            Box(
+                                modifier = Modifier
+                                    .width(48.dp)
+                                    .height(16.dp)
+                                    .clickable { onExpandChange(!isExpandedExternally) },
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (isExpandedExternally) Icons.Default.KeyboardArrowUp
+                                        else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = baseContentColor.copy(alpha = 0.7f),
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .offset(y = (-4).dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun DateTimeLabel(time: String, date: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -331,13 +588,12 @@ private fun DateTimeLabel(time: String, date: String) {
 
 @Composable
 fun DurationBadge(text: String, status: PlanStatus) {
-    val color = when {
+    val baseColor = when {
         status.isCurrent -> MaterialTheme.colorScheme.secondary
-        status.isPast -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.primary
     }
     Surface(
-        color = color.copy(alpha = 0.15f),
+        color = baseColor.copy(alpha = 0.15f),
         shape = RoundedCornerShape(6.dp),
         modifier = Modifier.wrapContentHeight()
     ) {
@@ -349,7 +605,7 @@ fun DurationBadge(text: String, status: PlanStatus) {
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = color
+                color = baseColor
             )
         }
     }

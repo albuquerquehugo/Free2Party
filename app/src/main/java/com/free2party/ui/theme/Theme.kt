@@ -21,7 +21,7 @@ import com.free2party.data.model.ThemeMode
 private val DarkColorScheme = darkColorScheme(
     primary = Blue70,
     onPrimary = Blue20,
-    primaryContainer = Blue40,
+    primaryContainer = Blue30,
     onPrimaryContainer = Blue85,
     secondary = Purple80,
     onSecondary = Purple20,
@@ -52,12 +52,12 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = Blue30,
     onPrimary = Color.White,
-    primaryContainer = Blue75,
+    primaryContainer = Blue65,
     onPrimaryContainer = Blue20,
     secondary = Purple40,
     onSecondary = Color.White,
-    secondaryContainer = Purple80,
-    onSecondaryContainer = Purple10,
+    secondaryContainer = Purple65,
+    onSecondaryContainer = Purple20,
     tertiary = Red30,
     onTertiary = Color.White,
     tertiaryContainer = Red80,
@@ -85,17 +85,25 @@ private val ColorScheme.isDark: Boolean
     get() = surface.luminance() < 0.5f
 
 // Custom Extension properties for your app-specific logic
+val ColorScheme.eventContainer: Color
+    @Composable
+    get() = if (isDark) Green35 else Green60
+
+val ColorScheme.onEventContainer: Color
+    @Composable
+    get() = if (isDark) Green85 else Green30
+
 val ColorScheme.available: Color
     @Composable
     get() = if (isDark) Green60 else Green50
 
 val ColorScheme.availableContainer: Color
     @Composable
-    get() = if (isDark) Blue20 else Blue80
+    get() = if (isDark) Green20 else Green70
 
 val ColorScheme.onAvailableContainer: Color
     @Composable
-    get() = if (isDark) Blue80 else Blue30
+    get() = if (isDark) Green80 else Green30
 
 val ColorScheme.busy: Color
     @Composable
@@ -108,6 +116,14 @@ val ColorScheme.busyContainer: Color
 val ColorScheme.onBusyContainer: Color
     @Composable
     get() = if (isDark) Red80 else Red40
+
+val ColorScheme.pendingContainer: Color
+    @Composable
+    get() = if (isDark) Blue20 else Blue70
+
+val ColorScheme.onPendingContainer: Color
+    @Composable
+    get() = if (isDark) Blue80 else Blue30
 
 val ColorScheme.inactive: Color
     @Composable

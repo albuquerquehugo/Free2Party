@@ -103,7 +103,7 @@ To ensure the app remains maintainable and scalable for a future App Store launc
 - [ ] Phase 8: Production Polish
   - [x] App Analytics & Crashlytics: Integrating Firebase Analytics and Crashlytics to monitor stability and track usage.
   - [ ] Theming: User-selectable "Status Colors" or custom emojis for the "Free" state.
-  - [ ] Onboarding: A dedicated tutorial flow for new users explaining the "Passive Interaction" concept.
+  - [x] Onboarding: A dedicated tutorial flow for new users explaining the "Passive Interaction" concept.
 
 ---
 

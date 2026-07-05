@@ -46,7 +46,7 @@ import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.MonthCalendar
 import com.free2party.ui.components.dialogs.PlanDialog
-import com.free2party.ui.components.PlanResults
+import com.free2party.ui.components.CalendarResults
 import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.isDateTimeInPast
@@ -60,7 +60,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarRoute() {
+fun CalendarRoute(onNavigateToEventDetails: (String) -> Unit) {
     val context = LocalContext.current
     val viewModel: CalendarViewModel = hiltViewModel()
     val use24HourFormat = viewModel.use24HourFormat
@@ -86,6 +86,8 @@ fun CalendarRoute() {
 
     val plannedDays =
         viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
+    val eventDays =
+        viewModel.getEventDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
 
     val gradientBackground = viewModel.gradientBackground
 
@@ -107,6 +109,7 @@ fun CalendarRoute() {
     CalendarScreen(
         viewModel = viewModel,
         plannedDays = plannedDays,
+        eventDays = eventDays,
         gradientBackground = gradientBackground,
         startDatePickerState = startDatePickerState,
         endDatePickerState = endDatePickerState,
@@ -158,7 +161,8 @@ fun CalendarRoute() {
                     Toast.makeText(context, planDeletedMessage, Toast.LENGTH_SHORT).show()
                 }
             )
-        }
+        },
+        onNavigateToEventDetails = onNavigateToEventDetails
     )
 }
 
@@ -167,13 +171,15 @@ fun CalendarRoute() {
 fun CalendarScreen(
     viewModel: CalendarViewModel,
     plannedDays: Set<Int>,
+    eventDays: Set<Int>,
     gradientBackground: Boolean,
     startDatePickerState: DatePickerState,
     endDatePickerState: DatePickerState,
     startTimeState: TimePickerState,
     endTimeState: TimePickerState,
     onSavePlan: (String, String, String, String, String, PlanVisibility, List<String>, String?) -> Unit,
-    onDeletePlan: (String) -> Unit
+    onDeletePlan: (String) -> Unit,
+    onNavigateToEventDetails: (String) -> Unit
 ) {
     val use24HourFormat = viewModel.use24HourFormat
     val friends by viewModel.friendsList.collectAsState()
@@ -231,7 +237,11 @@ fun CalendarScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+                    MonthCalendar(
+                        viewModel = viewModel,
+                        plannedDays = plannedDays,
+                        eventDays = eventDays
+                    )
 
                     IconButton(
                         onClick = {
@@ -266,22 +276,23 @@ fun CalendarScreen(
                         .padding(top = 16.dp)
                         .padding(horizontal = 16.dp)
                 ) {
-                    PlanResults(
-                        plans = viewModel.filteredPlans,
+                    CalendarResults(
+                        calendarEntries = viewModel.filteredItems,
                         isDateSelected = viewModel.selectedDateMillis != null,
                         selectedDateText = selectedDateText,
                         currentTimeMillis = currentTimeMillis,
                         use24HourFormat = use24HourFormat,
                         friends = friends,
                         gradientBackground = gradientBackground,
-                        onEdit = { plan ->
-                            editingPlan = plan
+                        onEditPlan = { entry ->
+                            editingPlan = entry.plan
                             setShowPlanDialog(true)
                         },
-                        onDelete = { plan ->
-                            planToDelete = plan
+                        onDeletePlan = { entry ->
+                            planToDelete = entry.plan
                             setShowDeleteDialog(true)
-                        }
+                        },
+                        onNavigateToEventDetails = onNavigateToEventDetails
                     )
                 }
             }
@@ -292,7 +303,11 @@ fun CalendarScreen(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                MonthCalendar(viewModel = viewModel, plannedDays = plannedDays)
+                MonthCalendar(
+                    viewModel = viewModel,
+                    plannedDays = plannedDays,
+                    eventDays = eventDays
+                )
 
                 IconButton(
                     onClick = {
@@ -320,22 +335,23 @@ fun CalendarScreen(
                     )
                 }
 
-                PlanResults(
-                    plans = viewModel.filteredPlans,
+                CalendarResults(
+                    calendarEntries = viewModel.filteredItems,
                     isDateSelected = viewModel.selectedDateMillis != null,
                     selectedDateText = selectedDateText,
                     currentTimeMillis = currentTimeMillis,
                     use24HourFormat = use24HourFormat,
                     friends = friends,
                     gradientBackground = gradientBackground,
-                    onEdit = { plan ->
-                        editingPlan = plan
+                    onEditPlan = { entry ->
+                        editingPlan = entry.plan
                         setShowPlanDialog(true)
                     },
-                    onDelete = { plan ->
-                        planToDelete = plan
+                    onDeletePlan = { entry ->
+                        planToDelete = entry.plan
                         setShowDeleteDialog(true)
-                    }
+                    },
+                    onNavigateToEventDetails = onNavigateToEventDetails
                 )
             }
         }

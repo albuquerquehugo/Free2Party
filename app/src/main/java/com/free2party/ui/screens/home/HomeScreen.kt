@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,12 +21,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
@@ -38,13 +35,11 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Sms
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,30 +54,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.Membership
 import com.free2party.data.model.InviteStatus
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.ProfileAvatar
+import com.free2party.ui.components.ProfileAvatarSize
+import com.free2party.ui.components.StatusToggleButton
 import com.free2party.ui.components.dialogs.BlockUserDialog
 import com.free2party.ui.components.dialogs.FriendCalendarDialog
 import com.free2party.ui.components.dialogs.PublicProfileDialog
@@ -94,12 +87,14 @@ import com.free2party.ui.theme.available
 import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.busy
 import com.free2party.ui.theme.busyContainer
-import com.free2party.ui.theme.inactiveContainer
 import com.free2party.ui.theme.onAvailableContainer
 import com.free2party.ui.theme.onBusyContainer
-import com.free2party.ui.theme.onInactiveContainer
+import com.free2party.ui.theme.onPendingContainer
+import com.free2party.ui.theme.pendingContainer
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
+import com.free2party.ui.theme.eventContainer
+import com.free2party.ui.theme.onEventContainer
 import com.free2party.util.SocialPlatform
 import com.free2party.util.openEmail
 import com.free2party.util.openSMS
@@ -364,71 +359,16 @@ fun HomeContent(
             verticalArrangement = Arrangement.Top
         ) {
             Spacer(modifier = Modifier.height(24.dp))
-            val logoScale by animateFloatAsState(targetValue = if (isUserFree) 0.9f else 1.0f)
-            val glowColor =
-                if (isUserFree) MaterialTheme.colorScheme.busy else MaterialTheme.colorScheme.available
-            val containerColor =
-                if (isUserFree) MaterialTheme.colorScheme.busyContainer else MaterialTheme.colorScheme.availableContainer
-            val onContainerColor =
-                if (isUserFree) MaterialTheme.colorScheme.onBusyContainer else MaterialTheme.colorScheme.onAvailableContainer
 
-            ElevatedButton(
+            StatusToggleButton(
+                isUserFree = isUserFree,
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onToggleAvailability()
                 },
-                enabled = !isActionLoading,
-                modifier = Modifier
-                    .padding(bottom = 24.dp)
-                    .height(64.dp)
-                    .wrapContentWidth()
-                    .shadow(
-                        elevation = if (isUserFree) 8.dp else 16.dp,
-                        spotColor = glowColor,
-                        shape = CircleShape,
-                        ambientColor = glowColor,
-                        clip = false
-                    ),
-                shape = CircleShape,
-                colors = ButtonDefaults.elevatedButtonColors(
-                    containerColor = containerColor,
-                    contentColor = onContainerColor
-                ),
-                contentPadding = PaddingValues(horizontal = 24.dp)
-            ) {
-                Box(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.graphicsLayer {
-                            alpha = if (isActionLoading) 0f else 1f
-                        }
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.free2party_full_foreground_color),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .height(32.dp)
-                                .graphicsLayer(
-                                    scaleX = logoScale,
-                                    scaleY = logoScale
-                                ),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-
-                    if (isActionLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
-                            color = onContainerColor
-                        )
-                    }
-                }
-            }
+                isActionLoading = isActionLoading,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -749,7 +689,7 @@ fun FriendItem(
     val context = LocalContext.current
     val hangOutMessage = stringResource(R.string.text_hang_out_message)
     val statusColor = when {
-        isPending -> MaterialTheme.colorScheme.outline // Or inactiveContainer
+        isPending -> MaterialTheme.colorScheme.primary
         friend.isFreeNow -> MaterialTheme.colorScheme.available
         else -> MaterialTheme.colorScheme.busy
     }
@@ -765,7 +705,7 @@ fun FriendItem(
                 ),
             colors = CardDefaults.cardColors(
                 containerColor = (when {
-                    isPending -> MaterialTheme.colorScheme.inactiveContainer
+                    isPending -> MaterialTheme.colorScheme.pendingContainer
                     friend.isFreeNow -> MaterialTheme.colorScheme.availableContainer
                     else -> MaterialTheme.colorScheme.busyContainer
                 }).let { if (gradientBackground) it.copy(alpha = 0.7f) else it }
@@ -779,35 +719,11 @@ fun FriendItem(
                     modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .border(
-                                width = 3.dp,
-                                color = statusColor,
-                                shape = CircleShape
-                            )
-                            .padding(6.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (friend.profilePicUrl.isNotBlank()) {
-                            AsyncImage(
-                                model = friend.profilePicUrl,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.AccountCircle,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                    ProfileAvatar(
+                        size = ProfileAvatarSize.SMALL,
+                        profilePicUrl = friend.profilePicUrl,
+                        statusColor = statusColor
+                    )
 
                     if (isPending) {
                         Icon(
@@ -816,9 +732,9 @@ fun FriendItem(
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.BottomEnd)
-                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                                 .padding(1.dp),
-                            tint = statusColor
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else if (friend.isStatusFromPlan) {
                         Icon(
@@ -827,9 +743,9 @@ fun FriendItem(
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.BottomEnd)
-                                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                .background(MaterialTheme.colorScheme.eventContainer, CircleShape)
                                 .padding(1.dp),
-                            tint = statusColor
+                            tint = MaterialTheme.colorScheme.onEventContainer
                         )
                     }
                 }
@@ -841,7 +757,7 @@ fun FriendItem(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),
                     color = when {
-                        isPending -> MaterialTheme.colorScheme.onInactiveContainer
+                        isPending -> MaterialTheme.colorScheme.onPendingContainer
                         friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
                         else -> MaterialTheme.colorScheme.onBusyContainer
                     }
@@ -853,8 +769,9 @@ fun FriendItem(
                         Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = stringResource(R.string.description_open_calendar),
-                            tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
-                            else MaterialTheme.colorScheme.onBusyContainer
+                            tint =
+                                if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
+                                else MaterialTheme.colorScheme.onBusyContainer
                         )
                     }
 
@@ -864,8 +781,9 @@ fun FriendItem(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Chat,
                                 contentDescription = stringResource(R.string.description_contact_options),
-                                tint = if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
-                                else MaterialTheme.colorScheme.onBusyContainer
+                                tint =
+                                    if (friend.isFreeNow) MaterialTheme.colorScheme.onAvailableContainer
+                                    else MaterialTheme.colorScheme.onBusyContainer
                             )
                         }
 
@@ -1055,7 +973,7 @@ fun FriendItem(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.description_friend_options),
                             tint = when {
-                                isPending -> MaterialTheme.colorScheme.onInactiveContainer
+                                isPending -> MaterialTheme.colorScheme.onPendingContainer
                                 friend.isFreeNow -> MaterialTheme.colorScheme.onAvailableContainer
                                 else -> MaterialTheme.colorScheme.onBusyContainer
                             }
