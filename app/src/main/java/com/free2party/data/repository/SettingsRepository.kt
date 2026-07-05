@@ -21,6 +21,7 @@ class SettingsRepository(private val context: Context) {
         val SHOWN_NOTIFICATION_IDS = stringSetPreferencesKey("shown_notification_ids")
         val LAST_USED_CIRCLE_ID = stringPreferencesKey("last_used_circle_id")
         val USE_LEGACY_GOOGLE_SIGN_IN = booleanPreferencesKey("use_legacy_google_sign_in")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
     val themeModeFlow: Flow<ThemeMode> = context.dataStore.data
@@ -28,6 +29,17 @@ class SettingsRepository(private val context: Context) {
             val themeName = preferences[PreferencesKeys.THEME_MODE] ?: ThemeMode.AUTOMATIC.name
             ThemeMode.valueOf(themeName)
         }
+
+    val onboardingCompletedFlow: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.ONBOARDING_COMPLETED] ?: false
+        }
+
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ONBOARDING_COMPLETED] = completed
+        }
+    }
 
     val gradientBackgroundFlow: Flow<Boolean> = context.dataStore.data
         .map { preferences ->

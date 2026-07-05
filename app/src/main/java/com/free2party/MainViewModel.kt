@@ -74,6 +74,7 @@ class MainViewModel @Inject constructor(
         private set
 
     val gradientBackgroundFlow = settingsRepository.gradientBackgroundFlow
+    val onboardingCompletedFlow = settingsRepository.onboardingCompletedFlow
 
     private val _navigateToRoute = MutableSharedFlow<String>()
     val navigateToRoute = _navigateToRoute.asSharedFlow()

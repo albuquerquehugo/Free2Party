@@ -1,7 +1,6 @@
 package com.free2party.ui.screens.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
@@ -42,21 +40,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.Membership
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.StatusPill
+import com.free2party.ui.components.ProfileAvatar
+import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
@@ -165,32 +163,16 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Large Centered Avatar with thick status border
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .shadow(elevation = 8.dp, shape = CircleShape, clip = false)
-                                .border(4.dp, statusColor, CircleShape)
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (uiState.profilePicUrl.isNotBlank()) {
-                                AsyncImage(
-                                    model = uiState.profilePicUrl,
-                                    contentDescription = stringResource(R.string.label_profile),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AccountCircle,
-                                    contentDescription = stringResource(R.string.label_profile),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                        }
+                        ProfileAvatar(
+                            modifier = Modifier.shadow(
+                                elevation = 8.dp,
+                                shape = CircleShape,
+                                clip = false
+                            ),
+                            size = ProfileAvatarSize.LARGE,
+                            profilePicUrl = uiState.profilePicUrl,
+                            statusColor = statusColor
+                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -211,38 +193,7 @@ fun ProfileScreen(
                         } else {
                             stringResource(uiState.userGender.getStringRes(R.string.label_status_busy))
                         }
-
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = statusColor.copy(alpha = 0.15f),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    color = statusColor.copy(alpha = 0.3f),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(horizontal = 16.dp, vertical = 6.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(statusColor, CircleShape)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = statusText,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = statusColor,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        StatusPill(isUserFree = uiState.isUserFree, text = statusText)
 
                         Spacer(modifier = Modifier.height(24.dp))
 

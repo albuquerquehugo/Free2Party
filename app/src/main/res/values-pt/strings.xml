@@ -11,8 +11,12 @@
     <string name="label_delete">Excluir</string>
     <string name="label_discard_changes">Descartar Alterações</string>
     <string name="label_edit">Editar</string>
+    <string name="label_everyone">Todos</string>
+    <string name="label_everyone_except_label">Todos, exceto…</string>
     <string name="label_logout">Sair</string>
+    <string name="label_nobody">Ninguém</string>
     <string name="label_ok">OK</string>
+    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
     <string name="label_or"> OU </string>
     <string name="label_remove">Remover</string>
     <string name="label_save">Salvar</string>
@@ -211,12 +215,9 @@
     <string name="label_birthday_display_format">Como outros verão seu aniversário?</string>
     <string name="label_date_format_colon">Formato da Data:</string>
     <string name="label_distance_unit_colon">Unidade de Distância:</string>
-    <string name="label_everyone">Todos</string>
-    <string name="label_everyone_except_label">Todos, exceto…</string>
-    <string name="label_nobody">Ninguém</string>
-    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
     <string name="label_preferences">Preferências</string>
     <string name="label_privacy">Privacidade</string>
+    <string name="label_replay_tutorial">Repetir Tutorial</string>
     <string name="label_settings">Configurações</string>
     <string name="label_theme_mode">Modo do Tema</string>
     <string name="label_theme_mode_colon">Modo do Tema:</string>
@@ -229,9 +230,9 @@
     <string name="option_miles">Milhas</string>
     <string name="option_solid">Sólido</string>
     <string name="option_twenty_four_hour">24 horas</string>
+    <string name="text_replay_tutorial">Veja novamente o guia de introdução interativo sobre como usar o aplicativo.</string>
     <string name="text_visibility_birthday">Quem pode ver seu aniversário?</string>
     <string name="toast_settings_updated">Configurações atualizadas com sucesso</string>
-
 
     <!-- Calendar -->
     <string name="description_next_month">Próximo mês</string>
@@ -341,10 +342,10 @@
     <string name="label_delete_event">Excluir Evento</string>
     <string name="label_delete_event_confirm">Tem certeza de que deseja excluir este evento? Esta ação não pode ser desfeita.</string>
     <string name="label_discard">Descartar</string>
-    <string name="label_distance_feet">%1$d ft de distância</string>
-    <string name="label_distance_km">%1$.1f km de distância</string>
-    <string name="label_distance_m">%1$d m de distância</string>
-    <string name="label_distance_miles">%1$.1f mi de distância</string>
+    <string name="label_distance_imperial_ft">%1$d ft</string>
+    <string name="label_distance_imperial_mi">%1$.1f mi</string>
+    <string name="label_distance_metric_km">%1$.1f km</string>
+    <string name="label_distance_metric_m">%1$d m</string>
     <string name="label_edit_event">Editar Evento</string>
     <string name="label_editing_comment">Editando comentário</string>
     <string name="label_event_details">Detalhes do Evento</string>
@@ -368,7 +369,8 @@
     <string name="label_link_title">Título</string>
     <string name="label_link_url">URL</string>
     <string name="label_location">Localização</string>
-    <string name="label_my_events">Meus Eventos</string>
+    <string name="label_tab_my_events">Meus Eventos</string>
+    <string name="label_tab_public">Públicos</string>
     <string name="label_no_events">Nenhum evento encontrado</string>
     <string name="label_no_guests_pending">Nenhum convidado pendente ainda</string>
     <string name="label_not_going">Não vai</string>
@@ -377,14 +379,14 @@
     <string name="label_pending">Pendente</string>
     <string name="label_photo_album">Álbum de Fotos</string>
     <string name="label_photos">Fotos</string>
-    <string name="label_photos_empty">Nenhuma foto compartilhada ainda. Envie a primeira!</string>
+    <string name="label_photos_empty">Nenhuma foto compartilhada ainda. Adicione a primeira!</string>
     <string name="label_post_comment">Enviar</string>
     <string name="label_private">Privado</string>
     <string name="label_public">Público</string>
-    <string name="label_rsvp">Sua Resposta</string>
+    <string name="label_rsvp">Confirme sua presença</string>
     <string name="label_timezone">Fuso Horário</string>
     <string name="label_timezone_search">Pesquisar Fuso Horário…</string>
-    <string name="label_upload_photo">Enviar Foto</string>
+    <string name="label_upload_photo">Adicionar Foto</string>
     <string name="label_useful_links">Links Úteis</string>
     <string name="label_you">Você</string>
     <string name="label_your_local_time">Seu horário local (Traduzido do original: %1$s @ %2$s %3$s)</string>
@@ -401,7 +403,7 @@
     <string name="toast_event_deleted">Evento excluído!</string>
     <string name="toast_event_updated">Evento atualizado com sucesso!</string>
     <string name="toast_photo_deleted">Foto excluída</string>
-    <string name="toast_photo_uploaded">Foto enviada com sucesso!</string>
+    <string name="toast_photo_uploaded">Foto adicionada com sucesso!</string>
 
     <!-- Errors & Exceptions -->
     <string name="error_auth">Erro de autenticação</string>
@@ -475,7 +477,7 @@
     <string name="error_updating_availability">Erro ao atualizar disponibilidade</string>
     <string name="error_updating_profile">Erro ao atualizar perfil</string>
     <string name="error_updating_settings">Erro ao atualizar configurações</string>
-    <string name="error_uploading_image">Erro ao enviar imagem</string>
+    <string name="error_uploading_image">Erro ao adicionar imagem</string>
     <string name="error_user_disabled">Esta conta de usuário foi desativada</string>
     <string name="error_user_not_found">Usuário não encontrado</string>
     <string name="error_weak_password">A senha é muito fraca</string>
@@ -623,4 +625,67 @@
     <string name="interest_yoga">Ioga</string>
     <string name="label_interests">Interesses</string>
     <string name="toast_interests_updated">Interesses atualizados com sucesso</string>
+
+    <!-- Onboarding Tutorial -->
+    <string name="label_onboarding">Tutorial</string>
+    <string name="label_skip">Pular</string>
+    <string name="label_next">Avançar</string>
+    <string name="label_get_started">Começar</string>
+    <string name="onboarding_text_availability">Altere facilmente sua disponibilidade. Quando estiver livre, seus amigos podem convidá-lo imediatamente.</string>
+    <string name="onboarding_text_availability_tutorial_note">*Ao longo deste tutorial, todas as dicas destacadas em azul são interativas! Tente alterar o status acima clicando no botão Free2Party.</string>
+    <string name="onboarding_text_create_event">Agende facilmente eventos especificando o título, descrição, local, data, hora, privacidade (Público/Privado) e convidando amigos ou Círculos personalizados.</string>
+    <string name="onboarding_text_event_details_rsvp">Abra um evento para confirmar sua presença, conferir a lista de convidados, adicionar fotos e usar a seção de comentários para combinar os detalhes.</string>
+    <string name="onboarding_text_events">Agende eventos, convide amigos ou círculos inteiros, responda ao convite ao vivo e converse na seção de comentários para fechar os planos.</string>
+    <string name="onboarding_text_events_overview">Acompanhe seus eventos, convites e encontros públicos em um painel unificado.</string>
+    <string name="onboarding_text_friends_circles">Veja o status de seus amigos ao vivo. Agrupe-os em Círculos personalizados para filtrar listas ou gerenciar a privacidade.</string>
+    <string name="onboarding_text_hint_add_friends">Adicione seus amigos usando o nome ou e-mail</string>
+    <string name="onboarding_text_hint_calendar">Veja os planos dos seus amigos</string>
+    <string name="onboarding_text_hint_create_event_title">Defina o título do evento</string>
+    <string name="onboarding_text_hint_create_event_privacy">Defina a privacidade do evento</string>
+    <string name="onboarding_text_hint_create_event_confirm">Confirme para criar o evento</string>
+    <string name="onboarding_text_hint_details_comment">Adicione um comentário ao evento</string>
+    <string name="onboarding_text_hint_details_photos">Adicione fotos ao álbum do evento</string>
+    <string name="onboarding_text_hint_details_rsvp">Responda ao convite do evento</string>
+    <string name="onboarding_text_hint_events_filter">Filtre eventos por status</string>
+    <string name="onboarding_text_hint_events_add">Crie um novo evento</string>
+    <string name="onboarding_text_hint_events_tabs">Alterne entre as categorias de eventos</string>
+    <string name="onboarding_text_hint_events_public">Pesquise eventos públicos por título, descrição, local ou organizador</string>
+    <string name="onboarding_text_hint_events_tap">Veja detalhes do evento e responda ao convite</string>
+    <string name="onboarding_text_hint_filter_circles">Restrinja a lista de amigos aos seus círculos</string>
+    <string name="onboarding_text_hint_message_friends">Envie uma mensagem aos seus amigos</string>
+    <string name="onboarding_text_make_busy">Toque no botão para ficar ocupado!</string>
+    <string name="onboarding_text_make_free">Toque no botão para ficar livre!</string>
+    <string name="onboarding_text_ready">Pronto para simplificar sua vida social? Comece adicionando amigos e criando planos e eventos. Vamos botar pra quebrar!</string>
+    <string name="onboarding_text_welcome">Coordene planos, crie e responda a eventos, e veja quem está disponível para um encontro num piscar de olhos, em tempo real.</string>
+    <string name="onboarding_title_availability">Disponibilidade em tempo real</string>
+    <string name="onboarding_title_create_event">Criar Evento</string>
+    <string name="onboarding_title_event_details_rsvp">Responder e Coordenar</string>
+    <string name="onboarding_title_events">Eventos e RSVP</string>
+    <string name="onboarding_title_events_overview">Visão Geral dos Eventos</string>
+    <string name="onboarding_title_friends_circles">Amigos e Círculos</string>
+    <string name="onboarding_title_ready">Tudo pronto!</string>
+    <string name="onboarding_title_welcome">Bem-vindo ao Free2Party!</string>
+
+    <!-- Onboarding Mock UI Components -->
+    <string name="onboarding_mock_circle_close_friends">Amigos Próximos</string>
+    <string name="onboarding_mock_circle_family">Família</string>
+    <string name="onboarding_mock_comment_1">Opa, pizza parece ótimo!</string>
+    <string name="onboarding_mock_comment_2">Pode contar comigo!</string>
+    <string name="onboarding_mock_create_event_description">Vamos nos reunir para comer pizza na Mio Pizza!</string>
+    <string name="onboarding_mock_event_artwalk_title">Caminhada de Arte no Centro</string>
+    <string name="onboarding_mock_event_distance1">1,2 km</string>
+    <string name="onboarding_mock_event_distance2">2,5 km</string>
+    <string name="onboarding_mock_event_distance3">4 km</string>
+    <string name="onboarding_mock_event_host1">Joana Silva</string>
+    <string name="onboarding_mock_event_host2">João Gonçalves</string>
+    <string name="onboarding_mock_event_location_artwalk">Centro</string>
+    <string name="onboarding_mock_event_location_pizza">Mio Pizza</string>
+    <string name="onboarding_mock_event_location_volleyball">Praia do Forte</string>
+    <string name="onboarding_mock_event_pizza_title">Rodízio de Pizza na Sexta</string>
+    <string name="onboarding_mock_event_time_artwalk">Dom, 12 de Jul @ 16:00</string>
+    <string name="onboarding_mock_event_time_pizza">Sáb, 11 de Jul @ 19:00</string>
+    <string name="onboarding_mock_event_time_volleyball">Sex, 10 de Jul @ 18:00</string>
+    <string name="onboarding_mock_event_volleyball_title">Vôlei de Praia de Sábado</string>
+    <string name="onboarding_mock_friend_alice">Alice</string>
+    <string name="onboarding_mock_friend_bob">Beto</string>
 </resources>

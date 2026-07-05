@@ -11,8 +11,12 @@
     <string name="label_delete">Delete</string>
     <string name="label_discard_changes">Discard Changes</string>
     <string name="label_edit">Edit</string>
+    <string name="label_everyone">Everyone</string>
+    <string name="label_everyone_except_label">Everyone except…</string>
     <string name="label_logout">Logout</string>
+    <string name="label_nobody">Nobody</string>
     <string name="label_ok">OK</string>
+    <string name="label_only_selected_people_label">Only selected people…</string>
     <string name="label_or"> OR </string>
     <string name="label_remove">Remove</string>
     <string name="label_save">Save</string>
@@ -210,12 +214,9 @@
     <string name="label_birthday_display_format">How others will see your birthday?</string>
     <string name="label_date_format_colon">Date Format:</string>
     <string name="label_distance_unit_colon">Distance Unit:</string>
-    <string name="label_everyone">Everyone</string>
-    <string name="label_everyone_except_label">Everyone except…</string>
-    <string name="label_nobody">Nobody</string>
-    <string name="label_only_selected_people_label">Only selected people…</string>
     <string name="label_preferences">Preferences</string>
     <string name="label_privacy">Privacy</string>
+    <string name="label_replay_tutorial">Replay Tutorial</string>
     <string name="label_settings">Settings</string>
     <string name="label_theme_mode">Theme Mode</string>
     <string name="label_theme_mode_colon">Theme Mode:</string>
@@ -228,9 +229,9 @@
     <string name="option_miles">Miles</string>
     <string name="option_solid">Solid</string>
     <string name="option_twenty_four_hour">24-hour</string>
+    <string name="text_replay_tutorial">Watch again the interactive introduction guide on how to use the app.</string>
     <string name="text_visibility_birthday">Who can see your birthday?</string>
     <string name="toast_settings_updated">Settings updated successfully</string>
-
 
     <!-- Calendar -->
     <string name="description_next_month">Next month</string>
@@ -340,10 +341,10 @@
     <string name="label_delete_event">Delete Event</string>
     <string name="label_delete_event_confirm">Are you sure you want to delete this event? This action cannot be undone.</string>
     <string name="label_discard">Discard</string>
-    <string name="label_distance_feet">%1$d ft away</string>
-    <string name="label_distance_km">%1$.1f km away</string>
-    <string name="label_distance_m">%1$d m away</string>
-    <string name="label_distance_miles">%1$.1f mi away</string>
+    <string name="label_distance_imperial_ft">%1$d ft</string>
+    <string name="label_distance_imperial_mi">%1$.1f mi</string>
+    <string name="label_distance_metric_km">%1$.1f km</string>
+    <string name="label_distance_metric_m">%1$d m</string>
     <string name="label_edit_event">Edit Event</string>
     <string name="label_editing_comment">Editing comment</string>
     <string name="label_event_details">Event Details</string>
@@ -366,7 +367,8 @@
     <string name="label_link_title">Title</string>
     <string name="label_link_url">URL</string>
     <string name="label_location">Location</string>
-    <string name="label_my_events">My Events</string>
+    <string name="label_tab_my_events">My Events</string>
+    <string name="label_tab_public">Public</string>
     <string name="label_no_events">No events found</string>
     <string name="label_no_guests_pending">No guests pending yet</string>
     <string name="label_not_going">Not Going</string>
@@ -621,4 +623,67 @@
     <string name="interest_yoga">Yoga</string>
     <string name="label_interests">Interests</string>
     <string name="toast_interests_updated">Interests updated successfully</string>
+
+    <!-- Onboarding Tutorial -->
+    <string name="label_get_started">Get Started</string>
+    <string name="label_onboarding">Tutorial</string>
+    <string name="label_next">Next</string>
+    <string name="label_skip">Skip</string>
+    <string name="onboarding_text_availability">Easily change your availability. When you are free, friends can invite you immediately.</string>
+    <string name="onboarding_text_availability_tutorial_note">*Throughout this tutorial, all blue-highlighted hints are fully interactive! Try toggling the status above by clicking the Free2Party button.</string>
+    <string name="onboarding_text_create_event">Easily schedule events by specifying the title, description, location, date, time, privacy (Public/Private), and inviting friends or custom Circles.</string>
+    <string name="onboarding_text_event_details_rsvp">Open an event to RSVP, check the guest list, upload photos, and use the comments section to coordinate details.</string>
+    <string name="onboarding_text_events">Schedule events, invite friends or full circles, RSVP live, and chat in the comments thread to lock down plans.</string>
+    <string name="onboarding_text_events_overview">Keep track of your events, invitations, and public get-togethers in one unified dashboard.</string>
+    <string name="onboarding_text_friends_circles">See your friends\' status live. Group them into custom Circles to filter lists or manage privacy.</string>
+    <string name="onboarding_text_hint_add_friends">Add your friends using their name or email</string>
+    <string name="onboarding_text_hint_calendar">See your friends\' plans</string>
+    <string name="onboarding_text_hint_create_event_title">Set event title</string>
+    <string name="onboarding_text_hint_create_event_privacy">Set event privacy</string>
+    <string name="onboarding_text_hint_create_event_confirm">Confirm to create event</string>
+    <string name="onboarding_text_hint_details_comment">Add a comment to the event</string>
+    <string name="onboarding_text_hint_details_photos">Upload photos to the event album</string>
+    <string name="onboarding_text_hint_details_rsvp">RSVP to event invite</string>
+    <string name="onboarding_text_hint_events_filter">Filter events by status</string>
+    <string name="onboarding_text_hint_events_add">Create a new event</string>
+    <string name="onboarding_text_hint_events_tabs">Switch between event categories</string>
+    <string name="onboarding_text_hint_events_public">Search public events by title, description, location or host</string>
+    <string name="onboarding_text_hint_events_tap">View event details and RSVP</string>
+    <string name="onboarding_text_hint_filter_circles">Restrict the friend list within your circles</string>
+    <string name="onboarding_text_hint_message_friends">Send a message to your friends</string>
+    <string name="onboarding_text_make_busy">Tap the button to make yourself busy!</string>
+    <string name="onboarding_text_make_free">Tap the button to make yourself free!</string>
+    <string name="onboarding_text_ready">Ready to simplify your social life? Start adding friends and creating plans and events. Let\'s rock!</string>
+    <string name="onboarding_text_welcome">Coordinate plans, create and respond to events, and see who is available to meet at a glance, in real-time.</string>
+    <string name="onboarding_title_availability">Real-time Availability</string>
+    <string name="onboarding_title_create_event">Create Event</string>
+    <string name="onboarding_title_event_details_rsvp">Respond &amp; Coordinate</string>
+    <string name="onboarding_title_events">Events &amp; RSVP</string>
+    <string name="onboarding_title_events_overview">Events Overview</string>
+    <string name="onboarding_title_friends_circles">Friends &amp; Circles</string>
+    <string name="onboarding_title_ready">You\'re All Set!</string>
+    <string name="onboarding_title_welcome">Welcome to Free2Party!</string>
+
+    <!-- Onboarding Mock UI Components -->
+    <string name="onboarding_mock_circle_close_friends">Close Friends</string>
+    <string name="onboarding_mock_circle_family">Family</string>
+    <string name="onboarding_mock_comment_1">Hey, pizza sounds awesome!</string>
+    <string name="onboarding_mock_comment_2">Count me in!</string>
+    <string name="onboarding_mock_create_event_description">Let\'s get together for pizza at Mio Pizza!</string>
+    <string name="onboarding_mock_event_artwalk_title">Downtown Art Walk</string>
+    <string name="onboarding_mock_event_distance1">1.2 km</string>
+    <string name="onboarding_mock_event_distance2">2.5 km</string>
+    <string name="onboarding_mock_event_distance3">4 km</string>
+    <string name="onboarding_mock_event_host1">Jane Doe</string>
+    <string name="onboarding_mock_event_host2">John Smith</string>
+    <string name="onboarding_mock_event_location_artwalk">Downtown</string>
+    <string name="onboarding_mock_event_location_pizza">Mio Pizza</string>
+    <string name="onboarding_mock_event_location_volleyball">Sunset Beach</string>
+    <string name="onboarding_mock_event_pizza_title">Friday Night Pizza</string>
+    <string name="onboarding_mock_event_time_artwalk">Sun, Jul 12 @ 4:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_time_pizza">Sat, Jul 11 @ 7:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_time_volleyball">Fri, Jul 10 @ 6:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_volleyball_title">Saturday Beach Volleyball</string>
+    <string name="onboarding_mock_friend_alice">Alice</string>
+    <string name="onboarding_mock_friend_bob">Bob</string>
 </resources>

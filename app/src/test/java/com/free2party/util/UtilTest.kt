@@ -197,22 +197,22 @@ class UtilTest {
     fun `formatDistance formatting for Kilometers and Miles`() {
         val context = mockk<android.content.Context>(relaxed = true)
 
-        every { context.getString(com.free2party.R.string.label_distance_m, any()) } answers {
+        every { context.getString(com.free2party.R.string.label_distance_metric_m, any()) } answers {
             val formatArgs = secondArg<Any>()
             val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
             "$value m away"
         }
-        every { context.getString(com.free2party.R.string.label_distance_km, any()) } answers {
+        every { context.getString(com.free2party.R.string.label_distance_metric_km, any()) } answers {
             val formatArgs = secondArg<Any>()
             val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
             "$value km away"
         }
-        every { context.getString(com.free2party.R.string.label_distance_feet, any()) } answers {
+        every { context.getString(com.free2party.R.string.label_distance_imperial_ft, any()) } answers {
             val formatArgs = secondArg<Any>()
             val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
             "$value ft away"
         }
-        every { context.getString(com.free2party.R.string.label_distance_miles, any()) } answers {
+        every { context.getString(com.free2party.R.string.label_distance_imperial_mi, any()) } answers {
             val formatArgs = secondArg<Any>()
             val value = if (formatArgs is Array<*>) formatArgs[0] else formatArgs
             "$value mi away"

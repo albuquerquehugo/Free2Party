@@ -109,6 +109,7 @@ import com.free2party.ui.screens.profile.InterestsRoute
 import com.free2party.ui.screens.profile.ProfileRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
+import com.free2party.ui.screens.onboarding.OnboardingRoute
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
 import com.free2party.util.TextFieldRegistry
@@ -222,6 +223,11 @@ sealed class Screen(
         route = "appearance",
         labelResId = R.string.label_appearance
     )
+
+    object Onboarding : Screen(
+        route = "onboarding",
+        labelResId = R.string.label_onboarding
+    )
 }
 
 val BottomNavItems = listOf(
@@ -252,12 +258,16 @@ fun AppNavigation(
                 putString(com.google.firebase.analytics.FirebaseAnalytics.Param.SCREEN_NAME, route)
                 putString(com.google.firebase.analytics.FirebaseAnalytics.Param.SCREEN_CLASS, route)
             }
-            analytics.logEvent(com.google.firebase.analytics.FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+            analytics.logEvent(
+                com.google.firebase.analytics.FirebaseAnalytics.Event.SCREEN_VIEW,
+                bundle
+            )
         }
     }
 
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
     val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
+    val onboardingCompleted by mainViewModel.onboardingCompletedFlow.collectAsState(initial = null)
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -273,85 +283,91 @@ fun AppNavigation(
         }
     }
 
-    AppBackground(enabled = gradientBackground) {
-        Scaffold(
-            topBar = {
-                val isOnline by mainViewModel.isOnline.collectAsState()
-                AnimatedVisibility(
-                    visible = !isOnline,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.error)
-                            .statusBarsPadding()
-                            .padding(vertical = 8.dp, horizontal = 16.dp),
-                        contentAlignment = Alignment.Center
+    if (onboardingCompleted != null) {
+        AppBackground(enabled = gradientBackground) {
+            Scaffold(
+                topBar = {
+                    val isOnline by mainViewModel.isOnline.collectAsState()
+                    AnimatedVisibility(
+                        visible = !isOnline,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.error)
+                                .statusBarsPadding()
+                                .padding(vertical = 8.dp, horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.WifiOff,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onError,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.offline_banner_message),
-                                color = MaterialTheme.colorScheme.onError,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            },
-            containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
-            bottomBar = {
-                if (showBottomBar) {
-                    BottomNavigationBar(
-                        navController,
-                        notificationsViewModel,
-                        eventsViewModel,
-                        mainViewModel
-                    )
-                }
-            }
-        ) { innerPadding ->
-            var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .onGloballyPositioned { rootCoordinates = it }
-                    .pointerInput(rootCoordinates) {
-                        awaitEachGesture {
-                            val down = awaitFirstDown(pass = PointerEventPass.Initial)
-                            val isInsideTextField = TextFieldRegistry.isPointInsideAnyTextField(
-                                down.position,
-                                rootCoordinates
-                            )
-                            if (!isInsideTextField) {
-                                val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                                if (up != null) {
-                                    focusManager.clearFocus(force = true)
-                                    keyboardController?.hide()
-                                }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.WifiOff,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onError,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.offline_banner_message),
+                                    color = MaterialTheme.colorScheme.onError,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
                             }
                         }
                     }
-                    .focusable()
-            ) {
-                Free2PartyNavGraph(
-                    navController = navController,
-                    notificationsViewModel = notificationsViewModel,
-                    startDestinationOverride = startDestination
-                )
+                },
+                containerColor =
+                    if (gradientBackground) Color.Transparent
+                    else MaterialTheme.colorScheme.surface,
+                bottomBar = {
+                    if (showBottomBar) {
+                        BottomNavigationBar(
+                            navController,
+                            notificationsViewModel,
+                            eventsViewModel,
+                            mainViewModel
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .onGloballyPositioned { rootCoordinates = it }
+                        .pointerInput(rootCoordinates) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(pass = PointerEventPass.Initial)
+                                val isInsideTextField = TextFieldRegistry.isPointInsideAnyTextField(
+                                    down.position,
+                                    rootCoordinates
+                                )
+                                if (!isInsideTextField) {
+                                    val up =
+                                        waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                                    if (up != null) {
+                                        focusManager.clearFocus(force = true)
+                                        keyboardController?.hide()
+                                    }
+                                }
+                            }
+                        }
+                        .focusable()
+                ) {
+                    Free2PartyNavGraph(
+                        navController = navController,
+                        notificationsViewModel = notificationsViewModel,
+                        onboardingCompleted = onboardingCompleted ?: false,
+                        startDestinationOverride = startDestination
+                    )
+                }
             }
         }
     }
@@ -368,19 +384,21 @@ fun FloatingHomeButton(
         label = "HomeScale"
     )
     val startColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(
-            alpha = 0.7f
-        ),
+        targetValue =
+            if (isSelected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
         label = "HomeStartColor"
     )
     val endColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant.copy(
-            alpha = 0.7f
-        ),
+        targetValue =
+            if (isSelected) MaterialTheme.colorScheme.secondary
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
         label = "HomeEndColor"
     )
     val iconTint by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue =
+            if (isSelected) MaterialTheme.colorScheme.onPrimary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "HomeIconTint"
     )
     val elevation = if (isSelected) 12.dp else 0.dp
@@ -512,9 +530,13 @@ fun BottomNavigationBar(
                                             badge = { Badge { Text(totalUnread.toString()) } }
                                         ) {
                                             Icon(
-                                                imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                                imageVector =
+                                                    if (isSelected) screen.iconSelected!!
+                                                    else screen.icon!!,
                                                 contentDescription = label,
-                                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                tint =
+                                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(28.dp)
                                             )
                                         }
@@ -525,9 +547,13 @@ fun BottomNavigationBar(
                                             badge = { Badge { Text(pendingInvitationsCount.toString()) } }
                                         ) {
                                             Icon(
-                                                imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                                imageVector =
+                                                    if (isSelected) screen.iconSelected!!
+                                                    else screen.icon!!,
                                                 contentDescription = label,
-                                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                tint =
+                                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(28.dp)
                                             )
                                         }
@@ -562,7 +588,9 @@ fun BottomNavigationBar(
                                                 Icon(
                                                     imageVector = Icons.Default.Person,
                                                     contentDescription = label,
-                                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    tint =
+                                                        if (isSelected) MaterialTheme.colorScheme.primary
+                                                        else MaterialTheme.colorScheme.onSurfaceVariant,
                                                     modifier = Modifier.fillMaxSize()
                                                 )
                                             }
@@ -571,9 +599,13 @@ fun BottomNavigationBar(
 
                                     else -> {
                                         Icon(
-                                            imageVector = if (isSelected) screen.iconSelected!! else screen.icon!!,
+                                            imageVector =
+                                                if (isSelected) screen.iconSelected!!
+                                                else screen.icon!!,
                                             contentDescription = label,
-                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            tint =
+                                                if (isSelected) MaterialTheme.colorScheme.primary
+                                                else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(28.dp)
                                         )
                                     }
@@ -606,12 +638,17 @@ fun BottomNavigationBar(
 fun Free2PartyNavGraph(
     navController: NavHostController,
     notificationsViewModel: NotificationsViewModel,
+    onboardingCompleted: Boolean,
     modifier: Modifier = Modifier,
     startDestinationOverride: String? = null
 ) {
-    val startDest = remember(startDestinationOverride) {
+    val startDest = remember(startDestinationOverride, onboardingCompleted) {
         startDestinationOverride
-            ?: if (Firebase.auth.currentUser != null) Screen.Home.route else Screen.Login.route
+            ?: if (Firebase.auth.currentUser != null) {
+                if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+            } else {
+                Screen.Login.route
+            }
     }
 
     NavHost(
@@ -623,7 +660,9 @@ fun Free2PartyNavGraph(
             LoginRoute(
                 viewModel = hiltViewModel(),
                 onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
+                    val dest =
+                        if (onboardingCompleted) Screen.Home.route else Screen.Onboarding.route
+                    navController.navigate(dest) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -645,6 +684,17 @@ fun Free2PartyNavGraph(
                 },
                 onBackToLogin = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.Onboarding.route) {
+            OnboardingRoute(
+                viewModel = hiltViewModel(),
+                onOnboardingComplete = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -813,7 +863,10 @@ fun Free2PartyNavGraph(
         composable(Screen.Settings.route) {
             SettingsRoute(
                 viewModel = hiltViewModel(),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToOnboarding = {
+                    navController.navigate(Screen.Onboarding.route)
+                }
             )
         }
     }

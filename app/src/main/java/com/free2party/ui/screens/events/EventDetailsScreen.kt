@@ -269,7 +269,7 @@ fun EventDetailsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = ev.title,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -416,7 +416,7 @@ fun EventDetailsScreen(
                                     text = ev.locationName,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2,
+                                    maxLines = 3,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
@@ -594,8 +594,7 @@ fun EventDetailsScreen(
                         text = stringResource(R.string.label_guests, ev.guests.size),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (isHost && visibleGuests.isNotEmpty()) {
                         val acceptedCount = remember(visibleGuests) {
@@ -878,21 +877,19 @@ fun EventDetailsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        Text(
+                            text = stringResource(R.string.label_photo_album),
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
                         Box(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = stringResource(R.string.label_photo_album),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .align(Alignment.TopStart)
-                                    .padding(top = 4.dp)
-                            )
                             TextButton(
                                 onClick = { photoPickerLauncher.launch("image/*") },
-                                modifier = Modifier.align(Alignment.CenterEnd)
+                                modifier = Modifier.align(Alignment.Center)
                             ) {
                                 Icon(Icons.Default.AddAPhoto, contentDescription = null)
                                 Spacer(modifier = Modifier.width(6.dp))
@@ -956,11 +953,8 @@ fun EventDetailsScreen(
                         text = stringResource(R.string.label_comments),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
 
                     if (comments.isEmpty()) {
                         Text(

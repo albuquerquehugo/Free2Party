@@ -173,7 +173,7 @@ fun EventsScreen(
                 color = MaterialTheme.colorScheme.onSurface,
                 showBackButton = false,
                 onBack = {},
-                action = {
+                titleStartAction = {
                     val isFilterActive = eventFilter != EventFilter.ALL
                     Box {
                         IconButton(onClick = { showFilterMenu = true }) {
@@ -307,6 +307,15 @@ fun EventsScreen(
                             )
                         }
                     }
+                },
+                titleEndAction = {
+                    IconButton(onClick = onNavigateToCreateEvent) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.label_create_event),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             )
 
@@ -322,7 +331,7 @@ fun EventsScreen(
                     onClick = { onTabSelected(0) },
                     text = {
                         Text(
-                            stringResource(R.string.label_my_events),
+                            stringResource(R.string.label_tab_my_events),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -353,7 +362,7 @@ fun EventsScreen(
                     onClick = { onTabSelected(2) },
                     text = {
                         Text(
-                            stringResource(R.string.label_public),
+                            stringResource(R.string.label_tab_public),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -382,7 +391,7 @@ fun EventsScreen(
                 )
             }
 
-            // Content based on tab (wrapped in weight box to push AdBanner to the bottom)
+            // Content based on tab
             Box(
                 modifier = Modifier.weight(1f)
             ) {
@@ -453,24 +462,6 @@ fun EventsScreen(
             if (membership == Membership.REGULAR) {
                 AdBanner()
             }
-        }
-
-        FloatingActionButton(
-            onClick = onNavigateToCreateEvent,
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-            shape = CircleShape,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = 16.dp,
-                    bottom = if (membership == Membership.REGULAR) 66.dp else 16.dp
-                )
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = stringResource(R.string.label_create_event)
-            )
         }
     }
 }
@@ -616,6 +607,8 @@ fun EventCard(
                 )
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Location
             if (event.locationName.isNotBlank() || distanceText != null) {
                 Spacer(modifier = Modifier.height(6.dp))
@@ -650,8 +643,9 @@ fun EventCard(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             // Guests Count & Type indicator
-            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
