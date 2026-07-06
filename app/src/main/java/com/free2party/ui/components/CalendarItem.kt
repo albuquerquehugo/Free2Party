@@ -508,11 +508,10 @@ fun EventItem(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val hostString = if (isHost) {
-                        stringResource(R.string.label_hosted_by, R.string.label_you)
-                    } else {
-                        stringResource(R.string.label_hosted_by, event.hostName)
-                    }
+                    val hostString = stringResource(
+                        R.string.label_hosted_by,
+                        if (isHost) stringResource(R.string.label_you) else event.hostName
+                    )
                     Text(
                         text = "$hostString • ${event.locationName}",
                         style = MaterialTheme.typography.bodySmall,
