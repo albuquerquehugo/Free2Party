@@ -173,9 +173,7 @@ fun EventsScreen(
             .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TopBar(

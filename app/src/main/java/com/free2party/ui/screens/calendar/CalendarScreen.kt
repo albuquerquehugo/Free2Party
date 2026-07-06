@@ -215,8 +215,7 @@ fun CalendarScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface)
-            .padding(top = 16.dp),
+            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TopBar(showBackButton = false, onBack = {})
@@ -300,7 +299,7 @@ fun CalendarScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(16.dp),
+                    .padding(start = 16.dp, top = 16.dp, end = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 MonthCalendar(
@@ -342,6 +341,7 @@ fun CalendarScreen(
                     currentTimeMillis = currentTimeMillis,
                     use24HourFormat = use24HourFormat,
                     friends = friends,
+                    modifier = Modifier.weight(1f),
                     gradientBackground = gradientBackground,
                     onEditPlan = { entry ->
                         editingPlan = entry.plan

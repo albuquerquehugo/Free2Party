@@ -358,7 +358,7 @@ fun HomeContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             StatusToggleButton(
                 isUserFree = isUserFree,
@@ -369,8 +369,6 @@ fun HomeContent(
                 isActionLoading = isActionLoading,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             FriendsListSection(
                 friends = friendsList,

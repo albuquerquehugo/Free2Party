@@ -118,8 +118,7 @@ fun ProfileScreen(
             .background(
                 if (gradientBackground) Color.Transparent
                 else MaterialTheme.colorScheme.surface
-            )
-            .padding(top = 16.dp),
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TopBar(

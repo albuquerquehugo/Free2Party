@@ -136,8 +136,7 @@ fun NotificationsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface)
-            .padding(top = 16.dp),
+            .background(if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val titleText = if (itemsUnreadCount > 0) {
@@ -185,7 +184,7 @@ fun NotificationsScreen(
                             AppHorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp,
-                                modifier = Modifier.padding(top = 24.dp)
+                                modifier = Modifier.padding(top = 16.dp)
                             )
                         }
                         items(requests, key = { it.id }) { item ->
@@ -208,8 +207,7 @@ fun NotificationsScreen(
                             TextButton(
                                 enabled = notificationsUnreadCount > 0,
                                 onClick = onMarkAllAsRead,
-                                shape = MaterialTheme.shapes.small,
-                                modifier = Modifier.padding(top = 8.dp)
+                                shape = MaterialTheme.shapes.small
                             ) {
                                 Text(stringResource(R.string.label_mark_all_as_read))
                             }
