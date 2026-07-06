@@ -135,7 +135,7 @@ fun LiveEventDetailsRsvpPreview() {
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = stringResource(R.string.onboarding_mock_create_event_description),
+                            text = stringResource(R.string.onboarding_mock_event_pizza_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -170,7 +170,7 @@ fun LiveEventDetailsRsvpPreview() {
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
-                                    text = stringResource(R.string.onboarding_mock_event_time_pizza),
+                                    text = stringResource(R.string.onboarding_mock_event_pizza_date),
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -237,7 +237,7 @@ fun LiveEventDetailsRsvpPreview() {
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = stringResource(R.string.onboarding_mock_event_location_pizza),
+                                    text = stringResource(R.string.onboarding_mock_event_pizza_location),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 2,

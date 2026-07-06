@@ -38,7 +38,7 @@ fun OnboardingRoute(
 fun OnboardingScreen(
     onComplete: () -> Unit
 ) {
-    val pagerState = rememberPagerState(pageCount = { 6 })
+    val pagerState = rememberPagerState(pageCount = { 7 })
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -46,7 +46,7 @@ fun OnboardingScreen(
         bottomBar = {
             OnboardingBottomBar(
                 currentPage = pagerState.currentPage,
-                pageCount = 6,
+                pageCount = 7,
                 onNext = {
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
@@ -90,6 +90,7 @@ fun OnboardingContent(
             2 -> R.string.onboarding_title_friends_circles
             3 -> R.string.onboarding_title_events_overview
             4 -> R.string.onboarding_title_event_details_rsvp
+            5 -> R.string.onboarding_title_calendar
             else -> R.string.onboarding_title_ready
         }
 
@@ -99,6 +100,7 @@ fun OnboardingContent(
             2 -> R.string.onboarding_text_friends_circles
             3 -> R.string.onboarding_text_events_overview
             4 -> R.string.onboarding_text_event_details_rsvp
+            5 -> R.string.onboarding_text_calendar
             else -> R.string.onboarding_text_ready
         }
 
@@ -137,6 +139,7 @@ fun OnboardingContent(
                 2 -> LiveFriendsCirclesPreview()
                 3 -> LiveEventsOverviewPreview()
                 4 -> LiveEventDetailsRsvpPreview()
+                5 -> LiveCalendarPreview()
                 else -> ReadyToPartyPreview()
             }
         }

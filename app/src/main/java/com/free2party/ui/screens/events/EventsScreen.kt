@@ -53,6 +53,8 @@ import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onAvailableContainer
 import com.free2party.ui.theme.onBusyContainer
 import com.free2party.ui.theme.onEventContainer
+import com.free2party.ui.theme.onPendingContainer
+import com.free2party.ui.theme.pendingContainer
 import com.free2party.util.calculateHaversineDistance
 import com.free2party.util.formatDistance
 import com.free2party.util.formatPlanDateInFull
@@ -637,14 +639,14 @@ fun EventCard(
                         color = when (myStatus) {
                             GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.onAvailableContainer
                             GuestStatus.DECLINED -> MaterialTheme.colorScheme.onBusyContainer
-                            GuestStatus.PENDING -> MaterialTheme.colorScheme.onPrimaryContainer
+                            GuestStatus.PENDING -> MaterialTheme.colorScheme.onPendingContainer
                         },
                         modifier = Modifier
                             .background(
                                 when (myStatus) {
                                     GuestStatus.ACCEPTED -> MaterialTheme.colorScheme.availableContainer
                                     GuestStatus.DECLINED -> MaterialTheme.colorScheme.busyContainer
-                                    GuestStatus.PENDING -> MaterialTheme.colorScheme.primaryContainer
+                                    GuestStatus.PENDING -> MaterialTheme.colorScheme.pendingContainer
                                 }, CircleShape
                             )
                             .padding(horizontal = 10.dp, vertical = 2.dp)

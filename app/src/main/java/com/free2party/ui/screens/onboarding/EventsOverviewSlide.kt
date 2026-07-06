@@ -39,6 +39,8 @@ import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onAvailableContainer
 import com.free2party.ui.theme.onEventContainer
+import com.free2party.ui.theme.onPendingContainer
+import com.free2party.ui.theme.pendingContainer
 
 @Composable
 fun LiveEventsOverviewPreview() {
@@ -356,8 +358,8 @@ fun LiveEventsOverviewPreview() {
                                 MockEventCard(
                                     title = stringResource(R.string.onboarding_mock_event_pizza_title),
                                     hostName = null,
-                                    dateText = stringResource(R.string.onboarding_mock_event_time_pizza),
-                                    locationText = "${stringResource(R.string.onboarding_mock_event_location_pizza)} (${
+                                    dateText = stringResource(R.string.onboarding_mock_event_pizza_date),
+                                    locationText = "${stringResource(R.string.onboarding_mock_event_pizza_location)} (${
                                         stringResource(
                                             R.string.onboarding_mock_event_distance2
                                         )
@@ -375,8 +377,8 @@ fun LiveEventsOverviewPreview() {
                                     MockEventCard(
                                         title = stringResource(R.string.onboarding_mock_event_volleyball_title),
                                         hostName = stringResource(R.string.onboarding_mock_event_host1),
-                                        dateText = stringResource(R.string.onboarding_mock_event_time_volleyball),
-                                        locationText = "${stringResource(R.string.onboarding_mock_event_location_volleyball)} (${
+                                        dateText = stringResource(R.string.onboarding_mock_event_volleyball_date),
+                                        locationText = "${stringResource(R.string.onboarding_mock_event_volleyball_location)} (${
                                             stringResource(
                                                 R.string.onboarding_mock_event_distance3
                                             )
@@ -384,8 +386,8 @@ fun LiveEventsOverviewPreview() {
                                         guestCount = 5,
                                         isPublic = false,
                                         statusText = stringResource(R.string.label_pending),
-                                        statusBackground = MaterialTheme.colorScheme.primaryContainer,
-                                        statusColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        statusBackground = MaterialTheme.colorScheme.pendingContainer,
+                                        statusColor = MaterialTheme.colorScheme.onPendingContainer,
                                         durationText = "2h"
                                     )
                                 }
@@ -398,8 +400,8 @@ fun LiveEventsOverviewPreview() {
                                     MockEventCard(
                                         title = stringResource(R.string.onboarding_mock_event_artwalk_title),
                                         hostName = stringResource(R.string.onboarding_mock_event_host2),
-                                        dateText = stringResource(R.string.onboarding_mock_event_time_artwalk),
-                                        locationText = "${stringResource(R.string.onboarding_mock_event_location_artwalk)} (${
+                                        dateText = stringResource(R.string.onboarding_mock_event_artwalk_date),
+                                        locationText = "${stringResource(R.string.onboarding_mock_event_artwalk_location)} (${
                                             stringResource(
                                                 R.string.onboarding_mock_event_distance1
                                             )

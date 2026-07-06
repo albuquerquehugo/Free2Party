@@ -84,7 +84,7 @@ fun MonthCalendar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.colorScheme.primary,
                     contentDescription = stringResource(R.string.description_previous_month)
                 )
             }
@@ -120,7 +120,7 @@ fun MonthCalendar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.colorScheme.primary,
                     contentDescription = stringResource(R.string.description_next_month)
                 )
             }
