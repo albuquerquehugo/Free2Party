@@ -671,13 +671,13 @@
     <string name="onboarding_title_welcome">Welcome to Free2Party!</string>
 
     <!-- Onboarding Mock UI Components -->
-    <string name="onboarding_mock_calendar_date">July %1$d</string>
+    <string name="onboarding_mock_calendar_date">Jul %1$d, 2026</string>
     <string name="onboarding_mock_calendar_month">July 2026</string>
     <string name="onboarding_mock_circle_close_friends">Close Friends</string>
     <string name="onboarding_mock_circle_family">Family</string>
     <string name="onboarding_mock_comment_1">Hey, pizza sounds awesome!</string>
     <string name="onboarding_mock_comment_2">Count me in!</string>
-    <string name="onboarding_mock_event_artwalk_date">Sun, Jul 12 @ 4:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_artwalk_date">Jul 12, 2026 @ 4:00 PM (EDT)</string>
     <string name="onboarding_mock_event_artwalk_location">Downtown</string>
     <string name="onboarding_mock_event_artwalk_title">Downtown Art Walk</string>
     <string name="onboarding_mock_event_distance1">1.2 km</string>
@@ -685,13 +685,13 @@
     <string name="onboarding_mock_event_distance3">4 km</string>
     <string name="onboarding_mock_event_host1">Jane Doe</string>
     <string name="onboarding_mock_event_host2">John Smith</string>
-    <string name="onboarding_mock_event_pizza_date">Fri, Jul 10 @ 7:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_pizza_date">Jul 10, 2026 @ 7:00 PM (EDT)</string>
     <string name="onboarding_mock_event_pizza_description">Let\'s get together for pizza at Mio Pizza!</string>
     <string name="onboarding_mock_event_pizza_duration">3h</string>
     <string name="onboarding_mock_event_pizza_location">Mio Pizza</string>
     <string name="onboarding_mock_event_pizza_time">7:00 PM - 10:00 PM</string>
     <string name="onboarding_mock_event_pizza_title">Friday Night Pizza</string>
-    <string name="onboarding_mock_event_volleyball_date">Wed, Jul 8 @ 6:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_volleyball_date">Jul 8, 2026 @ 6:00 PM (EDT)</string>
     <string name="onboarding_mock_event_volleyball_duration">2h</string>
     <string name="onboarding_mock_event_volleyball_location">Sunset Beach</string>
     <string name="onboarding_mock_event_volleyball_time">6:00 PM - 8:00 PM</string>
