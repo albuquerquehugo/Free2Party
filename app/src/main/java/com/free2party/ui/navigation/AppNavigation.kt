@@ -347,7 +347,10 @@ fun AppNavigation(
             ) { innerPadding ->
                 var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
                 val density = LocalDensity.current
-                val swipeThresholdPx = remember(density) { with(density) { 150.dp.toPx() } }
+                val swipeThresholdPx = remember(density, rootCoordinates) {
+                    rootCoordinates?.size?.width?.let { it * 0.25f }
+                        ?: with(density) { 150.dp.toPx() }
+                }
 
                 val dragOffset = remember { Animatable(0f) }
                 val coroutineScope = rememberCoroutineScope()
