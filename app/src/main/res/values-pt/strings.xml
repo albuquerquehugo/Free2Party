@@ -311,7 +311,7 @@
     <string name="toast_friend_request_declined_and_user_blocked">Pedido de amizade recusado e usuário bloqueado</string>
 
     <!-- About -->
-    <string name="text_app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos e nunca mais perder um encontro.</string>
+    <string name="text_app_description">Uma maneira simples de sincronizar a sua disponibilidade com amigos, criar e gerenciar eventos, e nunca mais perder um encontro.</string>
     <string name="text_copyright_template">© %1$d Todos os Direitos Reservados</string>
     <string name="text_developed_by">Desenvolvido por</string>
     <string name="text_developer_name">Hugo Albuquerque</string>

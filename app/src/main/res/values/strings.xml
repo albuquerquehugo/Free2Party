@@ -312,7 +312,7 @@
     <!-- About -->
     <string name="label_about">About</string>
     <string name="label_version">Version %1$s</string>
-    <string name="text_app_description">A simple way to sync your availability with friends and never miss a meeting again.</string>
+    <string name="text_app_description">A simple way to sync your availability with friends, create and manage events, and never miss a meeting again.</string>
     <string name="text_copyright_template">© %1$d All Rights Reserved</string>
     <string name="text_developed_by">Developed by</string>
     <string name="text_developer_name">Hugo Albuquerque</string>
