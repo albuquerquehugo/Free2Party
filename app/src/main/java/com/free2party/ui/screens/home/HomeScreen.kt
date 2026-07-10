@@ -93,7 +93,6 @@ import com.free2party.ui.theme.onPendingContainer
 import com.free2party.ui.theme.pendingContainer
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
-import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onEventContainer
 import com.free2party.util.SocialPlatform
 import com.free2party.util.openEmail
@@ -741,7 +740,7 @@ fun FriendItem(
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.BottomEnd)
-                                .background(MaterialTheme.colorScheme.eventContainer, CircleShape)
+                                .background(MaterialTheme.colorScheme.availableContainer, CircleShape)
                                 .padding(1.dp),
                             tint = MaterialTheme.colorScheme.onEventContainer
                         )

@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,11 +51,14 @@ import androidx.compose.ui.unit.sp
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.Event
-import com.free2party.data.model.GuestStatus
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
+import com.free2party.ui.theme.currentActivityContainer
 import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onEventContainer
+import com.free2party.ui.theme.onPlanContainer
+import com.free2party.ui.theme.onCurrentActivityContainer
+import com.free2party.ui.theme.planContainer
 import com.free2party.util.calculateDuration
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.formatTimeForDisplay
@@ -158,26 +162,26 @@ fun PlanItem(
             },
         colors = CardDefaults.cardColors(
             containerColor = when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer.let {
+                planStatus.isCurrent -> MaterialTheme.colorScheme.currentActivityContainer.let {
                     if (gradientBackground) it.copy(
                         alpha = 0.7f
                     ) else it
                 }
 
-                planStatus.isPast -> MaterialTheme.colorScheme.primaryContainer.copy(
+                planStatus.isPast -> MaterialTheme.colorScheme.planContainer.copy(
                     alpha = if (gradientBackground) 0.4f * 0.7f else 0.4f
                 )
 
-                else -> MaterialTheme.colorScheme.primaryContainer.let {
+                else -> MaterialTheme.colorScheme.planContainer.let {
                     if (gradientBackground) it.copy(
                         alpha = 0.7f
                     ) else it
                 }
             },
             contentColor = when {
-                planStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
-                planStatus.isPast -> MaterialTheme.colorScheme.onPrimaryContainer
-                else -> MaterialTheme.colorScheme.onPrimaryContainer
+                planStatus.isCurrent -> MaterialTheme.colorScheme.onCurrentActivityContainer
+                planStatus.isPast -> MaterialTheme.colorScheme.onPlanContainer
+                else -> MaterialTheme.colorScheme.onPlanContainer
             }
         )
     ) {
@@ -232,32 +236,6 @@ fun PlanItem(
                     }
                 }
 
-                if (isOwnPlan) {
-                    Spacer(modifier = Modifier.padding(top = 8.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 48.dp)
-                            .height(24.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.People,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            text = friendsSelection,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                            modifier = Modifier.padding(start = 8.dp),
-                            maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
                 if (plan.note.isNotBlank()) {
                     Row(
                         modifier = Modifier
@@ -267,7 +245,6 @@ fun PlanItem(
                     ) {
                         Text(
                             text = plan.note,
-                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
                             overflow = TextOverflow.Ellipsis,
@@ -290,13 +267,32 @@ fun PlanItem(
                                         if (isExpandedExternally) Icons.Default.KeyboardArrowUp
                                         else Icons.Default.KeyboardArrowDown,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .offset(y = (-4).dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
+                    }
+                }
+
+                if (isOwnPlan) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, end = 48.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.People,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = friendsSelection,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(start = 8.dp),
+                            maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
@@ -306,15 +302,13 @@ fun PlanItem(
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 4.dp)
                         .size(width = 48.dp, height = 48.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = stringResource(R.string.description_plan_actions_content),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            contentDescription = stringResource(R.string.description_plan_actions_content)
                         )
                     }
                     PlanActionsMenu(
@@ -370,7 +364,7 @@ fun EventItem(
     }
 
     val containerColor = when {
-        eventStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer.let {
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.currentActivityContainer.let {
             if (gradientBackground) it.copy(
                 alpha = 0.7f
             ) else it
@@ -386,7 +380,7 @@ fun EventItem(
     }
 
     val baseContentColor = when {
-        eventStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.onCurrentActivityContainer
         eventStatus.isPast -> MaterialTheme.colorScheme.onEventContainer
         else -> MaterialTheme.colorScheme.onEventContainer
     }
@@ -481,56 +475,19 @@ fun EventItem(
                             }
                         }
 
-                        // Event duration badge
-                        Surface(
-                            color = baseContentColor.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(6.dp),
-                            modifier = Modifier.wrapContentHeight()
-                        ) {
-                            Box(
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = duration,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = baseContentColor
-                                )
-                            }
-                        }
+                        DurationBadge(text = duration, status = eventStatus, isEvent = true)
                     }
-                }
-
-                // Hosted by / Location Section
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val hostString = stringResource(
-                        R.string.label_hosted_by,
-                        if (isHost) stringResource(R.string.label_you) else event.hostName
-                    )
-                    Text(
-                        text = "$hostString • ${event.locationName}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = baseContentColor.copy(alpha = 0.8f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
                 }
 
                 // Description (if any)
                 if (event.description.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Top
                     ) {
                         Text(
                             text = event.description,
-                            color = baseContentColor.copy(alpha = 0.9f),
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = if (isExpandedExternally) Int.MAX_VALUE else 1,
                             overflow = TextOverflow.Ellipsis,
@@ -554,14 +511,29 @@ fun EventItem(
                                         if (isExpandedExternally) Icons.Default.KeyboardArrowUp
                                         else Icons.Default.KeyboardArrowDown,
                                     contentDescription = null,
-                                    tint = baseContentColor.copy(alpha = 0.7f),
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .offset(y = (-4).dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
                     }
+                }
+
+                // Hosted by / Location Section
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val hostString = stringResource(
+                        R.string.label_hosted_by,
+                        if (isHost) stringResource(R.string.label_you) else event.hostName
+                    )
+                    Text(
+                        text = "$hostString • ${event.locationName}",
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
@@ -586,15 +558,22 @@ private fun DateTimeLabel(time: String, date: String) {
 }
 
 @Composable
-fun DurationBadge(text: String, status: PlanStatus) {
-    val baseColor = when {
-        status.isCurrent -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.primary
+fun DurationBadge(
+    modifier: Modifier = Modifier,
+    text: String,
+    status: PlanStatus? = null,
+    isEvent: Boolean = false,
+    baseColor: Color? = null
+) {
+    val resolvedColor = baseColor ?: when {
+        status?.isCurrent == true -> MaterialTheme.colorScheme.onCurrentActivityContainer
+        isEvent -> MaterialTheme.colorScheme.onEventContainer
+        else -> MaterialTheme.colorScheme.onPlanContainer
     }
     Surface(
-        color = baseColor.copy(alpha = 0.15f),
+        color = resolvedColor.copy(alpha = 0.15f),
         shape = RoundedCornerShape(6.dp),
-        modifier = Modifier.wrapContentHeight()
+        modifier = modifier.wrapContentHeight()
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -604,7 +583,7 @@ fun DurationBadge(text: String, status: PlanStatus) {
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = baseColor
+                color = resolvedColor
             )
         }
     }

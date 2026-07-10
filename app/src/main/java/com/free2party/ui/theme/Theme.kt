@@ -85,11 +85,27 @@ private val ColorScheme.isDark: Boolean
     get() = surface.luminance() < 0.5f
 
 // Custom Extension properties for your app-specific logic
+val ColorScheme.planContainer: Color
+    @Composable
+    get() = if (isDark) Blue40 else Blue70
+
+val ColorScheme.onPlanContainer: Color
+    @Composable
+    get() = if (isDark) Blue85 else Blue30
+
 val ColorScheme.eventContainer: Color
     @Composable
-    get() = if (isDark) Green35 else Green60
+    get() = if (isDark) Purple40 else Purple75
 
 val ColorScheme.onEventContainer: Color
+    @Composable
+    get() = if (isDark) Purple85 else Purple30
+
+val ColorScheme.currentActivityContainer: Color
+    @Composable
+    get() = if (isDark) Green35 else Green70
+
+val ColorScheme.onCurrentActivityContainer: Color
     @Composable
     get() = if (isDark) Green85 else Green30
 
@@ -99,11 +115,11 @@ val ColorScheme.available: Color
 
 val ColorScheme.availableContainer: Color
     @Composable
-    get() = if (isDark) Green20 else Green70
+    get() = if (isDark) Green20 else Green75
 
 val ColorScheme.onAvailableContainer: Color
     @Composable
-    get() = if (isDark) Green80 else Green30
+    get() = if (isDark) Green80 else Green35
 
 val ColorScheme.busy: Color
     @Composable

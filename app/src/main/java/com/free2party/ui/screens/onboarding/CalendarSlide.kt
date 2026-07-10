@@ -27,14 +27,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.ui.components.BadgedIconContainer
+import com.free2party.ui.components.DurationBadge
 import com.free2party.ui.components.NumberBadge
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onEventContainer
+import com.free2party.ui.theme.onPlanContainer
+import com.free2party.ui.theme.planContainer
 
 @Composable
 fun LiveCalendarPreview() {
-    var selectedDay by remember { mutableIntStateOf(10) }
+    var selectedDay by remember { mutableIntStateOf(8) }
 
     Card(
         modifier = Modifier.fillMaxSize(),
@@ -114,7 +117,7 @@ fun LiveCalendarPreview() {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     week1.forEach { day ->
                         val isSelected = selectedDay == day
-                        val isToday = day == 10
+                        val isToday = day == 8
                         val isEvent = day == 8 || day == 10
                         val isPlan = day == 9 || day == 10
 
@@ -125,17 +128,16 @@ fun LiveCalendarPreview() {
                                     .clickable { selectedDay = day },
                                 contentAlignment = Alignment.Center
                             ) {
-                                // Selection / Today outer boundary (28.dp)
-                                Box(
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .border(
-                                            width = if (isSelected) 2.dp else if (isToday) 1.dp else 0.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else if (isToday) MaterialTheme.colorScheme.outline else Color.Transparent,
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary,
+                                                CircleShape
+                                            )
+                                    )
+                                } else {
                                     // Highlight/Indicator inner boundary (24.dp)
                                     Box(
                                         modifier = Modifier
@@ -144,7 +146,7 @@ fun LiveCalendarPreview() {
                                             .background(
                                                 when {
                                                     isPlan && isEvent -> Color.Transparent // drawn by Canvas below
-                                                    isPlan -> MaterialTheme.colorScheme.primaryContainer
+                                                    isPlan -> MaterialTheme.colorScheme.planContainer
                                                     isEvent -> MaterialTheme.colorScheme.eventContainer
                                                     else -> Color.Transparent
                                                 }
@@ -153,7 +155,7 @@ fun LiveCalendarPreview() {
                                     ) {
                                         if (isPlan && isEvent) {
                                             val planColor =
-                                                MaterialTheme.colorScheme.primaryContainer
+                                                MaterialTheme.colorScheme.planContainer
                                             val eventColor =
                                                 MaterialTheme.colorScheme.eventContainer
                                             androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
@@ -174,15 +176,28 @@ fun LiveCalendarPreview() {
                                     }
                                 }
 
+                                if (isToday) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.outline,
+                                                CircleShape
+                                            )
+                                    )
+                                }
+
                                 Text(
                                     text = day.toString(),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = if (isSelected || isToday) FontWeight.ExtraBold else FontWeight.Normal,
                                     color = when {
+                                        isSelected -> MaterialTheme.colorScheme.onPrimary
                                         isPlan && isEvent -> MaterialTheme.colorScheme.onSurface
-                                        isPlan -> MaterialTheme.colorScheme.onPrimaryContainer
+                                        isPlan -> MaterialTheme.colorScheme.onPlanContainer
                                         isEvent -> MaterialTheme.colorScheme.onEventContainer
-                                        else -> if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        else -> MaterialTheme.colorScheme.onSurface
                                     }
                                 )
                             }
@@ -195,8 +210,8 @@ fun LiveCalendarPreview() {
                             contentAlignment = Alignment.Center
                         ) {
                             when (day) {
-                                10 -> BadgedIconContainer(number = 3) { cellContent() }
-                                8 -> BadgedIconContainer(number = 1) { cellContent() }
+                                9 -> BadgedIconContainer(number = 1) { cellContent() }
+                                10 -> BadgedIconContainer(number = 2) { cellContent() }
                                 else -> cellContent()
                             }
                         }
@@ -206,7 +221,7 @@ fun LiveCalendarPreview() {
 
             // Center + add plan button exactly like CalendarScreen
             BadgedIconContainer(
-                number = 2,
+                number = 3,
                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
             ) {
                 IconButton(
@@ -286,6 +301,8 @@ fun LiveCalendarPreview() {
                             if (isPizzaEvent) R.string.label_you else R.string.onboarding_mock_event_host1
                         val eventLocationRes =
                             if (isPizzaEvent) R.string.onboarding_mock_event_pizza_location else R.string.onboarding_mock_event_volleyball_location
+                        val eventDescriptionRes =
+                            if (isPizzaEvent) R.string.onboarding_mock_event_pizza_description else R.string.onboarding_mock_event_volleyball_description
 
                         val eventColor = MaterialTheme.colorScheme.eventContainer
                         val baseContentColor = MaterialTheme.colorScheme.onEventContainer
@@ -352,27 +369,22 @@ fun LiveCalendarPreview() {
                                         color = baseContentColor
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Surface(
-                                        color = baseContentColor.copy(alpha = 0.15f),
-                                        shape = RoundedCornerShape(6.dp),
-                                        modifier = Modifier.wrapContentHeight()
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.padding(
-                                                horizontal = 6.dp,
-                                                vertical = 2.dp
-                                            ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = stringResource(eventDurationRes),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = baseContentColor
-                                            )
-                                        }
-                                    }
+                                    DurationBadge(
+                                        text = stringResource(eventDurationRes),
+                                        baseColor = baseContentColor
+                                    )
                                 }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                // Description
+                                Text(
+                                    text = stringResource(eventDescriptionRes),
+                                    color = baseContentColor.copy(alpha = 0.9f),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
 
                                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -401,8 +413,8 @@ fun LiveCalendarPreview() {
                     if (showPlan) {
                         // Replicate PlanItem exactly from CalendarItem.kt (No title, starts with Time/Duration)
                         val isPlan1 = selectedDay == 10
-                        val planColor = MaterialTheme.colorScheme.primaryContainer
-                        val baseContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        val planColor = MaterialTheme.colorScheme.planContainer
+                        val baseContentColor = MaterialTheme.colorScheme.onPlanContainer
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
@@ -434,29 +446,26 @@ fun LiveCalendarPreview() {
                                         color = baseContentColor
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                        shape = RoundedCornerShape(6.dp),
-                                        modifier = Modifier.wrapContentHeight()
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.padding(
-                                                horizontal = 6.dp,
-                                                vertical = 2.dp
-                                            ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text =
-                                                    if (isPlan1) stringResource(R.string.onboarding_mock_plan1_duration)
-                                                    else stringResource(R.string.onboarding_mock_plan2_duration),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
+                                    DurationBadge(
+                                        text =
+                                            if (isPlan1) stringResource(R.string.onboarding_mock_plan1_duration)
+                                            else stringResource(R.string.onboarding_mock_plan2_duration),
+                                        baseColor = baseContentColor
+                                    )
                                 }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                // Note section
+                                Text(
+                                    text =
+                                        if (isPlan1) stringResource(R.string.onboarding_mock_plan1_note)
+                                        else stringResource(R.string.onboarding_mock_plan2_note),
+                                    color = baseContentColor,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -482,19 +491,6 @@ fun LiveCalendarPreview() {
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                // Note section
-                                Text(
-                                    text = if (isPlan1) stringResource(R.string.onboarding_mock_plan1_note) else stringResource(
-                                        R.string.onboarding_mock_plan2_note
-                                    ),
-                                    color = baseContentColor,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
                             }
                         }
                     }
@@ -539,7 +535,7 @@ fun LiveCalendarPreview() {
                             modifier = Modifier.padding(end = 6.dp)
                         )
                         Text(
-                            text = stringResource(R.string.onboarding_text_hint_calendar_add),
+                            text = stringResource(R.string.onboarding_text_hint_calendar_indicators),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Start
@@ -563,7 +559,7 @@ fun LiveCalendarPreview() {
                             modifier = Modifier.padding(end = 6.dp)
                         )
                         Text(
-                            text = stringResource(R.string.onboarding_text_hint_calendar_indicators),
+                            text = stringResource(R.string.onboarding_text_hint_calendar_add),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Start

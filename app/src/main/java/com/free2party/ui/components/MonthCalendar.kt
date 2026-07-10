@@ -37,10 +37,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.free2party.R
 import com.free2party.ui.screens.calendar.CalendarViewModel
-import com.free2party.ui.theme.inactive
-import com.free2party.ui.theme.onInactiveContainer
 import com.free2party.ui.theme.eventContainer
+import com.free2party.ui.theme.inactive
 import com.free2party.ui.theme.onEventContainer
+import com.free2party.ui.theme.onInactiveContainer
+import com.free2party.ui.theme.onPlanContainer
+import com.free2party.ui.theme.planContainer
 import com.free2party.util.capitalizeFirstLetter
 import com.free2party.util.isDateTimeInPast
 import java.text.SimpleDateFormat
@@ -206,7 +208,7 @@ fun MonthCalendar(
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                         )
                     } else if (isPlanned && isEvent) {
-                        val planColor = MaterialTheme.colorScheme.primaryContainer
+                        val planColor = MaterialTheme.colorScheme.planContainer
                         val eventColor = MaterialTheme.colorScheme.eventContainer
                         androidx.compose.foundation.Canvas(modifier = Modifier.size(24.dp)) {
                             drawArc(
@@ -227,7 +229,7 @@ fun MonthCalendar(
                             modifier = Modifier
                                 .size(24.dp)
                                 .background(
-                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.planContainer,
                                     shape = CircleShape
                                 )
                         )
@@ -258,7 +260,8 @@ fun MonthCalendar(
                             isSelected -> MaterialTheme.colorScheme.onPrimary
                             !isDateTimeInPast(dateMillis) -> {
                                 when {
-                                    isPlanned -> MaterialTheme.colorScheme.onPrimaryContainer
+                                    isPlanned && isEvent -> MaterialTheme.colorScheme.onSurface
+                                    isPlanned -> MaterialTheme.colorScheme.onPlanContainer
                                     isEvent -> MaterialTheme.colorScheme.onEventContainer
                                     else -> MaterialTheme.colorScheme.onSurface
                                 }

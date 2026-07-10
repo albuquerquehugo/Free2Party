@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToReg
 import androidx.compose.material.icons.filled.Notifications
@@ -111,10 +112,9 @@ import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
 import com.free2party.ui.screens.onboarding.OnboardingRoute
 import com.free2party.ui.theme.available
+import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.busy
-import com.free2party.ui.theme.eventContainer
-import com.free2party.ui.theme.onEventContainer
-import androidx.compose.material.icons.filled.DateRange
+import com.free2party.ui.theme.onAvailableContainer
 import com.free2party.util.TextFieldRegistry
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -261,7 +261,10 @@ fun AppNavigation(
                 putString(com.google.firebase.analytics.FirebaseAnalytics.Param.SCREEN_NAME, route)
                 putString(com.google.firebase.analytics.FirebaseAnalytics.Param.SCREEN_CLASS, route)
             }
-            analytics.logEvent(com.google.firebase.analytics.FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+            analytics.logEvent(
+                com.google.firebase.analytics.FirebaseAnalytics.Event.SCREEN_VIEW,
+                bundle
+            )
         }
     }
 
@@ -348,7 +351,8 @@ fun AppNavigation(
                                     rootCoordinates
                                 )
                                 if (!isInsideTextField) {
-                                    val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                                    val up =
+                                        waitForUpOrCancellation(pass = PointerEventPass.Initial)
                                     if (up != null) {
                                         focusManager.clearFocus(force = true)
                                         keyboardController?.hide()
@@ -597,11 +601,11 @@ fun BottomNavigationBar(
                                                         .size(12.dp)
                                                         .align(Alignment.BottomEnd)
                                                         .background(
-                                                            MaterialTheme.colorScheme.eventContainer,
+                                                            MaterialTheme.colorScheme.availableContainer,
                                                             CircleShape
                                                         )
                                                         .padding(1.dp),
-                                                    tint = MaterialTheme.colorScheme.onEventContainer
+                                                    tint = MaterialTheme.colorScheme.onAvailableContainer
                                                 )
                                             }
                                         }

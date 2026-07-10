@@ -678,6 +678,7 @@
     <string name="onboarding_mock_comment_1">Hey, pizza sounds awesome!</string>
     <string name="onboarding_mock_comment_2">Count me in!</string>
     <string name="onboarding_mock_event_artwalk_date">Jul 12, 2026 @ 4:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_artwalk_description">Explore local art galleries and street exhibitions downtown.</string>
     <string name="onboarding_mock_event_artwalk_location">Downtown</string>
     <string name="onboarding_mock_event_artwalk_title">Downtown Art Walk</string>
     <string name="onboarding_mock_event_distance1">1.2 km</string>
@@ -692,6 +693,7 @@
     <string name="onboarding_mock_event_pizza_time">7:00 PM - 10:00 PM</string>
     <string name="onboarding_mock_event_pizza_title">Friday Night Pizza</string>
     <string name="onboarding_mock_event_volleyball_date">Jul 8, 2026 @ 6:00 PM (EDT)</string>
+    <string name="onboarding_mock_event_volleyball_description">Friendly beach volleyball match. All skill levels welcome!</string>
     <string name="onboarding_mock_event_volleyball_duration">2h</string>
     <string name="onboarding_mock_event_volleyball_location">Sunset Beach</string>
     <string name="onboarding_mock_event_volleyball_time">6:00 PM - 8:00 PM</string>

@@ -680,6 +680,7 @@
     <string name="onboarding_mock_comment_1">Opa, pizza parece ótimo!</string>
     <string name="onboarding_mock_comment_2">Pode contar comigo!</string>
     <string name="onboarding_mock_event_artwalk_date">Jul 12, 2026 @ 16:00</string>
+    <string name="onboarding_mock_event_artwalk_description">Explore galerias de arte locais e exposições de rua no centro da cidade.</string>
     <string name="onboarding_mock_event_artwalk_location">Centro</string>
     <string name="onboarding_mock_event_artwalk_title">Caminhada de Arte no Centro</string>
     <string name="onboarding_mock_event_distance1">1,2 km</string>
@@ -694,6 +695,7 @@
     <string name="onboarding_mock_event_pizza_time">19:00 - 22:00</string>
     <string name="onboarding_mock_event_pizza_title">Rodízio de Pizza na Sexta</string>
     <string name="onboarding_mock_event_volleyball_date">Jul 8, 2026 @ 18:00</string>
+    <string name="onboarding_mock_event_volleyball_description">Partida amistosa de vôlei de praia. Todos os níveis de habilidade são bem-vindos!</string>
     <string name="onboarding_mock_event_volleyball_duration">2h</string>
     <string name="onboarding_mock_event_volleyball_location">Praia do Forte</string>
     <string name="onboarding_mock_event_volleyball_time">18:00 - 20:00</string>

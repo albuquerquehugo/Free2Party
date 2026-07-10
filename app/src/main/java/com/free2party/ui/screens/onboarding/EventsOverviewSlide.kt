@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
@@ -366,7 +367,8 @@ fun LiveEventsOverviewPreview() {
                                     })",
                                     guestCount = 3,
                                     isPublic = false,
-                                    durationText = "3h"
+                                    durationText = "3h",
+                                    descriptionText = stringResource(R.string.onboarding_mock_event_pizza_description)
                                 )
                             }
 
@@ -388,7 +390,8 @@ fun LiveEventsOverviewPreview() {
                                         statusText = stringResource(R.string.label_pending),
                                         statusBackground = MaterialTheme.colorScheme.pendingContainer,
                                         statusColor = MaterialTheme.colorScheme.onPendingContainer,
-                                        durationText = "2h"
+                                        durationText = "2h",
+                                        descriptionText = stringResource(R.string.onboarding_mock_event_volleyball_description)
                                     )
                                 }
                             }
@@ -411,7 +414,8 @@ fun LiveEventsOverviewPreview() {
                                         statusText = stringResource(R.string.label_going_self),
                                         statusBackground = MaterialTheme.colorScheme.availableContainer,
                                         statusColor = MaterialTheme.colorScheme.onAvailableContainer,
-                                        durationText = "4h"
+                                        durationText = "4h",
+                                        descriptionText = stringResource(R.string.onboarding_mock_event_artwalk_description)
                                     )
                                 }
                             }
@@ -518,7 +522,8 @@ fun MockEventCard(
     statusText: String? = null,
     statusBackground: Color = Color.Unspecified,
     statusColor: Color = Color.Unspecified,
-    durationText: String? = null
+    durationText: String? = null,
+    descriptionText: String? = null
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -613,6 +618,30 @@ fun MockEventCard(
                             color = MaterialTheme.colorScheme.onEventContainer
                         )
                     }
+                }
+            }
+
+            // Description (if any)
+            if (descriptionText != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Description,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onEventContainer,
+                        modifier = Modifier.size(16.dp).padding(top = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = descriptionText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onEventContainer,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 

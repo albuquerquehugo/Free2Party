@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
@@ -49,9 +50,11 @@ import com.free2party.ui.components.PlanStatus
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.busyContainer
+import com.free2party.ui.theme.currentActivityContainer
 import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onAvailableContainer
 import com.free2party.ui.theme.onBusyContainer
+import com.free2party.ui.theme.onCurrentActivityContainer
 import com.free2party.ui.theme.onEventContainer
 import com.free2party.ui.theme.onPendingContainer
 import com.free2party.ui.theme.pendingContainer
@@ -541,7 +544,7 @@ fun EventCard(
     }
 
     val containerColor = when {
-        eventStatus.isCurrent -> MaterialTheme.colorScheme.secondaryContainer.let {
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.currentActivityContainer.let {
             if (gradientBackground) it.copy(
                 alpha = 0.7f
             ) else it
@@ -558,7 +561,7 @@ fun EventCard(
     }
 
     val baseContentColor = when {
-        eventStatus.isCurrent -> MaterialTheme.colorScheme.onSecondaryContainer
+        eventStatus.isCurrent -> MaterialTheme.colorScheme.onCurrentActivityContainer
         else -> MaterialTheme.colorScheme.onEventContainer
     }
 
@@ -695,6 +698,30 @@ fun EventCard(
                             color = baseContentColor
                         )
                     }
+                }
+            }
+
+            // Description (if any)
+            if (event.description.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Description,
+                        contentDescription = null,
+                        tint = baseContentColor,
+                        modifier = Modifier.size(16.dp).padding(top = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = event.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = baseContentColor,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
