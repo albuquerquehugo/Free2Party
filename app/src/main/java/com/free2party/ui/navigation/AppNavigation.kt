@@ -58,8 +58,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.launch
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -68,6 +73,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -339,9 +346,98 @@ fun AppNavigation(
                 }
             ) { innerPadding ->
                 var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                val density = LocalDensity.current
+                val swipeThresholdPx = remember(density) { with(density) { 150.dp.toPx() } }
+
+                val dragOffset = remember { Animatable(0f) }
+                val coroutineScope = rememberCoroutineScope()
+
+                val swipeModifier = if (showBottomBar) {
+                    Modifier.pointerInput(currentDestination) {
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                coroutineScope.launch {
+                                    dragOffset.snapTo(0f)
+                                }
+                            },
+                            onDragEnd = {
+                                coroutineScope.launch {
+                                    val currentRoute = currentDestination?.route
+                                    val currentIndex =
+                                        BottomNavItems.indexOfFirst { it.route == currentRoute }
+                                    var navigated = false
+                                    if (currentIndex != -1) {
+                                        if (dragOffset.value > swipeThresholdPx) {
+                                            // Swipe left-to-right: Navigate to left screen
+                                            if (currentIndex > 0) {
+                                                navigated = true
+                                                val leftScreen = BottomNavItems[currentIndex - 1]
+                                                navController.navigate(leftScreen.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            }
+                                        } else if (dragOffset.value < -swipeThresholdPx) {
+                                            // Swipe right-to-left: Navigate to right screen
+                                            if (currentIndex < BottomNavItems.size - 1) {
+                                                navigated = true
+                                                val rightScreen = BottomNavItems[currentIndex + 1]
+                                                navController.navigate(rightScreen.route) {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (navigated) {
+                                        dragOffset.snapTo(0f)
+                                    } else {
+                                        dragOffset.animateTo(
+                                            0f,
+                                            spring(stiffness = Spring.StiffnessMediumLow)
+                                        )
+                                    }
+                                }
+                            },
+                            onDragCancel = {
+                                coroutineScope.launch {
+                                    dragOffset.animateTo(
+                                        0f,
+                                        spring(stiffness = Spring.StiffnessMediumLow)
+                                    )
+                                }
+                            },
+                            onHorizontalDrag = { _, dragAmount ->
+                                coroutineScope.launch {
+                                    val currentRoute = currentDestination?.route
+                                    val currentIndex =
+                                        BottomNavItems.indexOfFirst { it.route == currentRoute }
+                                    val isAtBoundary = (dragAmount > 0f && currentIndex == 0) ||
+                                            (dragAmount < 0f && currentIndex == BottomNavItems.size - 1)
+                                    val finalDrag =
+                                        if (isAtBoundary) dragAmount * 0.3f else dragAmount
+                                    dragOffset.snapTo(dragOffset.value + finalDrag)
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    Modifier
+                }
+
                 Box(
                     modifier = Modifier
                         .padding(innerPadding)
+                        .then(swipeModifier)
+                        .graphicsLayer {
+                            translationX = dragOffset.value
+                        }
                         .onGloballyPositioned { rootCoordinates = it }
                         .pointerInput(rootCoordinates) {
                             awaitEachGesture {
