@@ -1,6 +1,8 @@
 package com.free2party.di
 
 import android.content.Context
+import com.free2party.data.billing.BillingManager
+import com.free2party.data.billing.BillingManagerImpl
 import com.free2party.data.repository.*
 import com.free2party.util.NetworkMonitor
 import com.free2party.util.ConnectivityManagerNetworkMonitor
@@ -25,6 +27,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Suppress("unused")
 abstract class DataModule {
+    @Binds
+    @Singleton
+    abstract fun bindBillingManager(
+        billingManagerImpl: BillingManagerImpl
+    ): BillingManager
+
     @Binds
     @Singleton
     abstract fun bindUserRepository(

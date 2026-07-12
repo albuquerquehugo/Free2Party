@@ -16,6 +16,12 @@ android {
     compileSdk = 37
     ndkVersion = "28.2.13676358"
 
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(localPropertiesFile.inputStream())
+    }
+
     defaultConfig {
         applicationId = "com.free2party"
         minSdk = 24
@@ -27,12 +33,9 @@ android {
 
         val frequency = System.getenv("updateFrequency") ?: "10000"
         buildConfigField("long", "updateFrequency", "${frequency}L")
-    }
 
-    val localProperties = Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localProperties.load(localPropertiesFile.inputStream())
+        val revenueCatKey = localProperties.getProperty("REVENUECAT_API_KEY") ?: "\"\""
+        buildConfigField("String", "REVENUECAT_API_KEY", revenueCatKey)
     }
 
     signingConfigs {
@@ -149,6 +152,10 @@ dependencies {
     // --- Ads ---
     implementation(libs.play.services.ads)
 
+    // --- Billing / Subscriptions ---
+    implementation(libs.revenuecat.purchases)
+    implementation(libs.revenuecat.purchases.ui)
+
     // --- Desugaring ---
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
@@ -195,4 +202,15 @@ fun getLocalIpAddress(): String {
         e.printStackTrace()
     }
     return "10.0.2.2"
+}
+
+ksp {
+    arg("Xannotation-default-target", "param-property")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        freeCompilerArgs.add("-Xannotation-default-target=param-property")
+    }
 }

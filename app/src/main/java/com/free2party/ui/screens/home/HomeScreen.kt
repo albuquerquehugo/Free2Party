@@ -341,7 +341,7 @@ fun HomeContent(
     onInviteFriendClick: () -> Unit,
     onOpenFriendCalendar: (FriendInfo) -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit,
-    membership: Membership = Membership.REGULAR
+    membership: Membership = Membership.FREE
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -384,7 +384,7 @@ fun HomeContent(
             )
         }
 
-        if (membership == Membership.REGULAR) {
+        if (membership == Membership.FREE) {
             AdBanner()
         }
     }

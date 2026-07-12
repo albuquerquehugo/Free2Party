@@ -59,7 +59,7 @@ class EventsViewModel @Inject constructor(
         private set
     var distanceUnit by mutableStateOf(DistanceUnit.KILOMETERS)
         private set
-    var membership by mutableStateOf(Membership.REGULAR)
+    var membership by mutableStateOf(Membership.FREE)
         private set
     var selectedTabIndex by mutableIntStateOf(0)
 

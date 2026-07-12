@@ -471,7 +471,7 @@ fun EventsScreen(
                 }
             }
 
-            if (membership == Membership.REGULAR) {
+            if (membership == Membership.FREE) {
                 AdBanner()
             }
         }

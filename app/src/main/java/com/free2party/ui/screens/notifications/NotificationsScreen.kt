@@ -122,7 +122,7 @@ fun NotificationsScreen(
     itemsUnreadCount: Int,
     notificationsUnreadCount: Int,
     gradientBackground: Boolean,
-    membership: Membership = Membership.REGULAR,
+    membership: Membership = Membership.FREE,
     onAcceptRequest: (FriendRequest) -> Unit,
     onDeclineRequest: (FriendRequest) -> Unit,
     onDeclineAndBlockRequest: (FriendRequest) -> Unit,
@@ -236,7 +236,7 @@ fun NotificationsScreen(
             }
         }
 
-        if (membership == Membership.REGULAR) {
+        if (membership == Membership.FREE) {
             AdBanner()
         }
     }

@@ -356,7 +356,7 @@ fun CalendarScreen(
             }
         }
 
-        if (viewModel.membership == Membership.REGULAR) {
+        if (viewModel.membership == Membership.FREE) {
             AdBanner()
         }
     }

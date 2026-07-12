@@ -65,10 +65,10 @@ class NotificationsViewModel @Inject constructor(
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val membership: StateFlow<Membership> = userRepository.userIdFlow
         .flatMapLatest { uid ->
-            if (uid.isBlank()) kotlinx.coroutines.flow.flowOf(Membership.REGULAR)
+            if (uid.isBlank()) kotlinx.coroutines.flow.flowOf(Membership.FREE)
             else userRepository.observeUser(uid).map { it.membership }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Membership.REGULAR)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Membership.FREE)
 
     private val _friendRequests = MutableStateFlow<List<FriendRequest>>(emptyList())
     val friendRequests: StateFlow<List<FriendRequest>> = _friendRequests

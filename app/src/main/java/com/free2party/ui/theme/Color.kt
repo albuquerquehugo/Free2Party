@@ -28,6 +28,8 @@ val Blue85 = Color(0xFFE3EDFF)
 val Blue90 = Color(0xFFF0F5FF)
 val Blue95 = Color(0xFFF8FBFF)
 
+val Gold = Color(0xFFFFD700)
+
 val Gray5 = Color(0xFF0D0D0D)
 val Gray10 = Color(0xFF1B1B1B)
 val Gray15 = Color(0xFF262626)
@@ -108,5 +110,7 @@ val Purple85 = Color(0xFFDDD0FF)
 val Purple90 = Color(0xFFEADDFF)
 val Purple95 = Color(0xFFF6EDFF)
 
+val PremiumBannerColor1 = Color(0xFF437DB9)
+val PremiumBannerColor2 = Color(0xFFAE4AB6)
 val TelegramColor = Color(0xFF24A1DE)
 val WhatsAppColor = Color(0xFF25D366)

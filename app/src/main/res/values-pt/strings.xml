@@ -219,9 +219,11 @@
     <string name="label_privacy">Privacidade</string>
     <string name="label_replay_tutorial">Repetir Tutorial</string>
     <string name="label_settings">Configurações</string>
+    <string name="label_premium">Premium</string>
     <string name="label_theme_mode">Modo do Tema</string>
     <string name="label_theme_mode_colon">Modo do Tema:</string>
     <string name="label_time_format_colon">Formato da Hora:</string>
+    <string name="label_upgrade_premium">Obter Versão Premium</string>
     <string name="option_am_pm">AM/PM</string>
     <string name="option_birthday_day_month">Apenas dia e mês</string>
     <string name="option_birthday_full">Data completa (com ano)</string>
@@ -230,6 +232,7 @@
     <string name="option_miles">Milhas</string>
     <string name="option_solid">Sólido</string>
     <string name="option_twenty_four_hour">24 horas</string>
+    <string name="text_premium_upgrade_banner">Remova anúncios, desbloqueie funcionalidades ilimitadas, cores personalizadas e muito mais!</string>
     <string name="text_replay_tutorial">Veja novamente o guia de introdução interativo sobre como usar o aplicativo.</string>
     <string name="text_visibility_birthday">Quem pode ver seu aniversário?</string>
     <string name="toast_settings_updated">Configurações atualizadas com sucesso</string>
@@ -708,4 +711,36 @@
     <string name="onboarding_mock_plan2_duration">4h</string>
     <string name="onboarding_mock_plan2_note">Disponível para grupo de estudos</string>
     <string name="onboarding_mock_plan2_time">14:00 - 18:00</string>
+
+    <!-- Premium Screen -->
+    <string name="label_billing_per_month">por mês</string>
+    <string name="label_billing_per_year">por ano</string>
+    <string name="label_billing_one_time">cobrança única</string>
+    <string name="label_choose_plan">Escolha seu plano:</string>
+    <string name="label_feature_circles">Círculos Ilimitados</string>
+    <string name="label_feature_customization">Cores e Emojis de Status Personalizados</string>
+    <string name="label_feature_no_ads">Sem Anúncios</string>
+    <string name="label_feature_sync">Sincronização de Calendário</string>
+    <string name="label_feature_trends">Tendências de Disponibilidade</string>
+    <string name="label_features_included">Recursos Incluídos:</string>
+    <string name="label_go_back">Voltar</string>
+    <string name="label_package_lifetime">Premium Vitalício</string>
+    <string name="label_package_monthly">Acesso Mensal</string>
+    <string name="label_package_yearly">Passe Anual</string>
+    <string name="label_renew_subscription">Renovar / Gerenciar Assinatura</string>
+    <string name="label_restore_purchases">Restaurar Compras</string>
+    <string name="label_yearly_save">Economize %1$d%%</string>
+    <string name="label_upgrade_now">Assinar Agora</string>
+    <string name="text_feature_circles">Agrupe contatos livremente e sem limites.</string>
+    <string name="text_feature_customization">Personalize sua disponibilidade (ex: \'🍻 Livre para cerveja\').</string>
+    <string name="text_feature_no_ads">Aproveite um ambiente limpo e sem distrações.</string>
+    <string name="text_feature_sync">Sincronização automática de duas vias com Google e Apple Calendar.</string>
+    <string name="text_feature_trends">Veja análises passivas de quando seus amigos costumam estar livres.</string>
+    <string name="text_package_lifetime">Compra única. Acesso premium ilimitado para sempre.</string>
+    <string name="text_package_monthly">Recursos premium completos cobrados mensalmente. Cancele quando quiser.</string>
+    <string name="text_package_yearly">Ganhe um desconto ao assinar o plano anual. Mesmas funcionalidades do plano mensal.</string>
+    <string name="text_premium_header">Desbloqueie a melhor experiência de planejamento social e organize seus eventos sem interrupções.</string>
+    <string name="text_premium_sandbox_warning">🔧 Simulador Sandbox ativo. As compras serão mock-completadas instantaneamente sem cobranças de crédito reais.</string>
+    <string name="toast_premium_welcome">Bem-vindo ao Free2Party Premium! 🎉</string>
+    <string name="toast_activity_not_found">Contexto de atividade não encontrado.</string>
 </resources>

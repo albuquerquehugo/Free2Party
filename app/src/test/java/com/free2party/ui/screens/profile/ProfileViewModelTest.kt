@@ -46,7 +46,7 @@ class ProfileViewModelTest {
             profilePicUrl = "https://example.com/john.jpg",
             isFreeNow = true,
             isStatusFromPlan = false,
-            membership = Membership.REGULAR
+            membership = Membership.FREE
         )
     )
     private val plansFlow = MutableStateFlow<List<FuturePlan>>(emptyList())
@@ -79,7 +79,7 @@ class ProfileViewModelTest {
         assertEquals("https://example.com/john.jpg", state.profilePicUrl)
         assertEquals(true, state.isUserFree)
         assertEquals(false, state.isStatusFromPlan)
-        assertEquals(Membership.REGULAR, state.membership)
+        assertEquals(Membership.FREE, state.membership)
     }
 
     @Test

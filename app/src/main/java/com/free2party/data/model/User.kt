@@ -61,7 +61,7 @@ enum class BirthdayShowType {
 }
 
 enum class Membership {
-    REGULAR,
+    FREE,
     PREMIUM
 }
 
@@ -103,7 +103,7 @@ data class User(
     val birthday: String = "",
     val bio: String = "",
     val gender: Gender = Gender.OTHER,
-    val membership: Membership = Membership.REGULAR,
+    val membership: Membership = Membership.FREE,
     val socials: UserSocials = UserSocials(),
     @get:PropertyName("isFreeNow")
     val isFreeNow: Boolean = false,

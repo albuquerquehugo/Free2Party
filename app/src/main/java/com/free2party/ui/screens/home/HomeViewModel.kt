@@ -45,7 +45,7 @@ sealed interface HomeUiState {
         val gradientBackground: Boolean = true,
         val friendsList: List<FriendInfo> = emptyList(),
         val isActionLoading: Boolean = false,
-        val membership: Membership = Membership.REGULAR
+        val membership: Membership = Membership.FREE
     ) : HomeUiState
 
     data class Error(val message: UiText) : HomeUiState

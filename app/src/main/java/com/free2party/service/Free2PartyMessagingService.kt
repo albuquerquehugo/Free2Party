@@ -118,6 +118,7 @@ class Free2PartyMessagingService : FirebaseMessagingService() {
         }
     }
 
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         val userRepository = UserRepositoryImpl(
@@ -126,6 +127,16 @@ class Free2PartyMessagingService : FirebaseMessagingService() {
             storage = Firebase.storage
         )
         serviceScope.launch { userRepository.updateFcmToken(token) }
+    }
+
+    override fun onRegistered(installationId: String) {
+        super.onRegistered(installationId)
+        val userRepository = UserRepositoryImpl(
+            auth = Firebase.auth,
+            db = Firebase.firestore,
+            storage = Firebase.storage
+        )
+        serviceScope.launch { userRepository.updateFcmToken(installationId) }
     }
 
     companion object {

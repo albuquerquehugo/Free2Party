@@ -218,9 +218,11 @@
     <string name="label_privacy">Privacy</string>
     <string name="label_replay_tutorial">Replay Tutorial</string>
     <string name="label_settings">Settings</string>
+    <string name="label_premium">Premium</string>
     <string name="label_theme_mode">Theme Mode</string>
     <string name="label_theme_mode_colon">Theme Mode:</string>
     <string name="label_time_format_colon">Time Format:</string>
+    <string name="label_upgrade_premium">Upgrade to Premium Version</string>
     <string name="option_am_pm">AM/PM</string>
     <string name="option_birthday_day_month">Day and month only</string>
     <string name="option_birthday_full">Full date (with year)</string>
@@ -229,6 +231,7 @@
     <string name="option_miles">Miles</string>
     <string name="option_solid">Solid</string>
     <string name="option_twenty_four_hour">24-hour</string>
+    <string name="text_premium_upgrade_banner">Remove ads, unlock unlimited features, custom colors &amp; more!</string>
     <string name="text_replay_tutorial">Watch again the interactive introduction guide on how to use the app.</string>
     <string name="text_visibility_birthday">Who can see your birthday?</string>
     <string name="toast_settings_updated">Settings updated successfully</string>
@@ -706,4 +709,36 @@
     <string name="onboarding_mock_plan2_duration">4h</string>
     <string name="onboarding_mock_plan2_note">Available for study group</string>
     <string name="onboarding_mock_plan2_time">2:00 PM - 6:00 PM</string>
+
+    <!-- Premium Screen -->
+    <string name="label_billing_per_month">per month</string>
+    <string name="label_billing_per_year">per year</string>
+    <string name="label_billing_one_time">one-time payment</string>
+    <string name="label_choose_plan">Choose your plan:</string>
+    <string name="label_feature_circles">Unlimited Circles</string>
+    <string name="label_feature_customization">Custom Status Emojis &amp; Colors</string>
+    <string name="label_feature_no_ads">No Advertisements</string>
+    <string name="label_feature_sync">Calendar Syncing</string>
+    <string name="label_feature_trends">Availability Trends</string>
+    <string name="label_features_included">Features Included:</string>
+    <string name="label_go_back">Go Back</string>
+    <string name="label_package_lifetime">Lifetime Premium</string>
+    <string name="label_package_monthly">Monthly Access</string>
+    <string name="label_package_yearly">Annual Pass</string>
+    <string name="label_renew_subscription">Renew / Manage Entitlement</string>
+    <string name="label_restore_purchases">Restore Purchases</string>
+    <string name="label_yearly_save">Save %1$d%%</string>
+    <string name="label_upgrade_now">Upgrade Now</string>
+    <string name="text_feature_circles">Group contacts freely without boundaries.</string>
+    <string name="text_feature_customization">Personalize your availability (e.g., \'🍻 Free for beers\').</string>
+    <string name="text_feature_no_ads">Enjoy a clean, distraction-free environment.</string>
+    <string name="text_feature_sync">Automatic two-way sync with Google &amp; Apple Calendar.</string>
+    <string name="text_feature_trends">See passive analytics of when friends are typically free.</string>
+    <string name="text_package_lifetime">One-time purchase. Unlimited premium access forever.</string>
+    <string name="text_package_monthly">Full premium features billed monthly. Cancel anytime.</string>
+    <string name="text_package_yearly">Get a discount signing up for the yearly plan. Same features as monthly plan.</string>
+    <string name="text_premium_header">Unlock the ultimate social planning experience and keep the party coordination seamless.</string>
+    <string name="text_premium_sandbox_warning">🔧 Sandbox Simulator active. Purchases will be fully mock-completed instantly without actual credit charges.</string>
+    <string name="toast_activity_not_found">Activity context not found.</string>
+    <string name="toast_premium_welcome">Welcome to Free2Party Premium! 🎉</string>
 </resources>

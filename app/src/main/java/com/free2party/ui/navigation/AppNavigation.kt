@@ -112,12 +112,13 @@ import com.free2party.ui.screens.friends.InviteFriendRoute
 import com.free2party.ui.screens.login.LoginRoute
 import com.free2party.ui.screens.notifications.NotificationsRoute
 import com.free2party.ui.screens.notifications.NotificationsViewModel
+import com.free2party.ui.screens.onboarding.OnboardingRoute
+import com.free2party.ui.screens.premium.PremiumRoute
 import com.free2party.ui.screens.profile.EditProfileRoute
 import com.free2party.ui.screens.profile.InterestsRoute
 import com.free2party.ui.screens.profile.ProfileRoute
 import com.free2party.ui.screens.register.RegisterRoute
 import com.free2party.ui.screens.settings.SettingsRoute
-import com.free2party.ui.screens.onboarding.OnboardingRoute
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.busy
@@ -237,6 +238,11 @@ sealed class Screen(
     object Onboarding : Screen(
         route = "onboarding",
         labelResId = R.string.label_onboarding
+    )
+
+    object Premium : Screen(
+        route = "premium",
+        labelResId = R.string.label_premium
     )
 }
 
@@ -840,6 +846,12 @@ fun Free2PartyNavGraph(
             )
         }
 
+        composable(Screen.Premium.route) {
+            PremiumRoute(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Screen.Calendar.route) {
             CalendarRoute(
                 onNavigateToEventDetails = { eventId ->
@@ -946,6 +958,9 @@ fun Free2PartyNavGraph(
                 },
                 onNavigateToInterests = {
                     navController.navigate(Screen.Interests.route)
+                },
+                onNavigateToPremium = {
+                    navController.navigate(Screen.Premium.route)
                 }
             )
         }
