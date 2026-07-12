@@ -72,7 +72,7 @@
     <string name="description_logo_content">Logo do Free2Party</string>
     <string name="description_open_calendar">Abrir Calendário</string>
     <string name="description_user_menu">Menu do Usuário</string>
-    <string name="label_cancel_invite">Cancelar Convite</string>
+    <string name="label_cancel_friend_request">Cancelar Pedido de Amizade</string>
     <plurals name="label_circle_member_count">
         <item quantity="one">%1$d membro</item>
         <item quantity="many">%1$d membros</item>
@@ -89,30 +89,29 @@
     <string name="label_friend_section_pending">Pendentes</string>
     <string name="label_friends">Amigos</string>
     <string name="label_home">Início</string>
-    <string name="label_invite_friend">Convidar Amigo</string>
+    <string name="label_add_friend">Adicionar Amigo</string>
     <string name="label_remove_and_block_friend">Remover e Bloquear</string>
     <string name="label_remove_friend">Remover Amigo</string>
     <string name="label_remove_friend_name">Remover %1$s?</string>
     <string name="label_search">Pesquisar</string>
     <string name="label_select_friends">Selecionar Amigos</string>
-    <string name="label_send_invite">Enviar convite</string>
     <string name="text_add_friends">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
     <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
     <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
-    <string name="text_invite_friend">Digite o e-mail do seu amigo para enviar um convite.</string>
+    <string name="text_add_friend">Digite o e-mail do seu amigo para adicioná-lo.</string>
     <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>
     <string name="text_no_friends_in_circle">Nenhum amigo encontrado neste círculo</string>
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
-    <string name="text_placeholder_search_user">Pesquisar por nome ou e-mail…</string>
+    <string name="text_placeholder_search_user">Pesquise por nome ou e-mail…</string>
     <string name="text_remove_friend_confirmation">Esta ação irá remover a amizade de ambas as listas de amigos. Se você quiser adicioná-lo novamente terá que enviar um novo pedido de amizade.</string>
-    <string name="text_send_invite_confirmation">Deseja enviar um convite de amizade para %1$s (%2$s)?</string>
+    <string name="text_send_friend_request_confirmation">Deseja enviar um pedido de amizade para %1$s (%2$s)?</string>
     <string name="toast_circle_created">Círculo criado com sucesso</string>
     <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
     <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
     <string name="toast_friend_removed">Amigo removido</string>
-    <string name="toast_invite_cancelled">Convite cancelado</string>
-    <string name="toast_invite_sent">Convite enviado</string>
+    <string name="toast_friend_request_cancelled">Pedido de amizade cancelado</string>
+    <string name="toast_friend_request_sent">Pedido de amizade enviado</string>
 
     <!-- Login & Register -->
     <string name="description_reset_password">Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.\n\n(Lembre-se de verificar a pasta de SPAM no seu e-mail)</string>
@@ -281,6 +280,13 @@
     <string name="text_visibility_manual_free_status">Quem pode ver o seu status \"Livre\" manual?</string>
 
     <!-- Notifications -->
+    <string name="label_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
+    <string name="label_friend_removed">Amigo Removido</string>
+    <string name="label_friend_request">Pedido de Amizade</string>
+    <string name="label_friend_request_accepted">Pedido de Amizade Aceito</string>
+    <string name="label_friend_request_declined">Pedido de Amizade Recusado</string>
+    <string name="label_notifications">Notificações</string>
+    <string name="label_notifications_with_count">Notificações (%1$d)</string>
     <string name="notification_event_comment_body">%1$s comentou no evento \"%2$s\": %3$s</string>
     <string name="notification_event_comment_title">Novo Comentário</string>
     <string name="notification_event_invitation_body">%1$s (%2$s) convidou você para o evento \"%3$s\".</string>
@@ -298,14 +304,7 @@
         <item>Seu pedido de amizade para </item>
     </string-array>
     <string name="text_all_caught_up">Você está em dia</string>
-    <string name="text_decline_friend_request_dialog">Como você deseja recusar este pedido?</string>
-    <string name="label_decline_friend_request_dialog">Recusar Pedido de Amizade</string>
-    <string name="label_friend_removed">Amigo Removido</string>
-    <string name="label_friend_request">Pedido de Amizade</string>
-    <string name="label_friend_request_accepted">Pedido de Amizade Aceito</string>
-    <string name="label_friend_request_declined">Pedido de Amizade Recusado</string>
-    <string name="label_notifications">Notificações</string>
-    <string name="label_notifications_with_count">Notificações (%1$d)</string>
+    <string name="text_decline_friend_request_dialog">Como você deseja recusar este pedido de amizade?</string>
     <string name="toast_friend_request_accepted">Pedido de amizade aceito</string>
     <string name="toast_friend_request_declined">Pedido de amizade recusado</string>
     <string name="toast_friend_request_declined_and_user_blocked">Pedido de amizade recusado e usuário bloqueado</string>
@@ -411,7 +410,7 @@
     <string name="error_auth">Erro de autenticação</string>
     <string name="error_auth_failed_user_null">Falha na autenticação: Usuário é nulo</string>
     <string name="error_auth_network">Ocorreu um erro de rede. Por favor, tente novamente.</string>
-    <string name="error_cancelling_invite">Erro ao cancelar convite</string>
+    <string name="error_cancelling_friend_request">Erro ao cancelar pedido de amizade</string>
     <string name="error_cannot_add_self">Você não pode adicionar a si mesmo como amigo.</string>
     <string name="error_database_operation">Ocorreu um erro ao salvar os dados. Por favor, tente novamente.</string>
     <string name="error_duplicate_link">Este link já foi adicionado</string>
@@ -466,13 +465,13 @@
     <string name="error_required_fields">Campos obrigatórios (*) devem ser preenchidos</string>
     <string name="error_resend_verification_empty_fields">Por favor, insira seu e-mail e senha para reenviar a verificação</string>
     <string name="error_resend_verification_failed">Falha ao reenviar e-mail de verificação</string>
-    <string name="error_sending_invite">Erro ao enviar convite.</string>
+    <string name="error_sending_friend_request">Erro ao enviar pedido de amizade.</string>
     <string name="error_settings_not_found">Configurações do usuário não encontradas. Por favor, tente sair e entrar novamente.</string>
     <string name="error_social">Erro social</string>
     <string name="error_start_date_mandatory">A data e hora de início são obrigatórias</string>
     <string name="error_title_mandatory">O título é obrigatório para todos os eventos</string>
     <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
-    <string name="error_unblock_to_invite">Desbloqueie este usuário antes de convidá-lo.</string>
+    <string name="error_unblock_to_add_friend">Desbloqueie este usuário antes de adicioná-lo como amigo.</string>
     <string name="error_unblocking_user">Erro ao desbloquear usuário</string>
     <string name="error_unknown">Ocorreu um erro</string>
     <string name="error_unknown_auth">Ocorreu um erro de autenticação inesperado</string>

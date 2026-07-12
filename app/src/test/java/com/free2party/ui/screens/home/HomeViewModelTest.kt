@@ -164,7 +164,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `cancelFriendInvite success emits toast event`() = runTest {
+    fun `cancelFriendRequest success emits toast event`() = runTest {
         coEvery { socialRepository.cancelFriendRequest(any()) } returns Result.success(Unit)
         viewModel = HomeViewModel(userRepository, socialRepository, planRepository)
         runCurrent()
@@ -175,7 +175,7 @@ class HomeViewModelTest {
         }
         runCurrent()
 
-        viewModel.cancelFriendInvite("friend123")
+        viewModel.cancelFriendRequest("friend123")
         runCurrent()
 
         val event = events.firstOrNull()

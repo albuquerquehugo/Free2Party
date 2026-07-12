@@ -104,7 +104,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun HomeRoute(
     homeViewModel: HomeViewModel,
     circleViewModel: CircleViewModel = hiltViewModel(),
-    onNavigateToInviteFriend: () -> Unit
+    onNavigateToAddFriend: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -150,8 +150,8 @@ fun HomeRoute(
         onRemoveFriend = { uid -> homeViewModel.removeFriend(uid) },
         onRemoveAndBlockFriend = { uid -> homeViewModel.removeAndBlockFriend(uid) },
         onReportUser = { uid, reason -> homeViewModel.reportUser(uid, reason) },
-        onCancelInvite = { uid -> homeViewModel.cancelFriendInvite(uid) },
-        onInviteFriendClick = onNavigateToInviteFriend,
+        onCancelFriendRequest = { uid -> homeViewModel.cancelFriendRequest(uid) },
+        onAddFriendClick = onNavigateToAddFriend,
         circles = circleViewModel.circles,
         selectedCircleId = circleViewModel.selectedCircleId,
         onCircleSelected = { circleViewModel.updateSelectedCircleId(it) }
@@ -167,8 +167,8 @@ fun HomeScreen(
     onRemoveFriend: (String) -> Unit,
     onRemoveAndBlockFriend: (String) -> Unit,
     onReportUser: (String, String) -> Unit,
-    onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit,
+    onCancelFriendRequest: (String) -> Unit,
+    onAddFriendClick: () -> Unit,
     circles: List<Circle>,
     selectedCircleId: String?,
     onCircleSelected: (String?) -> Unit
@@ -245,8 +245,8 @@ fun HomeScreen(
                             friendToBlock = friend
                             showBlockUserDialog = true
                         },
-                        onCancelInvite = onCancelInvite,
-                        onInviteFriendClick = onInviteFriendClick,
+                        onCancelFriendRequest = onCancelFriendRequest,
+                        onAddFriendClick = onAddFriendClick,
                         onOpenFriendCalendar = { friend -> selectedFriend = friend },
                         onFriendItemClick = { friend -> selectedFriendForProfile = friend },
                         membership = homeUiState.membership
@@ -337,11 +337,11 @@ fun HomeContent(
     onToggleAvailability: () -> Unit,
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
-    onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit,
+    onCancelFriendRequest: (String) -> Unit,
+    onAddFriendClick: () -> Unit,
     onOpenFriendCalendar: (FriendInfo) -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit,
-    membership: Membership = Membership.REGULAR
+    membership: Membership = Membership.FREE
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -377,14 +377,14 @@ fun HomeContent(
                 onCircleSelected = onCircleSelected,
                 onRemoveFriend = onRemoveFriend,
                 onBlockUser = onBlockUser,
-                onCancelInvite = onCancelInvite,
-                onInviteFriendClick = onInviteFriendClick,
+                onCancelFriendRequest = onCancelFriendRequest,
+                onAddFriendClick = onAddFriendClick,
                 onOpenFriendCalendar = onOpenFriendCalendar,
                 onFriendItemClick = onFriendItemClick
             )
         }
 
-        if (membership == Membership.REGULAR) {
+        if (membership == Membership.FREE) {
             AdBanner()
         }
     }
@@ -399,8 +399,8 @@ fun FriendsListSection(
     onCircleSelected: (String?) -> Unit,
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
-    onCancelInvite: (String) -> Unit,
-    onInviteFriendClick: () -> Unit,
+    onCancelFriendRequest: (String) -> Unit,
+    onAddFriendClick: () -> Unit,
     onOpenFriendCalendar: (FriendInfo) -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit
 ) {
@@ -502,13 +502,13 @@ fun FriendsListSection(
         )
 
         IconButton(
-            onClick = onInviteFriendClick,
+            onClick = onAddFriendClick,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = stringResource(R.string.label_invite_friend),
+                contentDescription = stringResource(R.string.label_add_friend),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -563,7 +563,7 @@ fun FriendsListSection(
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
-                    onCancelInvite = onCancelInvite,
+                    onCancelFriendRequest = onCancelFriendRequest,
                     onOpenCalendar = onOpenFriendCalendar,
                     onFriendItemClick = onFriendItemClick
                 )
@@ -575,7 +575,7 @@ fun FriendsListSection(
                     gradientBackground = gradientBackground,
                     onRemoveFriend = onRemoveFriend,
                     onBlockUser = onBlockUser,
-                    onCancelInvite = onCancelInvite,
+                    onCancelFriendRequest = onCancelFriendRequest,
                     onOpenCalendar = onOpenFriendCalendar,
                     onFriendItemClick = onFriendItemClick
                 )
@@ -588,7 +588,7 @@ fun FriendsListSection(
                         gradientBackground = gradientBackground,
                         onRemoveFriend = onRemoveFriend,
                         onBlockUser = onBlockUser,
-                        onCancelInvite = onCancelInvite,
+                        onCancelFriendRequest = onCancelFriendRequest,
                         onOpenCalendar = onOpenFriendCalendar,
                         onFriendItemClick = onFriendItemClick
                     )
@@ -608,7 +608,7 @@ fun ExpandableFriendSection(
     gradientBackground: Boolean,
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
-    onCancelInvite: (String) -> Unit,
+    onCancelFriendRequest: (String) -> Unit,
     onOpenCalendar: (FriendInfo) -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit
 ) {
@@ -659,7 +659,7 @@ fun ExpandableFriendSection(
                             gradientBackground = gradientBackground,
                             onRemoveFriend = onRemoveFriend,
                             onBlockUser = onBlockUser,
-                            onCancelInvite = { onCancelInvite(friend.uid) },
+                            onCancelFriendRequest = { onCancelFriendRequest(friend.uid) },
                             onOpenCalendar = { onOpenCalendar(friend) },
                             onFriendItemClick = { onFriendItemClick(friend) }
                         )
@@ -676,7 +676,7 @@ fun FriendItem(
     gradientBackground: Boolean,
     onRemoveFriend: (FriendInfo) -> Unit,
     onBlockUser: (FriendInfo) -> Unit,
-    onCancelInvite: (String) -> Unit,
+    onCancelFriendRequest: (String) -> Unit,
     onOpenCalendar: () -> Unit,
     onFriendItemClick: () -> Unit
 ) {
@@ -985,7 +985,7 @@ fun FriendItem(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    if (isPending) stringResource(R.string.label_cancel_invite) else stringResource(
+                                    if (isPending) stringResource(R.string.label_cancel_friend_request) else stringResource(
                                         R.string.label_remove_friend
                                     ),
                                     color = MaterialTheme.colorScheme.error
@@ -1001,7 +1001,7 @@ fun FriendItem(
                             onClick = {
                                 showFriendMenu = false
                                 if (isPending) {
-                                    onCancelInvite(friend.uid)
+                                    onCancelFriendRequest(friend.uid)
                                 } else {
                                     onRemoveFriend(friend)
                                 }

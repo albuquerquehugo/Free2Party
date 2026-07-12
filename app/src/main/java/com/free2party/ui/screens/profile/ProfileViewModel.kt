@@ -33,7 +33,7 @@ sealed interface ProfileUiState {
         val isUserFree: Boolean = false,
         val isStatusFromPlan: Boolean = false,
         val gradientBackground: Boolean = true,
-        val membership: Membership = Membership.REGULAR
+        val membership: Membership = Membership.FREE
     ) : ProfileUiState
 
     data class Error(val message: UiText) : ProfileUiState

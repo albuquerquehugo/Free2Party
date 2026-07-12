@@ -153,7 +153,7 @@ class UtilTest {
 
     @Test
     fun `isDateTimeInPast returns true for past dates`() {
-        val now = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(2026, Calendar.MAY, 20, 12, 0)
         }
         val pastDateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -166,7 +166,7 @@ class UtilTest {
 
     @Test
     fun `isDateTimeInPast returns false for future dates`() {
-        val now = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(2026, Calendar.MAY, 20, 12, 0)
         }
         val futureDateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -179,7 +179,7 @@ class UtilTest {
 
     @Test
     fun `isDateTimeInPast handles time for today correctly`() {
-        val now = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(2026, Calendar.MAY, 20, 12, 30)
         }
         val todayMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {

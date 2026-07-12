@@ -44,6 +44,15 @@ class EventRepositoryTest {
 
     @Before
     fun setup() {
+        java.util.Locale.setDefault(java.util.Locale.US)
+        mockkStatic(FieldValue::class)
+        every { FieldValue.serverTimestamp() } returns mockk()
+        every { FieldValue.arrayUnion(any()) } returns mockk()
+        every { FieldValue.arrayRemove(any()) } returns mockk()
+
+        mockkStatic("com.free2party.util.UtilKt")
+        every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns false
+
         every { db.collection("events") } returns eventsCollection
         every { eventsCollection.document(any()) } returns eventDoc
         every { eventsCollection.document() } returns eventDoc
@@ -58,8 +67,6 @@ class EventRepositoryTest {
         every { notificationsCollection.document() } returns notifDoc
 
         repository = EventRepositoryImpl(auth, db, storage, context)
-
-        mockkStatic("kotlinx.coroutines.tasks.TasksKt")
     }
 
     @Test
@@ -75,7 +82,7 @@ class EventRepositoryTest {
         val result = repository.saveEvent(event)
         assertTrue("Expected failure for unauthorized user", result.isFailure)
         assertTrue(
-            "Expected UnauthorizedException",
+            "Expected UnauthorizedException, got ${result.exceptionOrNull()}",
             result.exceptionOrNull() is UnauthorizedException
         )
     }
@@ -93,14 +100,18 @@ class EventRepositoryTest {
             endTime = "11:00"
         )
         val result = repository.saveEvent(event)
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+        assertTrue("Expected failure for blank title", result.isFailure)
+        assertTrue(
+            "Expected InvalidEventDataException, got ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is InvalidEventDataException
+        )
     }
 
     @Test
     fun `saveEvent fails if start date is in the past`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
+        every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns true
 
         val event = Event(
             title = "Test Event",
@@ -114,8 +125,11 @@ class EventRepositoryTest {
             guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.saveEvent(event)
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is EventPastDateTimeException)
+        assertTrue("Expected failure for past date", result.isFailure)
+        assertTrue(
+            "Expected EventPastDateTimeException, got ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is EventPastDateTimeException
+        )
     }
 
     @Test
@@ -135,8 +149,11 @@ class EventRepositoryTest {
             guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.saveEvent(event)
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+        assertTrue("Expected failure for invalid date range", result.isFailure)
+        assertTrue(
+            "Expected InvalidEventDataException, got ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is InvalidEventDataException
+        )
     }
 
     @Test
@@ -156,8 +173,11 @@ class EventRepositoryTest {
             guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.saveEvent(event)
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+        assertTrue("Expected failure for invalid time range", result.isFailure)
+        assertTrue(
+            "Expected InvalidEventDataException, got ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is InvalidEventDataException
+        )
     }
 
     @Test
@@ -187,7 +207,7 @@ class EventRepositoryTest {
         }
 
         val result = repository.saveEvent(event)
-        assertTrue(result.isSuccess)
+        result.getOrThrow()
         assertTrue(result.getOrNull() == "newEventId")
         verify {
             transaction.set(any(), match<Map<String, Any>> { map ->
@@ -224,7 +244,7 @@ class EventRepositoryTest {
         }
 
         val result = repository.saveEvent(event)
-        assertTrue(result.isSuccess)
+        result.getOrThrow()
         assertTrue(result.getOrNull() == "newEventId")
     }
 
@@ -316,17 +336,18 @@ class EventRepositoryTest {
         every { oldDoc.getString("hostEmail") } returns "host@test.com"
 
         val transaction = mockk<Transaction>()
+        every { transaction.get(eventDoc) } returns oldDoc
+        every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
+        every { transaction.set(any(), any()) } returns transaction
+
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
-            every { transaction.get(eventDoc) } returns oldDoc
-            every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
-            every { transaction.set(any(), any()) } returns transaction
             function.apply(transaction)
             Tasks.forResult(Unit)
         }
 
         val result = repository.updateEvent(event)
-        assertTrue(result.isSuccess)
+        result.getOrThrow()
         verify {
             transaction.set(any(), match<Map<String, Any>> { map ->
                 map["eventId"] == "event123" && map["type"] == "EVENT_INVITE"
@@ -362,16 +383,17 @@ class EventRepositoryTest {
         every { oldDoc.getString("hostEmail") } returns "host@test.com"
 
         val transaction = mockk<Transaction>()
+        every { transaction.get(eventDoc) } returns oldDoc
+        every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
+
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
-            every { transaction.get(eventDoc) } returns oldDoc
-            every { transaction.update(eventDoc, any<Map<String, Any?>>()) } returns transaction
             function.apply(transaction)
             Tasks.forResult(Unit)
         }
 
         val result = repository.updateEvent(event)
-        assertTrue(result.isSuccess)
+        assertTrue("Expected success, got ${result.exceptionOrNull()}", result.isSuccess)
     }
 
     @Test
@@ -410,6 +432,7 @@ class EventRepositoryTest {
     fun `updateEvent fails if start date is in the past`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
+        every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns true
 
         val event = Event(
             id = "event123",
@@ -433,6 +456,9 @@ class EventRepositoryTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
 
+        // Mock for validateEventDetails (future date)
+        every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns false
+        
         val event = Event(
             id = "event123",
             title = "Awesome Party Updated",
@@ -454,17 +480,25 @@ class EventRepositoryTest {
         every { oldDoc.getString("hostName") } returns "Host Name"
         every { oldDoc.getString("hostEmail") } returns "host@test.com"
 
+        // Mock specifically for the past date in oldDoc
+        val pastDateMillis = com.free2party.util.parseDateToMillis("2020-01-01")!!
+        every { com.free2party.util.isDateTimeInPast(pastDateMillis, "10:00", any()) } returns true
+
         val transaction = mockk<Transaction>()
+        every { transaction.get(eventDoc) } returns oldDoc
+
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
-            every { transaction.get(eventDoc) } returns oldDoc
             function.apply(transaction)
             Tasks.forResult(Unit)
         }
 
         val result = repository.updateEvent(event)
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is EventEditCurrentPastException)
+        assertTrue("Expected failure for past event, got success", result.isFailure)
+        assertTrue(
+            "Expected EventEditCurrentPastException, got ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is EventEditCurrentPastException
+        )
     }
 
     @Test
@@ -485,8 +519,11 @@ class EventRepositoryTest {
             guests = mapOf("guest1" to GuestStatus.PENDING.name)
         )
         val result = repository.updateEvent(event)
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is InvalidEventDataException)
+        assertTrue("Expected failure for invalid date range", result.isFailure)
+        assertTrue(
+            "Expected InvalidEventDataException, got ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is InvalidEventDataException
+        )
     }
 
     @Test
@@ -518,16 +555,17 @@ class EventRepositoryTest {
             every { oldDoc.getString("type") } returns "PRIVATE"
 
             val transaction = mockk<Transaction>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            every {
+                transaction.update(
+                    eventDoc,
+                    "guests.testUser",
+                    "ACCEPTED"
+                )
+            } returns transaction
+
             every { db.runTransaction<Unit>(any()) } answers {
                 val function = firstArg<Transaction.Function<Unit>>()
-                every { transaction.get(eventDoc) } returns oldDoc
-                every {
-                    transaction.update(
-                        eventDoc,
-                        "guests.testUser",
-                        "ACCEPTED"
-                    )
-                } returns transaction
                 function.apply(transaction)
                 Tasks.forResult(Unit)
             }
@@ -549,10 +587,11 @@ class EventRepositoryTest {
             every { oldDoc.getString("type") } returns "PUBLIC"
 
             val transaction = mockk<Transaction>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            every { transaction.update(eventDoc, any<Map<String, Any>>()) } returns transaction
+
             every { db.runTransaction<Unit>(any()) } answers {
                 val function = firstArg<Transaction.Function<Unit>>()
-                every { transaction.get(eventDoc) } returns oldDoc
-                every { transaction.update(eventDoc, any<Map<String, Any>>()) } returns transaction
                 function.apply(transaction)
                 Tasks.forResult(Unit)
             }
@@ -573,10 +612,11 @@ class EventRepositoryTest {
         every { oldDoc.getString("type") } returns "PUBLIC"
 
         val transaction = mockk<Transaction>()
+        every { transaction.get(eventDoc) } returns oldDoc
+        every { transaction.update(eventDoc, any<Map<String, Any>>()) } returns transaction
+
         every { db.runTransaction<Unit>(any()) } answers {
             val function = firstArg<Transaction.Function<Unit>>()
-            every { transaction.get(eventDoc) } returns oldDoc
-            every { transaction.update(eventDoc, any<Map<String, Any>>()) } returns transaction
             function.apply(transaction)
             Tasks.forResult(Unit)
         }
@@ -598,16 +638,17 @@ class EventRepositoryTest {
             every { oldDoc.getString("type") } returns "PUBLIC"
 
             val transaction = mockk<Transaction>()
+            every { transaction.get(eventDoc) } returns oldDoc
+            every {
+                transaction.update(
+                    eventDoc,
+                    "guests.testUser",
+                    "DECLINED"
+                )
+            } returns transaction
+
             every { db.runTransaction<Unit>(any()) } answers {
                 val function = firstArg<Transaction.Function<Unit>>()
-                every { transaction.get(eventDoc) } returns oldDoc
-                every {
-                    transaction.update(
-                        eventDoc,
-                        "guests.testUser",
-                        "DECLINED"
-                    )
-                } returns transaction
                 function.apply(transaction)
                 Tasks.forResult(Unit)
             }
@@ -686,10 +727,6 @@ class EventRepositoryTest {
         every { db.batch() } returns batch
         every { batch.set(any(), any()) } returns batch
         every { batch.commit() } returns Tasks.forResult(null)
-
-        // Mock FieldValue.serverTimestamp()
-        mockkStatic(FieldValue::class)
-        every { FieldValue.serverTimestamp() } returns mockk()
 
         // Call the repository method
         val result = repository.addComment("event123", "Hello World!")

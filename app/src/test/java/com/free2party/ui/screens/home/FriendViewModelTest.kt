@@ -3,7 +3,7 @@ package com.free2party.ui.screens.home
 import com.free2party.data.repository.SocialRepository
 import com.free2party.ui.screens.friends.FriendUiEvent
 import com.free2party.ui.screens.friends.FriendViewModel
-import com.free2party.ui.screens.friends.InviteFriendUiState
+import com.free2party.ui.screens.friends.AddFriendUiState
 import com.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -40,16 +40,16 @@ class FriendViewModelTest {
     }
 
     @Test
-    fun `inviteFriend with invalid email sets error state`() {
-        viewModel.inviteFriend("invalid-email")
+    fun `addFriend with invalid email sets error state`() {
+        viewModel.addFriend("invalid-email")
 
-        assertTrue(viewModel.uiState is InviteFriendUiState.Error)
-        val state = viewModel.uiState as InviteFriendUiState.Error
+        assertTrue(viewModel.uiState is AddFriendUiState.Error)
+        val state = viewModel.uiState as AddFriendUiState.Error
         assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
-    fun `inviteFriend success updates state and emits event`() = runTest {
+    fun `addFriend success updates state and emits event`() = runTest {
         val email = "friend@example.com"
         coEvery { socialRepository.sendFriendRequest(email) } returns Result.success(Unit)
 
@@ -59,35 +59,35 @@ class FriendViewModelTest {
         }
         runCurrent()
 
-        viewModel.inviteFriend(email)
+        viewModel.addFriend(email)
         runCurrent()
 
-        assertEquals(InviteFriendUiState.Success, viewModel.uiState)
+        assertEquals(AddFriendUiState.Success, viewModel.uiState)
         val event = events.firstOrNull()
-        assertTrue(event is FriendUiEvent.InviteSentSuccessfully)
+        assertTrue(event is FriendUiEvent.FriendRequestSentSuccessfully)
     }
 
     @Test
-    fun `inviteFriend failure updates error state`() = runTest {
+    fun `addFriend failure updates error state`() = runTest {
         val email = "friend@example.com"
         coEvery { socialRepository.sendFriendRequest(email) } returns Result.failure(
             Exception("Error")
         )
 
-        viewModel.inviteFriend(email)
+        viewModel.addFriend(email)
         runCurrent()
 
-        assertTrue(viewModel.uiState is InviteFriendUiState.Error)
-        val state = viewModel.uiState as InviteFriendUiState.Error
+        assertTrue(viewModel.uiState is AddFriendUiState.Error)
+        val state = viewModel.uiState as AddFriendUiState.Error
         assertTrue(state.message is UiText.StringResource)
     }
 
     @Test
     fun `resetState sets state to Idle`() {
-        viewModel.inviteFriend("invalid")
-        assertTrue(viewModel.uiState is InviteFriendUiState.Error)
+        viewModel.addFriend("invalid")
+        assertTrue(viewModel.uiState is AddFriendUiState.Error)
 
         viewModel.resetState()
-        assertEquals(InviteFriendUiState.Idle, viewModel.uiState)
+        assertEquals(AddFriendUiState.Idle, viewModel.uiState)
     }
 }

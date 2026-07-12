@@ -129,7 +129,7 @@ class CalendarViewModel @Inject constructor(
     var datePattern by mutableStateOf(DatePattern.YYYY_MM_DD)
         private set
 
-    var membership by mutableStateOf(Membership.REGULAR)
+    var membership by mutableStateOf(Membership.FREE)
         private set
 
     private val userIdToObserve get() = targetUserId.value ?: currentUserId

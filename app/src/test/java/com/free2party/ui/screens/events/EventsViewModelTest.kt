@@ -37,7 +37,7 @@ class EventsViewModelTest {
     private val userIdFlow = MutableStateFlow("")
     private val eventsFlow = MutableStateFlow<List<Event>>(emptyList())
     private val userObserveFlow = MutableStateFlow(
-        User(uid = "testUser", membership = Membership.REGULAR, settings = UserSettings())
+        User(uid = "testUser", membership = Membership.FREE, settings = UserSettings())
     )
 
     @Before

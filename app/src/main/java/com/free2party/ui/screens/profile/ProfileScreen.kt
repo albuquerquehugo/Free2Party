@@ -315,7 +315,7 @@ fun ProfileScreen(
                         }
 
                         // Ads Banner at the bottom
-                        if (uiState.membership == Membership.REGULAR) {
+                        if (uiState.membership == Membership.FREE) {
                             AdBanner()
                         }
                     }
