@@ -319,13 +319,27 @@
 
     <!-- Time and Duration -->
     <string name="date_in_parentheses">(%1$s)</string>
-    <string name="duration_days">%1$dd</string>
+    <plurals name="duration_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
     <string name="duration_hours">%1$dh</string>
-    <string name="duration_minutes">%1$dm</string>
-    <string name="time_days_ago">%1$dd ago</string>
+    <string name="duration_minutes">%1$d min</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
     <string name="time_hours_ago">%1$dh ago</string>
     <string name="time_just_now">just now</string>
-    <string name="time_minutes_ago">%1$dm ago</string>
+    <string name="time_minutes_ago">%1$d min ago</string>
+    <plurals name="time_months_ago">
+        <item quantity="one">%1$d month ago</item>
+        <item quantity="other">%1$d months ago</item>
+    </plurals>
+    <plurals name="time_years_ago">
+        <item quantity="one">%1$d year ago</item>
+        <item quantity="other">%1$d years ago</item>
+    </plurals>
     <string name="time_range">%1$s - %2$s</string>
 
     <!-- Events -->

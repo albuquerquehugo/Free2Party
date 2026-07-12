@@ -51,7 +51,15 @@ fun formatTimeAgo(timestamp: Date?): UiText {
         seconds < 60 -> UiText.StringResource(R.string.time_just_now)
         minutes < 60 -> UiText.StringResource(R.string.time_minutes_ago, minutes.toInt())
         hours < 24 -> UiText.StringResource(R.string.time_hours_ago, hours.toInt())
-        else -> UiText.StringResource(R.string.time_days_ago, days.toInt())
+        days <= 30 -> UiText.PluralStringResource(R.plurals.time_days_ago, days.toInt(), days.toInt())
+        days < 365 -> {
+            val months = (days / 30).toInt()
+            UiText.PluralStringResource(R.plurals.time_months_ago, months, months)
+        }
+        else -> {
+            val years = (days / 365).toInt()
+            UiText.PluralStringResource(R.plurals.time_years_ago, years, years)
+        }
     }
 }
 
@@ -333,7 +341,7 @@ fun calculateDuration(
     val minutes = remainingMinsAfterDays % 60
 
     val parts = buildList {
-        if (days > 0) add(UiText.StringResource(R.string.duration_days, days))
+        if (days > 0) add(UiText.PluralStringResource(R.plurals.duration_days, days, days))
         if (hours > 0) add(UiText.StringResource(R.string.duration_hours, hours))
         if (minutes > 0 || isEmpty()) add(UiText.StringResource(R.string.duration_minutes, minutes))
     }
