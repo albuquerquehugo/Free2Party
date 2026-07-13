@@ -11,6 +11,9 @@
     <string name="label_delete">Excluir</string>
     <string name="label_discard_changes">Descartar Alterações</string>
     <string name="label_edit">Editar</string>
+    <string name="label_end_colon">Fim:</string>
+    <string name="label_end_date">Data de Término</string>
+    <string name="label_end_time">Hora de Término</string>
     <string name="label_everyone">Todos</string>
     <string name="label_everyone_except_label">Todos, exceto…</string>
     <string name="label_logout">Sair</string>
@@ -19,8 +22,14 @@
     <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
     <string name="label_or"> OU </string>
     <string name="label_remove">Remover</string>
+    <string name="label_required_field">" *"</string>
     <string name="label_save">Salvar</string>
     <string name="label_save_changes">Salvar Alterações</string>
+    <string name="label_select_date">Selecionar data</string>
+    <string name="label_select_time">Selecionar hora</string>
+    <string name="label_start_colon">Início:</string>
+    <string name="label_start_date">Data de Início</string>
+    <string name="label_start_time">Hora de Início</string>
     <string name="label_update">Atualizar</string>
     <string name="text_discard_changes_confirmation">Tem certeza que deseja descartar suas alterações?</string>
 
@@ -249,8 +258,6 @@
     <string name="label_friend_calendar">Calendário de %1$s</string>
     <string name="label_friend_calendar_s">Calendário de %1$s</string>
     <string name="label_results_for">Resultados para: %1$s</string>
-    <string name="label_select_end_date">Selecionar data de término</string>
-    <string name="label_select_start_date">Selecionar data de início</string>
     <string name="label_today">Hoje</string>
     <string name="text_delete_plan_confirmation_text">Tem certeza que deseja excluir este plano?</string>
     <string name="text_no_activities_for_day">Nenhum plano ou evento para este dia</string>
@@ -262,7 +269,6 @@
     <!-- Plan Dialog -->
     <string name="description_plan_actions_content">Ações do Plano</string>
     <string name="label_edit_plan">Edite seu plano</string>
-    <string name="label_end">Fim:</string>
     <string name="label_everyone_except">Todos, exceto: %1$s</string>
     <string name="label_no_friends_to_select">Nenhum amigo para selecionar</string>
     <string name="label_only_selected_people">Apenas: %1$s</string>
@@ -270,9 +276,6 @@
     <string name="label_plan_note">O que você está planejando?</string>
     <string name="label_schedule_plan">Agendar seu plano</string>
     <string name="label_select_all">Marcar todos</string>
-    <string name="label_select_end_time">Selecionar hora de término</string>
-    <string name="label_select_start_time">Selecionar hora de início</string>
-    <string name="label_start">Início:</string>
     <string name="label_unselect_all">Desmarcar todos</string>
     <string name="label_visibility_discretion">(Isso não é visível para os outros)</string>
     <string name="placeholder_plan_note">Digite uma breve nota…</string>
@@ -348,6 +351,7 @@
     <string name="time_range">%1$s - %2$s</string>
 
     <!-- Events -->
+    <string name="badge_event">Evento</string>
     <string name="label_add_link">Adicionar Link</string>
     <string name="label_all_events">Todos os Eventos</string>
     <string name="label_comment_edited">(editado)</string>
@@ -370,9 +374,7 @@
     <string name="label_event_description">Descrição</string>
     <string name="label_event_guests_selection">Selecionar Convidados</string>
     <string name="label_event_title">Título</string>
-    <string name="label_event_type">Tipo</string>
-    <string name="label_event_type_desc_private">Apenas convidados</string>
-    <string name="label_event_type_desc_public">Qualquer pessoa pode ver e participar</string>
+    <string name="label_event_privacy_colon">Privacidade:</string>
     <string name="label_events">Eventos</string>
     <string name="label_going">Vai</string>
     <string name="label_going_self">Vou</string>
@@ -383,7 +385,6 @@
         <item quantity="other">%1$d vão</item>
     </plurals>
     <string name="label_hosted_by">Organizado por %1$s</string>
-    <string name="badge_event">Evento</string>
     <string name="label_invited">Convidado</string>
     <string name="label_link_title">Título</string>
     <string name="label_link_url">URL</string>
@@ -416,6 +417,8 @@
     <string name="placeholder_link_url">URL do Link (ex: https://…)</string>
     <string name="placeholder_location">Digite o nome do local ou endereço</string>
     <string name="placeholder_search_events">Buscar eventos…</string>
+    <string name="text_event_type_private">Apenas convidados</string>
+    <string name="text_event_type_public">Qualquer um pode ver e participar</string>
     <string name="toast_comment_deleted">Comentário excluído</string>
     <string name="toast_comment_posted">Comentário enviado!</string>
     <string name="toast_event_created">Evento criado com sucesso!</string>
@@ -436,7 +439,8 @@
     <string name="error_email_not_verified">Por favor, verifique seu endereço de e-mail antes de entrar. Verifique sua caixa de entrada (incluindo a pasta de SPAM) pelo link de verificação.</string>
     <string name="error_email_not_verified_resend">Não recebeu o link de verificação?</string>
     <string name="error_email_not_verified_resend_clickable">Reenviar</string>
-    <string name="error_end_date_mandatory">A data e hora de término são obrigatórias</string>
+    <string name="error_end_date_required">A data de término é obrigatória</string>
+    <string name="error_end_date_time_required">A data e hora de término são obrigatórias</string>
     <string name="error_event_edit_current_past">Não é possível editar um evento em curso ou passado</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_event_past_date_time">Não é possível agendar eventos para uma data ou hora passada</string>
@@ -486,7 +490,8 @@
     <string name="error_sending_friend_request">Erro ao enviar pedido de amizade.</string>
     <string name="error_settings_not_found">Configurações do usuário não encontradas. Por favor, tente sair e entrar novamente.</string>
     <string name="error_social">Erro social</string>
-    <string name="error_start_date_mandatory">A data e hora de início são obrigatórias</string>
+    <string name="error_start_date_required">A data de início é obrigatória</string>
+    <string name="error_start_date_time_required">A data e hora de início são obrigatórias</string>
     <string name="error_title_mandatory">O título é obrigatório para todos os eventos</string>
     <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
     <string name="error_unblock_to_add_friend">Desbloqueie este usuário antes de adicioná-lo como amigo.</string>

@@ -217,6 +217,37 @@ class EventRepositoryTest {
     }
 
     @Test
+    fun `saveEvent succeeds when end date and end time are blank`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        val event = Event(
+            title = "Awesome Party",
+            startDate = "2026-07-10",
+            endDate = "",
+            startTime = "10:00",
+            endTime = "",
+            locationName = "Somewhere",
+            latitude = 10.0,
+            longitude = 10.0,
+            guests = mapOf("guest1" to GuestStatus.PENDING.name)
+        )
+        every { eventDoc.id } returns "newEventId"
+
+        val transaction = mockk<Transaction>()
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            every { transaction.set(any(), any()) } returns transaction
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.saveEvent(event)
+        result.getOrThrow()
+        assertTrue(result.getOrNull() == "newEventId")
+    }
+
+    @Test
     fun `saveEvent succeeds with valid details for public event with empty guests`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"

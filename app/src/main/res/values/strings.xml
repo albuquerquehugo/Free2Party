@@ -11,6 +11,9 @@
     <string name="label_delete">Delete</string>
     <string name="label_discard_changes">Discard Changes</string>
     <string name="label_edit">Edit</string>
+    <string name="label_end_colon">End:</string>
+    <string name="label_end_date">End Date</string>
+    <string name="label_end_time">End Time</string>
     <string name="label_everyone">Everyone</string>
     <string name="label_everyone_except_label">Everyone except…</string>
     <string name="label_logout">Logout</string>
@@ -19,8 +22,14 @@
     <string name="label_only_selected_people_label">Only selected people…</string>
     <string name="label_or"> OR </string>
     <string name="label_remove">Remove</string>
+    <string name="label_required_field">" *"</string>
     <string name="label_save">Save</string>
     <string name="label_save_changes">Save Changes</string>
+    <string name="label_select_date">Select date</string>
+    <string name="label_select_time">Select time</string>
+    <string name="label_start_colon">Start:</string>
+    <string name="label_start_date">Start Date</string>
+    <string name="label_start_time">Start Time</string>
     <string name="label_update">Update</string>
     <string name="text_discard_changes_confirmation">Are you sure you want to discard your changes?</string>
 
@@ -248,8 +257,6 @@
     <string name="label_friend_calendar">%1$s\'s Calendar</string>
     <string name="label_friend_calendar_s">%1$s\' Calendar</string>
     <string name="label_results_for">Results for: %1$s</string>
-    <string name="label_select_end_date">Select end date</string>
-    <string name="label_select_start_date">Select start date</string>
     <string name="label_today">Today</string>
     <string name="text_delete_plan_confirmation_text">Are you sure you want to delete this plan?</string>
     <string name="text_no_activities_for_day">No plans or events for this day</string>
@@ -261,7 +268,6 @@
     <!-- Plan Dialog -->
     <string name="description_plan_actions_content">Plan Actions</string>
     <string name="label_edit_plan">Edit your plan</string>
-    <string name="label_end">End:</string>
     <string name="label_everyone_except">Everyone except: %1$s</string>
     <string name="label_no_friends_to_select">No friends to select</string>
     <string name="label_only_selected_people">Only: %1$s</string>
@@ -269,9 +275,6 @@
     <string name="label_plan_note">What are you planning?</string>
     <string name="label_schedule_plan">Schedule your plan</string>
     <string name="label_select_all">Select all</string>
-    <string name="label_select_end_time">Select end time</string>
-    <string name="label_select_start_time">Select start time</string>
-    <string name="label_start">Start:</string>
     <string name="label_unselect_all">Unselect all</string>
     <string name="label_visibility_discretion">(This is not visible to others)</string>
     <string name="placeholder_plan_note">Enter a brief note…</string>
@@ -343,6 +346,7 @@
     <string name="time_range">%1$s - %2$s</string>
 
     <!-- Events -->
+    <string name="badge_event">Event</string>
     <string name="label_add_link">Add Link</string>
     <string name="label_all_events">All Events</string>
     <string name="label_comment_edited">(edited)</string>
@@ -365,9 +369,7 @@
     <string name="label_event_description">Description</string>
     <string name="label_event_guests_selection">Select Guests</string>
     <string name="label_event_title">Title</string>
-    <string name="label_event_type">Type</string>
-    <string name="label_event_type_desc_private">Invite-only</string>
-    <string name="label_event_type_desc_public">Anyone can view and join</string>
+    <string name="label_event_privacy_colon">Privacy:</string>
     <string name="label_events">Events</string>
     <string name="label_going">Going</string>
     <string name="label_going_self">Going</string>
@@ -377,7 +379,6 @@
         <item quantity="other">%1$d going</item>
     </plurals>
     <string name="label_hosted_by">Hosted by %1$s</string>
-    <string name="badge_event">Event</string>
     <string name="label_invited">Invited</string>
     <string name="label_link_title">Title</string>
     <string name="label_link_url">URL</string>
@@ -410,6 +411,8 @@
     <string name="placeholder_link_url">Link URL (e.g. https://…)</string>
     <string name="placeholder_location">Enter location name or address</string>
     <string name="placeholder_search_events">Search events…</string>
+    <string name="text_event_type_private">Invite-only</string>
+    <string name="text_event_type_public">Anyone can view and join</string>
     <string name="toast_comment_deleted">Comment deleted</string>
     <string name="toast_comment_posted">Comment posted!</string>
     <string name="toast_event_created">Event created successfully!</string>
@@ -430,7 +433,8 @@
     <string name="error_email_not_verified">Please verify your email address before logging in. Check your inbox (including SPAM folder) for the verification link.</string>
     <string name="error_email_not_verified_resend">Didn\'t receive the verification link?</string>
     <string name="error_email_not_verified_resend_clickable">Resend it</string>
-    <string name="error_end_date_mandatory">End date and time are mandatory</string>
+    <string name="error_end_date_required">End date is required</string>
+    <string name="error_end_date_time_required">End date and time are required</string>
     <string name="error_event_edit_current_past">Cannot edit a current or past event</string>
     <string name="error_event_not_found">The event was not found.</string>
     <string name="error_event_past_date_time">Cannot schedule events for a past date or time</string>
@@ -480,7 +484,8 @@
     <string name="error_sending_friend_request">Error sending friend request.</string>
     <string name="error_settings_not_found">User settings not found. Please try logging out and in again.</string>
     <string name="error_social">Social error</string>
-    <string name="error_start_date_mandatory">Start date and time are mandatory</string>
+    <string name="error_start_date_required">Start date is required</string>
+    <string name="error_start_date_time_required">Start date and time are required</string>
     <string name="error_title_mandatory">Title is mandatory for all events</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
     <string name="error_unblock_to_add_friend">Unblock this user before adding them as a friend.</string>

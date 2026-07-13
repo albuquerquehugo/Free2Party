@@ -89,11 +89,22 @@ class CalendarViewModel @Inject constructor(
 
             return eventsList.filter { event ->
                 val eventStartMillis = parseDateToMillis(event.startDate) ?: return@filter false
-                val eventEndMillis = parseDateToMillis(event.endDate) ?: return@filter false
+                val eventEndMillis = if (event.endDate.isNotBlank()) {
+                    parseDateToMillis(event.endDate) ?: return@filter false
+                } else {
+                    eventStartMillis
+                }
 
                 val eventDateTimeStart =
                     eventStartMillis + (parseTimeToMillis(event.startTime) ?: 0L)
-                val eventDateTimeEnd = eventEndMillis + (parseTimeToMillis(event.endTime) ?: 0L)
+                val eventDateTimeEnd =
+                    if (event.endDate.isNotBlank() && event.endTime.isNotBlank()) {
+                        eventEndMillis + (parseTimeToMillis(event.endTime) ?: 0L)
+                    } else if (event.endTime.isNotBlank()) {
+                        eventStartMillis + (parseTimeToMillis(event.endTime) ?: 0L)
+                    } else {
+                        eventDateTimeStart + 3600000L
+                    }
 
                 val nextDay = selectedDate + 86400000L // 24 hours later
 
@@ -405,8 +416,12 @@ class CalendarViewModel @Inject constructor(
         return eventsList.flatMap { event ->
             val eventStart = runCatching { LocalDate.parse(event.startDate) }.getOrNull()
                 ?: return@flatMap emptyList<Int>()
-            var eventEnd = runCatching { LocalDate.parse(event.endDate) }.getOrNull()
-                ?: return@flatMap emptyList<Int>()
+            var eventEnd = if (event.endDate.isNotBlank()) {
+                runCatching { LocalDate.parse(event.endDate) }.getOrNull()
+                    ?: return@flatMap emptyList<Int>()
+            } else {
+                eventStart
+            }
 
             // If it ends at exactly midnight (0:00), the end date is exclusive.
             if (parseTimeToMinutes(event.endTime) == 0 && eventEnd.isAfter(eventStart)) {
