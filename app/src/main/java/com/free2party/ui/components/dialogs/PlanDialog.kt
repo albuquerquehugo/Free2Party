@@ -83,10 +83,10 @@ fun PlanDialog(
     }
 
     val startDatePickerState = rememberDatePickerState()
-    val endDatePickerState = rememberDatePickerState()
     val startTimeState = key(use24HourFormat) {
         rememberTimePickerState(initialHour = 12, initialMinute = 0, is24Hour = use24HourFormat)
     }
+    val endDatePickerState = rememberDatePickerState()
     val endTimeState = key(use24HourFormat) {
         rememberTimePickerState(initialHour = 13, initialMinute = 0, is24Hour = use24HourFormat)
     }
@@ -120,6 +120,10 @@ fun PlanDialog(
     var isEndDateSelected by remember { mutableStateOf(editingPlan != null) }
     var isEndTimeSelected by remember { mutableStateOf(editingPlan != null) }
     var showDiscardConfirm by remember { mutableStateOf(false) }
+    var hasInteractedWithStartDate by remember { mutableStateOf(false) }
+    var hasInteractedWithStartTime by remember { mutableStateOf(false) }
+    var hasInteractedWithEndDate by remember { mutableStateOf(false) }
+    var hasInteractedWithEndTime by remember { mutableStateOf(false) }
 
     LaunchedEffect(friends) {
         val currentFriendIds = friends.map { it.uid }.toSet()
@@ -349,7 +353,11 @@ fun PlanDialog(
                     cardTextStyle = MaterialTheme.typography.bodySmall,
                     isEndDateTimeRequired = true,
                     pastErrorResId = R.string.error_past_plan,
-                    cardTextColorNormal = Color.Unspecified
+                    cardTextColorNormal = Color.Unspecified,
+                    hasInteractedWithStartDate = hasInteractedWithStartDate,
+                    hasInteractedWithStartTime = hasInteractedWithStartTime,
+                    hasInteractedWithEndDate = hasInteractedWithEndDate,
+                    hasInteractedWithEndTime = hasInteractedWithEndTime
                 )
 
                 AppOutlinedTextField(
@@ -483,10 +491,14 @@ fun PlanDialog(
         AppDatePickerDialog(
             state = startDatePickerState,
             title = stringResource(R.string.label_start_date),
-            onDismiss = { setShowStartDatePicker(false) },
+            onDismiss = {
+                setShowStartDatePicker(false)
+                hasInteractedWithStartDate = true
+            },
             onConfirm = {
                 setShowStartDatePicker(false)
                 isStartDateSelected = true
+                hasInteractedWithStartDate = true
             }
         )
     }
@@ -495,10 +507,14 @@ fun PlanDialog(
         AppDatePickerDialog(
             state = endDatePickerState,
             title = stringResource(R.string.label_end_date),
-            onDismiss = { setShowEndDatePicker(false) },
+            onDismiss = {
+                setShowEndDatePicker(false)
+                hasInteractedWithEndDate = true
+            },
             onConfirm = {
                 setShowEndDatePicker(false)
                 isEndDateSelected = true
+                hasInteractedWithEndDate = true
             }
         )
     }
@@ -513,6 +529,12 @@ fun PlanDialog(
             title = if (showStartTimePicker) stringResource(R.string.label_start_time)
             else stringResource(R.string.label_end_time),
             onDismiss = {
+                if (showStartTimePicker) {
+                    hasInteractedWithStartTime = true
+                }
+                if (showEndTimePicker) {
+                    hasInteractedWithEndTime = true
+                }
                 setShowStartTimePicker(false)
                 setShowEndTimePicker(false)
             },
@@ -521,10 +543,12 @@ fun PlanDialog(
                     startTimeState.hour = pickerState.hour
                     startTimeState.minute = pickerState.minute
                     isStartTimeSelected = true
+                    hasInteractedWithStartTime = true
                 } else {
                     endTimeState.hour = pickerState.hour
                     endTimeState.minute = pickerState.minute
                     isEndTimeSelected = true
+                    hasInteractedWithEndTime = true
                 }
                 setShowStartTimePicker(false)
                 setShowEndTimePicker(false)

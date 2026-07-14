@@ -435,6 +435,7 @@
     <string name="error_email_not_verified_resend_clickable">Resend it</string>
     <string name="error_end_date_required">End date is required</string>
     <string name="error_end_date_time_required">End date and time are required</string>
+    <string name="error_end_time_required">End time is required</string>
     <string name="error_event_edit_current_past">Cannot edit a current or past event</string>
     <string name="error_event_not_found">The event was not found.</string>
     <string name="error_event_past_date_time">Cannot schedule events for a past date or time</string>
@@ -486,6 +487,7 @@
     <string name="error_social">Social error</string>
     <string name="error_start_date_required">Start date is required</string>
     <string name="error_start_date_time_required">Start date and time are required</string>
+    <string name="error_start_time_required">Start time is required</string>
     <string name="error_title_mandatory">Title is mandatory for all events</string>
     <string name="error_unauthorized">You must be logged in to perform this action</string>
     <string name="error_unblock_to_add_friend">Unblock this user before adding them as a friend.</string>

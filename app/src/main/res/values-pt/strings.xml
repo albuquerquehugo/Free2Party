@@ -441,6 +441,7 @@
     <string name="error_email_not_verified_resend_clickable">Reenviar</string>
     <string name="error_end_date_required">A data de término é obrigatória</string>
     <string name="error_end_date_time_required">A data e hora de término são obrigatórias</string>
+    <string name="error_end_time_required">A hora de término é obrigatória</string>
     <string name="error_event_edit_current_past">Não é possível editar um evento em curso ou passado</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_event_past_date_time">Não é possível agendar eventos para uma data ou hora passada</string>
@@ -492,6 +493,7 @@
     <string name="error_social">Erro social</string>
     <string name="error_start_date_required">A data de início é obrigatória</string>
     <string name="error_start_date_time_required">A data e hora de início são obrigatórias</string>
+    <string name="error_start_time_required">A hora de início é obrigatória</string>
     <string name="error_title_mandatory">O título é obrigatório para todos os eventos</string>
     <string name="error_unauthorized">Você deve estar logado para realizar esta ação</string>
     <string name="error_unblock_to_add_friend">Desbloqueie este usuário antes de adicioná-lo como amigo.</string>

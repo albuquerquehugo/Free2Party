@@ -134,8 +134,10 @@ fun CreateEventScreen(
     var description by remember { mutableStateOf("") }
     var eventType by remember { mutableStateOf(EventType.PRIVATE) }
     var timezone by remember { mutableStateOf(TimeZone.getDefault().id) }
-    var hasInteractedWithStart by remember { mutableStateOf(false) }
-    var hasInteractedWithEnd by remember { mutableStateOf(false) }
+    var hasInteractedWithStartDate by remember { mutableStateOf(false) }
+    var hasInteractedWithStartTime by remember { mutableStateOf(false) }
+    var hasInteractedWithEndDate by remember { mutableStateOf(false) }
+    var hasInteractedWithEndTime by remember { mutableStateOf(false) }
     var locationName by remember { mutableStateOf("") }
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
@@ -613,12 +615,16 @@ fun CreateEventScreen(
                 onClearEndClick = {
                     endDatePickerState.selectedDateMillis = null
                     isEndTimeSelected = false
+                    hasInteractedWithEndTime = false
                 },
                 labelStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 cardTextStyle = MaterialTheme.typography.bodyMedium,
                 isEndDateTimeRequired = false,
                 pastErrorResId = R.string.error_event_past_date_time,
-                hasInteractedWithStart = hasInteractedWithStart,
+                hasInteractedWithStartDate = hasInteractedWithStartDate,
+                hasInteractedWithStartTime = hasInteractedWithStartTime,
+                hasInteractedWithEndDate = hasInteractedWithEndDate,
+                hasInteractedWithEndTime = hasInteractedWithEndTime,
                 cardTextColorNormal = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -906,8 +912,10 @@ fun CreateEventScreen(
                                 hasInteractedWithGuests = false
                                 hasInteractedWithTitle = false
                                 isTitleFocused = false
-                                hasInteractedWithStart = false
-                                hasInteractedWithEnd = false
+                                hasInteractedWithStartDate = false
+                                hasInteractedWithStartTime = false
+                                hasInteractedWithEndDate = false
+                                hasInteractedWithEndTime = false
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -1166,11 +1174,11 @@ fun CreateEventScreen(
             title = stringResource(R.string.label_start_date),
             onDismiss = {
                 setShowStartDatePicker(false)
-                hasInteractedWithStart = true
+                hasInteractedWithStartDate = true
             },
             onConfirm = {
                 setShowStartDatePicker(false)
-                hasInteractedWithStart = true
+                hasInteractedWithStartDate = true
             }
         )
     }
@@ -1181,11 +1189,11 @@ fun CreateEventScreen(
             title = stringResource(R.string.label_end_date),
             onDismiss = {
                 setShowEndDatePicker(false)
-                hasInteractedWithEnd = true
+                hasInteractedWithEndDate = true
             },
             onConfirm = {
                 setShowEndDatePicker(false)
-                hasInteractedWithEnd = true
+                hasInteractedWithEndDate = true
             }
         )
     }
@@ -1203,10 +1211,10 @@ fun CreateEventScreen(
                 else stringResource(R.string.label_end_time),
             onDismiss = {
                 if (showStartTimePicker) {
-                    hasInteractedWithStart = true
+                    hasInteractedWithStartTime = true
                 }
                 if (showEndTimePicker) {
-                    hasInteractedWithEnd = true
+                    hasInteractedWithEndTime = true
                 }
                 setShowStartTimePicker(false)
                 setShowEndTimePicker(false)
@@ -1216,7 +1224,7 @@ fun CreateEventScreen(
                     startTimeState.hour = pickerState.hour
                     startTimeState.minute = pickerState.minute
                     isStartTimeSelected = true
-                    hasInteractedWithStart = true
+                    hasInteractedWithStartTime = true
                 } else {
                     endTimeState.hour = pickerState.hour
                     endTimeState.minute = pickerState.minute
@@ -1225,7 +1233,7 @@ fun CreateEventScreen(
                         endDatePickerState.selectedDateMillis =
                             startDatePickerState.selectedDateMillis
                     }
-                    hasInteractedWithEnd = true
+                    hasInteractedWithEndTime = true
                 }
                 setShowStartTimePicker(false)
                 setShowEndTimePicker(false)
