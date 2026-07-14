@@ -21,15 +21,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-sealed interface InviteFriendUiState {
-    object Idle : InviteFriendUiState
-    object Searching : InviteFriendUiState
-    data class Error(val message: UiText) : InviteFriendUiState
-    object Success : InviteFriendUiState
+sealed interface AddFriendUiState {
+    object Idle : AddFriendUiState
+    object Searching : AddFriendUiState
+    data class Error(val message: UiText) : AddFriendUiState
+    object Success : AddFriendUiState
 }
 
 sealed class FriendUiEvent {
-    object InviteSentSuccessfully : FriendUiEvent()
+    object FriendRequestSentSuccessfully : FriendUiEvent()
     data class ShowToast(val message: UiText) : FriendUiEvent()
 }
 
@@ -38,7 +38,7 @@ class FriendViewModel @Inject constructor(
     private val socialRepository: SocialRepository,
 ) : ViewModel() {
 
-    var uiState by mutableStateOf<InviteFriendUiState>(InviteFriendUiState.Idle)
+    var uiState by mutableStateOf<AddFriendUiState>(AddFriendUiState.Idle)
         private set
 
     var searchResults by mutableStateOf<List<UserSearchResult>>(emptyList())
@@ -75,22 +75,22 @@ class FriendViewModel @Inject constructor(
         }
     }
 
-    fun inviteFriend(email: String) {
+    fun addFriend(email: String) {
         val normalizedEmail = email.trim().lowercase()
 
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
             uiState =
-                InviteFriendUiState.Error(UiText.StringResource(R.string.error_invalid_email))
+                AddFriendUiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
 
-        uiState = InviteFriendUiState.Searching
+        uiState = AddFriendUiState.Searching
         viewModelScope.launch {
             socialRepository.sendFriendRequest(normalizedEmail)
                 .onSuccess {
-                    uiState = InviteFriendUiState.Success
-                    _uiEvent.emit(FriendUiEvent.InviteSentSuccessfully)
+                    uiState = AddFriendUiState.Success
+                    _uiEvent.emit(FriendUiEvent.FriendRequestSentSuccessfully)
                 }
                 .onFailure { e ->
                     val errorText = when (e) {
@@ -102,16 +102,16 @@ class FriendViewModel @Inject constructor(
                             if (e.messageRes != null) UiText.StringResource(e.messageRes)
                             else UiText.StringResource(R.string.error_social)
 
-                        else -> UiText.StringResource(R.string.error_sending_invite)
+                        else -> UiText.StringResource(R.string.error_sending_friend_request)
                     }
-                    uiState = InviteFriendUiState.Error(errorText)
+                    uiState = AddFriendUiState.Error(errorText)
                     _uiEvent.emit(FriendUiEvent.ShowToast(errorText))
                 }
         }
     }
 
     fun resetState() {
-        uiState = InviteFriendUiState.Idle
+        uiState = AddFriendUiState.Idle
         searchResults = emptyList()
         isSearchingUsers = false
         searchJob?.cancel()

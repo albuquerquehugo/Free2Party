@@ -108,7 +108,7 @@ import com.free2party.ui.screens.events.EventsRoute
 import com.free2party.ui.screens.events.EventsViewModel
 import com.free2party.ui.screens.events.EventDetailsScreen
 import com.free2party.ui.screens.home.HomeRoute
-import com.free2party.ui.screens.friends.InviteFriendRoute
+import com.free2party.ui.screens.friends.AddFriendRoute
 import com.free2party.ui.screens.login.LoginRoute
 import com.free2party.ui.screens.notifications.NotificationsRoute
 import com.free2party.ui.screens.notifications.NotificationsViewModel
@@ -220,9 +220,9 @@ sealed class Screen(
         }
     }
 
-    object InviteFriend : Screen(
-        route = "invite_friend",
-        labelResId = R.string.label_invite_friend
+    object AddFriend : Screen(
+        route = "add_friend",
+        labelResId = R.string.label_add_friend
     )
 
     object Circles : Screen(
@@ -817,17 +817,17 @@ fun Free2PartyNavGraph(
         composable(Screen.Home.route) {
             HomeRoute(
                 homeViewModel = hiltViewModel(),
-                onNavigateToInviteFriend = {
-                    navController.navigate(Screen.InviteFriend.route)
+                onNavigateToAddFriend = {
+                    navController.navigate(Screen.AddFriend.route)
                 }
             )
         }
 
-        composable(Screen.InviteFriend.route) {
+        composable(Screen.AddFriend.route) {
             val mainViewModel: MainViewModel = hiltViewModel()
             val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
 
-            InviteFriendRoute(
+            AddFriendRoute(
                 viewModel = hiltViewModel(),
                 onBack = { navController.popBackStack() },
                 gradientBackground = gradientBackground

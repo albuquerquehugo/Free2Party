@@ -14,12 +14,12 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,44 +29,44 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.free2party.R
 import com.free2party.data.model.UserRelationship
 import com.free2party.data.model.UserSearchResult
+import com.free2party.R
 import com.free2party.ui.components.basic.AppOutlinedTextField
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun InviteFriendRoute(
+fun AddFriendRoute(
     viewModel: FriendViewModel,
     onBack: () -> Unit,
     gradientBackground: Boolean = true
 ) {
     val context = LocalContext.current
-    val inviteSentTemplate = stringResource(R.string.toast_invite_sent)
-    val unblockToInviteTemplate = stringResource(R.string.error_unblock_to_invite)
+    val friendRequestSentTemplate = stringResource(R.string.toast_friend_request_sent)
+    val unblockToAddFriendTemplate = stringResource(R.string.error_unblock_to_add_friend)
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
-                is FriendUiEvent.InviteSentSuccessfully -> {
-                    Toast.makeText(context, inviteSentTemplate, Toast.LENGTH_SHORT).show()
+                is FriendUiEvent.FriendRequestSentSuccessfully -> {
+                    Toast.makeText(context, friendRequestSentTemplate, Toast.LENGTH_SHORT).show()
                     onBack()
                 }
 
@@ -81,16 +81,16 @@ fun InviteFriendRoute(
         }
     }
 
-    InviteFriendScreen(
+    AddFriendScreen(
         uiState = viewModel.uiState,
         searchResults = viewModel.searchResults,
         isSearching = viewModel.isSearchingUsers,
         onQueryChange = { viewModel.searchUsers(it) },
         onUserSelected = { user ->
             if (user.relationship == UserRelationship.BLOCKED) {
-                Toast.makeText(context, unblockToInviteTemplate, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, unblockToAddFriendTemplate, Toast.LENGTH_SHORT).show()
             } else {
-                viewModel.inviteFriend(user.email)
+                viewModel.addFriend(user.email)
             }
         },
         onBack = onBack,
@@ -101,8 +101,8 @@ fun InviteFriendRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InviteFriendScreen(
-    uiState: InviteFriendUiState,
+fun AddFriendScreen(
+    uiState: AddFriendUiState,
     searchResults: List<UserSearchResult>,
     isSearching: Boolean,
     onQueryChange: (String) -> Unit,
@@ -112,7 +112,7 @@ fun InviteFriendScreen(
     gradientBackground: Boolean
 ) {
     var query by remember { mutableStateOf("") }
-    var userToInvite by remember {
+    var userToAdd by remember {
         mutableStateOf<UserSearchResult?>(
             null
         )
@@ -122,7 +122,7 @@ fun InviteFriendScreen(
         containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
-                title = stringResource(R.string.label_invite_friend),
+                title = stringResource(R.string.label_add_friend),
                 color = MaterialTheme.colorScheme.onSurface,
                 onBack = onBack
             )
@@ -142,9 +142,8 @@ fun InviteFriendScreen(
                 onValueChange = {
                     query = it
                     onQueryChange(it)
-                    if (uiState is InviteFriendUiState.Error) onResetState()
+                    if (uiState is AddFriendUiState.Error) onResetState()
                 },
-                labelText = stringResource(R.string.label_search),
                 placeholderText = stringResource(R.string.text_placeholder_search_user),
                 icon = Icons.Default.Search,
                 modifier = Modifier.fillMaxWidth()
@@ -234,7 +233,7 @@ fun InviteFriendScreen(
                                             (user.relationship == UserRelationship.BLOCKED))
                                 ) {
                                     if (user.relationship == UserRelationship.NONE) {
-                                        userToInvite = user
+                                        userToAdd = user
                                     } else {
                                         onUserSelected(user)
                                     }
@@ -245,21 +244,21 @@ fun InviteFriendScreen(
             }
         }
 
-        if (userToInvite != null) {
+        if (userToAdd != null) {
             ConfirmationDialog(
-                title = stringResource(R.string.label_invite_friend),
+                title = stringResource(R.string.label_add_friend),
                 text = stringResource(
-                    R.string.text_send_invite_confirmation,
-                    userToInvite!!.fullName,
-                    userToInvite!!.email
+                    R.string.text_send_friend_request_confirmation,
+                    userToAdd!!.fullName,
+                    userToAdd!!.email
                 ),
                 confirmButtonText = stringResource(R.string.label_confirm),
                 onConfirm = {
-                    onUserSelected(userToInvite!!)
-                    userToInvite = null
+                    onUserSelected(userToAdd!!)
+                    userToAdd = null
                 },
                 dismissButtonText = stringResource(R.string.label_cancel),
-                onDismiss = { userToInvite = null }
+                onDismiss = { userToAdd = null }
             )
         }
     }

@@ -224,7 +224,7 @@ fun LiveFriendsCirclesPreview() {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PersonAdd,
-                                contentDescription = stringResource(R.string.label_invite_friend),
+                                contentDescription = stringResource(R.string.label_add_friend),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

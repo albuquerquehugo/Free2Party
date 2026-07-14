@@ -17,14 +17,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -51,6 +48,7 @@ import com.free2party.ui.components.dialogs.ConfirmationDialog
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.isDateTimeInPast
 import com.free2party.util.UiText
+import com.free2party.util.parseDateToMillis
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,32 +61,11 @@ import kotlin.time.Duration.Companion.milliseconds
 fun CalendarRoute(onNavigateToEventDetails: (String) -> Unit) {
     val context = LocalContext.current
     val viewModel: CalendarViewModel = hiltViewModel()
-    val use24HourFormat = viewModel.use24HourFormat
-
     val startDatePickerState = rememberDatePickerState()
-    val endDatePickerState = rememberDatePickerState()
-
-    // Recreate time picker states whenever the 24-hour format preference changes
-    val startTimeState = key(use24HourFormat) {
-        rememberTimePickerState(
-            initialHour = 12,
-            initialMinute = 0,
-            is24Hour = use24HourFormat
-        )
-    }
-    val endTimeState = key(use24HourFormat) {
-        rememberTimePickerState(
-            initialHour = 13,
-            initialMinute = 0,
-            is24Hour = use24HourFormat
-        )
-    }
-
     val plannedDays =
         viewModel.getPlannedDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
     val eventDays =
         viewModel.getEventDaysForMonth(viewModel.displayedYear, viewModel.displayedMonth)
-
     val gradientBackground = viewModel.gradientBackground
 
     LaunchedEffect(viewModel.selectedDateMillis) {
@@ -112,9 +89,6 @@ fun CalendarRoute(onNavigateToEventDetails: (String) -> Unit) {
         eventDays = eventDays,
         gradientBackground = gradientBackground,
         startDatePickerState = startDatePickerState,
-        endDatePickerState = endDatePickerState,
-        startTimeState = startTimeState,
-        endTimeState = endTimeState,
         onSavePlan = { startDate, endDate, startTime, endTime, note, visibility, friendsSelection, editingPlanId ->
             val onError = { errorMessage: UiText ->
                 Toast.makeText(context, errorMessage.asString(context), Toast.LENGTH_LONG).show()
@@ -133,7 +107,12 @@ fun CalendarRoute(onNavigateToEventDetails: (String) -> Unit) {
                     visibility = visibility,
                     friendsSelection = friendsSelection,
                     onValidationError = onError,
-                    onSuccess = { onSuccess(planAddedMessage) }
+                    onSuccess = {
+                        onSuccess(planAddedMessage)
+                        parseDateToMillis(startDate)?.let { millis ->
+                            startDatePickerState.selectedDateMillis = millis
+                        }
+                    }
                 )
             } else {
                 viewModel.updatePlan(
@@ -174,9 +153,6 @@ fun CalendarScreen(
     eventDays: Set<Int>,
     gradientBackground: Boolean,
     startDatePickerState: DatePickerState,
-    endDatePickerState: DatePickerState,
-    startTimeState: TimePickerState,
-    endTimeState: TimePickerState,
     onSavePlan: (String, String, String, String, String, PlanVisibility, List<String>, String?) -> Unit,
     onDeletePlan: (String) -> Unit,
     onNavigateToEventDetails: (String) -> Unit
@@ -380,11 +356,7 @@ fun CalendarScreen(
                     editingPlan?.id
                 )
                 setShowPlanDialog(false)
-            },
-            startDatePickerState = startDatePickerState,
-            endDatePickerState = endDatePickerState,
-            startTimeState = startTimeState,
-            endTimeState = endTimeState
+            }
         )
     }
 

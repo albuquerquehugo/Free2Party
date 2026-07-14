@@ -153,7 +153,7 @@ class UtilTest {
 
     @Test
     fun `isDateTimeInPast returns true for past dates`() {
-        val now = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(2026, Calendar.MAY, 20, 12, 0)
         }
         val pastDateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -166,7 +166,7 @@ class UtilTest {
 
     @Test
     fun `isDateTimeInPast returns false for future dates`() {
-        val now = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(2026, Calendar.MAY, 20, 12, 0)
         }
         val futureDateMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -179,7 +179,7 @@ class UtilTest {
 
     @Test
     fun `isDateTimeInPast handles time for today correctly`() {
-        val now = Calendar.getInstance().apply {
+        val now = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(2026, Calendar.MAY, 20, 12, 30)
         }
         val todayMillis = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
@@ -263,6 +263,93 @@ class UtilTest {
         assertEquals(expected2, ptMsg2.matchEventComment())
 
         assertNull("Invalid format".matchEventComment())
+    }
+
+    @Test
+    fun `formatTimeAgo returns correct relative time string resource`() {
+        val now = System.currentTimeMillis()
+
+        // Just now (< 60s)
+        val justNowText = formatTimeAgo(java.util.Date(now - 30 * 1000)) as UiText.StringResource
+        assertEquals(com.free2party.R.string.time_just_now, justNowText.resId)
+
+        // Minutes ago (< 60m)
+        val minutesAgoText = formatTimeAgo(java.util.Date(now - 15 * 60 * 1000)) as UiText.StringResource
+        assertEquals(com.free2party.R.string.time_minutes_ago, minutesAgoText.resId)
+        assertEquals(15, minutesAgoText.args[0])
+
+        // Hours ago (< 24h)
+        val hoursAgoText = formatTimeAgo(java.util.Date(now - 5 * 60 * 60 * 1000)) as UiText.StringResource
+        assertEquals(com.free2party.R.string.time_hours_ago, hoursAgoText.resId)
+        assertEquals(5, hoursAgoText.args[0])
+
+        // Days ago (<= 30d)
+        val daysAgoText = formatTimeAgo(java.util.Date(now - 20L * 24 * 60 * 60 * 1000)) as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.time_days_ago, daysAgoText.resId)
+        assertEquals(20, daysAgoText.quantity)
+        assertEquals(20, daysAgoText.args[0])
+
+        val thirtyDaysAgoText = formatTimeAgo(java.util.Date(now - 30L * 24 * 60 * 60 * 1000)) as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.time_days_ago, thirtyDaysAgoText.resId)
+        assertEquals(30, thirtyDaysAgoText.quantity)
+        assertEquals(30, thirtyDaysAgoText.args[0])
+
+        // Months ago (31d to < 365d)
+        val thirtyOneDaysAgoText = formatTimeAgo(java.util.Date(now - 31L * 24 * 60 * 60 * 1000)) as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.time_months_ago, thirtyOneDaysAgoText.resId)
+        assertEquals(1, thirtyOneDaysAgoText.quantity)
+        assertEquals(1, thirtyOneDaysAgoText.args[0])
+
+        val sixMonthsAgoText = formatTimeAgo(java.util.Date(now - 180L * 24 * 60 * 60 * 1000)) as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.time_months_ago, sixMonthsAgoText.resId)
+        assertEquals(6, sixMonthsAgoText.quantity)
+        assertEquals(6, sixMonthsAgoText.args[0])
+
+        // Years ago (>= 365d)
+        val oneYearAgoText = formatTimeAgo(java.util.Date(now - 365L * 24 * 60 * 60 * 1000)) as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.time_years_ago, oneYearAgoText.resId)
+        assertEquals(1, oneYearAgoText.quantity)
+        assertEquals(1, oneYearAgoText.args[0])
+
+        val twoYearsAgoText = formatTimeAgo(java.util.Date(now - 730L * 24 * 60 * 60 * 1000)) as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.time_years_ago, twoYearsAgoText.resId)
+        assertEquals(2, twoYearsAgoText.quantity)
+        assertEquals(2, twoYearsAgoText.args[0])
+    }
+
+    @Test
+    fun `calculateDuration returns correct duration text`() {
+        // Just minutes
+        val minsOnly = calculateDuration("2026-05-20", "2026-05-20", "14:00", "14:45") as UiText.StringResource
+        assertEquals(com.free2party.R.string.duration_minutes, minsOnly.resId)
+        assertEquals(45, minsOnly.args[0])
+
+        // Just hours
+        val hoursOnly = calculateDuration("2026-05-20", "2026-05-20", "14:00", "16:00") as UiText.StringResource
+        assertEquals(com.free2party.R.string.duration_hours, hoursOnly.resId)
+        assertEquals(2, hoursOnly.args[0])
+
+        // Just days
+        val daysOnly = calculateDuration("2026-05-20", "2026-05-22", "14:00", "14:00") as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.duration_days, daysOnly.resId)
+        assertEquals(2, daysOnly.quantity)
+        assertEquals(2, daysOnly.args[0])
+
+        // Composite (days, hours, minutes)
+        val composite = calculateDuration("2026-05-20", "2026-05-21", "14:00", "16:30") as UiText.Composite
+        assertEquals(3, composite.parts.size)
+
+        val daysPart = composite.parts[0] as UiText.PluralStringResource
+        assertEquals(com.free2party.R.plurals.duration_days, daysPart.resId)
+        assertEquals(1, daysPart.quantity)
+
+        val hoursPart = composite.parts[1] as UiText.StringResource
+        assertEquals(com.free2party.R.string.duration_hours, hoursPart.resId)
+        assertEquals(2, hoursPart.args[0])
+
+        val minsPart = composite.parts[2] as UiText.StringResource
+        assertEquals(com.free2party.R.string.duration_minutes, minsPart.resId)
+        assertEquals(30, minsPart.args[0])
     }
 }
 

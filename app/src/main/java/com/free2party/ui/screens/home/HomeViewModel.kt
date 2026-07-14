@@ -295,12 +295,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun cancelFriendInvite(friendUid: String) {
+    fun cancelFriendRequest(friendUid: String) {
         viewModelScope.launch {
             socialRepository.cancelFriendRequest(friendUid)
                 .onSuccess {
                     Log.d("HomeViewModel", "Invite cancelled successfully")
-                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.toast_invite_cancelled)))
+                    _uiEvent.emit(HomeUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_cancelled)))
                 }
                 .onFailure { e ->
                     Log.e("HomeViewModel", "Error cancelling invite", e)
@@ -313,7 +313,7 @@ class HomeViewModel @Inject constructor(
                             if (e.messageRes != null) UiText.StringResource(e.messageRes)
                             else UiText.StringResource(R.string.error_social)
 
-                        else -> UiText.StringResource(R.string.error_cancelling_invite)
+                        else -> UiText.StringResource(R.string.error_cancelling_friend_request)
                     }
                     _uiEvent.emit(HomeUiEvent.ShowToast(errorText))
                 }

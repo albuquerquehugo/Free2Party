@@ -53,7 +53,15 @@ fun formatTimeAgo(timestamp: Date?): UiText {
         seconds < 60 -> UiText.StringResource(R.string.time_just_now)
         minutes < 60 -> UiText.StringResource(R.string.time_minutes_ago, minutes.toInt())
         hours < 24 -> UiText.StringResource(R.string.time_hours_ago, hours.toInt())
-        else -> UiText.StringResource(R.string.time_days_ago, days.toInt())
+        days <= 30 -> UiText.PluralStringResource(R.plurals.time_days_ago, days.toInt(), days.toInt())
+        days < 365 -> {
+            val months = (days / 30).toInt()
+            UiText.PluralStringResource(R.plurals.time_months_ago, months, months)
+        }
+        else -> {
+            val years = (days / 365).toInt()
+            UiText.PluralStringResource(R.plurals.time_years_ago, years, years)
+        }
     }
 }
 
@@ -220,7 +228,7 @@ fun parseTimeToMillis(time: String): Long? {
  * @return A localized formatted date string. If the format is invalid, it returns the original string
  */
 fun formatPlanDateInFull(dateStr: String): String {
-    val sdfSource = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+    val sdfSource = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
     val date = runCatching { sdfSource.parse(dateStr) }.getOrNull() ?: return dateStr
@@ -237,7 +245,7 @@ fun formatPlanDateInFull(dateStr: String): String {
  * @return The time in milliseconds since the epoch, or null if parsing fails.
  */
 fun parseDateToMillis(dateString: String): Long? {
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
         isLenient = false
     }
@@ -251,7 +259,7 @@ fun parseDateToMillis(dateString: String): Long? {
  * @return The epoch milliseconds, or null if the input strings are invalid.
  */
 fun parseLocalDateTimeToMillis(dateString: String, timeString: String): Long? {
-    val sdf = SimpleDateFormat("yyyy-MM-dd H:mm", Locale.getDefault()).apply {
+    val sdf = SimpleDateFormat("yyyy-MM-dd H:mm", Locale.US).apply {
         isLenient = false
     }
     return runCatching { sdf.parse("$dateString $timeString")?.time }.getOrNull()
@@ -259,30 +267,44 @@ fun parseLocalDateTimeToMillis(dateString: String, timeString: String): Long? {
 
 /**
  * Logic for determining if a date/time has already passed.
+ * Uses system default calendar to ensure consistency with real-time app usage.
  * @param dateUtcMillis The date in UTC milliseconds (start of day).
  * @param timeString Optional time string (HH:mm). If provided, checks time if date is today.
- * @param now The reference time to check against.
+ * @param now Reference time for "today". Defaults to current system time.
  */
 fun isDateTimeInPast(
     dateUtcMillis: Long,
     timeString: String? = null,
     now: Calendar = Calendar.getInstance()
 ): Boolean {
-    val todayUtc = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-        set(
-            now.get(Calendar.YEAR),
-            now.get(Calendar.MONTH),
-            now.get(Calendar.DAY_OF_MONTH),
-            0,
-            0,
-            0
-        )
+    // We need to compare the "start of day" in UTC (dateUtcMillis) 
+    // against the "start of day" of the current reference time.
+    val today = (now.clone() as Calendar).apply {
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
         set(Calendar.MILLISECOND, 0)
     }
 
-    if (dateUtcMillis < todayUtc.timeInMillis) return true
+    // Convert dateUtcMillis (which is start of day UTC) to a Calendar for comparison
+    val targetDate = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.US).apply {
+        timeInMillis = dateUtcMillis
+    }
+    
+    // Normalize targetDate to the same timezone as 'today' for a fair comparison of Y/M/D
+    val targetInLocal = Calendar.getInstance(today.timeZone).apply {
+        set(Calendar.YEAR, targetDate.get(Calendar.YEAR))
+        set(Calendar.MONTH, targetDate.get(Calendar.MONTH))
+        set(Calendar.DAY_OF_MONTH, targetDate.get(Calendar.DAY_OF_MONTH))
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }
 
-    if (dateUtcMillis == todayUtc.timeInMillis && timeString != null) {
+    if (targetInLocal.before(today)) return true
+    
+    if (targetInLocal.equals(today) && timeString != null) {
         val currentMins = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
         val targetMins = parseTimeToMinutes(timeString) ?: 0
         return targetMins <= currentMins
@@ -336,7 +358,7 @@ fun calculateDuration(
     val minutes = remainingMinsAfterDays % 60
 
     val parts = buildList {
-        if (days > 0) add(UiText.StringResource(R.string.duration_days, days))
+        if (days > 0) add(UiText.PluralStringResource(R.plurals.duration_days, days, days))
         if (hours > 0) add(UiText.StringResource(R.string.duration_hours, hours))
         if (minutes > 0 || isEmpty()) add(UiText.StringResource(R.string.duration_minutes, minutes))
     }
@@ -354,7 +376,7 @@ fun calculateDuration(
 fun isValidDateDigits(digits: String, pattern: String): Boolean {
     if (digits.length != 8) return false
 
-    val format = SimpleDateFormat(pattern, Locale.getDefault()).apply {
+    val format = SimpleDateFormat(pattern, Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
         isLenient = false
     }
@@ -404,7 +426,7 @@ fun isPhoneValid(number: String, countryCode: String): Boolean {
 fun formatBirthday(birthday: String, showType: BirthdayShowType): String {
     if (birthday.length != 8) return birthday
     return try {
-        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).apply {
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
         val date = sdf.parse(birthday) ?: return birthday
@@ -502,7 +524,7 @@ enum class SocialPlatform(val baseUrl: String, val packageName: String) {
  * Opens a social messaging app to a specific user's chat.
  * Fallbacks to the web version if the app is not installed.
  * @param context The context used to start the activity.
- * @param platform The [SocialPlatform] to open.
+ * @param platform [SocialPlatform] to open.
  * @param username The username to message.
  * @param message Optional message to pre-fill (supported by some platforms like WhatsApp).
  */

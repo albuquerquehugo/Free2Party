@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -199,7 +200,7 @@ fun EventDetailsScreen(
 
     val durationText = durationData?.let { (d, h, m) ->
         val parts = mutableListOf<String>()
-        if (d > 0) parts.add(stringResource(R.string.duration_days, d))
+        if (d > 0) parts.add(pluralStringResource(R.plurals.duration_days, d, d))
         if (h > 0) parts.add(stringResource(R.string.duration_hours, h))
         if (m > 0 || parts.isEmpty()) parts.add(stringResource(R.string.duration_minutes, m))
         parts.joinToString(" ")

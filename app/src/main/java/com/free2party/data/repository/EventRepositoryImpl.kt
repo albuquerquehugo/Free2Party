@@ -543,10 +543,10 @@ class EventRepositoryImpl @Inject constructor(
 
     private fun validateEventDetails(event: Event) {
         if (event.title.isBlank()) throw InvalidEventDataException("Title cannot be empty")
-        if (event.startDate.isBlank() || event.endDate.isBlank())
-            throw InvalidEventDataException("Dates cannot be empty")
-        if (event.startTime.isBlank() || event.endTime.isBlank())
-            throw InvalidEventDataException("Times cannot be empty")
+        if (event.startDate.isBlank())
+            throw InvalidEventDataException("Start date cannot be empty")
+        if (event.startTime.isBlank())
+            throw InvalidEventDataException("Start time cannot be empty")
 
         if (event.type == EventType.PRIVATE && event.guests.isEmpty()) {
             throw GuestsMandatoryPrivateException()
@@ -558,24 +558,37 @@ class EventRepositoryImpl @Inject constructor(
 
         val startDateMillis = parseDateToMillis(event.startDate)
             ?: throw InvalidEventDataException("Invalid start date format")
-        val endDateMillis = parseDateToMillis(event.endDate)
-            ?: throw InvalidEventDataException("Invalid end date format")
 
         if (isDateTimeInPast(startDateMillis, event.startTime)) {
             throw EventPastDateTimeException()
         }
 
-        if (startDateMillis > endDateMillis) {
-            throw InvalidEventDataException("End date must be after start date")
+        val hasEndDate = event.endDate.isNotBlank()
+        val hasEndTime = event.endTime.isNotBlank()
+
+        if (hasEndDate && event.endTime.isBlank()) {
+            throw InvalidEventDataException("End time cannot be empty if end date is set")
+        }
+        if (hasEndTime && event.endDate.isBlank()) {
+            throw InvalidEventDataException("End date cannot be empty if end time is set")
         }
 
-        val startTimeMinutes = parseTimeToMinutes(event.startTime)
-            ?: throw InvalidEventDataException("Invalid start time format")
-        val endTimeMinutes = parseTimeToMinutes(event.endTime)
-            ?: throw InvalidEventDataException("Invalid end time format")
+        if (hasEndDate && hasEndTime) {
+            val endDateMillis = parseDateToMillis(event.endDate)
+                ?: throw InvalidEventDataException("Invalid end date format")
 
-        if (startDateMillis == endDateMillis && startTimeMinutes >= endTimeMinutes) {
-            throw InvalidEventDataException("End time must be after start time")
+            if (startDateMillis > endDateMillis) {
+                throw InvalidEventDataException("End date must be after start date")
+            }
+
+            val startTimeMinutes = parseTimeToMinutes(event.startTime)
+                ?: throw InvalidEventDataException("Invalid start time format")
+            val endTimeMinutes = parseTimeToMinutes(event.endTime)
+                ?: throw InvalidEventDataException("Invalid end time format")
+
+            if (startDateMillis == endDateMillis && startTimeMinutes >= endTimeMinutes) {
+                throw InvalidEventDataException("End time must be after start time")
+            }
         }
     }
 

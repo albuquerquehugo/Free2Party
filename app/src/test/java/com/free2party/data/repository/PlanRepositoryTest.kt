@@ -33,13 +33,15 @@ class PlanRepositoryTest {
 
     @Before
     fun setup() {
+        java.util.Locale.setDefault(java.util.Locale.US)
+        mockkStatic("com.free2party.util.UtilKt")
+        every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns false
+
         every { db.collection("users") } returns usersCollection
         every { usersCollection.document(any()) } returns userDoc
         every { userDoc.collection("plans") } returns plansCollection
         
         repository = PlanRepositoryImpl(auth, db)
-        
-        mockkStatic("kotlinx.coroutines.tasks.TasksKt")
     }
 
     @Test
@@ -61,6 +63,7 @@ class PlanRepositoryTest {
     fun `savePlan fails if start date is in the past`() = runTest {
         every { auth.currentUser } returns firebaseUser
         every { firebaseUser.uid } returns "testUser"
+        every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns true
         
         val plan = FuturePlan(
             startDate = "2020-01-01",

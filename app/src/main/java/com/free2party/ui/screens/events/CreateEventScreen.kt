@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,8 +39,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,7 +47,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -82,12 +78,14 @@ import com.free2party.data.model.GuestStatus
 import com.free2party.R
 import com.free2party.ui.components.dialogs.BaseDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppDatePickerDialog
+import com.free2party.ui.components.dialogs.AppTimePickerDialog
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.basic.AppOutlinedButton
-import com.free2party.ui.components.basic.AppOutlinedCard
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.FriendSelector
+import com.free2party.ui.components.AppDateTimeSection
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
@@ -136,8 +134,10 @@ fun CreateEventScreen(
     var description by remember { mutableStateOf("") }
     var eventType by remember { mutableStateOf(EventType.PRIVATE) }
     var timezone by remember { mutableStateOf(TimeZone.getDefault().id) }
-    var hasInteractedWithStart by remember { mutableStateOf(false) }
-    var hasInteractedWithEnd by remember { mutableStateOf(false) }
+    var hasInteractedWithStartDate by remember { mutableStateOf(false) }
+    var hasInteractedWithStartTime by remember { mutableStateOf(false) }
+    var hasInteractedWithEndDate by remember { mutableStateOf(false) }
+    var hasInteractedWithEndTime by remember { mutableStateOf(false) }
     var locationName by remember { mutableStateOf("") }
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
@@ -162,6 +162,8 @@ fun CreateEventScreen(
     val (showEndDatePicker, setShowEndDatePicker) = remember { mutableStateOf(false) }
     val (showStartTimePicker, setShowStartTimePicker) = remember { mutableStateOf(false) }
     val (showEndTimePicker, setShowEndTimePicker) = remember { mutableStateOf(false) }
+    var isStartTimeSelected by remember { mutableStateOf(editingEventId != null) }
+    var isEndTimeSelected by remember { mutableStateOf(editingEventId != null) }
 
     // Dialog state
     var showLinkDialog by remember { mutableStateOf(false) }
@@ -268,6 +270,8 @@ fun CreateEventScreen(
             startTimeState.minute = startParts.second
             endTimeState.hour = endParts.first
             endTimeState.minute = endParts.second
+            isStartTimeSelected = event.startTime.isNotBlank()
+            isEndTimeSelected = event.endTime.isNotBlank()
 
             initialLoadDone = true
         }
@@ -315,21 +319,25 @@ fun CreateEventScreen(
     }
     val startDateText =
         startDatePickerState.selectedDateMillis?.let { dateFormatter.format(Date(it)) }
-            ?: stringResource(R.string.label_select_start_date)
+            ?: stringResource(R.string.label_select_date)
     val endDateText = endDatePickerState.selectedDateMillis?.let { dateFormatter.format(Date(it)) }
-        ?: stringResource(R.string.label_select_end_date)
+        ?: stringResource(R.string.label_select_date)
 
     // Form validation
     val isDateTimeValid = remember(
         startDatePickerState.selectedDateMillis,
         endDatePickerState.selectedDateMillis,
+        isStartTimeSelected,
+        isEndTimeSelected,
         startTimeState.hour,
         startTimeState.minute,
         endTimeState.hour,
         endTimeState.minute
     ) {
+        if (!isStartTimeSelected || !isEndTimeSelected) return@remember true
+
         val startMillis = startDatePickerState.selectedDateMillis ?: 0L
-        val endMillis = endDatePickerState.selectedDateMillis ?: 0L
+        val endMillis = endDatePickerState.selectedDateMillis ?: return@remember true
 
         if (startMillis < endMillis) return@remember true
         if (startMillis > endMillis) return@remember false
@@ -348,16 +356,20 @@ fun CreateEventScreen(
 
     val isStartTimeInPast = remember(
         startDatePickerState.selectedDateMillis,
+        isStartTimeSelected,
         startTimeState.hour,
         startTimeState.minute
     ) {
+        if (!isStartTimeSelected) return@remember false
         startDatePickerState.selectedDateMillis?.let {
             isDateTimeInPast(it, formatTime(startTimeState.hour, startTimeState.minute))
         } ?: false
     }
 
     val isFormValid = title.isNotBlank() && startDatePickerState.selectedDateMillis != null &&
-            endDatePickerState.selectedDateMillis != null && isDateTimeValid &&
+            isStartTimeSelected &&
+            (endDatePickerState.selectedDateMillis == null || isEndTimeSelected) &&
+            isDateTimeValid &&
             !isStartDateInPast && !isStartTimeInPast &&
             locationName.isNotBlank() && latitude != null && longitude != null &&
             (eventType == EventType.PUBLIC || selectedGuestsMap.isNotEmpty())
@@ -447,7 +459,8 @@ fun CreateEventScreen(
                 AppOutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    labelText = stringResource(R.string.label_event_title) + " *",
+                    labelText = stringResource(R.string.label_event_title) +
+                            stringResource(R.string.label_required_field),
                     placeholderText = stringResource(R.string.placeholder_event_title),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -493,22 +506,26 @@ fun CreateEventScreen(
             // Event Type (PUBLIC / PRIVATE)
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = stringResource(R.string.label_event_type),
+                    text = stringResource(R.string.label_event_privacy_colon) +
+                            stringResource(R.string.label_required_field),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
                 Spacer(modifier = Modifier.height(4.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            eventType = EventType.PRIVATE
-                            hasInteractedWithGuests = true
-                        }
+                        modifier = Modifier
+                            .clickable {
+                                eventType = EventType.PRIVATE
+                                hasInteractedWithGuests = true
+                            }
                     ) {
                         RadioButton(
                             selected = eventType == EventType.PRIVATE,
@@ -523,7 +540,7 @@ fun CreateEventScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                stringResource(R.string.label_event_type_desc_private),
+                                stringResource(R.string.text_event_type_private),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -531,10 +548,11 @@ fun CreateEventScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            eventType = EventType.PUBLIC
-                            hasInteractedWithGuests = true
-                        }
+                        modifier = Modifier
+                            .clickable {
+                                eventType = EventType.PUBLIC
+                                hasInteractedWithGuests = true
+                            }
                     ) {
                         RadioButton(
                             selected = eventType == EventType.PUBLIC,
@@ -549,7 +567,7 @@ fun CreateEventScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                stringResource(R.string.label_event_type_desc_public),
+                                stringResource(R.string.text_event_type_public),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -560,159 +578,55 @@ fun CreateEventScreen(
 
             AppHorizontalDivider()
 
-            // Date / Time Section
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                // Start
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.label_start) + " *",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.width(60.dp)
+            AppDateTimeSection(
+                startDateText = startDateText,
+                startTimeText = if (isStartTimeSelected) {
+                    formatTimeForDisplay(
+                        formatTime(
+                            startTimeState.hour,
+                            startTimeState.minute
+                        ), use24Hour
                     )
-                    AppOutlinedCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp),
-                        onClick = {
-                            setShowStartDatePicker(true)
-                        }
-                    ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = startDateText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color =
-                                    if (isStartDateInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    AppOutlinedCard(
-                        modifier = Modifier
-                            .weight(0.6f)
-                            .height(44.dp),
-                        onClick = {
-                            setShowStartTimePicker(true)
-                        }
-                    ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = formatTimeForDisplay(
-                                    formatTime(
-                                        startTimeState.hour,
-                                        startTimeState.minute
-                                    ), use24Hour
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color =
-                                    if (isStartTimeInPast || !isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                if (hasInteractedWithStart && startDatePickerState.selectedDateMillis == null) {
-                    Text(
-                        text = stringResource(R.string.error_start_date_mandatory),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                } else {
+                    stringResource(R.string.label_select_time)
+                },
+                endDateText = endDateText,
+                endTimeText = if (isEndTimeSelected) {
+                    formatTimeForDisplay(
+                        formatTime(
+                            endTimeState.hour,
+                            endTimeState.minute
+                        ), use24Hour
                     )
-                }
-
-                // End
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.label_end) + " *",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.width(60.dp)
-                    )
-                    AppOutlinedCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp),
-                        onClick = {
-                            setShowEndDatePicker(true)
-                        }
-                    ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = endDateText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color =
-                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    AppOutlinedCard(
-                        modifier = Modifier
-                            .weight(0.6f)
-                            .height(44.dp),
-                        onClick = {
-                            setShowEndTimePicker(true)
-                        }
-                    ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = formatTimeForDisplay(
-                                    formatTime(
-                                        endTimeState.hour,
-                                        endTimeState.minute
-                                    ), use24Hour
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color =
-                                    if (!isDateTimeValid) MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                if (hasInteractedWithEnd && endDatePickerState.selectedDateMillis == null) {
-                    Text(
-                        text = stringResource(R.string.error_end_date_mandatory),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                if (isStartDateInPast || isStartTimeInPast) {
-                    Text(
-                        text = stringResource(R.string.error_event_past_date_time),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                if (!isDateTimeValid && startDatePickerState.selectedDateMillis != null && endDatePickerState.selectedDateMillis != null) {
-                    Text(
-                        text = stringResource(R.string.error_invalid_datetime),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
+                } else {
+                    stringResource(R.string.label_select_time)
+                },
+                isStartDateSelected = startDatePickerState.selectedDateMillis != null,
+                isStartTimeSelected = isStartTimeSelected,
+                isEndDateSelected = endDatePickerState.selectedDateMillis != null,
+                isEndTimeSelected = isEndTimeSelected,
+                isStartDateInPast = isStartDateInPast,
+                isStartTimeInPast = isStartTimeInPast,
+                isDateTimeValid = isDateTimeValid,
+                onStartDateClick = { setShowStartDatePicker(true) },
+                onStartTimeClick = { setShowStartTimePicker(true) },
+                onEndDateClick = { setShowEndDatePicker(true) },
+                onEndTimeClick = { setShowEndTimePicker(true) },
+                onClearEndClick = {
+                    endDatePickerState.selectedDateMillis = null
+                    isEndTimeSelected = false
+                    hasInteractedWithEndTime = false
+                },
+                labelStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                cardTextStyle = MaterialTheme.typography.bodyMedium,
+                isEndDateTimeRequired = false,
+                pastErrorResId = R.string.error_event_past_date_time,
+                hasInteractedWithStartDate = hasInteractedWithStartDate,
+                hasInteractedWithStartTime = hasInteractedWithStartTime,
+                hasInteractedWithEndDate = hasInteractedWithEndDate,
+                hasInteractedWithEndTime = hasInteractedWithEndTime,
+                cardTextColorNormal = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             // Timezone Picker Button
             AppOutlinedButton(
@@ -755,7 +669,8 @@ fun CreateEventScreen(
                         locationName = it
                         showLocationSuggestions = true
                     },
-                    labelText = stringResource(R.string.label_location) + " *",
+                    labelText = stringResource(R.string.label_location) +
+                            stringResource(R.string.label_required_field),
                     placeholderText = stringResource(R.string.placeholder_location),
                     leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                     trailingIcon = {
@@ -833,7 +748,9 @@ fun CreateEventScreen(
             // Guests Picker
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = stringResource(R.string.label_event_guests_selection) + if (eventType == EventType.PRIVATE) " *" else "",
+                    text = stringResource(R.string.label_event_guests_selection) +
+                            if (eventType == EventType.PRIVATE) stringResource(R.string.label_required_field)
+                            else "",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -987,14 +904,18 @@ fun CreateEventScreen(
                                 startTimeState.minute = startParts.second
                                 endTimeState.hour = endParts.first
                                 endTimeState.minute = endParts.second
+                                isStartTimeSelected = event.startTime.isNotBlank()
+                                isEndTimeSelected = event.endTime.isNotBlank()
 
                                 hasInteractedWithLocation = false
                                 isLocationFocused = false
                                 hasInteractedWithGuests = false
                                 hasInteractedWithTitle = false
                                 isTitleFocused = false
-                                hasInteractedWithStart = false
-                                hasInteractedWithEnd = false
+                                hasInteractedWithStartDate = false
+                                hasInteractedWithStartTime = false
+                                hasInteractedWithEndDate = false
+                                hasInteractedWithEndTime = false
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -1011,14 +932,17 @@ fun CreateEventScreen(
                 onClick = {
                     val startMillis = startDatePickerState.selectedDateMillis
                     val endMillis = endDatePickerState.selectedDateMillis
-                    if (startMillis != null && endMillis != null) {
+                    if (startMillis != null) {
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
                             timeZone = TimeZone.getTimeZone("UTC")
                         }
                         val startD = sdf.format(Date(startMillis))
-                        val endD = sdf.format(Date(endMillis))
+                        val endD = endMillis?.let { sdf.format(Date(it)) } ?: ""
                         val startT = formatTime(startTimeState.hour, startTimeState.minute)
-                        val endT = formatTime(endTimeState.hour, endTimeState.minute)
+                        val endT = if (endMillis != null) formatTime(
+                            endTimeState.hour,
+                            endTimeState.minute
+                        ) else ""
 
                         if (editingEventId == null) {
                             viewModel.saveEvent(
@@ -1245,37 +1169,33 @@ fun CreateEventScreen(
 
     // Date/Time selection dialog components (Reusing plan logic)
     if (showStartDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = {
+        AppDatePickerDialog(
+            state = startDatePickerState,
+            title = stringResource(R.string.label_start_date),
+            onDismiss = {
                 setShowStartDatePicker(false)
-                hasInteractedWithStart = true
+                hasInteractedWithStartDate = true
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    setShowStartDatePicker(false)
-                    hasInteractedWithStart = true
-                }) { Text(stringResource(R.string.label_ok)) }
+            onConfirm = {
+                setShowStartDatePicker(false)
+                hasInteractedWithStartDate = true
             }
-        ) {
-            DatePicker(state = startDatePickerState)
-        }
+        )
     }
 
     if (showEndDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = {
+        AppDatePickerDialog(
+            state = endDatePickerState,
+            title = stringResource(R.string.label_end_date),
+            onDismiss = {
                 setShowEndDatePicker(false)
-                hasInteractedWithEnd = true
+                hasInteractedWithEndDate = true
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    setShowEndDatePicker(false)
-                    hasInteractedWithEnd = true
-                }) { Text(stringResource(R.string.label_ok)) }
+            onConfirm = {
+                setShowEndDatePicker(false)
+                hasInteractedWithEndDate = true
             }
-        ) {
-            DatePicker(state = endDatePickerState)
-        }
+        )
     }
 
     if (showStartTimePicker || showEndTimePicker) {
@@ -1284,50 +1204,41 @@ fun CreateEventScreen(
             initialMinute = if (showStartTimePicker) startTimeState.minute else endTimeState.minute,
             is24Hour = use24Hour
         )
-        BaseDialog(onDismissRequest = {
-            if (showStartTimePicker) {
-                hasInteractedWithStart = true
-            }
-            if (showEndTimePicker) {
-                hasInteractedWithEnd = true
-            }
-            setShowStartTimePicker(false)
-            setShowEndTimePicker(false)
-        }) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = if (showStartTimePicker) stringResource(R.string.label_select_start_time) else stringResource(
-                        R.string.label_select_end_time
-                    ),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                TimePicker(state = pickerState)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = {
-                        if (showStartTimePicker) {
-                            startTimeState.hour = pickerState.hour
-                            startTimeState.minute = pickerState.minute
-                            hasInteractedWithStart = true
-                        } else {
-                            endTimeState.hour = pickerState.hour
-                            endTimeState.minute = pickerState.minute
-                            hasInteractedWithEnd = true
-                        }
-                        setShowStartTimePicker(false)
-                        setShowEndTimePicker(false)
-                    }) { Text(stringResource(R.string.label_ok)) }
+        AppTimePickerDialog(
+            state = pickerState,
+            title =
+                if (showStartTimePicker) stringResource(R.string.label_start_time)
+                else stringResource(R.string.label_end_time),
+            onDismiss = {
+                if (showStartTimePicker) {
+                    hasInteractedWithStartTime = true
                 }
+                if (showEndTimePicker) {
+                    hasInteractedWithEndTime = true
+                }
+                setShowStartTimePicker(false)
+                setShowEndTimePicker(false)
+            },
+            onConfirm = {
+                if (showStartTimePicker) {
+                    startTimeState.hour = pickerState.hour
+                    startTimeState.minute = pickerState.minute
+                    isStartTimeSelected = true
+                    hasInteractedWithStartTime = true
+                } else {
+                    endTimeState.hour = pickerState.hour
+                    endTimeState.minute = pickerState.minute
+                    isEndTimeSelected = true
+                    if (endDatePickerState.selectedDateMillis == null) {
+                        endDatePickerState.selectedDateMillis =
+                            startDatePickerState.selectedDateMillis
+                    }
+                    hasInteractedWithEndTime = true
+                }
+                setShowStartTimePicker(false)
+                setShowEndTimePicker(false)
             }
-        }
+        )
     }
 
     if (showDiscardDialog) {
