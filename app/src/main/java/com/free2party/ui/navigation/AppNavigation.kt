@@ -836,7 +836,8 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Circles.route) {
             CirclesRoute(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToPremium = { navController.navigate(Screen.Premium.route) }
             )
         }
 

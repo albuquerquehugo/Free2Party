@@ -105,19 +105,13 @@
     <string name="label_search">Pesquisar</string>
     <string name="label_select_friends">Selecionar Amigos</string>
     <string name="text_add_friends">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
-    <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
-    <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
     <string name="text_add_friend">Digite o e-mail do seu amigo para adicioná-lo.</string>
     <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>
-    <string name="text_no_friends_in_circle">Nenhum amigo encontrado neste círculo</string>
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
     <string name="text_placeholder_search_user">Pesquise por nome ou e-mail…</string>
     <string name="text_remove_friend_confirmation">Esta ação irá remover a amizade de ambas as listas de amigos. Se você quiser adicioná-lo novamente terá que enviar um novo pedido de amizade.</string>
     <string name="text_send_friend_request_confirmation">Deseja enviar um pedido de amizade para %1$s (%2$s)?</string>
-    <string name="toast_circle_created">Círculo criado com sucesso</string>
-    <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
-    <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
     <string name="toast_friend_removed">Amigo removido</string>
     <string name="toast_friend_request_cancelled">Pedido de amizade cancelado</string>
     <string name="toast_friend_request_sent">Pedido de amizade enviado</string>
@@ -193,6 +187,17 @@
     <string name="toast_account_deleted">Conta excluída!</string>
     <string name="toast_profile_picture_updated">Foto de perfil atualizada!</string>
     <string name="toast_profile_updated">Perfil atualizado com sucesso!</string>
+
+    <!-- Circles -->
+    <string name="description_read_only">Apenas leitura</string>
+    <string name="label_circle_limit">Limite de Círculos Atingido</string>
+    <string name="text_circle_limit">Usuários gratuitos podem criar até 3 círculos. Adquira o Premium para círculos ilimitados, ou gerencie os seus existentes.</string>
+    <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
+    <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
+    <string name="text_no_friends_in_circle">Nenhum amigo encontrado neste círculo</string>
+    <string name="toast_circle_created">Círculo criado com sucesso</string>
+    <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
+    <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
 
     <!-- Block and Report Users -->
     <string name="label_block">Bloquear</string>
@@ -436,6 +441,7 @@
     <string name="error_auth_network">Ocorreu um erro de rede. Por favor, tente novamente.</string>
     <string name="error_cancelling_friend_request">Erro ao cancelar pedido de amizade</string>
     <string name="error_cannot_add_self">Você não pode adicionar a si mesmo como amigo.</string>
+    <string name="error_circle_creation_limit">Você atingiu o limite de 3 círculos para a versão gratuita.</string>
     <string name="error_database_operation">Ocorreu um erro ao salvar os dados. Por favor, tente novamente.</string>
     <string name="error_duplicate_link">Este link já foi adicionado</string>
     <string name="error_email_already_in_use">Este e-mail já está em uso.</string>
