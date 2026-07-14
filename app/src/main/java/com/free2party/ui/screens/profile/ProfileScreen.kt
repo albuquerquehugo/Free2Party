@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -46,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +61,7 @@ import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.theme.Gold
 import com.free2party.ui.theme.PremiumBannerColor1
 import com.free2party.ui.theme.PremiumBannerColor2
 import com.free2party.ui.theme.available
@@ -224,7 +225,7 @@ fun ProfileScreen(
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
-                                            imageVector = Icons.Default.Star,
+                                            painter = painterResource(id = R.drawable.ic_crown),
                                             contentDescription = null,
                                             tint = Color(0xFFFFD700),
                                             modifier = Modifier.size(12.dp)
@@ -278,9 +279,15 @@ fun ProfileScreen(
                                         ) {
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.ic_crown),
+                                                    contentDescription = null,
+                                                    tint = Gold,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
                                                 Column(modifier = Modifier.weight(1f)) {
                                                     Text(
                                                         text = stringResource(R.string.label_upgrade_premium),
@@ -299,7 +306,7 @@ fun ProfileScreen(
                                                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                                     contentDescription = null,
                                                     tint = Color.White,
-                                                    modifier = Modifier.size(20.dp)
+                                                    modifier = Modifier.size(24.dp)
                                                 )
                                             }
                                         }

@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -46,6 +45,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -233,25 +233,29 @@ fun PremiumScreen(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Star,
+                                            painter = painterResource(id = R.drawable.ic_crown),
                                             contentDescription = null,
                                             tint = Gold,
                                             modifier = Modifier.size(32.dp)
                                         )
-                                        Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = stringResource(R.string.app_name) + " " + stringResource(
-                                                R.string.label_premium
-                                            ),
+                                            text = stringResource(R.string.app_name) + " " +
+                                                    stringResource(R.string.label_premium),
                                             style = MaterialTheme.typography.headlineMedium.copy(
                                                 fontWeight = FontWeight.ExtraBold,
                                                 letterSpacing = 1.sp
                                             ),
                                             color = Color.White
+                                        )
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_crown),
+                                            contentDescription = null,
+                                            tint = Gold,
+                                            modifier = Modifier.size(32.dp)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))

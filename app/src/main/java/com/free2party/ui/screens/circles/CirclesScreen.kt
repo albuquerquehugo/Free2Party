@@ -274,7 +274,7 @@ private fun CirclesContent(
             contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            itemsIndexed(circles, key = { _, circle -> circle.id }) { index, circle ->
+            itemsIndexed(circles, key = { _, circle -> circle.id }) { _, circle ->
                 val isReadOnly = membership == Membership.FREE && circle.id !in allowedCircleIds
                 CircleListItem(
                     circle = circle,

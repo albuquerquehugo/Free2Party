@@ -236,7 +236,7 @@
     <string name="label_theme_mode">Modo do Tema</string>
     <string name="label_theme_mode_colon">Modo do Tema:</string>
     <string name="label_time_format_colon">Formato da Hora:</string>
-    <string name="label_upgrade_premium">Obter Versão Premium</string>
+    <string name="label_upgrade_premium">Assinar Versão Premium</string>
     <string name="option_am_pm">AM/PM</string>
     <string name="option_birthday_day_month">Apenas dia e mês</string>
     <string name="option_birthday_full">Data completa (com ano)</string>
