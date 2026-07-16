@@ -99,6 +99,7 @@ import com.free2party.util.openEmail
 import com.free2party.util.openSMS
 import com.free2party.util.openSocialMessage
 import kotlinx.coroutines.flow.collectLatest
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun HomeRoute(
@@ -249,7 +250,8 @@ fun HomeScreen(
                         onAddFriendClick = onAddFriendClick,
                         onOpenFriendCalendar = { friend -> selectedFriend = friend },
                         onFriendItemClick = { friend -> selectedFriendForProfile = friend },
-                        membership = homeUiState.membership
+                        membership = homeUiState.membership,
+                        statusColor = homeUiState.statusColor
                     )
                 }
             }
@@ -341,7 +343,8 @@ fun HomeContent(
     onAddFriendClick: () -> Unit,
     onOpenFriendCalendar: (FriendInfo) -> Unit,
     onFriendItemClick: (FriendInfo) -> Unit,
-    membership: Membership = Membership.FREE
+    membership: Membership = Membership.FREE,
+    statusColor: String = ""
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -380,7 +383,8 @@ fun HomeContent(
                 onCancelFriendRequest = onCancelFriendRequest,
                 onAddFriendClick = onAddFriendClick,
                 onOpenFriendCalendar = onOpenFriendCalendar,
-                onFriendItemClick = onFriendItemClick
+                onFriendItemClick = onFriendItemClick,
+                statusColor = statusColor
             )
         }
 
@@ -402,7 +406,8 @@ fun FriendsListSection(
     onCancelFriendRequest: (String) -> Unit,
     onAddFriendClick: () -> Unit,
     onOpenFriendCalendar: (FriendInfo) -> Unit,
-    onFriendItemClick: (FriendInfo) -> Unit
+    onFriendItemClick: (FriendInfo) -> Unit,
+    statusColor: String = ""
 ) {
     var showFilterMenu by remember { mutableStateOf(false) }
 
@@ -565,7 +570,8 @@ fun FriendsListSection(
                     onBlockUser = onBlockUser,
                     onCancelFriendRequest = onCancelFriendRequest,
                     onOpenCalendar = onOpenFriendCalendar,
-                    onFriendItemClick = onFriendItemClick
+                    onFriendItemClick = onFriendItemClick,
+                    customStatusColorHex = statusColor
                 )
             }
             item {
@@ -577,7 +583,8 @@ fun FriendsListSection(
                     onBlockUser = onBlockUser,
                     onCancelFriendRequest = onCancelFriendRequest,
                     onOpenCalendar = onOpenFriendCalendar,
-                    onFriendItemClick = onFriendItemClick
+                    onFriendItemClick = onFriendItemClick,
+                    customStatusColorHex = statusColor
                 )
             }
             if (pendingFriends.isNotEmpty()) {
@@ -590,7 +597,8 @@ fun FriendsListSection(
                         onBlockUser = onBlockUser,
                         onCancelFriendRequest = onCancelFriendRequest,
                         onOpenCalendar = onOpenFriendCalendar,
-                        onFriendItemClick = onFriendItemClick
+                        onFriendItemClick = onFriendItemClick,
+                        customStatusColorHex = statusColor
                     )
                 }
             }
@@ -610,7 +618,8 @@ fun ExpandableFriendSection(
     onBlockUser: (FriendInfo) -> Unit,
     onCancelFriendRequest: (String) -> Unit,
     onOpenCalendar: (FriendInfo) -> Unit,
-    onFriendItemClick: (FriendInfo) -> Unit
+    onFriendItemClick: (FriendInfo) -> Unit,
+    customStatusColorHex: String = ""
 ) {
     var isExpanded by remember { mutableStateOf(true) }
     val rotation by animateFloatAsState(
@@ -661,7 +670,8 @@ fun ExpandableFriendSection(
                             onBlockUser = onBlockUser,
                             onCancelFriendRequest = { onCancelFriendRequest(friend.uid) },
                             onOpenCalendar = { onOpenCalendar(friend) },
-                            onFriendItemClick = { onFriendItemClick(friend) }
+                            onFriendItemClick = { onFriendItemClick(friend) },
+                            customStatusColorHex = customStatusColorHex
                         )
                     }
                 }
@@ -678,7 +688,8 @@ fun FriendItem(
     onBlockUser: (FriendInfo) -> Unit,
     onCancelFriendRequest: (String) -> Unit,
     onOpenCalendar: () -> Unit,
-    onFriendItemClick: () -> Unit
+    onFriendItemClick: () -> Unit,
+    customStatusColorHex: String = ""
 ) {
     var showFriendMenu by remember { mutableStateOf(false) }
     var showContactMenu by remember { mutableStateOf(false) }
@@ -687,7 +698,17 @@ fun FriendItem(
     val hangOutMessage = stringResource(R.string.text_hang_out_message)
     val statusColor = when {
         isPending -> MaterialTheme.colorScheme.primary
-        friend.isFreeNow -> MaterialTheme.colorScheme.available
+        friend.isFreeNow -> {
+            if (customStatusColorHex.isNotBlank() && customStatusColorHex.startsWith("#")) {
+                try {
+                    Color(customStatusColorHex.toColorInt())
+                } catch (_: Exception) {
+                    MaterialTheme.colorScheme.available
+                }
+            } else {
+                MaterialTheme.colorScheme.available
+            }
+        }
         else -> MaterialTheme.colorScheme.busy
     }
 
@@ -719,7 +740,9 @@ fun FriendItem(
                     ProfileAvatar(
                         size = ProfileAvatarSize.SMALL,
                         profilePicUrl = friend.profilePicUrl,
-                        statusColor = statusColor
+                        statusColor = statusColor,
+                        statusColorHex = "",
+                        statusEmoji = friend.statusEmoji
                     )
 
                     if (isPending) {
@@ -739,7 +762,7 @@ fun FriendItem(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp)
-                                .align(Alignment.BottomEnd)
+                                .align(Alignment.TopEnd)
                                 .background(MaterialTheme.colorScheme.availableContainer, CircleShape)
                                 .padding(1.dp),
                             tint = MaterialTheme.colorScheme.onEventContainer

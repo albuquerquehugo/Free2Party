@@ -1,5 +1,6 @@
 package com.free2party.ui.theme
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 
 // Material 3 Defaults
@@ -28,7 +29,10 @@ val Blue85 = Color(0xFFE3EDFF)
 val Blue90 = Color(0xFFF0F5FF)
 val Blue95 = Color(0xFFF8FBFF)
 
-val Gold = Color(0xFFFFD700)
+val Gold = Color(0xFFE2BF36)
+val PremiumGold1 = Color(0xFFB58A0D)
+val PremiumGold2 = Color(0xFFD5B038)
+val PremiumGold3 = Color(0xFFF1BE15)
 
 val Gray5 = Color(0xFF0D0D0D)
 val Gray10 = Color(0xFF1B1B1B)
@@ -112,5 +116,36 @@ val Purple95 = Color(0xFFF6EDFF)
 
 val PremiumBannerColor1 = Color(0xFF437DB9)
 val PremiumBannerColor2 = Color(0xFFAE4AB6)
+
+val ThemeDefaultColor1 = Blue65
+val ThemeDefaultColor2 = Green65
+val ThemeDefaultColor3 = Purple65
+val ThemeDefaultColor4 = Red65
+
+val ThemeForestColor1 = Color(0xFF11998e)
+val ThemeForestColor2 = Color(0xFF38ef7d)
+val ThemeForestColor3 = Color(0xFF134E5E)
+val ThemeForestColor4 = Color(0xFF71B280)
+
+val ThemeMidnightColor1 = Color(0xFF0f2027)
+val ThemeMidnightColor2 = Color(0xFF203a43)
+val ThemeMidnightColor3 = Color(0xFF2c5364)
+val ThemeMidnightColor4 = Color(0xFF4A0E4E)
+
+val ThemeNeonColor1 = Color(0xFFf857a6)
+val ThemeNeonColor2 = Color(0xFFff5858)
+val ThemeNeonColor3 = Color(0xFFEC008C)
+val ThemeNeonColor4 = Color(0xFFFC6767)
+
+val ThemeOceanColor1 = Color(0xFF00c6ff)
+val ThemeOceanColor2 = Color(0xFF0072ff)
+val ThemeOceanColor3 = Color(0xFF067597)
+val ThemeOceanColor4 = Color(0xFF3a7bd5)
+
+val ThemeSunsetColor1 = Color(0xFFF9D423)
+val ThemeSunsetColor2 = Color(0xFFFF4E50)
+val ThemeSunsetColor3 = Color(0xFFFF9068)
+val ThemeSunsetColor4 = Color(0xFFFD746C)
+
 val TelegramColor = Color(0xFF24A1DE)
 val WhatsAppColor = Color(0xFF25D366)

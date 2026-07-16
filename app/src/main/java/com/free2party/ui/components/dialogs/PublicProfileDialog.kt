@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
@@ -30,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -41,13 +39,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.Countries
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.User
 import com.free2party.ui.screens.profile.InterestCategories
 import com.free2party.data.model.BirthdayVisibility
+import com.free2party.ui.components.ProfileAvatar
+import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.data.repository.UserRepository
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.theme.TelegramColor
@@ -70,6 +69,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import androidx.core.graphics.toColorInt
 
 @HiltViewModel
 class PublicProfileViewModel @Inject constructor(
@@ -92,6 +92,14 @@ class PublicProfileViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentUserFlow: StateFlow<User?> =
+        userRepository.observeUser(userRepository.currentUserId).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 }
 
 @Composable
@@ -157,36 +165,31 @@ fun PublicProfileDialog(
             )
 
             // Avatar
-            val statusColor = if (friend.isFreeNow) MaterialTheme.colorScheme.available
-            else MaterialTheme.colorScheme.busy
+            val currentUserState by viewModel.currentUserFlow.collectAsState()
+            val customStatusColorHex = currentUserState?.settings?.statusColor ?: ""
+            val statusColor = if (friend.isFreeNow) {
+                if (customStatusColorHex.isNotBlank() && customStatusColorHex.startsWith("#")) {
+                    try {
+                        Color(customStatusColorHex.toColorInt())
+                    } catch (_: Exception) {
+                        MaterialTheme.colorScheme.available
+                    }
+                } else {
+                    MaterialTheme.colorScheme.available
+                }
+            } else {
+                MaterialTheme.colorScheme.busy
+            }
 
             val picUrl = userState?.profilePicUrl ?: friend.profilePicUrl
 
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .border(3.dp, statusColor, CircleShape)
-                    .padding(6.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (picUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = picUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            ProfileAvatar(
+                size = ProfileAvatarSize.LARGE,
+                profilePicUrl = picUrl,
+                statusColor = statusColor,
+                statusColorHex = "",
+                statusEmoji = friend.statusEmoji
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 

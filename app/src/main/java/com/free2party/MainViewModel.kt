@@ -38,7 +38,9 @@ import kotlin.time.Duration.Companion.milliseconds
 data class UserNavState(
     val profilePicUrl: String = "",
     val isUserFree: Boolean = false,
-    val isStatusFromPlan: Boolean = false
+    val isStatusFromPlan: Boolean = false,
+    val statusColor: String = "",
+    val statusEmoji: String = ""
 )
 
 @HiltViewModel
@@ -74,7 +76,11 @@ class MainViewModel @Inject constructor(
     var gradientBackground by mutableStateOf(true)
         private set
 
+    var gradientTheme by mutableStateOf("DEFAULT")
+        private set
+
     val gradientBackgroundFlow = settingsRepository.gradientBackgroundFlow
+    val gradientThemeFlow = settingsRepository.gradientThemeFlow
     val onboardingCompletedFlow = settingsRepository.onboardingCompletedFlow
 
     private val _navigateToRoute = MutableSharedFlow<String>()
@@ -93,6 +99,7 @@ class MainViewModel @Inject constructor(
     init {
         observeThemeMode()
         observeGradientBackground()
+        observeGradientTheme()
 
         // Immediate suppression for startup
         initialHandledNotificationId?.let { id ->
@@ -124,6 +131,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun observeGradientTheme() {
+        viewModelScope.launch {
+            settingsRepository.gradientThemeFlow.collectLatest { theme ->
+                gradientTheme = theme
+            }
+        }
+    }
+
     private fun observeUserSettings() {
         viewModelScope.launch {
             userRepository.userIdFlow.collectLatest { uid ->
@@ -131,6 +146,8 @@ class MainViewModel @Inject constructor(
                     // Initial Sync: Push local choices to Cloud (especially important after login)
                     val localTheme = settingsRepository.themeModeFlow.first()
                     val localBackground = settingsRepository.gradientBackgroundFlow.first()
+                    val localThemeName = settingsRepository.gradientThemeFlow.first()
+                    val localStatusColor = settingsRepository.statusColorFlow.first()
 
                     // Wait for user document to be created (max 10 seconds)
                     val initialUser = withTimeoutOrNull(10000.milliseconds) {
@@ -138,7 +155,10 @@ class MainViewModel @Inject constructor(
                     }
 
                     if (initialUser != null) {
-                        if ((initialUser.settings.themeMode != localTheme) || (initialUser.settings.gradientBackground != localBackground)) {
+                        if ((initialUser.settings.themeMode != localTheme) || 
+                            (initialUser.settings.gradientBackground != localBackground) ||
+                            (initialUser.settings.gradientTheme != localThemeName) ||
+                            (initialUser.settings.statusColor != localStatusColor)) {
                             Log.d(
                                 "MainViewModel",
                                 "Pushing local settings to Cloud at login/startup"
@@ -146,7 +166,9 @@ class MainViewModel @Inject constructor(
                             val updatedUser = initialUser.copy(
                                 settings = initialUser.settings.copy(
                                     themeMode = localTheme,
-                                    gradientBackground = localBackground
+                                    gradientBackground = localBackground,
+                                    gradientTheme = localThemeName,
+                                    statusColor = localStatusColor
                                 )
                             )
                             userRepository.updateUser(updatedUser)
@@ -159,6 +181,8 @@ class MainViewModel @Inject constructor(
                     userRepository.observeUser(uid).collectLatest { user ->
                         val currentTheme = settingsRepository.themeModeFlow.first()
                         val currentBackground = settingsRepository.gradientBackgroundFlow.first()
+                        val currentThemeName = settingsRepository.gradientThemeFlow.first()
+                        val currentStatusColor = settingsRepository.statusColorFlow.first()
 
                         if (user.settings.themeMode != currentTheme) {
                             Log.d(
@@ -173,6 +197,20 @@ class MainViewModel @Inject constructor(
                                 "Syncing gradientBackground from Cloud: ${user.settings.gradientBackground}"
                             )
                             settingsRepository.setGradientBackground(user.settings.gradientBackground)
+                        }
+                        if (user.settings.gradientTheme != currentThemeName) {
+                            Log.d(
+                                "MainViewModel",
+                                "Syncing gradientTheme from Cloud: ${user.settings.gradientTheme}"
+                            )
+                            settingsRepository.setGradientTheme(user.settings.gradientTheme)
+                        }
+                        if (user.settings.statusColor != currentStatusColor) {
+                            Log.d(
+                                "MainViewModel",
+                                "Syncing statusColor from Cloud: ${user.settings.statusColor}"
+                            )
+                            settingsRepository.setStatusColor(user.settings.statusColor)
                         }
                     }
                 }
@@ -295,8 +333,9 @@ class MainViewModel @Inject constructor(
                 if (uid.isNotBlank()) {
                     combine(
                         userRepository.observeUser(uid),
-                        planRepository.getOwnPlans()
-                    ) { user, plans ->
+                        planRepository.getOwnPlans(),
+                        settingsRepository.statusColorFlow
+                    ) { user, plans, localColor ->
                         val isAnyPlanActiveNow = plans.any { isPlanActive(it) }
                         val effectiveIsFree =
                             if (user.isStatusFromPlan) isAnyPlanActiveNow else user.isFreeNow
@@ -304,7 +343,9 @@ class MainViewModel @Inject constructor(
                         UserNavState(
                             profilePicUrl = user.profilePicUrl,
                             isUserFree = effectiveIsFree,
-                            isStatusFromPlan = effectiveFromPlan
+                            isStatusFromPlan = effectiveFromPlan,
+                            statusColor = localColor,
+                            statusEmoji = user.statusEmoji
                         )
                     }.collect { state ->
                         _userNavState.value = state

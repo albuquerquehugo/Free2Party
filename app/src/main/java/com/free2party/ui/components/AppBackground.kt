@@ -11,26 +11,24 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import com.free2party.ui.theme.Blue70
-import com.free2party.ui.theme.Green70
-import com.free2party.ui.theme.Purple70
-import com.free2party.ui.theme.Red70
+import com.free2party.ui.theme.*
 
 @Composable
 fun AppBackground(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    themeName: String = "DEFAULT",
     content: @Composable () -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val isDark = colorScheme.surface.luminance() < 0.5f
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-    val baseColor = if (isDark) Color.Black else colorScheme.surface
+    val baseColor = if (isDark) Color.Black else MaterialTheme.colorScheme.surface
 
-    val color1 = Blue70
-    val color2 = Green70
-    val color3 = Purple70
-    val color4 = Red70
+    val themeColors = GradientThemes.getThemeColors(themeName)
+    val color1 = themeColors[0]
+    val color2 = themeColors[1]
+    val color3 = themeColors[2]
+    val color4 = themeColors[3]
 
     Box(
         modifier = modifier

@@ -46,11 +46,13 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.free2party.R
 import com.free2party.util.TextFieldRegistry
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -61,9 +63,9 @@ fun appOutlinedTextFieldColors(
     unfocusedTextColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     focusedContainerColor: Color = Color.Transparent,
     unfocusedContainerColor: Color = Color.Transparent,
-    focusedBorderColor: Color = MaterialTheme.colorScheme.outline,
+    focusedBorderColor: Color = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor: Color = MaterialTheme.colorScheme.outline,
-    focusedLabelColor: Color = MaterialTheme.colorScheme.outline,
+    focusedLabelColor: Color = MaterialTheme.colorScheme.primary,
     unfocusedLabelColor: Color = MaterialTheme.colorScheme.outline,
     focusedPlaceholderColor: Color = MaterialTheme.colorScheme.outline,
     unfocusedPlaceholderColor: Color = MaterialTheme.colorScheme.outline,
@@ -196,7 +198,7 @@ fun AppOutlinedTextField(
                         Box(
                             modifier = Modifier.padding(
                                 top = if (isMultiLine) 16.dp else 0.dp,
-                                start = 12.dp,
+                                start = 16.dp,
                                 end = if (leadingIconExtra != null) 0.dp else 12.dp
                             ),
                             contentAlignment = Alignment.Center
@@ -223,13 +225,15 @@ fun AppOutlinedTextField(
 
     val hasClearIcon =
         showClearIcon && (isFocusedBuffered || isClearButtonPressed) && (value.isNotEmpty() || onClear != null)
-    val hasPasswordIcon = isPassword
     val hasCustomTrailingIcon = trailingIcon != null
 
     val finalTrailingIcon: @Composable (() -> Unit)? =
-        if (hasClearIcon || hasPasswordIcon || hasCustomTrailingIcon) {
+        if (hasClearIcon || isPassword || hasCustomTrailingIcon) {
             {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
                     if (hasClearIcon) {
                         IconButton(
                             onClick = { onClear?.invoke() ?: onValueChange("") },
@@ -238,18 +242,22 @@ fun AppOutlinedTextField(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(R.string.description_clear),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
 
-                    if (hasPasswordIcon) {
-                        val image =
-                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        val description = if (passwordVisible) "Hide password" else "Show password"
+                    if (isPassword) {
                         IconButton(onClick = changeVisibility) {
-                            Icon(imageVector = image, contentDescription = description)
+                            Icon(
+                                imageVector =
+                                    if (passwordVisible) Icons.Filled.Visibility
+                                    else Icons.Filled.VisibilityOff,
+                                contentDescription =
+                                    if (passwordVisible) stringResource(R.string.description_hide_password)
+                                    else stringResource(R.string.description_show_password)
+                            )
                         }
                     }
 
@@ -258,11 +266,12 @@ fun AppOutlinedTextField(
             }
         } else null
 
+    val resolvedModifier = if (modifier === Modifier) Modifier.fillMaxWidth() else modifier
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = resolvedModifier
             .focusRequester(focusRequester)
             .bringIntoViewRequester(bringIntoViewRequester)
             .then(if (isMultiLine) Modifier.height(IntrinsicSize.Min) else Modifier)

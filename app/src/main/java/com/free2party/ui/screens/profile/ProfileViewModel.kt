@@ -33,7 +33,9 @@ sealed interface ProfileUiState {
         val isUserFree: Boolean = false,
         val isStatusFromPlan: Boolean = false,
         val gradientBackground: Boolean = true,
-        val membership: Membership = Membership.FREE
+        val membership: Membership = Membership.FREE,
+        val statusEmoji: String = "",
+        val statusColor: String = ""
     ) : ProfileUiState
 
     data class Error(val message: UiText) : ProfileUiState
@@ -81,7 +83,9 @@ class ProfileViewModel @Inject constructor(
                         isUserFree = effectiveIsFree,
                         isStatusFromPlan = effectiveFromPlan,
                         gradientBackground = user.settings.gradientBackground,
-                        membership = user.membership
+                        membership = user.membership,
+                        statusEmoji = user.statusEmoji,
+                        statusColor = user.settings.statusColor
                     )
                 }
                     .catch { e ->

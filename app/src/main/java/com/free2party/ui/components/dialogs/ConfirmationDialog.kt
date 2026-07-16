@@ -111,7 +111,7 @@ fun ConfirmationDialog(
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
-                        Text(dismissButtonText)
+                        Text(text = dismissButtonText, style = MaterialTheme.typography.titleMedium)
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -127,7 +127,7 @@ fun ConfirmationDialog(
                             ButtonDefaults.buttonColors()
                         }
                     ) {
-                        Text(confirmButtonText)
+                        Text(text = confirmButtonText, style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }

@@ -61,7 +61,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
@@ -84,6 +83,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.navArgument
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -127,6 +128,7 @@ import com.free2party.util.TextFieldRegistry
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 sealed class Screen(
     val route: String,
@@ -283,6 +285,7 @@ fun AppNavigation(
 
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
     val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
+    val gradientTheme by mainViewModel.gradientThemeFlow.collectAsState(initial = "DEFAULT")
     val onboardingCompleted by mainViewModel.onboardingCompletedFlow.collectAsState(initial = null)
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -300,7 +303,7 @@ fun AppNavigation(
     }
 
     if (onboardingCompleted != null) {
-        AppBackground(enabled = gradientBackground) {
+        AppBackground(enabled = gradientBackground, themeName = gradientTheme) {
             Scaffold(
                 topBar = {
                     val isOnline by mainViewModel.isOnline.collectAsState()
@@ -661,7 +664,16 @@ fun BottomNavigationBar(
                                         val isStatusFromPlan =
                                             userNavState?.isStatusFromPlan ?: false
                                         val statusColor = if (isUserFree) {
-                                            MaterialTheme.colorScheme.available
+                                            val hex = userNavState.statusColor
+                                            if (hex.isNotBlank() && hex.startsWith("#")) {
+                                                try {
+                                                    Color(hex.toColorInt())
+                                                } catch (_: Exception) {
+                                                    MaterialTheme.colorScheme.available
+                                                }
+                                            } else {
+                                                MaterialTheme.colorScheme.available
+                                            }
                                         } else {
                                             MaterialTheme.colorScheme.busy
                                         }
@@ -704,7 +716,7 @@ fun BottomNavigationBar(
                                                     contentDescription = null,
                                                     modifier = Modifier
                                                         .size(12.dp)
-                                                        .align(Alignment.BottomEnd)
+                                                        .align(Alignment.TopEnd)
                                                         .background(
                                                             MaterialTheme.colorScheme.availableContainer,
                                                             CircleShape
@@ -712,6 +724,32 @@ fun BottomNavigationBar(
                                                         .padding(1.dp),
                                                     tint = MaterialTheme.colorScheme.onAvailableContainer
                                                 )
+                                            }
+
+                                            val statusEmoji = userNavState?.statusEmoji ?: ""
+                                            if (statusEmoji.isNotBlank()) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(14.dp)
+                                                        .align(Alignment.BottomEnd)
+                                                        .background(
+                                                            MaterialTheme.colorScheme.surface,
+                                                            CircleShape
+                                                        )
+                                                        .border(
+                                                            1.dp,
+                                                            MaterialTheme.colorScheme.outlineVariant,
+                                                            CircleShape
+                                                        )
+                                                        .padding(1.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = statusEmoji,
+                                                        fontSize = 10.sp,
+                                                        style = MaterialTheme.typography.labelSmall
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -843,7 +881,8 @@ fun Free2PartyNavGraph(
 
         composable(Screen.Appearance.route) {
             AppearanceRoute(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToPremium = { navController.navigate(Screen.Premium.route) }
             )
         }
 

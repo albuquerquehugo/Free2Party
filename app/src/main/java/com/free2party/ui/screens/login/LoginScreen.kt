@@ -506,7 +506,7 @@ fun LoginScreen(
                 )
 
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.option_gradient)) },
+                    text = { Text(stringResource(R.string.option_background_gradient)) },
                     onClick = {
                         onSetGradientBackground(true)
                         showThemeMenu = false
@@ -523,7 +523,7 @@ fun LoginScreen(
                 )
 
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.option_solid)) },
+                    text = { Text(stringResource(R.string.option_background_solid)) },
                     onClick = {
                         onSetGradientBackground(false)
                         showThemeMenu = false

@@ -45,7 +45,8 @@ sealed interface HomeUiState {
         val gradientBackground: Boolean = true,
         val friendsList: List<FriendInfo> = emptyList(),
         val isActionLoading: Boolean = false,
-        val membership: Membership = Membership.FREE
+        val membership: Membership = Membership.FREE,
+        val statusColor: String = ""
     ) : HomeUiState
 
     data class Error(val message: UiText) : HomeUiState
@@ -121,7 +122,8 @@ class HomeViewModel @Inject constructor(
                         use24HourFormat = user.settings.use24HourFormat,
                         gradientBackground = user.settings.gradientBackground,
                         friendsList = sortedFriends,
-                        membership = user.membership
+                        membership = user.membership,
+                        statusColor = user.settings.statusColor
                     )
                 }
             }

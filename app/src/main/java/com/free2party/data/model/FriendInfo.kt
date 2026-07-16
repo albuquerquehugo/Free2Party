@@ -16,7 +16,9 @@ data class FriendInfo(
     val profilePicUrl: String = "",
     val socials: UserSocials = UserSocials(),
     @get:PropertyName("isStatusFromPlan")
-    val isStatusFromPlan: Boolean = false
+    val isStatusFromPlan: Boolean = false,
+    val statusEmoji: String = "",
+    val statusColor: String = ""
 )
 
 @IgnoreExtraProperties

@@ -159,7 +159,7 @@ fun BlockUserDialog(
                 ) {
                     Text(
                         text = stringResource(R.string.label_block),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
 

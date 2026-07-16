@@ -427,7 +427,9 @@ fun ProfileContent(
             onValueChange = onFirstNameChange,
             labelText = stringResource(R.string.label_first_name_required),
             icon = Icons.Default.AccountCircle,
-            modifier = Modifier.testTag("first_name_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("first_name_field"),
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
@@ -443,7 +445,9 @@ fun ProfileContent(
             onValueChange = onLastNameChange,
             labelText = stringResource(R.string.label_last_name_required),
             icon = Icons.Default.AccountCircle,
-            modifier = Modifier.testTag("last_name_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("last_name_field"),
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
@@ -459,7 +463,9 @@ fun ProfileContent(
             onValueChange = onEmailChange,
             labelText = stringResource(R.string.label_email_required),
             icon = Icons.Default.Email,
-            modifier = Modifier.testTag("email_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("email_field"),
             enabled = !isLoading && isEmailEnabled,
             isError = isEmailError,
             supportingText = if (isEmailError) {
@@ -619,7 +625,9 @@ fun ProfileContent(
                 if (selectedCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             icon = Icons.Default.Phone,
-            modifier = Modifier.testTag("phone_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("phone_field"),
             focusRequester = phoneFocusRequester,
             interactionSource = phoneInteractionSource,
             leadingIconExtra = {
@@ -677,7 +685,9 @@ fun ProfileContent(
             labelText = stringResource(R.string.label_birthday),
             placeholderText = stringResource(datePattern.labelResId),
             icon = Icons.Default.Cake,
-            modifier = Modifier.testTag("birthday_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("birthday_field"),
             interactionSource = birthdayInteractionSource,
             isError = isBirthdayError,
             supportingText = if (isBirthdayError) {
@@ -693,7 +703,7 @@ fun ProfileContent(
                 IconButton(onClick = { setShowDatePicker(true) }) {
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
-                        contentDescription = stringResource(R.string.label_select_birthday)
+                        contentDescription = stringResource(R.string.description_birthday)
                     )
                 }
             },
@@ -713,7 +723,9 @@ fun ProfileContent(
             labelText = stringResource(R.string.label_bio),
             placeholderText = stringResource(R.string.text_bio_placeholder),
             icon = Icons.AutoMirrored.Filled.Notes,
-            modifier = Modifier.testTag("bio_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("bio_field"),
             minLines = 1,
             maxLines = 5,
             enabled = !isLoading,
@@ -814,7 +826,9 @@ fun ProfileContent(
                 if (selectedWhatsappCountry == null) MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             painter = painterResource(id = R.drawable.whatsapp),
-            modifier = Modifier.testTag("whatsapp_field"),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("whatsapp_field"),
             focusRequester = whatsappFocusRequester,
             interactionSource = whatsappInteractionSource,
             leadingIconExtra = {
@@ -910,8 +924,10 @@ fun ProfileContent(
             onValueChange = onTelegramUsernameChange,
             labelText = stringResource(R.string.label_telegram_username),
             painter = painterResource(id = R.drawable.telegram),
-            modifier = Modifier.testTag("telegram_field"),
-            prefix = { Text(stringResource(R.string.handle_prefix)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("telegram_field"),
+            prefix = { Text(stringResource(R.string.prefix_handle)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -924,8 +940,10 @@ fun ProfileContent(
             onValueChange = onFacebookUsernameChange,
             labelText = stringResource(R.string.label_messenger_username),
             painter = painterResource(id = R.drawable.messenger),
-            modifier = Modifier.testTag("facebook_field"),
-            prefix = { Text(stringResource(R.string.handle_prefix)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("facebook_field"),
+            prefix = { Text(stringResource(R.string.prefix_handle)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -938,8 +956,10 @@ fun ProfileContent(
             onValueChange = onInstagramUsernameChange,
             labelText = stringResource(R.string.label_instagram_username),
             painter = painterResource(id = R.drawable.instagram),
-            modifier = Modifier.testTag("instagram_field"),
-            prefix = { Text(stringResource(R.string.handle_prefix)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("instagram_field"),
+            prefix = { Text(stringResource(R.string.prefix_handle)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -952,8 +972,10 @@ fun ProfileContent(
             onValueChange = onTiktokUsernameChange,
             labelText = stringResource(R.string.label_tiktok_username),
             painter = painterResource(id = R.drawable.tiktok),
-            modifier = Modifier.testTag("tiktok_field"),
-            prefix = { Text(stringResource(R.string.handle_prefix)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("tiktok_field"),
+            prefix = { Text(stringResource(R.string.prefix_handle)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             keyboardActions = KeyboardActions(
@@ -966,8 +988,10 @@ fun ProfileContent(
             onValueChange = onXUsernameChange,
             labelText = stringResource(R.string.label_x_username),
             painter = painterResource(id = R.drawable.x),
-            modifier = Modifier.testTag("x_field"),
-            prefix = { Text(stringResource(R.string.handle_prefix)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("x_field"),
+            prefix = { Text(stringResource(R.string.prefix_handle)) },
             enabled = !isLoading,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
@@ -1049,7 +1073,7 @@ fun ProfileContent(
                 colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 title = {
                     Text(
-                        text = stringResource(R.string.label_select_birthday),
+                        text = stringResource(R.string.label_birthday),
                         modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp),
                         style = MaterialTheme.typography.headlineMedium
                     )

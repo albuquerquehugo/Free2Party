@@ -50,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.model.Membership
 import com.free2party.R
@@ -159,7 +160,15 @@ fun ProfileScreen(
 
                 is ProfileUiState.Success -> {
                     val statusColor = if (uiState.isUserFree) {
-                        MaterialTheme.colorScheme.available
+                        if (uiState.statusColor.isNotBlank() && uiState.statusColor.startsWith("#")) {
+                            try {
+                                Color(uiState.statusColor.toColorInt())
+                            } catch (_: Exception) {
+                                MaterialTheme.colorScheme.available
+                            }
+                        } else {
+                            MaterialTheme.colorScheme.available
+                        }
                     } else {
                         MaterialTheme.colorScheme.busy
                     }
@@ -179,7 +188,9 @@ fun ProfileScreen(
                             ),
                             size = ProfileAvatarSize.LARGE,
                             profilePicUrl = uiState.profilePicUrl,
-                            statusColor = statusColor
+                            statusColor = statusColor,
+                            statusColorHex = "",
+                            statusEmoji = uiState.statusEmoji
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -227,7 +238,7 @@ fun ProfileScreen(
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_crown),
                                             contentDescription = null,
-                                            tint = Color(0xFFFFD700),
+                                            tint = Gold,
                                             modifier = Modifier.size(12.dp)
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
@@ -288,7 +299,10 @@ fun ProfileScreen(
                                                     tint = Gold,
                                                     modifier = Modifier.size(24.dp)
                                                 )
-                                                Column(modifier = Modifier.weight(1f)) {
+                                                Column(
+                                                    modifier = Modifier.weight(1f),
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
                                                     Text(
                                                         text = stringResource(R.string.label_upgrade_premium),
                                                         style = MaterialTheme.typography.titleMedium.copy(

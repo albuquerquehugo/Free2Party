@@ -117,6 +117,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.emoji2.emojipicker)
 
     // --- Architecture & Navigation ---
     implementation(libs.androidx.hilt.navigation.compose)

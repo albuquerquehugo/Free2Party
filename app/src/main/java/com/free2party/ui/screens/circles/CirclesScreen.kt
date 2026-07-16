@@ -67,6 +67,7 @@ import com.free2party.R
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.CircleDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.PremiumDialog
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -177,15 +178,13 @@ fun CirclesScreen(
         }
 
         if (showLimitDialog) {
-            ConfirmationDialog(
+            PremiumDialog(
                 title = stringResource(R.string.label_circle_limit),
                 text = stringResource(R.string.text_circle_limit),
-                confirmButtonText = stringResource(R.string.label_upgrade_premium),
                 onConfirm = {
                     setShowLimitDialog(false)
                     onNavigateToPremium()
                 },
-                dismissButtonText = stringResource(R.string.label_cancel),
                 onDismiss = { setShowLimitDialog(false) }
             )
         }
