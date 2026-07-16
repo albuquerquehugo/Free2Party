@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -501,11 +502,15 @@ fun NotificationBox(
     onNavigateToEventDetails: (String, Boolean) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
     val backgroundColor = when {
         notification.isRead && gradientBackground -> Color.Transparent
         notification.isRead -> MaterialTheme.colorScheme.background
-        gradientBackground -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        gradientBackground -> MaterialTheme.colorScheme.primaryContainer.copy(
+            alpha = if (isDark) 0.6f else 0.9f
+        )
+
         else -> MaterialTheme.colorScheme.primaryContainer
     }
 

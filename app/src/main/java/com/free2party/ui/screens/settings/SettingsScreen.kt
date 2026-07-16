@@ -14,16 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,10 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.data.model.DatePattern
@@ -53,6 +47,8 @@ import com.free2party.data.model.BirthdayVisibility
 import com.free2party.data.model.BirthdayShowType
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
+import com.free2party.ui.components.AppSettingsOption
+import com.free2party.ui.components.AppSettingsCard
 import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.basic.AppHorizontalDivider
@@ -131,7 +127,6 @@ fun SettingsScreen(
                 SettingsScreenContent(
                     paddingValues = paddingValues,
                     user = uiState.user,
-                    gradientBackground = gradientBackground,
                     isSaving = uiState.isSaving,
                     onUpdateSettings = onUpdateSettings,
                     friends = friends,
@@ -147,7 +142,6 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     paddingValues: PaddingValues,
     user: User,
-    gradientBackground: Boolean,
     isSaving: Boolean,
     onUpdateSettings: (User) -> Unit,
     friends: List<FriendInfo>,
@@ -252,14 +246,6 @@ fun SettingsScreenContent(
         isManualStatusValid && isBirthdayValid
     }
 
-    val cardColors = CardDefaults.cardColors(
-        containerColor = if (gradientBackground) {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        }
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -279,220 +265,217 @@ fun SettingsScreenContent(
             Text(
                 text = stringResource(R.string.label_privacy),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
             )
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = cardColors
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.text_visibility_manual_free_status),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.label_visibility_discretion),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            // Status Privacy
+            AppSettingsCard {
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = stringResource(R.string.text_visibility_manual_free_status),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.label_visibility_discretion),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    SettingsOption(
-                        label = stringResource(R.string.label_everyone),
-                        selected = manualStatusVisibility == PlanVisibility.EVERYONE,
-                        onClick = { manualStatusVisibility = PlanVisibility.EVERYONE },
-                        enabled = !isSaving
+                AppSettingsOption(
+                    label = stringResource(R.string.label_everyone),
+                    selected = manualStatusVisibility == PlanVisibility.EVERYONE,
+                    onClick = { manualStatusVisibility = PlanVisibility.EVERYONE },
+                    enabled = !isSaving
+                )
+                AppSettingsOption(
+                    label = stringResource(R.string.label_everyone_except_label),
+                    selected = manualStatusVisibility == PlanVisibility.EXCEPT,
+                    onClick = { manualStatusVisibility = PlanVisibility.EXCEPT },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("visibility_except")
+                )
+                AnimatedVisibility(visible = manualStatusVisibility == PlanVisibility.EXCEPT) {
+                    FriendSelector(
+                        friends = friends,
+                        circles = circles,
+                        selectedFriendIds = manualStatusFriendsSelection,
+                        onToggleFriend = { id ->
+                            manualStatusFriendsSelection =
+                                if (id in manualStatusFriendsSelection) {
+                                    manualStatusFriendsSelection - id
+                                } else manualStatusFriendsSelection + id
+                        },
+                        onAddFriends = { ids ->
+                            manualStatusFriendsSelection =
+                                (manualStatusFriendsSelection + ids).distinct()
+                        },
+                        onRemoveFriends = { ids ->
+                            manualStatusFriendsSelection =
+                                manualStatusFriendsSelection - ids.toSet()
+                        },
+                        onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
+                        onUnselectAll = { manualStatusFriendsSelection = emptyList() }
                     )
-                    SettingsOption(
-                        label = stringResource(R.string.label_everyone_except_label),
-                        selected = manualStatusVisibility == PlanVisibility.EXCEPT,
-                        onClick = { manualStatusVisibility = PlanVisibility.EXCEPT },
-                        enabled = !isSaving,
-                        modifier = Modifier.testTag("visibility_except")
+                }
+                AppSettingsOption(
+                    label = stringResource(R.string.label_only_selected_people_label),
+                    selected = manualStatusVisibility == PlanVisibility.ONLY,
+                    onClick = { manualStatusVisibility = PlanVisibility.ONLY },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("visibility_only")
+                )
+                AnimatedVisibility(visible = manualStatusVisibility == PlanVisibility.ONLY) {
+                    FriendSelector(
+                        friends = friends,
+                        circles = circles,
+                        selectedFriendIds = manualStatusFriendsSelection,
+                        onToggleFriend = { id ->
+                            manualStatusFriendsSelection =
+                                if (id in manualStatusFriendsSelection) {
+                                    manualStatusFriendsSelection - id
+                                } else manualStatusFriendsSelection + id
+                        },
+                        onAddFriends = { ids ->
+                            manualStatusFriendsSelection =
+                                (manualStatusFriendsSelection + ids).distinct()
+                        },
+                        onRemoveFriends = { ids ->
+                            manualStatusFriendsSelection =
+                                manualStatusFriendsSelection - ids.toSet()
+                        },
+                        onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
+                        onUnselectAll = { manualStatusFriendsSelection = emptyList() }
                     )
-                    AnimatedVisibility(visible = manualStatusVisibility == PlanVisibility.EXCEPT) {
-                        FriendSelector(
-                            friends = friends,
-                            circles = circles,
-                            selectedFriendIds = manualStatusFriendsSelection,
-                            onToggleFriend = { id ->
-                                manualStatusFriendsSelection =
-                                    if (id in manualStatusFriendsSelection)
-                                        manualStatusFriendsSelection - id else manualStatusFriendsSelection + id
-                            },
-                            onAddFriends = { ids ->
-                                manualStatusFriendsSelection =
-                                    (manualStatusFriendsSelection + ids).distinct()
-                            },
-                            onRemoveFriends = { ids ->
-                                manualStatusFriendsSelection =
-                                    manualStatusFriendsSelection - ids.toSet()
-                            },
-                            onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
-                            onUnselectAll = { manualStatusFriendsSelection = emptyList() }
-                        )
-                    }
-                    SettingsOption(
-                        label = stringResource(R.string.label_only_selected_people_label),
-                        selected = manualStatusVisibility == PlanVisibility.ONLY,
-                        onClick = { manualStatusVisibility = PlanVisibility.ONLY },
-                        enabled = !isSaving,
-                        modifier = Modifier.testTag("visibility_only")
-                    )
-                    AnimatedVisibility(visible = manualStatusVisibility == PlanVisibility.ONLY) {
-                        FriendSelector(
-                            friends = friends,
-                            circles = circles,
-                            selectedFriendIds = manualStatusFriendsSelection,
-                            onToggleFriend = { id ->
-                                manualStatusFriendsSelection =
-                                    if (id in manualStatusFriendsSelection)
-                                        manualStatusFriendsSelection - id else manualStatusFriendsSelection + id
-                            },
-                            onAddFriends = { ids ->
-                                manualStatusFriendsSelection =
-                                    (manualStatusFriendsSelection + ids).distinct()
-                            },
-                            onRemoveFriends = { ids ->
-                                manualStatusFriendsSelection =
-                                    manualStatusFriendsSelection - ids.toSet()
-                            },
-                            onSelectAll = { manualStatusFriendsSelection = friends.map { it.uid } },
-                            onUnselectAll = { manualStatusFriendsSelection = emptyList() }
-                        )
-                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = cardColors
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.text_visibility_birthday),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.label_visibility_discretion),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            // Birthday Privacy
+            AppSettingsCard {
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = stringResource(R.string.text_visibility_birthday),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.label_visibility_discretion),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    SettingsOption(
-                        label = stringResource(R.string.label_everyone),
-                        selected = birthdayVisibility == BirthdayVisibility.EVERYONE,
-                        onClick = { birthdayVisibility = BirthdayVisibility.EVERYONE },
-                        enabled = !isSaving
+                AppSettingsOption(
+                    label = stringResource(R.string.label_everyone),
+                    selected = birthdayVisibility == BirthdayVisibility.EVERYONE,
+                    onClick = { birthdayVisibility = BirthdayVisibility.EVERYONE },
+                    enabled = !isSaving
+                )
+                AppSettingsOption(
+                    label = stringResource(R.string.label_everyone_except_label),
+                    selected = birthdayVisibility == BirthdayVisibility.EXCEPT,
+                    onClick = { birthdayVisibility = BirthdayVisibility.EXCEPT },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("birthday_visibility_except")
+                )
+                AnimatedVisibility(visible = birthdayVisibility == BirthdayVisibility.EXCEPT) {
+                    FriendSelector(
+                        friends = friends,
+                        circles = circles,
+                        selectedFriendIds = birthdayFriendsSelection,
+                        onToggleFriend = { id ->
+                            birthdayFriendsSelection = if (id in birthdayFriendsSelection)
+                                birthdayFriendsSelection - id else birthdayFriendsSelection + id
+                        },
+                        onAddFriends = { ids ->
+                            birthdayFriendsSelection =
+                                (birthdayFriendsSelection + ids).distinct()
+                        },
+                        onRemoveFriends = { ids ->
+                            birthdayFriendsSelection =
+                                birthdayFriendsSelection - ids.toSet()
+                        },
+                        onSelectAll = { birthdayFriendsSelection = friends.map { it.uid } },
+                        onUnselectAll = { birthdayFriendsSelection = emptyList() }
                     )
-                    SettingsOption(
-                        label = stringResource(R.string.label_everyone_except_label),
-                        selected = birthdayVisibility == BirthdayVisibility.EXCEPT,
-                        onClick = { birthdayVisibility = BirthdayVisibility.EXCEPT },
-                        enabled = !isSaving,
-                        modifier = Modifier.testTag("birthday_visibility_except")
+                }
+                AppSettingsOption(
+                    label = stringResource(R.string.label_only_selected_people_label),
+                    selected = birthdayVisibility == BirthdayVisibility.ONLY,
+                    onClick = { birthdayVisibility = BirthdayVisibility.ONLY },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("birthday_visibility_only")
+                )
+                AnimatedVisibility(visible = birthdayVisibility == BirthdayVisibility.ONLY) {
+                    FriendSelector(
+                        friends = friends,
+                        circles = circles,
+                        selectedFriendIds = birthdayFriendsSelection,
+                        onToggleFriend = { id ->
+                            birthdayFriendsSelection = if (id in birthdayFriendsSelection)
+                                birthdayFriendsSelection - id else birthdayFriendsSelection + id
+                        },
+                        onAddFriends = { ids ->
+                            birthdayFriendsSelection =
+                                (birthdayFriendsSelection + ids).distinct()
+                        },
+                        onRemoveFriends = { ids ->
+                            birthdayFriendsSelection =
+                                birthdayFriendsSelection - ids.toSet()
+                        },
+                        onSelectAll = { birthdayFriendsSelection = friends.map { it.uid } },
+                        onUnselectAll = { birthdayFriendsSelection = emptyList() }
                     )
-                    AnimatedVisibility(visible = birthdayVisibility == BirthdayVisibility.EXCEPT) {
-                        FriendSelector(
-                            friends = friends,
-                            circles = circles,
-                            selectedFriendIds = birthdayFriendsSelection,
-                            onToggleFriend = { id ->
-                                birthdayFriendsSelection = if (id in birthdayFriendsSelection)
-                                    birthdayFriendsSelection - id else birthdayFriendsSelection + id
-                            },
-                            onAddFriends = { ids ->
-                                birthdayFriendsSelection =
-                                    (birthdayFriendsSelection + ids).distinct()
-                            },
-                            onRemoveFriends = { ids ->
-                                birthdayFriendsSelection =
-                                    birthdayFriendsSelection - ids.toSet()
-                            },
-                            onSelectAll = { birthdayFriendsSelection = friends.map { it.uid } },
-                            onUnselectAll = { birthdayFriendsSelection = emptyList() }
+                }
+                AppSettingsOption(
+                    label = stringResource(R.string.label_nobody),
+                    selected = birthdayVisibility == BirthdayVisibility.NOBODY,
+                    onClick = { birthdayVisibility = BirthdayVisibility.NOBODY },
+                    enabled = !isSaving,
+                    modifier = Modifier.testTag("birthday_visibility_nobody")
+                )
+
+                AnimatedVisibility(visible = birthdayVisibility != BirthdayVisibility.NOBODY) {
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                    ) {
+                        AppHorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        Text(
+                            modifier = Modifier.padding(top = 8.dp),
+                            text = stringResource(R.string.label_birthday_display_format),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                    }
-                    SettingsOption(
-                        label = stringResource(R.string.label_only_selected_people_label),
-                        selected = birthdayVisibility == BirthdayVisibility.ONLY,
-                        onClick = { birthdayVisibility = BirthdayVisibility.ONLY },
-                        enabled = !isSaving,
-                        modifier = Modifier.testTag("birthday_visibility_only")
-                    )
-                    AnimatedVisibility(visible = birthdayVisibility == BirthdayVisibility.ONLY) {
-                        FriendSelector(
-                            friends = friends,
-                            circles = circles,
-                            selectedFriendIds = birthdayFriendsSelection,
-                            onToggleFriend = { id ->
-                                birthdayFriendsSelection = if (id in birthdayFriendsSelection)
-                                    birthdayFriendsSelection - id else birthdayFriendsSelection + id
-                            },
-                            onAddFriends = { ids ->
-                                birthdayFriendsSelection =
-                                    (birthdayFriendsSelection + ids).distinct()
-                            },
-                            onRemoveFriends = { ids ->
-                                birthdayFriendsSelection =
-                                    birthdayFriendsSelection - ids.toSet()
-                            },
-                            onSelectAll = { birthdayFriendsSelection = friends.map { it.uid } },
-                            onUnselectAll = { birthdayFriendsSelection = emptyList() }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        AppSettingsOption(
+                            label = stringResource(R.string.option_birthday_full),
+                            selected = birthdayShowType == BirthdayShowType.FULL,
+                            onClick = { birthdayShowType = BirthdayShowType.FULL },
+                            enabled = !isSaving
                         )
-                    }
-                    SettingsOption(
-                        label = stringResource(R.string.label_nobody),
-                        selected = birthdayVisibility == BirthdayVisibility.NOBODY,
-                        onClick = { birthdayVisibility = BirthdayVisibility.NOBODY },
-                        enabled = !isSaving,
-                        modifier = Modifier.testTag("birthday_visibility_nobody")
-                    )
-
-                    AnimatedVisibility(visible = birthdayVisibility != BirthdayVisibility.NOBODY) {
-                        Column(
-                            modifier = Modifier
-                                .padding(start = 16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            AppHorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-                            Text(
-                                text = stringResource(R.string.label_birthday_display_format),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            SettingsOption(
-                                label = stringResource(R.string.option_birthday_full),
-                                selected = birthdayShowType == BirthdayShowType.FULL,
-                                onClick = { birthdayShowType = BirthdayShowType.FULL },
-                                enabled = !isSaving
-                            )
-                            SettingsOption(
-                                label = stringResource(R.string.option_birthday_day_month),
-                                selected = birthdayShowType == BirthdayShowType.DAY_MONTH,
-                                onClick = { birthdayShowType = BirthdayShowType.DAY_MONTH },
-                                enabled = !isSaving
-                            )
-                        }
+                        AppSettingsOption(
+                            label = stringResource(R.string.option_birthday_day_month),
+                            selected = birthdayShowType == BirthdayShowType.DAY_MONTH,
+                            onClick = { birthdayShowType = BirthdayShowType.DAY_MONTH },
+                            enabled = !isSaving
+                        )
                     }
                 }
             }
@@ -501,26 +484,21 @@ fun SettingsScreenContent(
             Text(
                 text = stringResource(R.string.label_preferences),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
             )
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                colors = cardColors
-            ) {
+            AppSettingsCard {
                 Row(
-                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = stringResource(R.string.label_time_format_colon),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 12.dp)
@@ -529,18 +507,18 @@ fun SettingsScreenContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(start = 12.dp)
                             .selectableGroup(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        SettingsOption(
-                            label = stringResource(R.string.option_twenty_four_hour),
+                        AppSettingsOption(
+                            label = stringResource(R.string.option_time_twenty_four_hour),
                             selected = use24HourFormat,
                             onClick = { use24HourFormat = true },
                             enabled = !isSaving
                         )
-                        SettingsOption(
-                            label = stringResource(R.string.option_am_pm),
+                        AppSettingsOption(
+                            label = stringResource(R.string.option_time_am_pm),
                             selected = !use24HourFormat,
                             onClick = { use24HourFormat = false },
                             enabled = !isSaving
@@ -548,16 +526,15 @@ fun SettingsScreenContent(
                     }
                 }
 
-                AppHorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                AppHorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 Row(
-                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = stringResource(R.string.label_date_format_colon),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 12.dp)
@@ -566,12 +543,12 @@ fun SettingsScreenContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(start = 12.dp)
                             .selectableGroup(),
                         horizontalAlignment = Alignment.Start
                     ) {
                         DatePattern.entries.forEach { pattern ->
-                            SettingsOption(
+                            AppSettingsOption(
                                 label = stringResource(pattern.labelResId),
                                 selected = datePattern == pattern,
                                 onClick = { datePattern = pattern },
@@ -581,16 +558,15 @@ fun SettingsScreenContent(
                     }
                 }
 
-                AppHorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                AppHorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 Row(
-                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = stringResource(R.string.label_distance_unit_colon),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 12.dp)
@@ -599,18 +575,18 @@ fun SettingsScreenContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                            .padding(start = 12.dp)
                             .selectableGroup(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        SettingsOption(
-                            label = stringResource(R.string.option_kilometers),
+                        AppSettingsOption(
+                            label = stringResource(R.string.option_distance_unit_kilometers),
                             selected = distanceUnit == DistanceUnit.KILOMETERS,
                             onClick = { distanceUnit = DistanceUnit.KILOMETERS },
                             enabled = !isSaving
                         )
-                        SettingsOption(
-                            label = stringResource(R.string.option_miles),
+                        AppSettingsOption(
+                            label = stringResource(R.string.option_distance_unit_miles),
                             selected = distanceUnit == DistanceUnit.MILES,
                             onClick = { distanceUnit = DistanceUnit.MILES },
                             enabled = !isSaving
@@ -619,45 +595,36 @@ fun SettingsScreenContent(
                 }
             }
 
-            // Section 3: Help & Support (No Save required)
+            // Section 3: Tutorial
             Text(
                 text = stringResource(R.string.label_onboarding),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp)
             )
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = cardColors
+            AppSettingsCard(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = stringResource(R.string.text_replay_tutorial),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(
+                    onClick = onNavigateToOnboarding,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Text(
-                        text = stringResource(R.string.text_replay_tutorial),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(R.string.label_replay_tutorial),
+                        style = MaterialTheme.typography.titleMedium,
                     )
-                    Button(
-                        onClick = onNavigateToOnboarding,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.label_replay_tutorial),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
         Column(
@@ -758,42 +725,5 @@ fun SettingsScreenContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun SettingsOption(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val focusManager = LocalFocusManager.current
-    Row(
-        modifier = modifier
-            .height(40.dp)
-            .selectable(
-                selected = selected,
-                onClick = {
-                    focusManager.clearFocus()
-                    onClick()
-                },
-                role = Role.RadioButton,
-                enabled = enabled
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = null,
-            enabled = enabled
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(start = 8.dp)
-        )
     }
 }

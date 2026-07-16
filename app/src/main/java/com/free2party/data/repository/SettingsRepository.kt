@@ -22,6 +22,8 @@ class SettingsRepository(private val context: Context) {
         val LAST_USED_CIRCLE_ID = stringPreferencesKey("last_used_circle_id")
         val USE_LEGACY_GOOGLE_SIGN_IN = booleanPreferencesKey("use_legacy_google_sign_in")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        val GRADIENT_THEME = stringPreferencesKey("gradient_theme")
+        val STATUS_COLOR = stringPreferencesKey("status_color")
     }
 
     val themeModeFlow: Flow<ThemeMode> = context.dataStore.data
@@ -46,6 +48,11 @@ class SettingsRepository(private val context: Context) {
             preferences[PreferencesKeys.GRADIENT_BACKGROUND] ?: true
         }
 
+    val gradientThemeFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.GRADIENT_THEME] ?: "DEFAULT"
+        }
+
     val lastUsedCircleIdFlow: Flow<String?> = context.dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.LAST_USED_CIRCLE_ID]
@@ -60,6 +67,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setGradientBackground(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.GRADIENT_BACKGROUND] = enabled
+        }
+    }
+
+    suspend fun setGradientTheme(theme: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GRADIENT_THEME] = theme
         }
     }
 
@@ -100,6 +113,17 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.edit { preferences ->
             val current = preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] ?: emptySet()
             preferences[PreferencesKeys.SHOWN_NOTIFICATION_IDS] = current - id
+        }
+    }
+
+    val statusColorFlow: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.STATUS_COLOR] ?: ""
+        }
+
+    suspend fun setStatusColor(color: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.STATUS_COLOR] = color
         }
     }
 }

@@ -1,7 +1,9 @@
 package com.free2party.util
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -61,6 +63,21 @@ fun formatTimeAgo(timestamp: Date?): UiText {
             UiText.PluralStringResource(R.plurals.time_years_ago, years, years)
         }
     }
+}
+
+/**
+ * Extension function to find the nearest [Activity] from a [Context].
+ * Iterates through the [ContextWrapper] hierarchy until an [Activity] is found.
+ * This is particularly useful for finding the host activity when the context is a `View` or `Fragment`.
+ * @return The [Activity] associated with this context, or `null` if no activity is found.
+ */
+fun Context.findActivity(): Activity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is Activity) return currentContext
+        currentContext = currentContext.baseContext
+    }
+    return null
 }
 
 /**
@@ -713,7 +730,13 @@ fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: D
 }
 
 /**
- * Formats a distance in meters to a human-readable localized string.
+ * Formats a distance in meters to a human-readable localized string based on the specified unit.
+ * For [DistanceUnit.KILOMETERS], it returns meters (m) if less than 1000m, otherwise kilometers (km).
+ * For [DistanceUnit.MILES], it returns feet (ft) if less than 0.1 miles, otherwise miles (mi).
+ * @param context The context used to retrieve localized string resources.
+ * @param meters The distance value in meters.
+ * @param unit The [DistanceUnit] system to use for formatting (Metric or Imperial).
+ * @return A localized string representation of the distance.
  */
 fun formatDistance(
     context: Context,
@@ -744,7 +767,10 @@ fun formatDistance(
 
 
 /**
- * Gets the last known device location from available providers.
+ * Retrieves the most accurate last known location from all available location providers.
+ * This function iterates through all enabled providers (e.g., GPS, Network) and
+ * compares their last known locations, returning the one with the best accuracy.
+ * @param context The context used to access the location service and check permissions.
  */
 fun getLastKnownLocation(context: Context): Location? {
     val locationManager =
@@ -769,4 +795,33 @@ fun getLastKnownLocation(context: Context): Location? {
         }
     }
     return bestLocation
+}
+
+/**
+ * Parses a numeric value from a localized price string.
+ * This function handles various currency formats by stripping non-numeric characters
+ * (except periods and commas) and identifying the decimal separator based on its position.
+ * Examples:
+ * - "$2.99" -> 2.99
+ * - "R$ 14,90" -> 14.90
+ * - "1.500,50" -> 1500.50
+ * @param priceStr The localized string representing the price.
+ * @return The parsed [Double] value, or `null` if the string is blank or cannot be parsed.
+ */
+fun parsePrice(priceStr: String): Double? {
+    val cleanStr = priceStr.replace(Regex("[^\\d.,]"), "")
+    if (cleanStr.isBlank()) return null
+    val lastDot = cleanStr.lastIndexOf('.')
+    val lastComma = cleanStr.lastIndexOf(',')
+    return try {
+        if (lastComma > lastDot) {
+            val normalized = cleanStr.replace(".", "").replace(",", ".")
+            normalized.toDoubleOrNull()
+        } else {
+            val normalized = cleanStr.replace(",", "")
+            normalized.toDoubleOrNull()
+        }
+    } catch (_: Exception) {
+        null
+    }
 }

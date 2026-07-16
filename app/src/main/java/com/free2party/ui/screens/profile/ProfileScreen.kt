@@ -39,17 +39,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.free2party.R
 import com.free2party.data.model.Membership
+import com.free2party.R
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.StatusPill
@@ -58,6 +62,9 @@ import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.AboutDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.theme.Gold
+import com.free2party.ui.theme.PremiumBannerColor1
+import com.free2party.ui.theme.PremiumBannerColor2
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
 import kotlinx.coroutines.flow.collectLatest
@@ -71,6 +78,7 @@ fun ProfileRoute(
     onNavigateToCircles: () -> Unit,
     onNavigateToAppearance: () -> Unit,
     onNavigateToInterests: () -> Unit,
+    onNavigateToPremium: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -93,7 +101,8 @@ fun ProfileRoute(
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToCircles = onNavigateToCircles,
         onNavigateToAppearance = onNavigateToAppearance,
-        onNavigateToInterests = onNavigateToInterests
+        onNavigateToInterests = onNavigateToInterests,
+        onNavigateToPremium = onNavigateToPremium
     )
 }
 
@@ -107,7 +116,8 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToCircles: () -> Unit,
     onNavigateToAppearance: () -> Unit,
-    onNavigateToInterests: () -> Unit
+    onNavigateToInterests: () -> Unit,
+    onNavigateToPremium: () -> Unit
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -150,7 +160,15 @@ fun ProfileScreen(
 
                 is ProfileUiState.Success -> {
                     val statusColor = if (uiState.isUserFree) {
-                        MaterialTheme.colorScheme.available
+                        if (uiState.statusColor.isNotBlank() && uiState.statusColor.startsWith("#")) {
+                            try {
+                                Color(uiState.statusColor.toColorInt())
+                            } catch (_: Exception) {
+                                MaterialTheme.colorScheme.available
+                            }
+                        } else {
+                            MaterialTheme.colorScheme.available
+                        }
                     } else {
                         MaterialTheme.colorScheme.busy
                     }
@@ -170,7 +188,9 @@ fun ProfileScreen(
                             ),
                             size = ProfileAvatarSize.LARGE,
                             profilePicUrl = uiState.profilePicUrl,
-                            statusColor = statusColor
+                            statusColor = statusColor,
+                            statusColorHex = "",
+                            statusEmoji = uiState.statusEmoji
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -192,9 +212,49 @@ fun ProfileScreen(
                         } else {
                             stringResource(uiState.userGender.getStringRes(R.string.label_status_busy))
                         }
-                        StatusPill(isUserFree = uiState.isUserFree, text = statusText)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            StatusPill(isUserFree = uiState.isUserFree, text = statusText)
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                            if (uiState.membership == Membership.PREMIUM) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(
+                                            Brush.linearGradient(
+                                                colors = listOf(
+                                                    PremiumBannerColor1,
+                                                    PremiumBannerColor2
+                                                )
+                                            )
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_crown),
+                                            contentDescription = null,
+                                            tint = Gold,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "Premium",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         LazyColumn(
                             modifier = Modifier
@@ -204,6 +264,70 @@ fun ProfileScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Top
                         ) {
+                            if (uiState.membership == Membership.FREE) {
+                                item {
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp)
+                                            .clickable(onClick = onNavigateToPremium)
+                                            .shadow(4.dp, shape = RoundedCornerShape(16.dp)),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    Brush.linearGradient(
+                                                        colors = listOf(
+                                                            PremiumBannerColor1,
+                                                            PremiumBannerColor2
+                                                        )
+                                                    )
+                                                )
+                                                .padding(16.dp)
+                                                .fillMaxWidth()
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.ic_crown),
+                                                    contentDescription = null,
+                                                    tint = Gold,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                                Column(
+                                                    modifier = Modifier.weight(1f),
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = stringResource(R.string.label_upgrade_premium),
+                                                        style = MaterialTheme.typography.titleMedium.copy(
+                                                            fontWeight = FontWeight.Bold
+                                                        ),
+                                                        color = Color.White
+                                                    )
+                                                    Text(
+                                                        text = stringResource(R.string.text_premium_upgrade_banner),
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = Color.White.copy(alpha = 0.85f)
+                                                    )
+                                                }
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                             // Menu items grouped inside a sleek Card
                             item {
                                 Card(
@@ -217,7 +341,7 @@ fun ProfileScreen(
                                     ),
                                     shape = RoundedCornerShape(16.dp)
                                 ) {
-                                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                    Column {
                                         MenuItem(
                                             icon = Icons.Default.Person,
                                             title = stringResource(R.string.label_edit_profile),

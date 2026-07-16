@@ -19,10 +19,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandMore
@@ -61,15 +62,19 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
+import com.free2party.data.model.Membership
 import com.free2party.R
 import com.free2party.ui.components.TopBar
-import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.CircleDialog
 import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.PremiumDialog
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun CirclesRoute(onBack: () -> Unit) {
+fun CirclesRoute(
+    onBack: () -> Unit,
+    onNavigateToPremium: () -> Unit
+) {
     val context = LocalContext.current
     val viewModel: CircleViewModel = hiltViewModel()
 
@@ -89,13 +94,16 @@ fun CirclesRoute(onBack: () -> Unit) {
     }
 
     val friends by viewModel.friendsList.collectAsState()
+    val membership by viewModel.membership.collectAsState()
 
     CirclesScreen(
         circles = viewModel.circles,
         friends = friends,
         gradientBackground = viewModel.gradientBackground,
         isActionLoading = viewModel.isActionLoading,
+        membership = membership,
         onBack = onBack,
+        onNavigateToPremium = onNavigateToPremium,
         onCreateCircle = { name, selectedFriends -> viewModel.createCircle(name, selectedFriends) },
         onUpdateCircle = { id, name, friends -> viewModel.updateCircle(id, name, friends) },
         onDeleteCircle = { id -> viewModel.deleteCircle(id) }
@@ -108,12 +116,15 @@ fun CirclesScreen(
     friends: List<FriendInfo>,
     gradientBackground: Boolean,
     isActionLoading: Boolean,
+    membership: Membership,
     onBack: () -> Unit,
+    onNavigateToPremium: () -> Unit,
     onCreateCircle: (String, List<String>) -> Unit,
     onUpdateCircle: (String, String, List<String>) -> Unit,
     onDeleteCircle: (String) -> Unit
 ) {
     val (showCreateDialog, setShowCreateDialog) = remember { mutableStateOf(false) }
+    val (showLimitDialog, setShowLimitDialog) = remember { mutableStateOf(false) }
     var circleToEdit by remember { mutableStateOf<Circle?>(null) }
     var circleToDelete by remember { mutableStateOf<Circle?>(null) }
 
@@ -128,7 +139,13 @@ fun CirclesScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { setShowCreateDialog(true) },
+                onClick = {
+                    if (membership == Membership.FREE && circles.size >= CircleViewModel.MAX_FREE_CIRCLES) {
+                        setShowLimitDialog(true)
+                    } else {
+                        setShowCreateDialog(true)
+                    }
+                },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
@@ -143,6 +160,7 @@ fun CirclesScreen(
             paddingValues = paddingValues,
             circles = circles,
             friends = friends,
+            membership = membership,
             onEditCircle = { circleToEdit = it },
             onDeleteCircle = { circleToDelete = it }
         )
@@ -156,6 +174,18 @@ fun CirclesScreen(
                     setShowCreateDialog(false)
                 },
                 isLoading = isActionLoading
+            )
+        }
+
+        if (showLimitDialog) {
+            PremiumDialog(
+                title = stringResource(R.string.label_circle_limit),
+                text = stringResource(R.string.text_circle_limit),
+                onConfirm = {
+                    setShowLimitDialog(false)
+                    onNavigateToPremium()
+                },
+                onDismiss = { setShowLimitDialog(false) }
             )
         }
 
@@ -194,9 +224,17 @@ private fun CirclesContent(
     paddingValues: PaddingValues,
     circles: List<Circle>,
     friends: List<FriendInfo>,
+    membership: Membership,
     onEditCircle: (Circle) -> Unit,
     onDeleteCircle: (Circle) -> Unit
 ) {
+    val allowedCircleIds = remember(circles) {
+        circles.sortedWith(
+            compareBy<Circle> { it.createdAt ?: java.util.Date() }
+                .thenBy { it.name }
+        ).take(CircleViewModel.MAX_FREE_CIRCLES).map { it.id }.toSet()
+    }
+
     if (circles.isEmpty()) {
         Box(
             modifier = Modifier
@@ -235,10 +273,12 @@ private fun CirclesContent(
             contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(circles, key = { it.id }) { circle ->
+            itemsIndexed(circles, key = { _, circle -> circle.id }) { _, circle ->
+                val isReadOnly = membership == Membership.FREE && circle.id !in allowedCircleIds
                 CircleListItem(
                     circle = circle,
                     friends = friends,
+                    isReadOnly = isReadOnly,
                     onEdit = { onEditCircle(circle) },
                     onDelete = { onDeleteCircle(circle) }
                 )
@@ -251,6 +291,7 @@ private fun CirclesContent(
 private fun CircleListItem(
     circle: Circle,
     friends: List<FriendInfo>,
+    isReadOnly: Boolean = false,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -293,12 +334,23 @@ private fun CircleListItem(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(
-                            text = circle.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = circle.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (isReadOnly) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = stringResource(R.string.description_read_only),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                         Text(
                             text = pluralStringResource(
                                 R.plurals.label_circle_member_count,
@@ -328,12 +380,12 @@ private fun CircleListItem(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.label_edit)) },
                             leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                            enabled = !isReadOnly,
                             onClick = {
                                 onEdit()
                                 showMenu = false
                             }
                         )
-                        AppHorizontalDivider()
                         DropdownMenuItem(
                             text = {
                                 Text(

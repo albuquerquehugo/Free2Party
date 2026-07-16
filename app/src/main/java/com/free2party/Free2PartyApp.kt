@@ -6,11 +6,12 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.free2party.data.billing.BillingManager
+import com.free2party.data.model.PlanVisibility
 import com.free2party.data.repository.PlanRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.UnauthorizedException
 import com.free2party.exception.UserNotFoundException
-import com.free2party.data.model.PlanVisibility
 import com.free2party.util.NotificationHelper
 import com.free2party.util.isPlanActive
 import com.google.android.gms.ads.MobileAds
@@ -38,6 +39,8 @@ class Free2PartyApp : Application() {
     lateinit var userRepository: UserRepository
     @Inject
     lateinit var planRepository: PlanRepository
+    @Inject
+    lateinit var billingManager: BillingManager
     private var automationJob: Job? = null
     private var currentAutomationUid: String? = null
 
@@ -48,6 +51,8 @@ class Free2PartyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        billingManager.initialize()
 
         val useEmulators = false
 
@@ -114,11 +119,10 @@ class Free2PartyApp : Application() {
                 if (uid != null) {
                     launch {
                         try {
-                            val token = Firebase.messaging.token.await()
-                            userRepository.updateFcmToken(token)
-                            Log.d("Free2PartyApp", "FCM Token synced for user $uid")
+                            Firebase.messaging.register().await()
+                            Log.d("Free2PartyApp", "FCM Registration triggered for user $uid")
                         } catch (e: Exception) {
-                            Log.e("Free2PartyApp", "Failed to sync FCM token", e)
+                            Log.e("Free2PartyApp", "Failed to trigger FCM registration", e)
                         }
                     }
                 }

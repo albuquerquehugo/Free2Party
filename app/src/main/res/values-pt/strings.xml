@@ -1,45 +1,21 @@
 <resources>
 
+    <!-- General Labels & Text -->
     <string name="app_name">Free2Party</string>
-
-    <!-- General Buttons & Actions -->
+    <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
+    <string name="date_pattern_mm_dd_yyyy">MM-dd-yyyy</string>
+    <string name="date_pattern_yyyy_mm_dd">yyyy-MM-dd</string>
+    <string name="description_clear">Limpar</string>
+    <string name="description_hide_password">Ocultar senha</string>
+    <string name="description_premium_only">Apenas na versão Premium</string>
+    <string name="description_show_password">Mostrar senha</string>
+    <string name="label_accept">Aceitar</string>
+    <string name="label_ad">AD</string>
     <string name="label_add">Adicionar</string>
     <string name="label_back">Voltar</string>
     <string name="label_cancel">Cancelar</string>
     <string name="label_close">Fechar</string>
     <string name="label_confirm">Confirmar</string>
-    <string name="label_delete">Excluir</string>
-    <string name="label_discard_changes">Descartar Alterações</string>
-    <string name="label_edit">Editar</string>
-    <string name="label_end_colon">Fim:</string>
-    <string name="label_end_date">Data de Término</string>
-    <string name="label_end_time">Hora de Término</string>
-    <string name="label_everyone">Todos</string>
-    <string name="label_everyone_except_label">Todos, exceto…</string>
-    <string name="label_logout">Sair</string>
-    <string name="label_nobody">Ninguém</string>
-    <string name="label_ok">OK</string>
-    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
-    <string name="label_or"> OU </string>
-    <string name="label_remove">Remover</string>
-    <string name="label_required_field">" *"</string>
-    <string name="label_save">Salvar</string>
-    <string name="label_save_changes">Salvar Alterações</string>
-    <string name="label_select_date">Selecionar data</string>
-    <string name="label_select_time">Selecionar hora</string>
-    <string name="label_start_colon">Início:</string>
-    <string name="label_start_date">Data de Início</string>
-    <string name="label_start_time">Hora de Início</string>
-    <string name="label_update">Atualizar</string>
-    <string name="text_discard_changes_confirmation">Tem certeza que deseja descartar suas alterações?</string>
-
-    <!-- General Labels & Text -->
-    <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
-    <string name="date_pattern_mm_dd_yyyy">MM-dd-yyyy</string>
-    <string name="date_pattern_yyyy_mm_dd">yyyy-MM-dd</string>
-    <string name="handle_prefix">\@</string>
-    <string name="label_accept">Aceitar</string>
-    <string name="label_ad">AD</string>
     <string name="label_date_and_time">Data e Hora</string>
     <string name="label_date_dd_mm_yyyy">DD/MM/AAAA</string>
     <string name="label_date_mm_dd_yyyy">MM/DD/AAAA</string>
@@ -47,17 +23,40 @@
     <string name="label_decline">Recusar</string>
     <string name="label_decline_and_block">Recusar e Bloquear</string>
     <string name="label_decline_only">Apenas Recusar</string>
+    <string name="label_delete">Excluir</string>
+    <string name="label_discard_changes">Descartar Alterações</string>
+    <string name="label_edit">Editar</string>
     <string name="label_email">E-mail</string>
+    <string name="label_end_colon">Fim:</string>
+    <string name="label_end_date">Data de Término</string>
+    <string name="label_end_time">Hora de Término</string>
+    <string name="label_everyone">Todos</string>
+    <string name="label_everyone_except_label">Todos, exceto…</string>
     <string name="label_facebook_messenger">Facebook Messenger</string>
     <string name="label_friends_picture">Foto do Amigo</string>
     <string name="label_instagram">Instagram</string>
+    <string name="label_logout">Sair</string>
     <string name="label_mark_all_as_read">Marcar tudo como lido</string>
     <string name="label_mark_as_read">Marcar como lido</string>
     <string name="label_mark_as_unread">Marcar como não lido</string>
+    <string name="label_nobody">Ninguém</string>
+    <string name="label_ok">OK</string>
+    <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
     <string name="label_options">Opções</string>
+    <string name="label_or"> OU </string>
     <string name="label_password">Senha</string>
     <string name="label_pending_observation">(Pendente)</string>
+    <string name="label_premium">Premium</string>
+    <string name="label_remove">Remover</string>
+    <string name="label_required_field">" *"</string>
+    <string name="label_save">Salvar</string>
+    <string name="label_save_changes">Salvar Alterações</string>
+    <string name="label_select_date">Selecionar data</string>
+    <string name="label_select_time">Selecionar hora</string>
     <string name="label_sms">SMS</string>
+    <string name="label_start_colon">Início:</string>
+    <string name="label_start_date">Data de Início</string>
+    <string name="label_start_time">Hora de Início</string>
     <string name="label_status">Status:</string>
     <string name="label_status_busy">Ocupado</string>
     <string name="label_status_busy_woman">Ocupada</string>
@@ -68,8 +67,13 @@
     <string name="label_theme_mode_dark">Escuro</string>
     <string name="label_theme_mode_light">Claro</string>
     <string name="label_tiktok">TikTok</string>
+    <string name="label_update">Atualizar</string>
+    <string name="label_upgrade">Adquirir</string>
     <string name="label_whatsapp">WhatsApp</string>
     <string name="label_x">X/Twitter</string>
+    <string name="prefix_handle">\@</string>
+    <string name="prefix_hash">\#</string>
+    <string name="text_discard_changes_confirmation">Tem certeza que deseja descartar suas alterações?</string>
     <string name="text_hang_out_message">Ei! Vi que você está livre no Free2Party, vamos marcar alguma coisa?</string>
 
     <!-- Home -->
@@ -105,19 +109,13 @@
     <string name="label_search">Pesquisar</string>
     <string name="label_select_friends">Selecionar Amigos</string>
     <string name="text_add_friends">Adicione amigos para ver a disponibilidade deles e compartilhar seus planos!</string>
-    <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
-    <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
     <string name="text_add_friend">Digite o e-mail do seu amigo para adicioná-lo.</string>
     <string name="text_logout_confirmation">Tem certeza que deseja sair?</string>
-    <string name="text_no_friends_in_circle">Nenhum amigo encontrado neste círculo</string>
     <string name="text_no_friends_in_section">Nenhum amigo nesta seção</string>
     <string name="text_no_friends_yet">Você ainda não tem amigos!</string>
     <string name="text_placeholder_search_user">Pesquise por nome ou e-mail…</string>
     <string name="text_remove_friend_confirmation">Esta ação irá remover a amizade de ambas as listas de amigos. Se você quiser adicioná-lo novamente terá que enviar um novo pedido de amizade.</string>
     <string name="text_send_friend_request_confirmation">Deseja enviar um pedido de amizade para %1$s (%2$s)?</string>
-    <string name="toast_circle_created">Círculo criado com sucesso</string>
-    <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
-    <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
     <string name="toast_friend_removed">Amigo removido</string>
     <string name="toast_friend_request_cancelled">Pedido de amizade cancelado</string>
     <string name="toast_friend_request_sent">Pedido de amizade enviado</string>
@@ -140,6 +138,7 @@
     <string name="text_success_account_created">Conta criada com sucesso! Verifique seu e-mail para validar sua conta.</string>
 
     <!-- Profile -->
+    <string name="description_birthday">Data de nascimento</string>
     <string name="description_edit_photo">Editar foto</string>
     <string name="description_more_options">Mais opções</string>
     <string name="description_phone_number">Ligar para número</string>
@@ -171,13 +170,13 @@
     <string name="label_phone_number">Número de Telefone</string>
     <string name="label_profile">Perfil</string>
     <string name="label_section_socials">Redes Sociais</string>
-    <string name="label_select_birthday">Selecionar data de nascimento</string>
     <string name="label_select_country">Selecionar País</string>
     <string name="label_send_message">Enviar uma mensagem</string>
     <string name="label_suggested">Sugerido</string>
     <string name="label_telegram_username">Usuário do Telegram</string>
     <string name="label_tiktok_username">Usuário do TikTok</string>
     <string name="label_unblock">Desbloquear</string>
+    <string name="label_upgrade_premium">Adquirir Versão Premium</string>
     <string name="label_view_calendar">Ver Calendário</string>
     <string name="label_whatsapp_number">Número do WhatsApp</string>
     <string name="label_whatsapp_same_as_phone_number">Mesmo número do telefone</string>
@@ -193,6 +192,17 @@
     <string name="toast_account_deleted">Conta excluída!</string>
     <string name="toast_profile_picture_updated">Foto de perfil atualizada!</string>
     <string name="toast_profile_updated">Perfil atualizado com sucesso!</string>
+
+    <!-- Circles -->
+    <string name="description_read_only">Apenas leitura</string>
+    <string name="label_circle_limit">Limite de Círculos Atingido</string>
+    <string name="text_circle_limit">Usuários gratuitos podem criar até 3 círculos. Adquira a versão Premium para círculos ilimitados, ou gerencie os existentes.</string>
+    <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
+    <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
+    <string name="text_no_friends_in_circle">Nenhum amigo encontrado neste círculo</string>
+    <string name="toast_circle_created">Círculo criado com sucesso</string>
+    <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
+    <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
 
     <!-- Block and Report Users -->
     <string name="label_block">Bloquear</string>
@@ -217,9 +227,6 @@
     <string name="toast_user_unblocked">Usuário desbloqueado</string>
 
     <!-- Settings -->
-    <string name="label_appearance">Aparência</string>
-    <string name="label_background">Plano de Fundo</string>
-    <string name="label_background_colon">Plano de Fundo:</string>
     <string name="label_birthday_display_format">Como outros verão seu aniversário?</string>
     <string name="label_date_format_colon">Formato da Data:</string>
     <string name="label_distance_unit_colon">Unidade de Distância:</string>
@@ -230,17 +237,52 @@
     <string name="label_theme_mode">Modo do Tema</string>
     <string name="label_theme_mode_colon">Modo do Tema:</string>
     <string name="label_time_format_colon">Formato da Hora:</string>
-    <string name="option_am_pm">AM/PM</string>
     <string name="option_birthday_day_month">Apenas dia e mês</string>
     <string name="option_birthday_full">Data completa (com ano)</string>
-    <string name="option_gradient">Gradiente</string>
-    <string name="option_kilometers">Quilômetros</string>
-    <string name="option_miles">Milhas</string>
-    <string name="option_solid">Sólido</string>
-    <string name="option_twenty_four_hour">24 horas</string>
+    <string name="option_distance_unit_kilometers">Quilômetros</string>
+    <string name="option_distance_unit_miles">Milhas</string>
+    <string name="option_time_am_pm">AM/PM</string>
+    <string name="option_time_twenty_four_hour">24 horas</string>
+    <string name="text_premium_upgrade_banner">Remova anúncios, desbloqueie funcionalidades ilimitadas, cores personalizadas e muito mais!</string>
     <string name="text_replay_tutorial">Veja novamente o guia de introdução interativo sobre como usar o aplicativo.</string>
     <string name="text_visibility_birthday">Quem pode ver seu aniversário?</string>
     <string name="toast_settings_updated">Configurações atualizadas com sucesso</string>
+
+    <!-- Appearance -->
+    <string name="description_no_emoji">Sem Emoji</string>
+    <string name="label_appearance">Aparência</string>
+    <string name="label_background">Plano de Fundo</string>
+    <string name="label_background_colon">Plano de Fundo:</string>
+    <string name="label_brightness">Brilho</string>
+    <string name="label_default">Padrão</string>
+    <string name="label_emoji">Emoji</string>
+    <string name="label_gradient_theme_colon">Tema do Gradiente:</string>
+    <string name="label_hex_color">Cor Hexadecimal</string>
+    <string name="label_hue">Matiz</string>
+    <string name="label_none">Nenhum</string>
+    <string name="label_premium_appearance_title">Desbloquear Planos de Fundo Exclusivos</string>
+    <string name="label_premium_status_title">Desbloquear Status Personalizados</string>
+    <string name="label_saturation">Saturação</string>
+    <string name="label_select">Selecionar</string>
+    <string name="label_status_color_colon">Cor do Status Livre:</string>
+    <string name="label_status_emoji_colon">Emoji do Status:</string>
+    <string name="label_status_preview_colon">Visualização do Status:</string>
+    <string name="option_background_gradient">Gradiente</string>
+    <string name="option_background_solid">Sólido</string>
+    <string name="option_gradient_theme_default">Padrão</string>
+    <string name="option_gradient_theme_forest">Floresta Negra</string>
+    <string name="option_gradient_theme_midnight">Mistério da Meia-Noite</string>
+    <string name="option_gradient_theme_neon">Luzes de Neon</string>
+    <string name="option_gradient_theme_ocean">Brisa do Oceano</string>
+    <string name="option_gradient_theme_sunset">Pôr do Sol</string>
+    <string name="text_choose_emoji">Escolher Emoji</string>
+    <string name="text_choose_status_color">Escolher Cor do Status</string>
+    <string name="text_premium_appearance_message">Adquira a versão Premium para escolher belos gradientes personalizados para seu plano de fundo!</string>
+    <string name="text_premium_status_message">Adquira a versão Premium para escolher seu próprio emoji e cor do status livre do perfil!</string>
+    <string name="text_status_color">Escolha uma cor para personalizar o seu status livre e o de amigos.</string>
+    <string name="text_status_emoji">Escolha um emoji para mostrar aos seus amigos um status personalizado.</string>
+    <string name="text_status_preview_description">É assim que você verá seu status livre e o de amigos.</string>
+    <string name="text_unlock_premium">Desbloqueie com a versão Premium</string>
 
     <!-- Calendar -->
     <string name="description_next_month">Próximo mês</string>
@@ -433,6 +475,7 @@
     <string name="error_auth_network">Ocorreu um erro de rede. Por favor, tente novamente.</string>
     <string name="error_cancelling_friend_request">Erro ao cancelar pedido de amizade</string>
     <string name="error_cannot_add_self">Você não pode adicionar a si mesmo como amigo.</string>
+    <string name="error_circle_creation_limit">Você atingiu o limite de 3 círculos para a versão gratuita.</string>
     <string name="error_database_operation">Ocorreu um erro ao salvar os dados. Por favor, tente novamente.</string>
     <string name="error_duplicate_link">Este link já foi adicionado</string>
     <string name="error_email_already_in_use">Este e-mail já está em uso.</string>
@@ -460,6 +503,7 @@
     <string name="error_google_unexpected_response">Falha ao entrar com o Google: Resposta inesperada</string>
     <string name="error_guests_mandatory_private">A seleção de convidados é obrigatória para eventos privados</string>
     <string name="error_infrastructure">Erro de infraestrutura</string>
+    <string name="error_invalid_color_hex">Cor hexadecimal inválida</string>
     <string name="error_invalid_credentials">E-mail ou senha inválidos</string>
     <string name="error_invalid_date">Data inválida</string>
     <string name="error_invalid_datetime">O término deve ser após o início</string>
@@ -482,6 +526,7 @@
     <string name="error_plan_not_found">O plano que você está procurando não existe</string>
     <string name="error_profile_not_found">Perfil de usuário não encontrado. Por favor, tente sair e entrar novamente.</string>
     <string name="error_recent_login_required">Por razões de segurança, você deve ter entrado recentemente para excluir sua conta. Por favor, saia, entre novamente e tente de novo.</string>
+    <string name="error_red_color_forbidden">Tons de vermelho são reservados para o status ocupado.</string>
     <string name="error_registration_failed">Falha no registro</string>
     <string name="error_removing_friend">Erro ao remover amigo</string>
     <string name="error_reporting_user">Erro ao denunciar usuário</string>
@@ -732,4 +777,36 @@
     <string name="onboarding_mock_plan2_duration">4h</string>
     <string name="onboarding_mock_plan2_note">Disponível para grupo de estudos</string>
     <string name="onboarding_mock_plan2_time">14:00 - 18:00</string>
+
+    <!-- Premium Screen -->
+    <string name="label_billing_per_month">por mês</string>
+    <string name="label_billing_per_year">por ano</string>
+    <string name="label_billing_one_time">cobrança única</string>
+    <string name="label_choose_plan">Escolha seu plano:</string>
+    <string name="label_feature_circles">Círculos Ilimitados</string>
+    <string name="label_feature_customization">Cores e Emojis de Status Personalizados</string>
+    <string name="label_feature_no_ads">Sem Anúncios</string>
+    <string name="label_feature_sync">Sincronização de Calendário</string>
+    <string name="label_feature_trends">Tendências de Disponibilidade</string>
+    <string name="label_features_included">Recursos Incluídos:</string>
+    <string name="label_go_back">Voltar</string>
+    <string name="label_package_lifetime">Premium Vitalício</string>
+    <string name="label_package_monthly">Acesso Mensal</string>
+    <string name="label_package_yearly">Passe Anual</string>
+    <string name="label_renew_subscription">Renovar / Gerenciar Assinatura</string>
+    <string name="label_restore_purchases">Restaurar Compras</string>
+    <string name="label_yearly_save">Economize %1$d%%</string>
+    <string name="label_upgrade_now">Assinar Agora</string>
+    <string name="text_feature_circles">Agrupe contatos livremente e sem limites.</string>
+    <string name="text_feature_customization">Personalize sua disponibilidade (ex: \'🍻 Livre para cerveja\').</string>
+    <string name="text_feature_no_ads">Aproveite um ambiente limpo e sem distrações.</string>
+    <string name="text_feature_sync">Sincronização automática de duas vias com Google e Apple Calendar.</string>
+    <string name="text_feature_trends">Veja análises passivas de quando seus amigos costumam estar livres.</string>
+    <string name="text_package_lifetime">Compra única. Acesso premium ilimitado para sempre.</string>
+    <string name="text_package_monthly">Recursos premium completos cobrados mensalmente. Cancele quando quiser.</string>
+    <string name="text_package_yearly">Ganhe um desconto ao assinar o plano anual. Mesmas funcionalidades do plano mensal.</string>
+    <string name="text_premium_header">Desbloqueie a melhor experiência de planejamento social e organize seus eventos sem interrupções.</string>
+    <string name="text_premium_sandbox_warning">🔧 Simulador Sandbox ativo. As compras serão mock-completadas instantaneamente sem cobranças de crédito reais.</string>
+    <string name="toast_premium_welcome">Bem-vindo ao Free2Party Premium! 🎉</string>
+    <string name="toast_activity_not_found">Contexto de atividade não encontrado.</string>
 </resources>

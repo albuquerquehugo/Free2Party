@@ -73,9 +73,11 @@ enum class DistanceUnit {
 data class UserSettings(
     val themeMode: ThemeMode = ThemeMode.AUTOMATIC,
     val gradientBackground: Boolean = true,
+    val gradientTheme: String = "DEFAULT",
     val use24HourFormat: Boolean = true,
     val datePattern: DatePattern = DatePattern.YYYY_MM_DD,
-    val distanceUnit: DistanceUnit = DistanceUnit.KILOMETERS
+    val distanceUnit: DistanceUnit = DistanceUnit.KILOMETERS,
+    val statusColor: String = ""
 )
 
 data class UserSocials(
@@ -109,6 +111,8 @@ data class User(
     val isFreeNow: Boolean = false,
     @get:PropertyName("isStatusFromPlan")
     val isStatusFromPlan: Boolean = false,
+    val statusEmoji: String = "",
+    val statusColor: String = "",
     val manualStatusVisibility: PlanVisibility = PlanVisibility.EVERYONE,
     val manualStatusFriendsSelection: List<String> = emptyList(),
     val birthdayVisibility: BirthdayVisibility = BirthdayVisibility.EVERYONE,

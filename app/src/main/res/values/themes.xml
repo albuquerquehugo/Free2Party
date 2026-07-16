@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="Theme.Free2Party" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.CustomEmojiPicker.Dark" parent="android:Theme.Material.NoActionBar">
+        <!-- Background of the picker -->
+        <item name="android:windowBackground">#262626</item>
+
+        <!-- Text color of category headings -->
+        <item name="android:textColorPrimary">#E3E3E3</item>
+
+        <!-- Tint color of unselected category icons -->
+        <item name="colorControlNormal">#AAAAAA</item>
+
+        <!-- Color of the selected category icon and underline indicator -->
+        <item name="colorPrimary">#99BBFF</item>
+    </style>
+
+    <style name="Theme.CustomEmojiPicker.Light" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Background of the picker -->
+        <item name="android:windowBackground">#F1F1F1</item>
+
+        <!-- Text color of category headings -->
+        <item name="android:textColorPrimary">#1B1B1B</item>
+
+        <!-- Tint color of unselected category icons -->
+        <item name="colorControlNormal">#555555</item>
+
+        <!-- Color of the selected category icon and underline indicator -->
+        <item name="colorPrimary">#0049B5</item>
+    </style>
 </resources>
