@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.revenuecat.purchases.CustomerInfo
+import com.revenuecat.purchases.interfaces.LogInCallback
 import com.revenuecat.purchases.interfaces.PurchaseCallback
 import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
 import com.revenuecat.purchases.interfaces.ReceiveOfferingsCallback
@@ -112,6 +113,51 @@ class BillingManagerImpl @Inject constructor(
                     UpdatedCustomerInfoListener { customerInfo ->
                         syncRevenueCatEntitlements(customerInfo)
                     }
+
+                // Listen to Firebase Auth state to associate RevenueCat App User ID with Firebase UID
+                auth.addAuthStateListener { firebaseAuth ->
+                    val uid = firebaseAuth.currentUser?.uid
+                    if (!uid.isNullOrBlank()) {
+                        Log.d("BillingManager", "Identifying user in RevenueCat: $uid")
+                        Purchases.sharedInstance.logIn(
+                            uid,
+                            object : LogInCallback {
+                                override fun onReceived(
+                                    customerInfo: CustomerInfo,
+                                    created: Boolean
+                                ) {
+                                    Log.d(
+                                        "BillingManager",
+                                        "RevenueCat identified successfully. Created: $created"
+                                    )
+                                    syncRevenueCatEntitlements(customerInfo)
+                                }
+
+                                override fun onError(error: PurchasesError) {
+                                    Log.e(
+                                        "BillingManager",
+                                        "RevenueCat login error: ${error.message}"
+                                    )
+                                }
+                            }
+                        )
+                    } else {
+                        Log.d(
+                            "BillingManager",
+                            "Firebase user logged out. Resetting RevenueCat user."
+                        )
+                        Purchases.sharedInstance.logOut(object : ReceiveCustomerInfoCallback {
+                            override fun onReceived(customerInfo: CustomerInfo) {
+                                Log.d("BillingManager", "RevenueCat logout successful.")
+                                syncRevenueCatEntitlements(customerInfo)
+                            }
+
+                            override fun onError(error: PurchasesError) {
+                                Log.e("BillingManager", "RevenueCat logout error: ${error.message}")
+                            }
+                        })
+                    }
+                }
 
                 // Proactively query customer info on start to detect updates/expirations
                 Purchases.sharedInstance.getCustomerInfo(object : ReceiveCustomerInfoCallback {
