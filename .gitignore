@@ -19,7 +19,9 @@
 /.idea/workspace.xml
 /.windsurf
 .DS_Store
+/app/release/
 /app/release.jks
+/app/upload_certificate.pem
 /build
 *.apk
 *.aab

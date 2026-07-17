@@ -85,7 +85,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun LoginRoute(
@@ -286,12 +285,10 @@ fun LoginRoute(
             coroutineScope.launch {
                 try {
                     val targetContext = activity ?: context
-                    val result = kotlinx.coroutines.withTimeout(3000.milliseconds) {
-                        credentialManager.getCredential(
-                            context = targetContext,
-                            request = request
-                        )
-                    }
+                    val result = credentialManager.getCredential(
+                        context = targetContext,
+                        request = request
+                    )
 
                     val credential = result.credential
                     if (credential is CustomCredential &&
@@ -333,14 +330,6 @@ fun LoginRoute(
                         ).show()
                         viewModel.resetState()
                     }
-                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    Log.e(
-                        "LoginScreen",
-                        "Google Sign-In timed out waiting for credential manager. Falling back to legacy Google Sign-In and saving preference.",
-                        e
-                    )
-                    viewModel.saveUseLegacyGoogleSignInPreference(true)
-                    currentLaunchLegacyGoogleSignIn()
                 } catch (_: GetCredentialCancellationException) {
                     viewModel.resetState()
                 } catch (e: NoCredentialException) {
