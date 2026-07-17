@@ -10,10 +10,18 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.revenuecat.purchases.CustomerInfo
-import com.revenuecat.purchases.PackageType
+import com.revenuecat.purchases.interfaces.PurchaseCallback
+import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
+import com.revenuecat.purchases.interfaces.ReceiveOfferingsCallback
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
+import com.revenuecat.purchases.models.StoreTransaction
+import com.revenuecat.purchases.Offerings
+import com.revenuecat.purchases.Package
+import com.revenuecat.purchases.PackageType
+import com.revenuecat.purchases.PurchaseParams
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
+import com.revenuecat.purchases.PurchasesError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -105,6 +113,20 @@ class BillingManagerImpl @Inject constructor(
                         syncRevenueCatEntitlements(customerInfo)
                     }
 
+                // Proactively query customer info on start to detect updates/expirations
+                Purchases.sharedInstance.getCustomerInfo(object : ReceiveCustomerInfoCallback {
+                    override fun onReceived(customerInfo: CustomerInfo) {
+                        syncRevenueCatEntitlements(customerInfo)
+                    }
+
+                    override fun onError(error: PurchasesError) {
+                        Log.e(
+                            "BillingManager",
+                            "Error fetching customer info on init: ${error.message}"
+                        )
+                    }
+                })
+
                 loadProductionPackages()
             } catch (e: Exception) {
                 Log.e(
@@ -112,7 +134,8 @@ class BillingManagerImpl @Inject constructor(
                     "Failed to configure RevenueCat.",
                     e
                 )
-                _loadError.value = e.message ?: "Failed to initialize billing services"
+                _loadError.value =
+                    e.message ?: context.getString(R.string.error_billing_init_failed)
             }
         }
     }
@@ -130,7 +153,7 @@ class BillingManagerImpl @Inject constructor(
             // Find the RevenueCat package that matches our package ID
             val rcPackage = offerings.all.values.flatMap { it.availablePackages }
                 .find { it.identifier == pkg.id }
-                ?: return Result.failure(Exception("Package not found in active offerings"))
+                ?: return Result.failure(Exception(context.getString(R.string.error_billing_package_not_found)))
 
             val customerInfo = purchasePackageSuspending(activity, rcPackage)
             syncRevenueCatEntitlements(customerInfo)
@@ -141,17 +164,19 @@ class BillingManagerImpl @Inject constructor(
         }
     }
 
-    override suspend fun restorePurchases(): Result<Unit> {
+    override suspend fun restorePurchases(): Result<Boolean> {
         if (isSimulated) {
             Log.d("BillingManager", "Processing simulated restore purchases")
             kotlinx.coroutines.delay(500.milliseconds)
-            return updateMembershipInFirestore(Membership.PREMIUM)
+            updateMembershipInFirestore(Membership.PREMIUM)
+            return Result.success(true)
         }
 
         return try {
             val customerInfo = restorePurchasesSuspending()
             syncRevenueCatEntitlements(customerInfo)
-            Result.success(Unit)
+            val hasPremium = customerInfo.entitlements["premium_access"]?.isActive == true
+            Result.success(hasPremium)
         } catch (e: Exception) {
             Log.e("BillingManager", "Restore purchases failed", e)
             Result.failure(e)
@@ -213,14 +238,15 @@ class BillingManagerImpl @Inject constructor(
                         "BillingManager",
                         "No current offering configured in RevenueCat."
                     )
-                    _loadError.value = "No active subscription products configured in store."
+                    _loadError.value = context.getString(R.string.error_billing_no_active_products)
                 }
             } catch (e: Exception) {
                 Log.e(
                     "BillingManager",
                     "Error fetching offerings: ${e.message}"
                 )
-                _loadError.value = e.message ?: "Failed to load subscription plans from store."
+                _loadError.value =
+                    e.message ?: context.getString(R.string.error_billing_load_plans_failed)
             }
         }
     }
@@ -238,7 +264,8 @@ class BillingManagerImpl @Inject constructor(
 
     private suspend fun updateMembershipInFirestore(membership: Membership): Result<Unit> {
         val uid =
-            auth.currentUser?.uid ?: return Result.failure(Exception("User not authenticated"))
+            auth.currentUser?.uid
+                ?: return Result.failure(Exception(context.getString(R.string.error_billing_user_not_authenticated)))
         return try {
             db.collection("users").document(uid)
                 .set(mapOf("membership" to membership.name), SetOptions.merge())
@@ -255,15 +282,15 @@ class BillingManagerImpl @Inject constructor(
     }
 
     // Callback to Coroutine suspending bridge helpers
-    private suspend fun fetchOfferingsSuspending(): com.revenuecat.purchases.Offerings {
+    private suspend fun fetchOfferingsSuspending(): Offerings {
         return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.getOfferings(object :
-                com.revenuecat.purchases.interfaces.ReceiveOfferingsCallback {
-                override fun onReceived(offerings: com.revenuecat.purchases.Offerings) {
+                ReceiveOfferingsCallback {
+                override fun onReceived(offerings: Offerings) {
                     continuation.resumeWith(Result.success(offerings))
                 }
 
-                override fun onError(error: com.revenuecat.purchases.PurchasesError) {
+                override fun onError(error: PurchasesError) {
                     continuation.resumeWith(Result.failure(Exception(error.message)))
                 }
             })
@@ -272,26 +299,27 @@ class BillingManagerImpl @Inject constructor(
 
     private suspend fun purchasePackageSuspending(
         activity: Activity,
-        rcPackage: com.revenuecat.purchases.Package
+        rcPackage: Package
     ): CustomerInfo {
         return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
             val purchaseParams =
-                com.revenuecat.purchases.PurchaseParams.Builder(activity, rcPackage).build()
+                PurchaseParams.Builder(activity, rcPackage).build()
             Purchases.sharedInstance.purchase(
                 purchaseParams,
-                object : com.revenuecat.purchases.interfaces.PurchaseCallback {
+                object : PurchaseCallback {
                     override fun onCompleted(
-                        storeTransaction: com.revenuecat.purchases.models.StoreTransaction,
+                        storeTransaction: StoreTransaction,
                         customerInfo: CustomerInfo
                     ) {
                         continuation.resumeWith(Result.success(customerInfo))
                     }
 
                     override fun onError(
-                        error: com.revenuecat.purchases.PurchasesError,
+                        error: PurchasesError,
                         userCancelled: Boolean
                     ) {
-                        val msg = if (userCancelled) "Purchase cancelled by user" else error.message
+                        val msg =
+                            if (userCancelled) context.getString(R.string.error_billing_purchase_cancelled) else error.message
                         continuation.resumeWith(Result.failure(Exception(msg)))
                     }
                 }
@@ -302,12 +330,12 @@ class BillingManagerImpl @Inject constructor(
     private suspend fun restorePurchasesSuspending(): CustomerInfo {
         return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.restorePurchases(object :
-                com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback {
+                ReceiveCustomerInfoCallback {
                 override fun onReceived(customerInfo: CustomerInfo) {
                     continuation.resumeWith(Result.success(customerInfo))
                 }
 
-                override fun onError(error: com.revenuecat.purchases.PurchasesError) {
+                override fun onError(error: PurchasesError) {
                     continuation.resumeWith(Result.failure(Exception(error.message)))
                 }
             })

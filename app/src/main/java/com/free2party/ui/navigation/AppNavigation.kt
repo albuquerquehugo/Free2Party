@@ -332,7 +332,7 @@ fun AppNavigation(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = stringResource(R.string.offline_banner_message),
+                                    text = stringResource(R.string.text_offline_banner),
                                     color = MaterialTheme.colorScheme.onError,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,

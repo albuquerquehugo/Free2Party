@@ -91,8 +91,8 @@ fun AppearanceScreen(
 
     if (showPremiumPrompt) {
         PremiumDialog(
-            title = stringResource(R.string.label_premium_appearance_title),
-            text = stringResource(R.string.text_premium_appearance_message),
+            title = stringResource(R.string.label_premium_appearance),
+            text = stringResource(R.string.text_premium_appearance),
             onConfirm = {
                 showPremiumPrompt = false
                 onNavigateToPremium()
@@ -107,8 +107,8 @@ fun AppearanceScreen(
 
     if (showStatusPremiumPrompt) {
         PremiumDialog(
-            title = stringResource(R.string.label_premium_status_title),
-            text = stringResource(R.string.text_premium_status_message),
+            title = stringResource(R.string.label_premium_status),
+            text = stringResource(R.string.text_premium_status),
             onConfirm = {
                 showStatusPremiumPrompt = false
                 onNavigateToPremium()

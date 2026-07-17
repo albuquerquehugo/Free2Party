@@ -1,5 +1,6 @@
 package com.free2party.ui.screens.premium
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -63,6 +64,7 @@ import com.free2party.util.findActivity
 import com.free2party.util.parsePrice
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.collectLatest
+import androidx.core.net.toUri
 
 @Composable
 fun PremiumRoute(
@@ -87,6 +89,10 @@ fun PremiumRoute(
                 }
 
                 is PremiumUiEvent.ShowError -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
+                }
+
+                is PremiumUiEvent.ShowMessage -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
                 }
             }
@@ -369,12 +375,23 @@ fun PremiumScreen(
                         // Checkout Actions
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        val localContext = LocalContext.current
                         Button(
-                            onClick = { selectedPackage?.let { onPackageSelected(it) } },
+                            onClick = {
+                                if (uiState.isPremium) {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://play.google.com/store/account/subscriptions".toUri()
+                                    )
+                                    localContext.startActivity(intent)
+                                } else {
+                                    selectedPackage?.let { onPackageSelected(it) }
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
-                            enabled = selectedPackage != null && !uiState.isPurchasing
+                            enabled = (selectedPackage != null || uiState.isPremium) && !uiState.isPurchasing
                         ) {
                             if (uiState.isPurchasing) {
                                 CircularProgressIndicator(
@@ -384,9 +401,9 @@ fun PremiumScreen(
                             } else {
                                 Text(
                                     text = if (uiState.isPremium) {
-                                        stringResource(R.string.label_renew_subscription)
+                                        stringResource(R.string.label_manage_subscription)
                                     } else {
-                                        stringResource(R.string.label_upgrade_now)
+                                        stringResource(R.string.label_subscribe_now)
                                     },
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,

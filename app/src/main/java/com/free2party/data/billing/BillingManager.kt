@@ -10,7 +10,7 @@ interface BillingManager {
     val loadError: StateFlow<String?>
 
     suspend fun purchasePackage(activity: android.app.Activity, pkg: PremiumPackage): Result<Unit>
-    suspend fun restorePurchases(): Result<Unit>
+    suspend fun restorePurchases(): Result<Boolean>
 }
 
 data class PremiumPackage(

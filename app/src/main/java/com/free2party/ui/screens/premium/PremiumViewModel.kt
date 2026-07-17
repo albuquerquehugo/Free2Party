@@ -1,6 +1,7 @@
 package com.free2party.ui.screens.premium
 
 import android.app.Activity
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,7 +11,9 @@ import com.free2party.data.billing.BillingManager
 import com.free2party.data.billing.DurationType
 import com.free2party.data.billing.PremiumPackage
 import com.free2party.data.repository.UserRepository
+import com.free2party.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
@@ -37,10 +40,12 @@ sealed interface PremiumUiState {
 sealed class PremiumUiEvent {
     object PurchaseSuccess : PremiumUiEvent()
     data class ShowError(val message: String) : PremiumUiEvent()
+    data class ShowMessage(val message: String) : PremiumUiEvent()
 }
 
 @HiltViewModel
 class PremiumViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val billingManager: BillingManager,
     private val userRepository: UserRepository
 ) : ViewModel() {
@@ -108,7 +113,7 @@ class PremiumViewModel @Inject constructor(
                     _uiEvent.emit(PremiumUiEvent.PurchaseSuccess)
                 }
                 .onFailure { error ->
-                    _uiEvent.emit(PremiumUiEvent.ShowError(error.message ?: "Purchase failed"))
+                    _uiEvent.emit(PremiumUiEvent.ShowError(error.message ?: context.getString(R.string.error_purchase_failed)))
                 }
             _isPurchasing.value = false
         }
@@ -119,11 +124,15 @@ class PremiumViewModel @Inject constructor(
             _isPurchasing.value = true
             _message.value = null
             billingManager.restorePurchases()
-                .onSuccess {
-                    _uiEvent.emit(PremiumUiEvent.PurchaseSuccess)
+                .onSuccess { hasPremium ->
+                    if (hasPremium) {
+                        _uiEvent.emit(PremiumUiEvent.PurchaseSuccess)
+                    } else {
+                        _uiEvent.emit(PremiumUiEvent.ShowMessage(context.getString(R.string.text_no_purchase_restore)))
+                    }
                 }
                 .onFailure { error ->
-                    _uiEvent.emit(PremiumUiEvent.ShowError(error.message ?: "Restore failed"))
+                    _uiEvent.emit(PremiumUiEvent.ShowError(error.message ?: context.getString(R.string.error_restore_failed)))
                 }
             _isPurchasing.value = false
         }

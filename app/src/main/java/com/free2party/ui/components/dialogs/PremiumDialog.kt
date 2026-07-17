@@ -14,7 +14,7 @@ fun PremiumDialog(
     ConfirmationDialog(
         title = title,
         text = text,
-        confirmButtonText = stringResource(R.string.label_upgrade),
+        confirmButtonText = stringResource(R.string.label_subscribe),
         dismissButtonText = stringResource(R.string.label_cancel),
         onConfirm = onConfirm,
         onDismiss = onDismiss

@@ -304,14 +304,14 @@ fun ProfileScreen(
                                                     verticalArrangement = Arrangement.spacedBy(4.dp)
                                                 ) {
                                                     Text(
-                                                        text = stringResource(R.string.label_upgrade_premium),
+                                                        text = stringResource(R.string.label_banner_subscribe_premium),
                                                         style = MaterialTheme.typography.titleMedium.copy(
                                                             fontWeight = FontWeight.Bold
                                                         ),
                                                         color = Color.White
                                                     )
                                                     Text(
-                                                        text = stringResource(R.string.text_premium_upgrade_banner),
+                                                        text = stringResource(R.string.text_banner_subscribe_premium),
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = Color.White.copy(alpha = 0.85f)
                                                     )
