@@ -455,7 +455,8 @@ class SocialRepositoryImpl @Inject constructor(
                     "receiverName" to receiver.fullName,
                     "receiverProfilePicUrl" to receiver.profilePicUrl,
                     "friendRequestStatus" to FriendRequestStatus.PENDING.name,
-                    "timestamp" to FieldValue.serverTimestamp()
+                    "timestamp" to FieldValue.serverTimestamp(),
+                    "isViewed" to false
                 )
             )
 
@@ -550,6 +551,7 @@ class SocialRepositoryImpl @Inject constructor(
                             receiverEmail
                         ),
                         "isRead" to false,
+                        "isViewed" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "type" to NotificationType.FRIEND_ACCEPTED.name
                     )
@@ -571,6 +573,7 @@ class SocialRepositoryImpl @Inject constructor(
                             receiverEmail
                         ),
                         "isRead" to false,
+                        "isViewed" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "type" to NotificationType.FRIEND_DECLINED.name,
                         "isSilent" to true
@@ -632,6 +635,7 @@ class SocialRepositoryImpl @Inject constructor(
                         receiverEmail
                     ),
                     "isRead" to false,
+                    "isViewed" to false,
                     "timestamp" to FieldValue.serverTimestamp(),
                     "type" to NotificationType.FRIEND_DECLINED.name,
                     "isSilent" to true
@@ -716,6 +720,7 @@ class SocialRepositoryImpl @Inject constructor(
                         sender.email
                     ),
                     "isRead" to false,
+                    "isViewed" to false,
                     "timestamp" to FieldValue.serverTimestamp(),
                     "type" to NotificationType.FRIEND_REMOVED.name,
                     "isSilent" to true
@@ -781,6 +786,25 @@ class SocialRepositoryImpl @Inject constructor(
         db.collection("users").document(currentUserId)
             .collection("notifications").document(notificationId)
             .update("isRead", true).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun markNotificationAsViewed(notificationId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("users").document(currentUserId)
+            .collection("notifications").document(notificationId)
+            .update("isViewed", true).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(mapToSocialException(e))
+    }
+
+    override suspend fun markFriendRequestAsViewed(requestId: String): Result<Unit> = try {
+        validateSession()
+        db.collection("friendRequests").document(requestId)
+            .update("isViewed", true).await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToSocialException(e))

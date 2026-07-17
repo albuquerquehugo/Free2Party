@@ -16,6 +16,9 @@ data class Notification(
     @get:PropertyName("isSilent")
     @set:PropertyName("isSilent")
     var isSilent: Boolean = false,
+    @get:PropertyName("isViewed")
+    @set:PropertyName("isViewed")
+    var isViewed: Boolean = false,
     @ServerTimestamp
     val timestamp: Date? = null
 )

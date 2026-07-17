@@ -35,6 +35,8 @@ interface SocialRepository {
     suspend fun markNotificationAsRead(notificationId: String): Result<Unit>
     suspend fun markNotificationAsUnread(notificationId: String): Result<Unit>
     suspend fun markNotificationsAsRead(notificationIds: List<String>): Result<Unit>
+    suspend fun markNotificationAsViewed(notificationId: String): Result<Unit>
+    suspend fun markFriendRequestAsViewed(requestId: String): Result<Unit>
     suspend fun deleteNotification(notificationId: String): Result<Unit>
 
     suspend fun updateUserSocialContext(

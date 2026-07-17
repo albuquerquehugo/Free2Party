@@ -248,6 +248,7 @@ class MainViewModel @Inject constructor(
 
                         requests.forEach { request ->
                             if (request.friendRequestStatus == FriendRequestStatus.PENDING &&
+                                !request.isViewed &&
                                 !shownIds.contains(request.id) &&
                                 !suppressedIds.contains(request.id)
                             ) {
@@ -262,6 +263,9 @@ class MainViewModel @Inject constructor(
                                         type = NotificationType.FRIEND_REQUEST_RECEIVED
                                     )
                                 )
+                                viewModelScope.launch {
+                                    socialRepository.markFriendRequestAsViewed(request.id)
+                                }
                             }
                         }
                     }
@@ -310,6 +314,7 @@ class MainViewModel @Inject constructor(
                                         notification.type == NotificationType.EVENT_INVITE) &&
                                 !notification.isSilent &&
                                 !notification.isRead &&
+                                !notification.isViewed &&
                                 !shownIds.contains(notification.id) &&
                                 !suppressedIds.contains(notification.id)
                             ) {
@@ -317,6 +322,9 @@ class MainViewModel @Inject constructor(
                                 activeSystemNotifications.update { it + notification.id }
                                 settingsRepository.markNotificationAsShown(notification.id)
                                 _systemNotificationToDisplay.send(notification)
+                                viewModelScope.launch {
+                                    socialRepository.markNotificationAsViewed(notification.id)
+                                }
                             }
                         }
                     }

@@ -236,6 +236,7 @@ class EventRepositoryImpl @Inject constructor(
                             eventWithDetails.title
                         ),
                         "isRead" to false,
+                        "isViewed" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "type" to NotificationType.EVENT_INVITE.name,
                         "eventId" to eventWithDetails.id
@@ -316,6 +317,7 @@ class EventRepositoryImpl @Inject constructor(
                             event.title
                         ),
                         "isRead" to false,
+                        "isViewed" to false,
                         "timestamp" to FieldValue.serverTimestamp(),
                         "type" to NotificationType.EVENT_INVITE.name,
                         "eventId" to event.id
@@ -447,6 +449,7 @@ class EventRepositoryImpl @Inject constructor(
                         text
                     ),
                     "isRead" to false,
+                    "isViewed" to false,
                     "timestamp" to FieldValue.serverTimestamp(),
                     "type" to NotificationType.EVENT_COMMENT.name,
                     "eventId" to eventId
