@@ -50,8 +50,8 @@ import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.free2party.R
 import com.free2party.data.model.*
-import com.free2party.ui.components.dialogs.BaseDialog
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppBaseDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.dialogs.PublicProfileDialog
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.basic.AppOutlinedTextField
@@ -1300,7 +1300,7 @@ fun EventDetailsScreen(
 
     // Delete Event Dialog confirmation
     if (showDeleteEventDialog) {
-        ConfirmationDialog(
+        AppConfirmationDialog(
             title = stringResource(R.string.label_delete_event),
             text = stringResource(R.string.label_delete_event_confirm),
             confirmButtonText = stringResource(R.string.label_delete),
@@ -1326,14 +1326,14 @@ fun EventDetailsScreen(
                 )
             },
             dismissButtonText = stringResource(R.string.label_cancel),
-            onDismiss = { showDeleteEventDialog = false },
+            onDismissRequest = { showDeleteEventDialog = false },
             isDestructive = true
         )
     }
 
     // Delete Comment confirmation
     showDeleteCommentDialog?.let { comment ->
-        ConfirmationDialog(
+        AppConfirmationDialog(
             title = stringResource(R.string.label_delete_comment),
             text = stringResource(R.string.label_delete_comment_confirm),
             confirmButtonText = stringResource(R.string.label_delete),
@@ -1359,14 +1359,14 @@ fun EventDetailsScreen(
                 )
             },
             dismissButtonText = stringResource(R.string.label_cancel),
-            onDismiss = { showDeleteCommentDialog = null },
+            onDismissRequest = { showDeleteCommentDialog = null },
             isDestructive = true
         )
     }
 
     // Full screen image viewer
     selectedPhotoForView?.let { photo ->
-        BaseDialog(onDismissRequest = { selectedPhotoForView = null }) {
+        AppBaseDialog(onDismissRequest = { selectedPhotoForView = null }) {
             Column(
                 modifier = Modifier
                     .padding(16.dp)

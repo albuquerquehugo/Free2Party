@@ -1,6 +1,5 @@
 package com.free2party.ui.screens.login
 
-import com.free2party.data.model.ThemeMode
 import com.free2party.data.repository.AuthRepository
 import com.free2party.data.repository.SettingsRepository
 import com.free2party.util.UiText
@@ -36,8 +35,6 @@ class LoginViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        every { settingsRepository.themeModeFlow } returns flowOf(ThemeMode.AUTOMATIC)
-        every { settingsRepository.gradientBackgroundFlow } returns flowOf(true)
         every { settingsRepository.useLegacyGoogleSignInFlow } returns flowOf(false)
         viewModel = LoginViewModel(authRepository, settingsRepository)
     }

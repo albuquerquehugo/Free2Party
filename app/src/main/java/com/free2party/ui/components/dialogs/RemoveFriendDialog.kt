@@ -34,10 +34,10 @@ import com.free2party.data.model.FriendInfo
 @Composable
 fun RemoveFriendDialog(
     friend: FriendInfo,
-    onRemove: () -> Unit,
-    onDismiss: () -> Unit
+    onConfirm: () -> Unit,
+    onDismissRequest: () -> Unit
 ) {
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -97,21 +97,7 @@ fun RemoveFriendDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Button(
-                    onClick = onRemove,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.label_remove),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Button(
-                    onClick = onDismiss,
+                    onClick = onDismissRequest,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -121,6 +107,20 @@ fun RemoveFriendDialog(
                     Text(
                         text = stringResource(R.string.label_cancel),
                         fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_remove),
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

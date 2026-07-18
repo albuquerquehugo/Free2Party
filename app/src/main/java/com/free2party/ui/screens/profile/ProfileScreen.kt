@@ -61,7 +61,7 @@ import com.free2party.ui.components.ProfileAvatar
 import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.dialogs.AboutDialog
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.theme.Gold
 import com.free2party.ui.theme.PremiumBannerColor1
 import com.free2party.ui.theme.PremiumBannerColor2
@@ -182,7 +182,7 @@ fun ProfileScreen(
                         // Large Centered Avatar with thick status border
                         ProfileAvatar(
                             modifier = Modifier.shadow(
-                                elevation = 8.dp,
+                                elevation = 0.dp,
                                 shape = CircleShape,
                                 clip = false
                             ),
@@ -448,7 +448,7 @@ fun ProfileScreen(
         }
 
         if (showLogoutDialog) {
-            ConfirmationDialog(
+            AppConfirmationDialog(
                 title = stringResource(R.string.label_logout),
                 text = stringResource(R.string.text_logout_confirmation),
                 confirmButtonText = stringResource(R.string.label_logout),
@@ -457,7 +457,7 @@ fun ProfileScreen(
                     onLogoutClick()
                 },
                 dismissButtonText = stringResource(R.string.label_cancel),
-                onDismiss = { showLogoutDialog = false },
+                onDismissRequest = { showLogoutDialog = false },
                 isDestructive = true
             )
         }
@@ -492,8 +492,8 @@ fun MenuItem(
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
-            color = if (tint == MaterialTheme.colorScheme.error) tint else MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium,
+            color = if (tint == MaterialTheme.colorScheme.error) tint else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f)
         )
         Icon(

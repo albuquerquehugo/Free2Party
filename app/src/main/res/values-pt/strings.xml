@@ -761,9 +761,12 @@
     <string name="error_friend_request_not_found">O pedido de amizade não foi encontrado</string>
     <string name="error_friend_request_pending">Você tem um pedido de amizade pendente deste usuário. Por favor, verifique suas notificações.</string>
     <string name="error_google_config">Erro de configuração ao entrar com o Google. Por favor, tente novamente mais tarde.</string>
-    <string name="error_google_failed">Falha ao entrar com o Google</string>
-    <string name="error_google_invalid_token">Falha ao entrar com o Google: Token inválido</string>
-    <string name="error_google_unexpected_response">Falha ao entrar com o Google: Resposta inesperada</string>
+    <string name="error_google_failed">Google Sign-In failed</string>
+    <string name="error_google_failed_api_exception">Falha ao entrar com o Google: Exceção na API</string>
+    <string name="error_google_failed_invalid_token">Falha ao entrar com o Google: Token inválido</string>
+    <string name="error_google_failed_null_token">Falha ao entrar com o Google: Token nulo</string>
+    <string name="error_google_failed_unexpected_response">Falha ao entrar com o Google: Resposta inesperada</string>
+    <string name="error_google_failed_unknown">Falha ao entrar com o Google: Erro não reconhecido</string>
     <string name="error_guests_mandatory_private">A seleção de convidados é obrigatória para eventos privados</string>
     <string name="error_infrastructure">Erro de infraestrutura</string>
     <string name="error_invalid_color_hex">Cor hexadecimal inválida</string>

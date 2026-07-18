@@ -2,6 +2,7 @@ package com.free2party.ui.screens.register
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +15,6 @@ import com.free2party.data.model.DatePattern
 import com.free2party.data.model.Gender
 import com.free2party.data.model.UserSocials
 import com.free2party.data.repository.AuthRepository
-import com.free2party.data.repository.SettingsRepository
 import com.free2party.exception.AuthException
 import com.free2party.exception.InfrastructureException
 import com.free2party.util.UiText
@@ -23,7 +23,6 @@ import com.free2party.util.isBirthdayFieldValid
 import com.free2party.util.isPhoneValid
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 sealed interface RegisterUiState {
@@ -35,7 +34,6 @@ sealed interface RegisterUiState {
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
     var firstName by mutableStateOf("")
@@ -84,21 +82,6 @@ class RegisterViewModel @Inject constructor(
     var tiktokUsername by mutableStateOf("")
     var xUsername by mutableStateOf("")
 
-    var gradientBackground by mutableStateOf(true)
-        private set
-
-    init {
-        observeGradientBackground()
-    }
-
-    private fun observeGradientBackground() {
-        viewModelScope.launch {
-            settingsRepository.gradientBackgroundFlow.collectLatest { enabled ->
-                gradientBackground = enabled
-            }
-        }
-    }
-
     private val isEmailValid by derivedStateOf {
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         emailPattern.matches(email)
@@ -145,9 +128,12 @@ class RegisterViewModel @Inject constructor(
         tiktokUsername = tiktokUsername.trim()
         xUsername = xUsername.trim()
 
+        Log.d("RegisterViewModel", "Registration started for email: $normalizedEmail")
+
         if (firstName.isBlank() || lastName.isBlank() || normalizedEmail.isBlank() ||
             password.isBlank() || confirmPassword.isBlank()
         ) {
+            Log.e("RegisterViewModel", "Registration failed: missing required fields")
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_required_fields))
             return
@@ -155,29 +141,34 @@ class RegisterViewModel @Inject constructor(
 
         val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         if (!emailPattern.matches(normalizedEmail)) {
+            Log.e("RegisterViewModel", "Registration failed: invalid email format")
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
 
         if (password != confirmPassword) {
+            Log.e("RegisterViewModel", "Registration failed: passwords do not match")
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_passwords_not_match))
             return
         }
 
         if (!isPhoneNumberValid) {
+            Log.e("RegisterViewModel", "Registration failed: invalid phone number")
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_phone))
             return
         }
 
         if (!isBirthdayValid(context)) {
+            Log.e("RegisterViewModel", "Registration failed: invalid birthday")
             uiState = RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_date))
             return
         }
 
         if (!isWhatsappNumberValid) {
+            Log.e("RegisterViewModel", "Registration failed: invalid WhatsApp number")
             uiState =
                 RegisterUiState.Error(UiText.StringResource(R.string.error_invalid_whatsapp))
             return
@@ -213,8 +204,10 @@ class RegisterViewModel @Inject constructor(
                     xUsername = xUsername
                 )
             ).onSuccess {
+                Log.i("RegisterViewModel", "Registration successful for email: $normalizedEmail")
                 uiState = RegisterUiState.Success
             }.onFailure { e ->
+                Log.e("RegisterViewModel", "Registration failed for email: $normalizedEmail", e)
                 val errorText = when (e) {
                     is AuthException -> if (e.messageRes != null) UiText.StringResource(e.messageRes) else UiText.StringResource(
                         R.string.error_registration_failed

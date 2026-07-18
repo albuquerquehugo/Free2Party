@@ -76,8 +76,8 @@ import com.free2party.data.model.EventLink
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.R
-import com.free2party.ui.components.dialogs.BaseDialog
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppBaseDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.dialogs.AppDatePickerDialog
 import com.free2party.ui.components.dialogs.AppTimePickerDialog
 import com.free2party.ui.components.basic.AppHorizontalDivider
@@ -1023,7 +1023,7 @@ fun CreateEventScreen(
 
     // Timezone selection dialog
     if (showTimezonePicker) {
-        BaseDialog(onDismissRequest = { showTimezonePicker = false }) {
+        AppBaseDialog(onDismissRequest = { showTimezonePicker = false }) {
             Column(
                 modifier = Modifier
                     .padding(24.dp)
@@ -1080,7 +1080,7 @@ fun CreateEventScreen(
 
     // Link insertion dialog
     if (showLinkDialog) {
-        BaseDialog(onDismissRequest = { showLinkDialog = false }) {
+        AppBaseDialog(onDismissRequest = { showLinkDialog = false }) {
             Column(
                 modifier = Modifier
                     .padding(24.dp)
@@ -1209,7 +1209,7 @@ fun CreateEventScreen(
             title =
                 if (showStartTimePicker) stringResource(R.string.label_start_time)
                 else stringResource(R.string.label_end_time),
-            onDismiss = {
+            onDismissRequest = {
                 if (showStartTimePicker) {
                     hasInteractedWithStartTime = true
                 }
@@ -1242,7 +1242,7 @@ fun CreateEventScreen(
     }
 
     if (showDiscardDialog) {
-        ConfirmationDialog(
+        AppConfirmationDialog(
             title = stringResource(R.string.label_discard_changes),
             text = stringResource(R.string.text_discard_changes_confirmation),
             confirmButtonText = stringResource(R.string.label_discard_changes),
@@ -1251,7 +1251,7 @@ fun CreateEventScreen(
                 onBack()
             },
             dismissButtonText = stringResource(R.string.label_cancel),
-            onDismiss = { showDiscardDialog = false },
+            onDismissRequest = { showDiscardDialog = false },
             isDestructive = true
         )
     }

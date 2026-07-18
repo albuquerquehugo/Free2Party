@@ -4,11 +4,14 @@ import android.content.Context
 import android.net.Uri
 import com.free2party.R
 import com.free2party.data.repository.AuthRepository
-import com.free2party.data.repository.SettingsRepository
 import com.free2party.util.UiText
+import android.util.Log
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -29,22 +32,29 @@ class RegisterViewModelTest {
 
     private lateinit var viewModel: RegisterViewModel
     private val authRepository: AuthRepository = mockk()
-    private val settingsRepository: SettingsRepository = mockk()
     private val context: Context = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        io.mockk.every { settingsRepository.gradientBackgroundFlow } returns flowOf(true)
-        io.mockk.every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
-        io.mockk.every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
-        io.mockk.every { context.getString(R.string.date_pattern_dd_mm_yyyy) } returns "ddMMyyyy"
-        viewModel = RegisterViewModel(settingsRepository, authRepository)
+        mockkStatic(Log::class)
+        every { Log.d(any<String>(), any<String>()) } returns 0
+        every { Log.i(any<String>(), any<String>()) } returns 0
+        every { Log.e(any<String>(), any<String>()) } returns 0
+        every { Log.e(any<String>(), any<String>(), any<Throwable>()) } returns 0
+        every { Log.w(any<String>(), any<String>()) } returns 0
+        every { Log.w(any<String>(), any<String>(), any<Throwable>()) } returns 0
+
+        every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
+        every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
+        every { context.getString(R.string.date_pattern_dd_mm_yyyy) } returns "ddMMyyyy"
+        viewModel = RegisterViewModel(authRepository)
     }
 
     @After
     fun tearDown() {
+        unmockkAll()
         Dispatchers.resetMain()
     }
 

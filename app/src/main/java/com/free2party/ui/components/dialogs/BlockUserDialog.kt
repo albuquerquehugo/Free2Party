@@ -42,7 +42,7 @@ fun BlockUserDialog(
     onBlockAndReport: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally

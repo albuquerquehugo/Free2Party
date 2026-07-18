@@ -756,8 +756,11 @@
     <string name="error_friend_request_pending">You have a pending friend request from this user. Please check your notifications.</string>
     <string name="error_google_config">Google Sign-In configuration error. Please try again later.</string>
     <string name="error_google_failed">Google Sign-In failed</string>
-    <string name="error_google_invalid_token">Google Sign-In failed: Invalid token</string>
-    <string name="error_google_unexpected_response">Google Sign-In failed: Unexpected response</string>
+    <string name="error_google_failed_api_exception">Google Sign-In failed: API exception</string>
+    <string name="error_google_failed_invalid_token">Google Sign-In failed: Invalid token</string>
+    <string name="error_google_failed_null_token">Google Sign-In failed: Null token</string>
+    <string name="error_google_failed_unexpected_response">Google Sign-In failed: Unexpected response</string>
+    <string name="error_google_failed_unknown">Google Sign-In failed: Unknown error</string>
     <string name="error_guests_mandatory_private">Guests selection is mandatory for private events</string>
     <string name="error_infrastructure">Infrastructure error</string>
     <string name="error_invalid_color_hex">Invalid hex color</string>

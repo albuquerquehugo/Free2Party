@@ -20,7 +20,7 @@ fun AppEmojiPickerDialog(
     onEmojiSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()

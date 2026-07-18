@@ -23,7 +23,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.navigation.AppNavigation
-import com.free2party.ui.theme.Free2PartyTheme
 import com.free2party.util.NotificationHelper
 import com.free2party.util.matchNameAndEmail
 import com.free2party.util.matchEventInvitation
@@ -110,25 +109,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            Free2PartyTheme(themeMode = mainViewModel.themeMode) {
-                // Lock orientation to portrait on phones (width < 600dp), allow rotation on tablets
-                val windowSize = currentWindowSize()
-                val density = LocalDensity.current
-                val widthDp = with(density) { windowSize.toSize().width.toDp() }
+            // Lock orientation to portrait on phones (width < 600dp), allow rotation on tablets
+            val windowSize = currentWindowSize()
+            val density = LocalDensity.current
+            val widthDp = with(density) { windowSize.toSize().width.toDp() }
 
-                LaunchedEffect(widthDp) {
-                    requestedOrientation = if (widthDp < 600.dp) {
-                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    } else {
-                        ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-                    }
+            LaunchedEffect(widthDp) {
+                requestedOrientation = if (widthDp < 600.dp) {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                } else {
+                    ActivityInfo.SCREEN_ORIENTATION_FULL_USER
                 }
-
-                AppNavigation(
-                    mainViewModel = mainViewModel,
-                    startDestination = initialStartDestination
-                )
             }
+
+            AppNavigation(
+                mainViewModel = mainViewModel,
+                startDestination = initialStartDestination
+            )
         }
     }
 

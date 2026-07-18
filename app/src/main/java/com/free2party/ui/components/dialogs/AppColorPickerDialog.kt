@@ -72,7 +72,7 @@ fun AppColorPickerDialog(
         isTooSimilarToBusyColor(selectedColor)
     }
 
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()

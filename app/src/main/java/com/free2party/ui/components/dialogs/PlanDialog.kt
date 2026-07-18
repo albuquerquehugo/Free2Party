@@ -290,7 +290,7 @@ fun PlanDialog(
         }
     }
 
-    BaseDialog(onDismissRequest = handleDismiss) {
+    AppBaseDialog(onDismissRequest = handleDismiss) {
         Column(
             modifier = Modifier
                 .padding(horizontal = 24.dp, vertical = 20.dp)
@@ -528,7 +528,7 @@ fun PlanDialog(
             state = pickerState,
             title = if (showStartTimePicker) stringResource(R.string.label_start_time)
             else stringResource(R.string.label_end_time),
-            onDismiss = {
+            onDismissRequest = {
                 if (showStartTimePicker) {
                     hasInteractedWithStartTime = true
                 }
@@ -557,7 +557,7 @@ fun PlanDialog(
     }
 
     if (showDiscardConfirm) {
-        ConfirmationDialog(
+        AppConfirmationDialog(
             title = stringResource(R.string.label_discard_changes),
             text = stringResource(R.string.text_discard_changes_confirmation),
             confirmButtonText = stringResource(R.string.label_discard_changes),
@@ -566,7 +566,7 @@ fun PlanDialog(
                 onDismiss()
             },
             dismissButtonText = stringResource(R.string.label_cancel),
-            onDismiss = { showDiscardConfirm = false },
+            onDismissRequest = { showDiscardConfirm = false },
             isDestructive = true
         )
     }

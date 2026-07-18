@@ -145,7 +145,7 @@ fun PublicProfileDialog(
         )
     }
 
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .padding(24.dp)
@@ -556,7 +556,7 @@ fun FriendInterestsDialog(
         InterestCategories.filter { it.id in interests }
     }
 
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .padding(24.dp)

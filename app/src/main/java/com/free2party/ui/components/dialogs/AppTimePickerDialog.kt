@@ -21,16 +21,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.ui.components.basic.AppFilledButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTimePickerDialog(
     state: TimePickerState,
     title: String,
-    onDismiss: () -> Unit,
+    onDismissRequest: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -58,11 +59,11 @@ fun AppTimePickerDialog(
                     .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss) {
+                TextButton(onClick = onDismissRequest) {
                     Text(stringResource(R.string.label_cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                TextButton(onClick = onConfirm) {
+                AppFilledButton(onClick = onConfirm) {
                     Text(stringResource(R.string.label_ok))
                 }
             }

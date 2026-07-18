@@ -31,7 +31,7 @@ import androidx.compose.ui.window.DialogProperties
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BaseDialog(
+fun AppBaseDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
@@ -43,7 +43,10 @@ fun BaseDialog(
             .padding(horizontal = 32.dp),
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surface) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
             val focusManager = LocalFocusManager.current
             val keyboardController = LocalSoftwareKeyboardController.current
             var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }

@@ -38,7 +38,7 @@ fun AboutDialog(
     val context = LocalContext.current
     val versionName = BuildConfig.VERSION_NAME
 
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .padding(24.dp)

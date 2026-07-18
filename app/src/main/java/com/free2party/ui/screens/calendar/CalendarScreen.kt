@@ -44,7 +44,7 @@ import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.MonthCalendar
 import com.free2party.ui.components.dialogs.PlanDialog
 import com.free2party.ui.components.CalendarResults
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.isDateTimeInPast
 import com.free2party.util.UiText
@@ -361,7 +361,7 @@ fun CalendarScreen(
     }
 
     if (showDeleteDialog && planToDelete != null) {
-        ConfirmationDialog(
+        AppConfirmationDialog(
             title = stringResource(R.string.label_delete_plan),
             text = stringResource(R.string.text_delete_plan_confirmation_text),
             confirmButtonText = stringResource(R.string.label_delete),
@@ -370,7 +370,7 @@ fun CalendarScreen(
                 setShowDeleteDialog(false)
             },
             dismissButtonText = stringResource(R.string.label_cancel),
-            onDismiss = { setShowDeleteDialog(false) },
+            onDismissRequest = { setShowDeleteDialog(false) },
             isDestructive = true
         )
     }

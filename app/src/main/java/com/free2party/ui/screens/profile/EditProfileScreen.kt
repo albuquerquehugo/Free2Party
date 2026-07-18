@@ -34,7 +34,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.R
 import com.free2party.data.model.Gender
 import com.free2party.ui.components.ProfileContent
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
@@ -270,7 +270,7 @@ fun EditProfileScreenContent(
     val (showDeleteDialog, setShowDeleteDialog) = remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
-        ConfirmationDialog(
+        AppConfirmationDialog(
             title = stringResource(R.string.label_delete_account),
             text = stringResource(R.string.text_delete_account_confirmation),
             confirmButtonText = stringResource(R.string.label_delete),
@@ -278,7 +278,7 @@ fun EditProfileScreenContent(
                 setShowDeleteDialog(false)
                 onDeleteAccount()
             },
-            onDismiss = { setShowDeleteDialog(false) },
+            onDismissRequest = { setShowDeleteDialog(false) },
             isDestructive = true
         )
     }

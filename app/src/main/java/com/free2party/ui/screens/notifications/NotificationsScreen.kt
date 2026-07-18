@@ -52,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -68,7 +67,7 @@ import com.free2party.data.model.NotificationType
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.basic.AppHorizontalDivider
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
 import com.free2party.util.matchEventInvitation
@@ -191,7 +190,6 @@ fun NotificationsScreen(
                         items(requests, key = { it.id }) { item ->
                             FriendRequestItem(
                                 request = item.friendRequest,
-                                gradientBackground = gradientBackground,
                                 onAccept = { onAcceptRequest(item.friendRequest) },
                                 onDecline = { onDeclineRequest(item.friendRequest) },
                                 onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
@@ -222,7 +220,6 @@ fun NotificationsScreen(
                         items(notifications, key = { it.id }) { item ->
                             DismissibleNotificationItem(
                                 notification = item.notification,
-                                gradientBackground = gradientBackground,
                                 onToggleRead = { onToggleRead(item.notification) },
                                 onDelete = { onDelete(item.notification.id) },
                                 onNavigateToEventDetails = onNavigateToEventDetails
@@ -246,7 +243,6 @@ fun NotificationsScreen(
 @Composable
 fun FriendRequestItem(
     request: FriendRequest,
-    gradientBackground: Boolean,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onDeclineAndBlock: () -> Unit
@@ -270,10 +266,7 @@ fun FriendRequestItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                if (gradientBackground) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                else MaterialTheme.colorScheme.primaryContainer
-            )
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f))
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -313,8 +306,8 @@ fun FriendRequestItem(
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = request.senderName,
-                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
@@ -379,7 +372,7 @@ fun DeclineFriendRequestDialog(
     onDeclineOnly: () -> Unit,
     onDeclineAndBlock: () -> Unit
 ) {
-    ConfirmationDialog(
+    AppConfirmationDialog(
         title = stringResource(R.string.label_decline_friend_request_dialog),
         text = stringResource(R.string.text_decline_friend_request_dialog),
         confirmButtonText = stringResource(R.string.label_decline_only),
@@ -387,7 +380,7 @@ fun DeclineFriendRequestDialog(
         secondaryButtonText = stringResource(R.string.label_decline_and_block),
         onSecondaryAction = onDeclineAndBlock,
         dismissButtonText = stringResource(R.string.label_cancel),
-        onDismiss = onDismiss,
+        onDismissRequest = onDismiss,
         isDestructive = true
     )
 }
@@ -396,7 +389,6 @@ fun DeclineFriendRequestDialog(
 @Composable
 fun DismissibleNotificationItem(
     notification: Notification,
-    gradientBackground: Boolean,
     onToggleRead: () -> Unit,
     onDelete: () -> Unit,
     onNavigateToEventDetails: (String, Boolean) -> Unit
@@ -431,7 +423,6 @@ fun DismissibleNotificationItem(
             content = {
                 NotificationBox(
                     notification = notification,
-                    gradientBackground = gradientBackground,
                     onToggleRead = currentOnToggleRead,
                     onDelete = currentOnDelete,
                     onNavigateToEventDetails = onNavigateToEventDetails
@@ -450,10 +441,10 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
     val backgroundColor by animateColorAsState(
         when (direction) {
             SwipeToDismissBoxValue.StartToEnd ->
-                if (notification.isRead) MaterialTheme.colorScheme.primaryContainer
+                if (notification.isRead) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
                 else Color.Transparent
 
-            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.tertiaryContainer
+            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
         },
         label = "backgroundColor"
     )
@@ -482,7 +473,7 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
                 icon,
                 contentDescription = null,
                 tint = when (direction) {
-                    SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
+                    SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onErrorContainer
                     SwipeToDismissBoxValue.StartToEnd -> {
                         if (notification.isRead) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.outline
@@ -496,24 +487,11 @@ fun DismissBackground(notification: Notification, dismissState: SwipeToDismissBo
 @Composable
 fun NotificationBox(
     notification: Notification,
-    gradientBackground: Boolean,
     onToggleRead: () -> Unit,
     onDelete: () -> Unit,
     onNavigateToEventDetails: (String, Boolean) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-
-    val backgroundColor = when {
-        notification.isRead && gradientBackground -> Color.Transparent
-        notification.isRead -> MaterialTheme.colorScheme.background
-        gradientBackground -> MaterialTheme.colorScheme.primaryContainer.copy(
-            alpha = if (isDark) 0.6f else 0.9f
-        )
-
-        else -> MaterialTheme.colorScheme.primaryContainer
-    }
-
     val context = LocalContext.current
     val displayMessage = when (notification.type) {
         NotificationType.FRIEND_ACCEPTED -> {
@@ -575,7 +553,11 @@ fun NotificationBox(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor)
+            .background(
+                color =
+                    if (notification.isRead) Color.Transparent
+                    else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
+            )
             .then(
                 if (notification.eventId.isNotBlank()) {
                     Modifier.clickable {

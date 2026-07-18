@@ -88,7 +88,7 @@ fun CountryPickerDialog(
         }
     }
 
-    BaseDialog(onDismissRequest = onDismissRequest) {
+    AppBaseDialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier
                 .padding(16.dp)

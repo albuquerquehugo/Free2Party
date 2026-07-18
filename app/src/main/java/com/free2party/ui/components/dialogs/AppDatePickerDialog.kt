@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.ui.components.basic.AppFilledButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +36,8 @@ fun AppDatePickerDialog(
         onDismissRequest = handleDismiss,
         colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         confirmButton = {
-            TextButton(
+            AppFilledButton(
+                modifier = Modifier.padding(bottom = 16.dp, end = 16.dp),
                 onClick = onConfirm,
                 enabled = state.selectedDateMillis != null
             ) {

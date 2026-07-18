@@ -64,7 +64,7 @@ fun FriendCalendarDialog(
         }
     }
 
-    BaseDialog(onDismissRequest = handleDismiss, modifier = Modifier.fillMaxWidth()) {
+    AppBaseDialog(onDismissRequest = handleDismiss, modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .padding(16.dp)

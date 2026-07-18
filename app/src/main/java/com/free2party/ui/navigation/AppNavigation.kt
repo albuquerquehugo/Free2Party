@@ -124,6 +124,8 @@ import com.free2party.ui.theme.available
 import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.busy
 import com.free2party.ui.theme.onAvailableContainer
+import com.free2party.data.model.ThemeMode
+import com.free2party.ui.theme.Free2PartyTheme
 import com.free2party.util.TextFieldRegistry
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -286,6 +288,10 @@ fun AppNavigation(
     val showBottomBar = BottomNavItems.any { it.route == currentDestination?.route }
     val gradientBackground by mainViewModel.gradientBackgroundFlow.collectAsState(initial = true)
     val gradientTheme by mainViewModel.gradientThemeFlow.collectAsState(initial = "DEFAULT")
+    val isLoginOrRegister =
+        currentDestination?.route == Screen.Login.route || currentDestination?.route == Screen.Register.route
+    val effectiveGradientBackground = if (isLoginOrRegister) true else gradientBackground
+    val effectiveGradientTheme = if (isLoginOrRegister) "DEFAULT" else gradientTheme
     val onboardingCompleted by mainViewModel.onboardingCompletedFlow.collectAsState(initial = null)
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -303,179 +309,191 @@ fun AppNavigation(
     }
 
     if (onboardingCompleted != null) {
-        AppBackground(enabled = gradientBackground, themeName = gradientTheme) {
-            Scaffold(
-                topBar = {
-                    val isOnline by mainViewModel.isOnline.collectAsState()
-                    AnimatedVisibility(
-                        visible = !isOnline,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.error)
-                                .statusBarsPadding()
-                                .padding(vertical = 8.dp, horizontal = 16.dp),
-                            contentAlignment = Alignment.Center
+        val effectiveThemeMode =
+            if (isLoginOrRegister) ThemeMode.AUTOMATIC else mainViewModel.themeMode
+        Free2PartyTheme(themeMode = effectiveThemeMode) {
+            AppBackground(
+                enabled = effectiveGradientBackground,
+                themeName = effectiveGradientTheme
+            ) {
+                Scaffold(
+                    topBar = {
+                        val isOnline by mainViewModel.isOnline.collectAsState()
+                        AnimatedVisibility(
+                            visible = !isOnline,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.error)
+                                    .statusBarsPadding()
+                                    .padding(vertical = 8.dp, horizontal = 16.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.WifiOff,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onError,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = stringResource(R.string.text_offline_banner),
-                                    color = MaterialTheme.colorScheme.onError,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.WifiOff,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onError,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.text_offline_banner),
+                                        color = MaterialTheme.colorScheme.onError,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
                         }
+                    },
+                    containerColor =
+                        if (effectiveGradientBackground) Color.Transparent
+                        else MaterialTheme.colorScheme.surface,
+                    bottomBar = {
+                        if (showBottomBar) {
+                            BottomNavigationBar(
+                                navController,
+                                notificationsViewModel,
+                                eventsViewModel,
+                                mainViewModel
+                            )
+                        }
                     }
-                },
-                containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
-                bottomBar = {
-                    if (showBottomBar) {
-                        BottomNavigationBar(
-                            navController,
-                            notificationsViewModel,
-                            eventsViewModel,
-                            mainViewModel
-                        )
+                ) { innerPadding ->
+                    var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                    val density = LocalDensity.current
+                    val swipeThresholdPx = remember(density, rootCoordinates) {
+                        rootCoordinates?.size?.width?.let { it * 0.25f }
+                            ?: with(density) { 150.dp.toPx() }
                     }
-                }
-            ) { innerPadding ->
-                var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-                val density = LocalDensity.current
-                val swipeThresholdPx = remember(density, rootCoordinates) {
-                    rootCoordinates?.size?.width?.let { it * 0.25f }
-                        ?: with(density) { 150.dp.toPx() }
-                }
 
-                val dragOffset = remember { Animatable(0f) }
-                val coroutineScope = rememberCoroutineScope()
+                    val dragOffset = remember { Animatable(0f) }
+                    val coroutineScope = rememberCoroutineScope()
 
-                val swipeModifier = if (showBottomBar) {
-                    Modifier.pointerInput(currentDestination) {
-                        detectHorizontalDragGestures(
-                            onDragStart = {
-                                coroutineScope.launch {
-                                    dragOffset.snapTo(0f)
-                                }
-                            },
-                            onDragEnd = {
-                                coroutineScope.launch {
-                                    val currentRoute = currentDestination?.route
-                                    val currentIndex =
-                                        BottomNavItems.indexOfFirst { it.route == currentRoute }
-                                    var navigated = false
-                                    if (currentIndex != -1) {
-                                        if (dragOffset.value > swipeThresholdPx) {
-                                            // Swipe left-to-right: Navigate to left screen
-                                            if (currentIndex > 0) {
-                                                navigated = true
-                                                val leftScreen = BottomNavItems[currentIndex - 1]
-                                                navController.navigate(leftScreen.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
-                                                        saveState = true
+                    val swipeModifier = if (showBottomBar) {
+                        Modifier.pointerInput(currentDestination) {
+                            detectHorizontalDragGestures(
+                                onDragStart = {
+                                    coroutineScope.launch {
+                                        dragOffset.snapTo(0f)
+                                    }
+                                },
+                                onDragEnd = {
+                                    coroutineScope.launch {
+                                        val currentRoute = currentDestination?.route
+                                        val currentIndex =
+                                            BottomNavItems.indexOfFirst { it.route == currentRoute }
+                                        var navigated = false
+                                        if (currentIndex != -1) {
+                                            if (dragOffset.value > swipeThresholdPx) {
+                                                // Swipe left-to-right: Navigate to left screen
+                                                if (currentIndex > 0) {
+                                                    navigated = true
+                                                    val leftScreen =
+                                                        BottomNavItems[currentIndex - 1]
+                                                    navController.navigate(leftScreen.route) {
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                        restoreState = true
                                                     }
-                                                    launchSingleTop = true
-                                                    restoreState = true
                                                 }
-                                            }
-                                        } else if (dragOffset.value < -swipeThresholdPx) {
-                                            // Swipe right-to-left: Navigate to right screen
-                                            if (currentIndex < BottomNavItems.size - 1) {
-                                                navigated = true
-                                                val rightScreen = BottomNavItems[currentIndex + 1]
-                                                navController.navigate(rightScreen.route) {
-                                                    popUpTo(navController.graph.findStartDestination().id) {
-                                                        saveState = true
+                                            } else if (dragOffset.value < -swipeThresholdPx) {
+                                                // Swipe right-to-left: Navigate to right screen
+                                                if (currentIndex < BottomNavItems.size - 1) {
+                                                    navigated = true
+                                                    val rightScreen =
+                                                        BottomNavItems[currentIndex + 1]
+                                                    navController.navigate(rightScreen.route) {
+                                                        popUpTo(navController.graph.findStartDestination().id) {
+                                                            saveState = true
+                                                        }
+                                                        launchSingleTop = true
+                                                        restoreState = true
                                                     }
-                                                    launchSingleTop = true
-                                                    restoreState = true
                                                 }
                                             }
                                         }
+                                        if (navigated) {
+                                            dragOffset.snapTo(0f)
+                                        } else {
+                                            dragOffset.animateTo(
+                                                0f,
+                                                spring(stiffness = Spring.StiffnessMediumLow)
+                                            )
+                                        }
                                     }
-                                    if (navigated) {
-                                        dragOffset.snapTo(0f)
-                                    } else {
+                                },
+                                onDragCancel = {
+                                    coroutineScope.launch {
                                         dragOffset.animateTo(
                                             0f,
                                             spring(stiffness = Spring.StiffnessMediumLow)
                                         )
                                     }
+                                },
+                                onHorizontalDrag = { _, dragAmount ->
+                                    coroutineScope.launch {
+                                        val currentRoute = currentDestination?.route
+                                        val currentIndex =
+                                            BottomNavItems.indexOfFirst { it.route == currentRoute }
+                                        val isAtBoundary = (dragAmount > 0f && currentIndex == 0) ||
+                                                (dragAmount < 0f && currentIndex == BottomNavItems.size - 1)
+                                        val finalDrag =
+                                            if (isAtBoundary) dragAmount * 0.3f else dragAmount
+                                        dragOffset.snapTo(dragOffset.value + finalDrag)
+                                    }
                                 }
-                            },
-                            onDragCancel = {
-                                coroutineScope.launch {
-                                    dragOffset.animateTo(
-                                        0f,
-                                        spring(stiffness = Spring.StiffnessMediumLow)
-                                    )
-                                }
-                            },
-                            onHorizontalDrag = { _, dragAmount ->
-                                coroutineScope.launch {
-                                    val currentRoute = currentDestination?.route
-                                    val currentIndex =
-                                        BottomNavItems.indexOfFirst { it.route == currentRoute }
-                                    val isAtBoundary = (dragAmount > 0f && currentIndex == 0) ||
-                                            (dragAmount < 0f && currentIndex == BottomNavItems.size - 1)
-                                    val finalDrag =
-                                        if (isAtBoundary) dragAmount * 0.3f else dragAmount
-                                    dragOffset.snapTo(dragOffset.value + finalDrag)
-                                }
-                            }
-                        )
-                    }
-                } else {
-                    Modifier
-                }
-
-                Box(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .then(swipeModifier)
-                        .graphicsLayer {
-                            translationX = dragOffset.value
+                            )
                         }
-                        .onGloballyPositioned { rootCoordinates = it }
-                        .pointerInput(rootCoordinates) {
-                            awaitEachGesture {
-                                val down = awaitFirstDown(pass = PointerEventPass.Initial)
-                                val isInsideTextField = TextFieldRegistry.isPointInsideAnyTextField(
-                                    down.position,
-                                    rootCoordinates
-                                )
-                                if (!isInsideTextField) {
-                                    val up =
-                                        waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                                    if (up != null) {
-                                        focusManager.clearFocus(force = true)
-                                        keyboardController?.hide()
+                    } else {
+                        Modifier
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .then(swipeModifier)
+                            .graphicsLayer {
+                                translationX = dragOffset.value
+                            }
+                            .onGloballyPositioned { rootCoordinates = it }
+                            .pointerInput(rootCoordinates) {
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(pass = PointerEventPass.Initial)
+                                    val isInsideTextField =
+                                        TextFieldRegistry.isPointInsideAnyTextField(
+                                            down.position,
+                                            rootCoordinates
+                                        )
+                                    if (!isInsideTextField) {
+                                        val up =
+                                            waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                                        if (up != null) {
+                                            focusManager.clearFocus(force = true)
+                                            keyboardController?.hide()
+                                        }
                                     }
                                 }
                             }
-                        }
-                        .focusable()
-                ) {
-                    Free2PartyNavGraph(
-                        navController = navController,
-                        notificationsViewModel = notificationsViewModel,
-                        onboardingCompleted = onboardingCompleted ?: false,
-                        startDestinationOverride = startDestination
-                    )
+                            .focusable()
+                    ) {
+                        Free2PartyNavGraph(
+                            navController = navController,
+                            notificationsViewModel = notificationsViewModel,
+                            onboardingCompleted = onboardingCompleted ?: false,
+                            startDestinationOverride = startDestination
+                        )
+                    }
                 }
             }
         }

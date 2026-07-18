@@ -66,7 +66,7 @@ import com.free2party.data.model.Membership
 import com.free2party.R
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.dialogs.CircleDialog
-import com.free2party.ui.components.dialogs.ConfirmationDialog
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.dialogs.PremiumDialog
 import kotlinx.coroutines.flow.collectLatest
 
@@ -203,7 +203,7 @@ fun CirclesScreen(
         }
 
         circleToDelete?.let { circle ->
-            ConfirmationDialog(
+            AppConfirmationDialog(
                 title = stringResource(R.string.label_delete_circle),
                 text = stringResource(R.string.text_delete_circle_confirmation),
                 confirmButtonText = stringResource(R.string.label_delete),
@@ -212,7 +212,7 @@ fun CirclesScreen(
                     circleToDelete = null
                 },
                 dismissButtonText = stringResource(R.string.label_cancel),
-                onDismiss = { circleToDelete = null },
+                onDismissRequest = { circleToDelete = null },
                 isDestructive = true
             )
         }

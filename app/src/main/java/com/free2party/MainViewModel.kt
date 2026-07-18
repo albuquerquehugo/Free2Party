@@ -10,6 +10,7 @@ import com.free2party.data.model.FriendRequestStatus
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.data.model.ThemeMode
+import com.free2party.data.model.Membership
 import com.free2party.data.repository.PlanRepository
 import com.free2party.data.repository.SettingsRepository
 import com.free2party.data.repository.SocialRepository
@@ -155,9 +156,15 @@ class MainViewModel @Inject constructor(
                     }
 
                     if (initialUser != null) {
+                        var targetThemeName = localThemeName
+                        if (initialUser.membership == Membership.FREE && localThemeName != "DEFAULT") {
+                            targetThemeName = "DEFAULT"
+                            settingsRepository.setGradientTheme("DEFAULT")
+                        }
+
                         if ((initialUser.settings.themeMode != localTheme) || 
                             (initialUser.settings.gradientBackground != localBackground) ||
-                            (initialUser.settings.gradientTheme != localThemeName) ||
+                            (initialUser.settings.gradientTheme != targetThemeName) ||
                             (initialUser.settings.statusColor != localStatusColor)) {
                             Log.d(
                                 "MainViewModel",
@@ -167,7 +174,7 @@ class MainViewModel @Inject constructor(
                                 settings = initialUser.settings.copy(
                                     themeMode = localTheme,
                                     gradientBackground = localBackground,
-                                    gradientTheme = localThemeName,
+                                    gradientTheme = targetThemeName,
                                     statusColor = localStatusColor
                                 )
                             )
@@ -179,6 +186,20 @@ class MainViewModel @Inject constructor(
 
                     // Continuous Pull Sync: Only from Cloud to Local
                     userRepository.observeUser(uid).collectLatest { user ->
+                        // Reset gradient theme to default if the user is free but has a premium background selected
+                        if (user.membership == Membership.FREE && user.settings.gradientTheme != "DEFAULT") {
+                            Log.d(
+                                "MainViewModel",
+                                "User membership is FREE, but gradient theme is ${user.settings.gradientTheme}. Resetting to DEFAULT."
+                            )
+                            settingsRepository.setGradientTheme("DEFAULT")
+                            val updatedUser = user.copy(
+                                settings = user.settings.copy(gradientTheme = "DEFAULT")
+                            )
+                            userRepository.updateUser(updatedUser)
+                            return@collectLatest
+                        }
+
                         val currentTheme = settingsRepository.themeModeFlow.first()
                         val currentBackground = settingsRepository.gradientBackgroundFlow.first()
                         val currentThemeName = settingsRepository.gradientThemeFlow.first()

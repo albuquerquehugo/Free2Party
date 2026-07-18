@@ -14,11 +14,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppOutlinedTextField
 
 @Composable
@@ -74,7 +74,7 @@ fun EmailDialog(
         onDone = { keyboardController?.hide() }
     )
 
-    BaseDialog(onDismissRequest = onDismiss) {
+    AppBaseDialog(onDismissRequest = onDismiss) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
                 text = title,
@@ -113,18 +113,17 @@ fun EmailDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
+                TextButton(
                     onClick = onDismiss,
-                    enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    enabled = !isLoading
                 ) {
-                    Text(stringResource(R.string.label_cancel))
+                    Text(
+                        text = stringResource(R.string.label_cancel),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(
+                AppFilledButton(
                     onClick = onConfirm,
                     enabled = canConfirm
                 ) {

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,6 +40,7 @@ import com.free2party.data.model.Gender
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.ProfileContent
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppFilledButton
 
 @Composable
 fun RegisterRoute(
@@ -110,8 +110,7 @@ fun RegisterRoute(
         onBackToLogin = {
             viewModel.resetFields()
             onBackToLogin()
-        },
-        gradientBackground = viewModel.gradientBackground
+        }
     )
 }
 
@@ -158,8 +157,7 @@ fun RegisterScreen(
     onXUsernameChange: (String) -> Unit,
     onProfilePicChange: (Uri) -> Unit,
     onRegisterClick: () -> Unit,
-    onBackToLogin: () -> Unit,
-    gradientBackground: Boolean
+    onBackToLogin: () -> Unit
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
@@ -178,7 +176,7 @@ fun RegisterScreen(
         }
 
     Scaffold(
-        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
+        containerColor = Color.Transparent,
         topBar = {
             TopBar(
                 title = stringResource(R.string.label_create_account),
@@ -292,24 +290,14 @@ fun RegisterScreen(
                         if (uiState is RegisterUiState.Loading) {
                             CircularProgressIndicator()
                         } else {
-                            Button(
+                            AppFilledButton(
                                 onClick = onRegisterClick,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(56.dp),
-                                enabled = isFormValid,
-                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                    containerColor =
-                                        if (gradientBackground) MaterialTheme.colorScheme.primary.copy(
-                                            alpha = 0.7f
-                                        )
-                                        else MaterialTheme.colorScheme.primary
-                                )
+                                    .height(50.dp),
+                                enabled = isFormValid
                             ) {
-                                Text(
-                                    stringResource(R.string.label_register),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                                Text(stringResource(R.string.label_register))
                             }
 
                             TextButton(onClick = onBackToLogin) {

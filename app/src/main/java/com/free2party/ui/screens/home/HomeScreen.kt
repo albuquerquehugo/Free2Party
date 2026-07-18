@@ -260,12 +260,12 @@ fun HomeScreen(
         if (showRemoveFriendDialog && friendToRemove != null) {
             RemoveFriendDialog(
                 friend = friendToRemove!!,
-                onRemove = {
+                onConfirm = {
                     showRemoveFriendDialog = false
                     friendToRemove?.let { onRemoveFriend(it.uid) }
                     friendToRemove = null
                 },
-                onDismiss = {
+                onDismissRequest = {
                     showRemoveFriendDialog = false
                     friendToRemove = null
                 }
