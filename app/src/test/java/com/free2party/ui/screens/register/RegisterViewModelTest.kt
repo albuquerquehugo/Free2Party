@@ -5,16 +5,12 @@ import android.net.Uri
 import com.free2party.R
 import com.free2party.data.repository.AuthRepository
 import com.free2party.util.UiText
-import android.util.Log
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -38,13 +34,6 @@ class RegisterViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        mockkStatic(Log::class)
-        every { Log.d(any<String>(), any<String>()) } returns 0
-        every { Log.i(any<String>(), any<String>()) } returns 0
-        every { Log.e(any<String>(), any<String>()) } returns 0
-        every { Log.e(any<String>(), any<String>(), any<Throwable>()) } returns 0
-        every { Log.w(any<String>(), any<String>()) } returns 0
-        every { Log.w(any<String>(), any<String>(), any<Throwable>()) } returns 0
 
         every { context.getString(R.string.date_pattern_yyyy_mm_dd) } returns "yyyyMMdd"
         every { context.getString(R.string.date_pattern_mm_dd_yyyy) } returns "MMddyyyy"
@@ -54,7 +43,6 @@ class RegisterViewModelTest {
 
     @After
     fun tearDown() {
-        unmockkAll()
         Dispatchers.resetMain()
     }
 

@@ -18,7 +18,8 @@ data class FriendInfo(
     @get:PropertyName("isStatusFromPlan")
     val isStatusFromPlan: Boolean = false,
     val statusEmoji: String = "",
-    val statusColor: String = ""
+    val statusColor: String = "",
+    val gender: Gender = Gender.OTHER
 )
 
 @IgnoreExtraProperties

@@ -1,7 +1,7 @@
 package com.free2party.ui.screens.events
 
-import android.Manifest
 import android.content.pm.PackageManager
+import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -45,6 +45,7 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.DistanceUnit
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.PlanStatus
 import com.free2party.ui.components.TopBar
@@ -229,7 +230,7 @@ fun EventsScreen(
                             }
                         }
 
-                        DropdownMenu(
+                        AppDropdownMenu(
                             expanded = showFilterMenu,
                             onDismissRequest = { showFilterMenu = false }
                         ) {

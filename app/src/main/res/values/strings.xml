@@ -78,6 +78,7 @@
     <string name="text_offline_banner">You are offline, please check your connection. Some features may not be available.</string>
 
     <!-- Home -->
+    <string name="description_add_friend">Add friend</string>
     <string name="description_collapse">Collapse</string>
     <string name="description_contact_options">Contact Options</string>
     <string name="description_expand">Expand</string>
@@ -103,6 +104,7 @@
     <string name="label_friends">Friends</string>
     <string name="label_home">Home</string>
     <string name="label_add_friend">Add Friend</string>
+    <string name="label_add_friend_name">Add %1$s?</string>
     <string name="label_remove_and_block_friend">Remove and Block</string>
     <string name="label_remove_friend">Remove Friend</string>
     <string name="label_remove_friend_name">Remove %1$s?</string>
@@ -114,7 +116,7 @@
     <string name="text_no_friends_in_section">No friends in this section</string>
     <string name="text_no_friends_yet">You don\'t have any friends yet!</string>
     <string name="text_placeholder_search_user">Search by name or email…</string>
-    <string name="text_remove_friend_confirmation">This action will remove the friendship from both friends list. If you want to add them again you will have to send them a new friend request.</string>
+    <string name="text_remove_friend_confirmation">This action will remove the friendship from both lists. If you want to add the user again you will have to send a new friend request.</string>
     <string name="text_send_friend_request_confirmation">Do you want to send a friend request to %1$s (%2$s)?</string>
     <string name="toast_friend_removed">Friend removed</string>
     <string name="toast_friend_request_cancelled">Friend request cancelled</string>
@@ -220,9 +222,9 @@
     <string name="label_report_reason_spam">Spam or scam</string>
     <string name="label_report_user">Report User</string>
     <string name="placeholder_report_reason_other">Briefly describe the reason…</string>
-    <string name="text_block_info_message_1">They won\'t be able to message you or add you again unless you unblock them.</string>
+    <string name="text_block_info_message_1">They won\'t be able to message or add you again unless you unblock them.</string>
     <string name="text_block_info_message_2">They won\'t be notified that you blocked or reported them.</string>
-    <string name="text_block_user_confirmation">Blocking this user will remove the friendship from both friends list and add them to %1$s in your profile menu. You can unblock them anytime.</string>
+    <string name="text_block_user_confirmation">Blocking this user will remove the friendship from both friends list and add them to Blocked Users in your profile menu. You can unblock them anytime.</string>
     <string name="text_report_user_reason">Why do you want to report this user?</string>
     <string name="toast_user_reported">User reported successfully</string>
     <string name="toast_user_unblocked">User unblocked</string>

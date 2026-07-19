@@ -48,7 +48,8 @@ import com.free2party.data.model.UserRelationship
 import com.free2party.data.model.UserSearchResult
 import com.free2party.R
 import com.free2party.ui.components.basic.AppOutlinedTextField
-import com.free2party.ui.components.dialogs.AppConfirmationDialog
+import com.free2party.ui.components.dialogs.FriendActionType
+import com.free2party.ui.components.dialogs.FriendConfirmationDialog
 import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
@@ -245,19 +246,15 @@ fun AddFriendScreen(
         }
 
         if (userToAdd != null) {
-            AppConfirmationDialog(
-                title = stringResource(R.string.label_add_friend),
-                text = stringResource(
-                    R.string.text_send_friend_request_confirmation,
-                    userToAdd!!.fullName,
-                    userToAdd!!.email
-                ),
-                confirmButtonText = stringResource(R.string.label_confirm),
+            FriendConfirmationDialog(
+                name = userToAdd!!.fullName,
+                email = userToAdd!!.email,
+                profilePicUrl = userToAdd!!.profilePicUrl,
+                actionType = FriendActionType.ADD,
                 onConfirm = {
                     onUserSelected(userToAdd!!)
                     userToAdd = null
                 },
-                dismissButtonText = stringResource(R.string.label_cancel),
                 onDismissRequest = { userToAdd = null }
             )
         }

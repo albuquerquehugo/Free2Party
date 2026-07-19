@@ -207,17 +207,12 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // Status Capsule/Pill
-                        val statusText = if (uiState.isUserFree) {
-                            stringResource(R.string.label_status_free)
-                        } else {
-                            stringResource(uiState.userGender.getStringRes(R.string.label_status_busy))
-                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            StatusPill(isUserFree = uiState.isUserFree, text = statusText)
+                            StatusPill(uiState.isUserFree, uiState.userGender)
 
                             if (uiState.membership == Membership.PREMIUM) {
                                 Spacer(modifier = Modifier.width(8.dp))

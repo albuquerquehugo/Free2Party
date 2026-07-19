@@ -48,13 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
-import com.free2party.R
 import com.free2party.data.model.*
+import com.free2party.R
+import com.free2party.ui.components.basic.AppDropdownMenu
+import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.dialogs.AppBaseDialog
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.dialogs.PublicProfileDialog
 import com.free2party.ui.components.TopBar
-import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.theme.available
 import com.free2party.ui.theme.busy
 import com.free2party.util.formatPlanDateInFull
@@ -63,9 +64,9 @@ import com.free2party.util.formatTimeForDisplay
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1132,7 +1133,7 @@ fun EventDetailsScreen(
                                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                 }
-                                                DropdownMenu(
+                                                AppDropdownMenu(
                                                     expanded = activeMenuCommentId == comment.id,
                                                     onDismissRequest = {
                                                         activeMenuCommentId = null

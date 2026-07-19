@@ -15,8 +15,10 @@ import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -40,8 +42,12 @@ class PlanRepositoryTest {
         every { db.collection("users") } returns usersCollection
         every { usersCollection.document(any()) } returns userDoc
         every { userDoc.collection("plans") } returns plansCollection
-        
         repository = PlanRepositoryImpl(auth, db)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     @Test

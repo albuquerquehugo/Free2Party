@@ -43,7 +43,7 @@ fun StatusToggleButton(
     val containerColor =
         if (isUserFree) MaterialTheme.colorScheme.busyContainer
         else MaterialTheme.colorScheme.availableContainer
-    val onContainerColor =
+    val contentColor =
         if (isUserFree) MaterialTheme.colorScheme.onBusyContainer
         else MaterialTheme.colorScheme.onAvailableContainer
 
@@ -54,7 +54,7 @@ fun StatusToggleButton(
             .height(64.dp)
             .wrapContentWidth()
             .shadow(
-                elevation = if (isUserFree) 8.dp else 16.dp,
+                elevation = if (isUserFree) 16.dp else 32.dp,
                 spotColor = glowColor,
                 shape = CircleShape,
                 ambientColor = glowColor,
@@ -63,7 +63,7 @@ fun StatusToggleButton(
         shape = CircleShape,
         colors = ButtonDefaults.elevatedButtonColors(
             containerColor = containerColor,
-            contentColor = onContainerColor
+            contentColor = contentColor
         ),
         contentPadding = PaddingValues(horizontal = 24.dp)
     ) {
@@ -89,7 +89,7 @@ fun StatusToggleButton(
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
-                    color = onContainerColor
+                    color = contentColor
                 )
             }
         }

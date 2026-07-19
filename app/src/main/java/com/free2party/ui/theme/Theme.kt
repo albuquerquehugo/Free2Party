@@ -30,8 +30,8 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer = Purple90,
     tertiary = Red80,
     onTertiary = Red20,
-    tertiaryContainer = Red30,
-    onTertiaryContainer = Red90,
+    tertiaryContainer = Red15,
+    onTertiaryContainer = Red80,
     background = Color.Black,
     onBackground = Color.White,
     surface = Gray10,
@@ -60,7 +60,7 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = Purple65,
     onSecondaryContainer = Purple20,
     tertiary = Red30,
-    onTertiary = Color.White,
+    onTertiary = Red80,
     tertiaryContainer = Red80,
     onTertiaryContainer = Red30,
     background = Color.White,
@@ -144,10 +144,6 @@ val ColorScheme.onPendingContainer: Color
 val ColorScheme.inactive: Color
     @Composable
     get() = if (isDark) Gray50 else Gray70
-
-val ColorScheme.inactiveContainer: Color
-    @Composable
-    get() = if (isDark) Gray20 else Gray90
 
 val ColorScheme.onInactiveContainer: Color
     @Composable

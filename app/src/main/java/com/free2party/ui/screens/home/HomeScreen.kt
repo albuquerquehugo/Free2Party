@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
@@ -38,7 +39,6 @@ import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -66,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
@@ -73,14 +74,15 @@ import com.free2party.data.model.Membership
 import com.free2party.data.model.InviteStatus
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
+import com.free2party.ui.components.basic.AppDropdownMenu
+import com.free2party.ui.components.dialogs.FriendActionType
+import com.free2party.ui.components.dialogs.FriendCalendarDialog
+import com.free2party.ui.components.dialogs.FriendConfirmationDialog
+import com.free2party.ui.components.dialogs.PublicProfileDialog
+import com.free2party.ui.components.dialogs.ReportUserDialog
 import com.free2party.ui.components.ProfileAvatar
 import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.ui.components.StatusToggleButton
-import com.free2party.ui.components.dialogs.BlockUserDialog
-import com.free2party.ui.components.dialogs.FriendCalendarDialog
-import com.free2party.ui.components.dialogs.PublicProfileDialog
-import com.free2party.ui.components.dialogs.RemoveFriendDialog
-import com.free2party.ui.components.dialogs.ReportUserDialog
 import com.free2party.ui.screens.circles.CircleViewModel
 import com.free2party.ui.screens.circles.CircleUiEvent
 import com.free2party.ui.theme.available
@@ -89,17 +91,16 @@ import com.free2party.ui.theme.busy
 import com.free2party.ui.theme.busyContainer
 import com.free2party.ui.theme.onAvailableContainer
 import com.free2party.ui.theme.onBusyContainer
+import com.free2party.ui.theme.onEventContainer
 import com.free2party.ui.theme.onPendingContainer
 import com.free2party.ui.theme.pendingContainer
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
-import com.free2party.ui.theme.onEventContainer
 import com.free2party.util.SocialPlatform
 import com.free2party.util.openEmail
 import com.free2party.util.openSMS
 import com.free2party.util.openSocialMessage
 import kotlinx.coroutines.flow.collectLatest
-import androidx.core.graphics.toColorInt
 
 @Composable
 fun HomeRoute(
@@ -257,38 +258,107 @@ fun HomeScreen(
             }
         }
 
+        // Remove Friend Dialog
         if (showRemoveFriendDialog && friendToRemove != null) {
-            RemoveFriendDialog(
-                friend = friendToRemove!!,
+            FriendConfirmationDialog(
+                name = friendToRemove!!.name,
+                profilePicUrl = friendToRemove!!.profilePicUrl,
+                actionType = FriendActionType.REMOVE,
+                onDismissRequest = {
+                    showRemoveFriendDialog = false
+                    friendToRemove = null
+                },
                 onConfirm = {
                     showRemoveFriendDialog = false
                     friendToRemove?.let { onRemoveFriend(it.uid) }
-                    friendToRemove = null
-                },
-                onDismissRequest = {
-                    showRemoveFriendDialog = false
                     friendToRemove = null
                 }
             )
         }
 
+        // Block User Dialog
         if (showBlockUserDialog && friendToBlock != null) {
-            BlockUserDialog(
-                friend = friendToBlock!!,
-                onBlockOnly = {
+            FriendConfirmationDialog(
+                name = friendToBlock!!.name,
+                profilePicUrl = friendToBlock!!.profilePicUrl,
+                actionType = FriendActionType.BLOCK,
+                onDismissRequest = {
+                    showBlockUserDialog = false
+                    friendToBlock = null
+                },
+                // Block
+                onSecondaryAction = {
                     showBlockUserDialog = false
                     friendToBlock?.let { onRemoveAndBlockFriend(it.uid) }
                     friendToBlock = null
                 },
-                onBlockAndReport = {
+                // Block and Report
+                onConfirm = {
                     showBlockUserDialog = false
                     friendIdToReport = friendToBlock?.uid
                     showReportDialog = true
                     friendToBlock = null
                 },
-                onDismiss = {
-                    showBlockUserDialog = false
-                    friendToBlock = null
+                content = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(
+                                R.string.text_block_user_confirmation,
+                                stringResource(R.string.label_blocked_users)
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Block,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = stringResource(R.string.text_block_info_message_1),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NotificationsOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = stringResource(R.string.text_block_info_message_2),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
             )
         }
@@ -451,7 +521,7 @@ fun FriendsListSection(
                 }
             }
 
-            DropdownMenu(
+            AppDropdownMenu(
                 expanded = showFilterMenu,
                 onDismissRequest = { showFilterMenu = false }
             ) {
@@ -513,7 +583,7 @@ fun FriendsListSection(
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
-                contentDescription = stringResource(R.string.label_add_friend),
+                contentDescription = stringResource(R.string.description_add_friend),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -523,7 +593,7 @@ fun FriendsListSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
+                .padding(top = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -659,7 +729,7 @@ fun ExpandableFriendSection(
                         text = stringResource(R.string.text_no_friends_in_section),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
                     )
                 } else {
                     friends.forEach { friend ->
@@ -709,6 +779,7 @@ fun FriendItem(
                 MaterialTheme.colorScheme.available
             }
         }
+
         else -> MaterialTheme.colorScheme.busy
     }
 
@@ -763,7 +834,10 @@ fun FriendItem(
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.TopEnd)
-                                .background(MaterialTheme.colorScheme.availableContainer, CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.availableContainer,
+                                    CircleShape
+                                )
                                 .padding(1.dp),
                             tint = MaterialTheme.colorScheme.onEventContainer
                         )
@@ -807,10 +881,9 @@ fun FriendItem(
                             )
                         }
 
-                        DropdownMenu(
+                        AppDropdownMenu(
                             expanded = showContactMenu,
-                            onDismissRequest = { showContactMenu = false },
-                            containerColor = MaterialTheme.colorScheme.surface
+                            onDismissRequest = { showContactMenu = false }
                         ) {
                             if (friend.email.isNotBlank()) {
                                 DropdownMenuItem(
@@ -1000,18 +1073,15 @@ fun FriendItem(
                         )
                     }
 
-                    DropdownMenu(
+                    AppDropdownMenu(
                         expanded = showFriendMenu,
-                        onDismissRequest = { showFriendMenu = false },
-                        containerColor = MaterialTheme.colorScheme.surface
+                        onDismissRequest = { showFriendMenu = false }
                     ) {
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    if (isPending) stringResource(R.string.label_cancel_friend_request) else stringResource(
-                                        R.string.label_remove_friend
-                                    ),
-                                    color = MaterialTheme.colorScheme.error
+                                    if (isPending) stringResource(R.string.label_cancel_friend_request)
+                                    else stringResource(R.string.label_remove_friend)
                                 )
                             },
                             leadingIcon = {
@@ -1035,10 +1105,7 @@ fun FriendItem(
                             DropdownMenuItem(
                                 text = {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            stringResource(R.string.label_block_user),
-                                            color = MaterialTheme.colorScheme.error
-                                        )
+                                        Text(stringResource(R.string.label_block_user))
                                     }
                                 },
                                 leadingIcon = {

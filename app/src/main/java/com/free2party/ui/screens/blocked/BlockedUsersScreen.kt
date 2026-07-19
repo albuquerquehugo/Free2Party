@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,8 +49,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.free2party.data.model.BlockedUser
 import com.free2party.R
-import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.components.dialogs.ReportUserDialog
+import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -256,10 +256,9 @@ private fun BlockedUserItem(
                     )
                 }
 
-                DropdownMenu(
+                AppDropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    containerColor = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     DropdownMenuItem(

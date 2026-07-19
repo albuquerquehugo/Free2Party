@@ -175,7 +175,8 @@ class SocialRepositoryImpl @Inject constructor(
                     isStatusFromPlan = effectiveFromPlan,
                     socials = user.socials,
                     phoneNumber = user.phoneNumber,
-                    profilePicUrl = user.profilePicUrl
+                    profilePicUrl = user.profilePicUrl,
+                    gender = user.gender
                 )
             }.catch { emit(stub) }
         }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.free2party.R
 import com.free2party.ui.components.BadgedIconContainer
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.components.NumberBadge
 import com.free2party.ui.components.ProfileAvatar
 import com.free2party.ui.components.ProfileAvatarSize
@@ -130,7 +131,7 @@ fun LiveEventsOverviewPreview() {
                         }
                     }
 
-                    DropdownMenu(
+                    AppDropdownMenu(
                         expanded = showFilterMenu,
                         onDismissRequest = { showFilterMenu = false }
                     ) {

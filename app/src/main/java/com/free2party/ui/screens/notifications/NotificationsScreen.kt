@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,15 +58,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.free2party.R
 import com.free2party.data.model.FriendRequest
 import com.free2party.data.model.Membership
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
+import com.free2party.R
 import com.free2party.ui.components.AdBanner
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
+import com.free2party.ui.components.TopBar
 import com.free2party.util.formatTimeAgo
 import com.free2party.util.matchNameAndEmail
 import com.free2party.util.matchEventInvitation
@@ -599,10 +599,9 @@ fun NotificationBox(
                 )
             }
 
-            DropdownMenu(
+            AppDropdownMenu(
                 expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-                containerColor = MaterialTheme.colorScheme.surface
+                onDismissRequest = { showMenu = false }
             ) {
                 DropdownMenuItem(
                     text = {

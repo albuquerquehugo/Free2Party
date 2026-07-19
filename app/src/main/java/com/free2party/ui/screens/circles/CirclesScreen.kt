@@ -31,7 +31,6 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -64,10 +63,11 @@ import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.Membership
 import com.free2party.R
-import com.free2party.ui.components.TopBar
-import com.free2party.ui.components.dialogs.CircleDialog
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
+import com.free2party.ui.components.dialogs.CircleDialog
 import com.free2party.ui.components.dialogs.PremiumDialog
+import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -372,10 +372,9 @@ private fun CircleListItem(
                         )
                     }
 
-                    DropdownMenu(
+                    AppDropdownMenu(
                         expanded = showMenu,
-                        onDismissRequest = { showMenu = false },
-                        containerColor = MaterialTheme.colorScheme.surface
+                        onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.label_edit)) },

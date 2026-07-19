@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.data.model.Gender
 import com.free2party.ui.theme.availableContainer
 import com.free2party.ui.theme.busyContainer
 import com.free2party.ui.theme.onAvailableContainer
@@ -20,7 +21,7 @@ import com.free2party.ui.theme.onBusyContainer
 @Composable
 fun StatusPill(
     isUserFree: Boolean,
-    text: String? = null
+    userGender: Gender
 ) {
     val pillContainerColor =
         if (isUserFree) MaterialTheme.colorScheme.availableContainer
@@ -28,8 +29,11 @@ fun StatusPill(
     val pillContentColor =
         if (isUserFree) MaterialTheme.colorScheme.onAvailableContainer
         else MaterialTheme.colorScheme.onBusyContainer
-    val pillText = text
-        ?: stringResource(if (isUserFree) R.string.label_status_free else R.string.label_status_busy)
+    val pillText = if (isUserFree) {
+        stringResource(R.string.label_status_free)
+    } else {
+        stringResource(userGender.getStringRes(R.string.label_status_busy))
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = pillContainerColor),
@@ -37,10 +41,10 @@ fun StatusPill(
     ) {
         Text(
             text = pillText,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
             color = pillContentColor,
-            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            style = MaterialTheme.typography.labelMedium
         )
     }
 }

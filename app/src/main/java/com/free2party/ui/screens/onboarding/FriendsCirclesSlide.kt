@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.ui.components.BadgedIconContainer
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.components.NumberBadge
 import com.free2party.ui.components.ProfileAvatar
 import com.free2party.ui.components.ProfileAvatarSize
@@ -156,7 +156,7 @@ fun LiveFriendsCirclesPreview() {
                         }
                     }
 
-                    DropdownMenu(
+                    AppDropdownMenu(
                         expanded = showFilterMenu,
                         onDismissRequest = { showFilterMenu = false }
                     ) {
@@ -224,7 +224,7 @@ fun LiveFriendsCirclesPreview() {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PersonAdd,
-                                contentDescription = stringResource(R.string.label_add_friend),
+                                contentDescription = stringResource(R.string.description_add_friend),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }

@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.data.model.Gender
 import com.free2party.ui.components.StatusToggleButton
 import com.free2party.ui.components.StatusPill
 import com.free2party.ui.components.ProfileAvatar
@@ -81,7 +82,7 @@ fun LiveAvailabilityTogglePreview() {
 
                 // User Profile avatar at the bottom with dynamically changing status ring color
                 ProfileAvatar(statusColor = statusColor)
-                StatusPill(isUserFree = isUserFree)
+                StatusPill(isUserFree, Gender.OTHER)
             }
         }
 

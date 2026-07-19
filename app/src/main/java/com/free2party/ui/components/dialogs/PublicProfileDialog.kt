@@ -49,6 +49,7 @@ import com.free2party.ui.components.ProfileAvatar
 import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.data.repository.UserRepository
 import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.StatusPill
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
 import com.free2party.ui.theme.available
@@ -193,25 +194,7 @@ fun PublicProfileDialog(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Status Pill
-            val statusText = if (friend.isFreeNow) {
-                stringResource(R.string.label_status_free)
-            } else {
-                val baseRes = R.string.label_status_busy
-                val genderedRes = userState?.gender?.getStringRes(baseRes) ?: baseRes
-                stringResource(genderedRes)
-            }
-
-            Text(
-                text = statusText,
-                style = MaterialTheme.typography.labelMedium,
-                color = statusColor,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .background(statusColor.copy(alpha = 0.15f), CircleShape)
-                    .border(1.dp, statusColor.copy(alpha = 0.3f), CircleShape)
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            )
+            StatusPill(friend.isFreeNow, userState?.gender ?: friend.gender)
 
             Spacer(modifier = Modifier.height(16.dp))
 

@@ -1,5 +1,6 @@
 package com.free2party.ui.components
 
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,13 +26,11 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import android.widget.Toast
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -53,6 +51,7 @@ import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.Event
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
+import com.free2party.ui.components.basic.AppDropdownMenu
 import com.free2party.ui.theme.currentActivityContainer
 import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.onEventContainer
@@ -599,9 +598,8 @@ fun PlanActionsMenu(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val editDisabledMsg = stringResource(R.string.error_plan_edit_current_past)
-    DropdownMenu(
-        expanded = expanded, onDismissRequest = onDismissRequest,
-        containerColor = MaterialTheme.colorScheme.surface
+    AppDropdownMenu(
+        expanded = expanded, onDismissRequest = onDismissRequest
     ) {
         onEdit?.let {
             DropdownMenuItem(
