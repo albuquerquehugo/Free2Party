@@ -1000,7 +1000,12 @@ fun ProfileContent(
         )
 
         if (confirmButtons != null) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 confirmButtons()
             }
         }

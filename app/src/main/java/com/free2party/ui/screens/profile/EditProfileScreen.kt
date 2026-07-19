@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,7 @@ import com.free2party.data.model.Gender
 import com.free2party.ui.components.ProfileContent
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppFilledButton
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -329,15 +329,16 @@ fun EditProfileScreenContent(
             xUsername = xUsername,
             onXUsernameChange = onXUsernameChange,
             confirmButtons = {
-                TextButton(
+                AppFilledButton(
                     onClick = { setShowDeleteDialog(true) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(50.dp)
                         .testTag("delete_account_button"),
                     enabled = !isSaving && !isUploadingImage,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 ) {
                     Text(
@@ -359,7 +360,7 @@ fun EditProfileScreenContent(
                     onClick = onDiscardChanges,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(50.dp)
                         .testTag("discard_button"),
                     enabled = !isSaving
                 ) {
@@ -369,14 +370,14 @@ fun EditProfileScreenContent(
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Button(
+            AppFilledButton(
                 onClick = { onUpdateProfile() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(50.dp)
                     .testTag("save_button"),
                 enabled = hasChanges && !isSaving && isFormValid
             ) {

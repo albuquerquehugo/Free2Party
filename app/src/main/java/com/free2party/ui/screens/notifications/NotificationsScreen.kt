@@ -333,14 +333,14 @@ fun FriendRequestItem(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.error)
+                    .background(MaterialTheme.colorScheme.tertiary)
                     .clickable { setShowDeclineDialog(true) },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.label_decline),
-                    tint = MaterialTheme.colorScheme.onError,
+                    contentDescription = stringResource(R.string.description_decline),
+                    tint = MaterialTheme.colorScheme.onTertiary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -357,7 +357,7 @@ fun FriendRequestItem(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.label_accept),
+                    contentDescription = stringResource(R.string.description_accept),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )

@@ -5,7 +5,9 @@
     <string name="date_pattern_dd_mm_yyyy">dd-MM-yyyy</string>
     <string name="date_pattern_mm_dd_yyyy">MM-dd-yyyy</string>
     <string name="date_pattern_yyyy_mm_dd">yyyy-MM-dd</string>
+    <string name="description_accept">Aceitar</string>
     <string name="description_clear">Limpar</string>
+    <string name="description_decline">Recusar</string>
     <string name="description_hide_password">Ocultar senha</string>
     <string name="description_premium_only">Apenas na versão Premium</string>
     <string name="description_show_password">Mostrar senha</string>

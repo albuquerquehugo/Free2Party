@@ -272,9 +272,7 @@ fun RegisterScreen(
                 onXUsernameChange = onXUsernameChange,
                 confirmButtons = {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

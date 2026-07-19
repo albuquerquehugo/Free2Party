@@ -424,7 +424,10 @@ fun AppNavigation(
                                             }
                                         }
                                         if (navigated) {
-                                            dragOffset.snapTo(0f)
+                                            dragOffset.animateTo(
+                                                0f,
+                                                spring(stiffness = Spring.StiffnessMediumLow)
+                                            )
                                         } else {
                                             dragOffset.animateTo(
                                                 0f,
