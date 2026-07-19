@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,6 +50,7 @@ import com.free2party.ui.components.AppSettingsOption
 import com.free2party.ui.components.AppSettingsCard
 import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
@@ -615,7 +615,7 @@ fun SettingsScreenContent(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Button(
+                AppFilledButton(
                     onClick = onNavigateToOnboarding,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
@@ -657,10 +657,10 @@ fun SettingsScreenContent(
                         color = MaterialTheme.colorScheme.error
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Button(
+            AppFilledButton(
                 onClick = {
                     val oldPattern = user.settings.datePattern
                     val newPattern = datePattern

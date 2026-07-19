@@ -1,5 +1,6 @@
 package com.free2party.ui.components.dialogs
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -22,7 +23,7 @@ fun FriendConfirmationDialog(
     onConfirm: () -> Unit,
     onDismissRequest: () -> Unit,
     onSecondaryAction: (() -> Unit)? = null,
-    content: @Composable (() -> Unit)? = null
+    content: @Composable (ColumnScope.() -> Unit)? = null
 ) {
     val title = when (actionType) {
         FriendActionType.ADD -> stringResource(R.string.label_add_friend_name, name)

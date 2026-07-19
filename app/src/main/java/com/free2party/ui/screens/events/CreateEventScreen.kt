@@ -35,7 +35,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -86,6 +85,7 @@ import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.AppDateTimeSection
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
@@ -928,7 +928,7 @@ fun CreateEventScreen(
                 }
             }
 
-            Button(
+            AppFilledButton(
                 onClick = {
                     val startMillis = startDatePickerState.selectedDateMillis
                     val endMillis = endDatePickerState.selectedDateMillis
@@ -1008,8 +1008,7 @@ fun CreateEventScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
                     .height(56.dp),
-                enabled = isFormValid && (editingEventId == null || hasChanges),
-                shape = RoundedCornerShape(12.dp)
+                enabled = isFormValid && (editingEventId == null || hasChanges)
             ) {
                 Text(
                     text =
@@ -1080,91 +1079,78 @@ fun CreateEventScreen(
 
     // Link insertion dialog
     if (showLinkDialog) {
-        AppBaseDialog(onDismissRequest = { showLinkDialog = false }) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+        val formattedLinkUrl = remember(linkUrl) {
+            val trimmed = linkUrl.trim()
+            if (trimmed.isNotBlank() && !trimmed.startsWith("http://") &&
+                !trimmed.startsWith("https://")
             ) {
-                Text(
-                    text = stringResource(R.string.label_add_link),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                AppOutlinedTextField(
-                    value = linkTitle,
-                    onValueChange = { linkTitle = it },
-                    labelText = stringResource(R.string.label_link_title),
-                    placeholderText = stringResource(R.string.placeholder_link_title),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                val formattedLinkUrl = remember(linkUrl) {
-                    val trimmed = linkUrl.trim()
-                    if (trimmed.isNotBlank() && !trimmed.startsWith("http://") && !trimmed.startsWith(
-                            "https://"
-                        )
-                    ) {
-                        "https://$trimmed"
-                    } else {
-                        trimmed
-                    }
-                }
-
-                val isUrlFormatValid = remember(linkUrl) {
-                    linkUrl.isBlank() || isUrlValid(linkUrl)
-                }
-
-                val isDuplicate = remember(formattedLinkUrl, usefulLinksList) {
-                    formattedLinkUrl.isNotBlank() && usefulLinksList.any { it.url == formattedLinkUrl }
-                }
-
-                AppOutlinedTextField(
-                    value = linkUrl,
-                    onValueChange = { linkUrl = it },
-                    labelText = stringResource(R.string.label_link_url),
-                    placeholderText = stringResource(R.string.placeholder_link_url),
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = !isUrlFormatValid || isDuplicate,
-                    supportingText = {
-                        if (!isUrlFormatValid) {
-                            Text(stringResource(R.string.error_invalid_url))
-                        } else if (isDuplicate) {
-                            Text(stringResource(R.string.error_duplicate_link))
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done
-                    )
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = {
-                        showLinkDialog = false
-                    }) { Text(stringResource(R.string.label_cancel)) }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            usefulLinksList =
-                                usefulLinksList + EventLink(linkTitle.trim(), formattedLinkUrl)
-                            showLinkDialog = false
-                        },
-                        enabled = linkTitle.isNotBlank() && linkUrl.isNotBlank() && isUrlFormatValid && !isDuplicate
-                    ) {
-                        Text(stringResource(R.string.label_add))
-                    }
-                }
+                "https://$trimmed"
+            } else {
+                trimmed
             }
         }
+
+        val isUrlFormatValid = remember(linkUrl) {
+            linkUrl.isBlank() || isUrlValid(linkUrl)
+        }
+
+        val isDuplicate = remember(formattedLinkUrl, usefulLinksList) {
+            formattedLinkUrl.isNotBlank() && usefulLinksList.any { it.url == formattedLinkUrl }
+        }
+
+        val isConfirmEnabled = linkTitle.isNotBlank() && linkUrl.isNotBlank()
+                && isUrlFormatValid && !isDuplicate
+
+        AppConfirmationDialog(
+            title = stringResource(R.string.label_add_link),
+            contentHorizontalAlignment = Alignment.CenterHorizontally,
+            confirmButtonText = stringResource(R.string.label_add),
+            confirmButtonEnabled = isConfirmEnabled,
+            onConfirm = {
+                usefulLinksList =
+                    usefulLinksList + EventLink(linkTitle.trim(), formattedLinkUrl)
+                showLinkDialog = false
+            },
+            dismissButtonText = stringResource(R.string.label_cancel),
+            onDismissRequest = { showLinkDialog = false },
+            content = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AppOutlinedTextField(
+                        value = linkTitle,
+                        onValueChange = { linkTitle = it },
+                        labelText = stringResource(R.string.label_link_title),
+                        placeholderText = stringResource(R.string.placeholder_link_title),
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Sentences,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+
+                    AppOutlinedTextField(
+                        value = linkUrl,
+                        onValueChange = { linkUrl = it },
+                        labelText = stringResource(R.string.label_link_url),
+                        placeholderText = stringResource(R.string.placeholder_link_url),
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = !isUrlFormatValid || isDuplicate,
+                        supportingText = {
+                            if (!isUrlFormatValid) {
+                                Text(stringResource(R.string.error_invalid_url))
+                            } else if (isDuplicate) {
+                                Text(stringResource(R.string.error_duplicate_link))
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                }
+            }
+        )
     }
 
     // Date/Time selection dialog components (Reusing plan logic)

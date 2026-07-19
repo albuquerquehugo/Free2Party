@@ -95,7 +95,6 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.filled.Yard
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -124,6 +123,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.R
 import com.free2party.ui.components.TopBar
+import com.free2party.ui.components.basic.AppFilledButton
 import kotlinx.coroutines.flow.collectLatest
 
 data class InterestCategory(
@@ -436,7 +436,8 @@ fun InterestsScreen(
     onSave: () -> Unit
 ) {
     Scaffold(
-        containerColor = if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
+        containerColor =
+            if (gradientBackground) Color.Transparent else MaterialTheme.colorScheme.surface,
         topBar = {
             TopBar(
                 title = stringResource(R.string.label_interests),
@@ -475,7 +476,7 @@ fun InterestsScreen(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 2.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -510,10 +511,10 @@ fun InterestsScreen(
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
 
-                        Button(
+                        AppFilledButton(
                             onClick = onSave,
                             modifier = Modifier
                                 .fillMaxWidth()

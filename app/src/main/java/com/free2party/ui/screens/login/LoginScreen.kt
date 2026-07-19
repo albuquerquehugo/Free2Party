@@ -429,7 +429,7 @@ fun LoginScreen(
                     onClick = onLoginClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(56.dp),
                     enabled = isFormValid && uiState !is LoginUiState.Loading
                 ) {
                     Text(stringResource(R.string.label_login))
@@ -463,7 +463,7 @@ fun LoginScreen(
                     onClick = onGoogleSignInClick,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(56.dp),
                     enabled = uiState !is LoginUiState.Loading,
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = MaterialTheme.colorScheme.background,

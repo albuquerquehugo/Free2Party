@@ -292,7 +292,7 @@ fun RegisterScreen(
                                 onClick = onRegisterClick,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(50.dp),
+                                    .height(56.dp),
                                 enabled = isFormValid
                             ) {
                                 Text(stringResource(R.string.label_register))

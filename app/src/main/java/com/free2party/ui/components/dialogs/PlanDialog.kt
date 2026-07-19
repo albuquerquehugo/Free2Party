@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +49,7 @@ import com.free2party.data.model.FuturePlan
 import com.free2party.data.model.PlanVisibility
 import com.free2party.ui.components.FriendSelector
 import com.free2party.ui.components.AppDateTimeSection
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.theme.inactive
@@ -290,25 +291,36 @@ fun PlanDialog(
         }
     }
 
-    AppBaseDialog(onDismissRequest = handleDismiss) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 20.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text =
-                    if (editingPlan == null) stringResource(R.string.label_schedule_plan)
-                    else stringResource(R.string.label_edit_plan),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                textAlign = TextAlign.Center
-            )
-
+    AppConfirmationDialog(
+        title = if (editingPlan == null) stringResource(R.string.label_schedule_plan)
+                else stringResource(R.string.label_edit_plan),
+        contentHorizontalAlignment = Alignment.CenterHorizontally,
+        confirmButtonText = if (editingPlan == null) stringResource(R.string.label_add)
+                            else stringResource(R.string.label_update),
+        confirmButtonEnabled = isConfirmEnabled,
+        confirmButtonModifier = Modifier.testTag("plan_dialog_confirm_button"),
+        onConfirm = {
+            val startMillis = startDatePickerState.selectedDateMillis
+            val endMillis = endDatePickerState.selectedDateMillis
+            if (startMillis != null && endMillis != null) {
+                val sdf = SimpleDateFormat(
+                    "yyyy-MM-dd",
+                    Locale.getDefault()
+                ).apply { timeZone = TimeZone.getTimeZone("UTC") }
+                onConfirm(
+                    sdf.format(Date(startMillis)),
+                    sdf.format(Date(endMillis)),
+                    formatTime(startTimeState.hour, startTimeState.minute),
+                    formatTime(endTimeState.hour, endTimeState.minute),
+                    note,
+                    visibility,
+                    currentSelectedIds
+                )
+            }
+        },
+        dismissButtonText = stringResource(R.string.label_cancel),
+        onDismissRequest = handleDismiss,
+        content = {
             Column(
                 modifier = Modifier
                     .weight(1f, fill = false)
@@ -447,45 +459,8 @@ fun PlanDialog(
                     }
                 }
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(onClick = handleDismiss) { Text(stringResource(R.string.label_cancel)) }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = {
-                        val startMillis = startDatePickerState.selectedDateMillis
-                        val endMillis = endDatePickerState.selectedDateMillis
-                        if (startMillis != null && endMillis != null) {
-                            val sdf = SimpleDateFormat(
-                                "yyyy-MM-dd",
-                                Locale.getDefault()
-                            ).apply { timeZone = TimeZone.getTimeZone("UTC") }
-                            onConfirm(
-                                sdf.format(Date(startMillis)),
-                                sdf.format(Date(endMillis)),
-                                formatTime(startTimeState.hour, startTimeState.minute),
-                                formatTime(endTimeState.hour, endTimeState.minute),
-                                note,
-                                visibility,
-                                currentSelectedIds
-                            )
-                        }
-                    },
-                    modifier = Modifier.testTag("plan_dialog_confirm_button"),
-                    enabled = isConfirmEnabled
-                ) {
-                    Text(
-                        if (editingPlan == null) stringResource(R.string.label_add)
-                        else stringResource(R.string.label_update)
-                    )
-                }
-            }
         }
-    }
+    )
 
     if (showStartDatePicker) {
         AppDatePickerDialog(

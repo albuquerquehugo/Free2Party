@@ -3,6 +3,7 @@ package com.free2party.ui.components.dialogs
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,8 +31,10 @@ fun AppConfirmationDialog(
     topContent: @Composable (() -> Unit)? = null,
     title: String,
     text: String? = null,
-    content: @Composable (() -> Unit)? = null,
+    content: @Composable (ColumnScope.() -> Unit)? = null,
     confirmButtonText: String = stringResource(R.string.label_confirm),
+    confirmButtonEnabled: Boolean = true,
+    confirmButtonModifier: Modifier = Modifier,
     onConfirm: () -> Unit,
     dismissButtonText: String = stringResource(R.string.label_cancel),
     onDismissRequest: () -> Unit,
@@ -124,7 +127,8 @@ fun AppConfirmationDialog(
 
                         AppFilledButton(
                             onClick = onConfirm,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().then(confirmButtonModifier),
+                            enabled = confirmButtonEnabled,
                             colors =
                                 if (isDestructive) {
                                     ButtonDefaults.buttonColors(
@@ -160,6 +164,8 @@ fun AppConfirmationDialog(
 
                     AppFilledButton(
                         onClick = onConfirm,
+                        enabled = confirmButtonEnabled,
+                        modifier = confirmButtonModifier,
                         colors =
                             if (isDestructive) {
                                 ButtonDefaults.buttonColors(

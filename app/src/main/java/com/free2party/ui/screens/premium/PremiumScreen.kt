@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,6 +64,7 @@ import com.free2party.util.parsePrice
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.collectLatest
 import androidx.core.net.toUri
+import com.free2party.ui.components.basic.AppFilledButton
 
 @Composable
 fun PremiumRoute(
@@ -169,7 +169,7 @@ fun PremiumScreen(
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = onBack) {
+                        AppFilledButton(onClick = onBack) {
                             Text(stringResource(R.string.label_go_back))
                         }
                     }
@@ -375,8 +375,25 @@ fun PremiumScreen(
                         // Checkout Actions
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        TextButton(
+                            onClick = onRestoreClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            enabled = !uiState.isPurchasing
+                        ) {
+                            Text(
+                                text = stringResource(R.string.label_restore_purchases),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         val localContext = LocalContext.current
-                        Button(
+                        AppFilledButton(
                             onClick = {
                                 if (uiState.isPremium) {
                                     val intent = Intent(
@@ -410,23 +427,6 @@ fun PremiumScreen(
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        TextButton(
-                            onClick = onRestoreClick,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            enabled = !uiState.isPurchasing
-                        ) {
-                            Text(
-                                text = stringResource(R.string.label_restore_purchases),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

@@ -333,7 +333,7 @@ fun EditProfileScreenContent(
                     onClick = { setShowDeleteDialog(true) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(56.dp)
                         .testTag("delete_account_button"),
                     enabled = !isSaving && !isUploadingImage,
                     colors = ButtonDefaults.textButtonColors(
@@ -360,7 +360,7 @@ fun EditProfileScreenContent(
                     onClick = onDiscardChanges,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(56.dp)
                         .testTag("discard_button"),
                     enabled = !isSaving
                 ) {
@@ -377,7 +377,7 @@ fun EditProfileScreenContent(
                 onClick = { onUpdateProfile() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(56.dp)
                     .testTag("save_button"),
                 enabled = hasChanges && !isSaving && isFormValid
             ) {

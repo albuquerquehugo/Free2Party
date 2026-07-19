@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -58,10 +55,21 @@ fun ReportUserDialog(
     var selectedOption by remember { mutableStateOf(options[0]) }
     var otherReason by remember { mutableStateOf("") }
 
-    AlertDialog(
+    val isOtherSelected = selectedOption == options.last()
+    val isEnabled = !isOtherSelected || otherReason.isNotBlank()
+
+    AppConfirmationDialog(
+        title = stringResource(R.string.label_report_user),
+        confirmButtonText = stringResource(R.string.label_report),
+        confirmButtonEnabled = isEnabled,
+        onConfirm = {
+            val finalReason = if (isOtherSelected) otherReason else selectedOption
+            onReport(finalReason)
+        },
+        dismissButtonText = stringResource(R.string.label_cancel),
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.label_report_user)) },
-        text = {
+        isDestructive = true,
+        content = {
             Column(
                 modifier = Modifier.selectableGroup(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -118,40 +126,6 @@ fun ReportUserDialog(
                     )
                 }
             }
-        },
-        confirmButton = {
-            val isOtherSelected = selectedOption == options.last()
-            val isEnabled = !isOtherSelected || otherReason.isNotBlank()
-
-            Button(
-                onClick = {
-                    val finalReason = if (isOtherSelected) otherReason else selectedOption
-                    onReport(finalReason)
-                },
-                enabled = isEnabled,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                    disabledContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
-                    disabledContentColor = MaterialTheme.colorScheme.onError.copy(alpha = 0.38f)
-                )
-            ) {
-                Text(stringResource(R.string.label_report))
-            }
-        },
-        dismissButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            ) {
-                Text(stringResource(R.string.label_cancel))
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        titleContentColor = MaterialTheme.colorScheme.onSurface,
-        textContentColor = MaterialTheme.colorScheme.onSurface
+        }
     )
 }
