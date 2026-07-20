@@ -1,6 +1,11 @@
 *.iml
+*-debug.log
+*.apk
+*.aab
 .gradle
 /local.properties
+.DS_Store
+/.firebase/
 /.gemini
 /.github
 /.idea/caches
@@ -18,20 +23,16 @@
 /.idea/planningMode.xml
 /.idea/workspace.xml
 /.windsurf
-.DS_Store
 /app/release/
 /app/release.jks
 /app/upload_certificate.pem
 /build
-*.apk
-*.aab
 /captures
+/emulator_data
 /Logos
+/Scripts/Python Image Generation
 /Test Builds
 .externalNativeBuild
 .cxx
-local.properties
 google-services.json
-*-debug.log
-.firebase/
-emulator_data
+local.properties
