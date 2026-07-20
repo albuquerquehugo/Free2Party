@@ -87,6 +87,7 @@ class AppearanceViewModel @Inject constructor(
     }
 
     fun updateStatusEmoji(emoji: String) {
+        if (membership == Membership.FREE && emoji.isNotBlank()) return
         viewModelScope.launch {
             statusEmoji = emoji
             val uid = userRepository.currentUserId
@@ -102,6 +103,7 @@ class AppearanceViewModel @Inject constructor(
     }
 
     fun updateStatusColor(color: String) {
+        if (membership == Membership.FREE && color.isNotBlank()) return
         viewModelScope.launch {
             statusColor = color
             settingsRepository.setStatusColor(color)
@@ -158,6 +160,7 @@ class AppearanceViewModel @Inject constructor(
     }
 
     fun updateGradientTheme(theme: String) {
+        if (membership == Membership.FREE && theme != "DEFAULT") return
         viewModelScope.launch {
             settingsRepository.setGradientTheme(theme)
             

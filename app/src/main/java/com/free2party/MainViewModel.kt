@@ -157,25 +157,36 @@ class MainViewModel @Inject constructor(
 
                     if (initialUser != null) {
                         var targetThemeName = localThemeName
-                        if (initialUser.membership == Membership.FREE && localThemeName != "DEFAULT") {
-                            targetThemeName = "DEFAULT"
-                            settingsRepository.setGradientTheme("DEFAULT")
+                        var targetStatusColor = localStatusColor
+                        if (initialUser.membership == Membership.FREE) {
+                            if (localThemeName != "DEFAULT") {
+                                targetThemeName = "DEFAULT"
+                                settingsRepository.setGradientTheme("DEFAULT")
+                            }
+                            if (localStatusColor.isNotBlank()) {
+                                targetStatusColor = ""
+                                settingsRepository.setStatusColor("")
+                            }
                         }
+
+                        val targetEmoji = if (initialUser.membership == Membership.FREE) "" else initialUser.statusEmoji
 
                         if ((initialUser.settings.themeMode != localTheme) || 
                             (initialUser.settings.gradientBackground != localBackground) ||
                             (initialUser.settings.gradientTheme != targetThemeName) ||
-                            (initialUser.settings.statusColor != localStatusColor)) {
+                            (initialUser.settings.statusColor != targetStatusColor) ||
+                            (initialUser.statusEmoji != targetEmoji)) {
                             Log.d(
                                 "MainViewModel",
                                 "Pushing local settings to Cloud at login/startup"
                             )
                             val updatedUser = initialUser.copy(
+                                statusEmoji = targetEmoji,
                                 settings = initialUser.settings.copy(
                                     themeMode = localTheme,
                                     gradientBackground = localBackground,
                                     gradientTheme = targetThemeName,
-                                    statusColor = localStatusColor
+                                    statusColor = targetStatusColor
                                 )
                             )
                             userRepository.updateUser(updatedUser)
@@ -186,15 +197,26 @@ class MainViewModel @Inject constructor(
 
                     // Continuous Pull Sync: Only from Cloud to Local
                     userRepository.observeUser(uid).collectLatest { user ->
-                        // Reset gradient theme to default if the user is free but has a premium background selected
-                        if (user.membership == Membership.FREE && user.settings.gradientTheme != "DEFAULT") {
+                        // Reset premium customization settings (gradient theme, status color, status emoji) to default if user is FREE
+                        if (user.membership == Membership.FREE &&
+                            (user.settings.gradientTheme != "DEFAULT" || user.settings.statusColor.isNotBlank() || user.statusEmoji.isNotBlank())
+                        ) {
                             Log.d(
                                 "MainViewModel",
-                                "User membership is FREE, but gradient theme is ${user.settings.gradientTheme}. Resetting to DEFAULT."
+                                "User membership is FREE, but has premium customization settings. Resetting to defaults."
                             )
-                            settingsRepository.setGradientTheme("DEFAULT")
+                            if (user.settings.gradientTheme != "DEFAULT") {
+                                settingsRepository.setGradientTheme("DEFAULT")
+                            }
+                            if (user.settings.statusColor.isNotBlank()) {
+                                settingsRepository.setStatusColor("")
+                            }
                             val updatedUser = user.copy(
-                                settings = user.settings.copy(gradientTheme = "DEFAULT")
+                                statusEmoji = "",
+                                settings = user.settings.copy(
+                                    gradientTheme = "DEFAULT",
+                                    statusColor = ""
+                                )
                             )
                             userRepository.updateUser(updatedUser)
                             return@collectLatest
