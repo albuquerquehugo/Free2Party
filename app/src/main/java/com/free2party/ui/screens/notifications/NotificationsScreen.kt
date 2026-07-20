@@ -36,7 +36,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +65,7 @@ import com.free2party.R
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.basic.AppDropdownMenu
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.TopBar
 import com.free2party.util.formatTimeAgo
@@ -203,7 +203,7 @@ fun NotificationsScreen(
 
                     if (notifications.isNotEmpty()) {
                         item {
-                            TextButton(
+                            AppTextButton(
                                 enabled = notificationsUnreadCount > 0,
                                 onClick = onMarkAllAsRead,
                                 shape = MaterialTheme.shapes.small

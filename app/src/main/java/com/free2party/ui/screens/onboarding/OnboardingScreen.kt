@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.free2party.R
+import com.free2party.ui.components.basic.AppTextButton
 import kotlinx.coroutines.launch
 
 @Composable
@@ -161,7 +162,7 @@ fun OnboardingBottomBar(
     ) {
         // Left button: Skip
         if (currentPage < pageCount - 1) {
-            TextButton(
+            AppTextButton(
                 onClick = onSkip,
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {

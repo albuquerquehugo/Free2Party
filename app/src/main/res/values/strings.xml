@@ -41,6 +41,7 @@
     <string name="label_mark_all_as_read">Mark all as read</string>
     <string name="label_mark_as_read">Mark as read</string>
     <string name="label_mark_as_unread">Mark as unread</string>
+    <string name="label_next">Next</string>
     <string name="label_nobody">Nobody</string>
     <string name="label_ok">OK</string>
     <string name="label_only_selected_people_label">Only selected people…</string>
@@ -49,6 +50,7 @@
     <string name="label_password">Password</string>
     <string name="label_pending_observation">(Pending)</string>
     <string name="label_premium">Premium</string>
+    <string name="label_previous">Previous</string>
     <string name="label_remove">Remove</string>
     <string name="label_required_field">" *"</string>
     <string name="label_save">Save</string>
@@ -205,6 +207,7 @@
     <string name="text_circles_description">Create circles to group your friends and quickly filter who can see your plans or whose availability you see.</string>
     <string name="text_delete_circle_confirmation">Are you sure you want to delete this circle? This will not remove your friends, only the grouping.</string>
     <string name="text_no_friends_in_circle">No friends found in this circle</string>
+    <string name="text_showing_friends_in_circle">Showing friends in circle: %1$s</string>
     <string name="toast_circle_created">Circle created successfully</string>
     <string name="toast_circle_deleted">Circle deleted successfully</string>
     <string name="toast_circle_updated">Circle updated successfully</string>
@@ -404,6 +407,7 @@
     <string name="label_delete_comment_confirm">Are you sure you want to delete this comment?</string>
     <string name="label_delete_event">Delete Event</string>
     <string name="label_delete_event_confirm">Are you sure you want to delete this event? This action cannot be undone.</string>
+    <string name="label_deleting_event">Deleting event…</string>
     <string name="label_discard">Discard</string>
     <string name="label_distance_imperial_ft">%1$d ft</string>
     <string name="label_distance_imperial_mi">%1$.1f mi</string>
@@ -439,6 +443,7 @@
     <string name="label_open_in_maps">Open in Maps</string>
     <string name="label_pending">Pending</string>
     <string name="label_photo_album">Photo Album</string>
+    <string name="label_photo_uploaded_by">Sent by %1$s</string>
     <string name="label_photos">Photos</string>
     <string name="label_photos_empty">No photos shared yet. Upload the first one!</string>
     <string name="label_post_comment">Post</string>
@@ -448,9 +453,10 @@
     <string name="label_timezone">Timezone</string>
     <string name="label_timezone_search">Search Timezone…</string>
     <string name="label_upload_photo">Upload Photo</string>
+    <string name="label_uploading">Uploading…</string>
     <string name="label_useful_links">Useful Links</string>
     <string name="label_you">You</string>
-    <string name="label_your_local_time">Your local time (Translated from original: %1$s @ %2$s %3$s)</string>
+    <string name="label_your_local_time">Your local time (Original: %1$s @ %2$s %3$s)</string>
     <string name="placeholder_comment">Write a comment…</string>
     <string name="placeholder_event_description">Enter event description</string>
     <string name="placeholder_event_title">Enter event title</string>
@@ -458,6 +464,7 @@
     <string name="placeholder_link_url">Link URL (e.g. https://…)</string>
     <string name="placeholder_location">Enter location name or address</string>
     <string name="placeholder_search_events">Search events…</string>
+    <string name="text_event_ended_rsvp_disabled">RSVP is closed because this event has ended</string>
     <string name="text_event_type_private">Invite-only</string>
     <string name="text_event_type_public">Anyone can view and join</string>
     <string name="toast_comment_deleted">Comment deleted</string>
@@ -466,7 +473,10 @@
     <string name="toast_event_deleted">Event deleted!</string>
     <string name="toast_event_updated">Event updated successfully!</string>
     <string name="toast_photo_deleted">Photo deleted</string>
-    <string name="toast_photo_uploaded">Photo uploaded successfully!</string>
+    <plurals name="toast_photos_uploaded">
+        <item quantity="one">%1$d photo uploaded</item>
+        <item quantity="other">%1$d photos uploaded</item>
+    </plurals>
 
     <!-- Interests Section -->
     <string name="interest_adrenaline_sports">Adrenaline Sports</string>
@@ -612,7 +622,6 @@
     <!-- Onboarding Tutorial -->
     <string name="label_get_started">Get Started</string>
     <string name="label_onboarding">Tutorial</string>
-    <string name="label_next">Next</string>
     <string name="label_skip">Skip</string>
     <string name="onboarding_text_availability">Easily change your availability. When you are free, friends can invite you immediately.</string>
     <string name="onboarding_text_availability_tutorial_note">*Throughout this tutorial, all blue-highlighted hints are fully interactive! Try toggling the status above by clicking the Free2Party button.</string>
@@ -747,6 +756,7 @@
     <string name="error_end_date_time_required">End date and time are required</string>
     <string name="error_end_time_required">End time is required</string>
     <string name="error_event_edit_current_past">Cannot edit a current or past event</string>
+    <string name="error_event_ended_rsvp">You cannot change your RSVP for an event that has ended</string>
     <string name="error_event_not_found">The event was not found.</string>
     <string name="error_event_past_date_time">Cannot schedule events for a past date or time</string>
     <string name="error_failed_delete_plan">Failed to delete the plan.</string>

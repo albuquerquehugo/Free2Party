@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.free2party.BuildConfig
 import com.free2party.R
+import com.free2party.ui.components.basic.AppTextButton
 
 @Composable
 fun AboutDialog(
@@ -132,7 +132,7 @@ fun AboutDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss) {
+                AppTextButton(onClick = onDismiss) {
                     Text(stringResource(R.string.label_close))
                 }
             }

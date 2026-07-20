@@ -36,6 +36,7 @@ import com.free2party.ui.components.BadgedIconContainer
 import com.free2party.ui.components.NumberBadge
 import com.free2party.ui.components.ProfileAvatar
 import com.free2party.ui.components.ProfileAvatarSize
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.theme.available
@@ -244,9 +245,8 @@ fun LiveEventDetailsRsvpPreview() {
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
-                            Button(
+                            AppFilledButton(
                                 onClick = {},
-                                shape = RoundedCornerShape(12.dp),
                                 contentPadding = PaddingValues(horizontal = 12.dp)
                             ) {
                                 Text(stringResource(R.string.label_open_in_maps))
@@ -285,9 +285,12 @@ fun LiveEventDetailsRsvpPreview() {
                                     },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (userRsvp == "GOING") MaterialTheme.colorScheme.available
-                                        else MaterialTheme.colorScheme.available.copy(alpha = 0.12f),
-                                        contentColor = if (userRsvp == "GOING") Color.White else MaterialTheme.colorScheme.available
+                                        containerColor =
+                                            if (userRsvp == "GOING") MaterialTheme.colorScheme.available
+                                            else MaterialTheme.colorScheme.available.copy(alpha = 0.12f),
+                                        contentColor =
+                                            if (userRsvp == "GOING") Color.White
+                                            else MaterialTheme.colorScheme.available
                                     ),
                                     border = if (userRsvp == "GOING") null else BorderStroke(
                                         1.dp,
@@ -305,9 +308,12 @@ fun LiveEventDetailsRsvpPreview() {
                                     },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (userRsvp == "NOT_GOING") MaterialTheme.colorScheme.busy
-                                        else MaterialTheme.colorScheme.busy.copy(alpha = 0.12f),
-                                        contentColor = if (userRsvp == "NOT_GOING") Color.White else MaterialTheme.colorScheme.busy
+                                        containerColor =
+                                            if (userRsvp == "NOT_GOING") MaterialTheme.colorScheme.busy
+                                            else MaterialTheme.colorScheme.busy.copy(alpha = 0.12f),
+                                        contentColor =
+                                            if (userRsvp == "NOT_GOING") Color.White
+                                            else MaterialTheme.colorScheme.busy
                                     ),
                                     border = if (userRsvp == "NOT_GOING") null else BorderStroke(
                                         1.dp,

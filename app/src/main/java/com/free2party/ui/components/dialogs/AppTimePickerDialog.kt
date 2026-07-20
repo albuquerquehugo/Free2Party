@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
@@ -22,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppTextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +59,7 @@ fun AppTimePickerDialog(
                     .padding(top = 16.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismissRequest) {
+                AppTextButton(onClick = onDismissRequest) {
                     Text(stringResource(R.string.label_cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))

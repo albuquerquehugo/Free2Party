@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppTextButton
 
 @Composable
 fun EmailDialog(
@@ -113,7 +113,7 @@ fun EmailDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(
+                AppTextButton(
                     onClick = onDismiss,
                     enabled = !isLoading
                 ) {

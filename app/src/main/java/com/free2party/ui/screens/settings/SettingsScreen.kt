@@ -21,7 +21,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,10 +47,11 @@ import com.free2party.data.model.PlanVisibility
 import com.free2party.R
 import com.free2party.ui.components.AppSettingsOption
 import com.free2party.ui.components.AppSettingsCard
-import com.free2party.ui.components.FriendSelector
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppTextButton
+import com.free2party.ui.components.FriendSelector
+import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -634,7 +634,7 @@ fun SettingsScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (hasChanges) {
-                TextButton(
+                AppTextButton(
                     onClick = {
                         use24HourFormat = user.settings.use24HourFormat
                         datePattern = user.settings.datePattern

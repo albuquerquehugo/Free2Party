@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -41,6 +40,7 @@ import com.free2party.data.model.Countries
 import com.free2party.R
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.util.TextFieldRegistry
 import java.util.Locale
 
@@ -191,7 +191,7 @@ fun CountryPickerDialog(
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismissRequest) {
+                AppTextButton(onClick = onDismissRequest) {
                     Text(stringResource(R.string.label_close))
                 }
             }

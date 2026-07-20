@@ -126,15 +126,16 @@ fun CalendarResults(
 @Composable
 private fun EmptyStateMessage(isDateSelected: Boolean) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text =
                 if (isDateSelected) stringResource(R.string.text_no_activities_for_day)
                 else stringResource(R.string.text_select_day_on_calendar),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium
         )
     }
 }

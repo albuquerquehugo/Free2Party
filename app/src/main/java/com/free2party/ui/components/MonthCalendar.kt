@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.free2party.R
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.screens.calendar.CalendarViewModel
 import com.free2party.ui.theme.eventContainer
 import com.free2party.ui.theme.inactive
@@ -101,7 +101,7 @@ fun MonthCalendar(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                TextButton(
+                AppTextButton(
                     onClick = { viewModel.goToToday() },
                     contentPadding = PaddingValues(0.dp)
                 ) {

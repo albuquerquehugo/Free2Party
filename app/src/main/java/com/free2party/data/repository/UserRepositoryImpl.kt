@@ -1,5 +1,6 @@
 package com.free2party.data.repository
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.free2party.data.model.PlanVisibility
@@ -20,6 +21,8 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
+import com.google.firebase.storage.StorageMetadata
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +32,8 @@ import kotlinx.coroutines.tasks.await
 class UserRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    @param:ApplicationContext private val context: Context
 ) : UserRepository {
 
     override val currentUserId: String
@@ -171,7 +175,11 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun uploadProfilePicture(uri: Uri): Result<String> = try {
         val uid = validateSession()
         val ref = storage.reference.child("profile_pictures/$uid.jpg")
-        ref.putFile(uri).await()
+        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+        val metadata = StorageMetadata.Builder()
+            .setContentType(mimeType)
+            .build()
+        ref.putFile(uri, metadata).await()
         val downloadUrl = ref.downloadUrl.await().toString()
         Result.success(downloadUrl)
     } catch (e: Exception) {

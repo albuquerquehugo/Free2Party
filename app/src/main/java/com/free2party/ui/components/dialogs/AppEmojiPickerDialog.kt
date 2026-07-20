@@ -14,6 +14,7 @@ import androidx.emoji2.emojipicker.EmojiPickerView
 import android.view.ContextThemeWrapper
 import androidx.compose.ui.graphics.luminance
 import com.free2party.R
+import com.free2party.ui.components.basic.AppTextButton
 
 @Composable
 fun AppEmojiPickerDialog(
@@ -64,7 +65,7 @@ fun AppEmojiPickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    AppTextButton(onClick = onDismiss) {
                         Text(
                             text = stringResource(android.R.string.cancel),
                             style = MaterialTheme.typography.titleMedium

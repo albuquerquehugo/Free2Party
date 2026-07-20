@@ -20,7 +20,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,10 +36,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.data.model.Gender
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.ProfileContent
 import com.free2party.ui.components.TopBar
-import com.free2party.ui.components.basic.AppFilledButton
 
 @Composable
 fun RegisterRoute(
@@ -298,7 +298,7 @@ fun RegisterScreen(
                                 Text(stringResource(R.string.label_register))
                             }
 
-                            TextButton(onClick = onBackToLogin) {
+                            AppTextButton(onClick = onBackToLogin) {
                                 Text(
                                     stringResource(R.string.link_already_have_account_log_in),
                                     color = MaterialTheme.colorScheme.primary

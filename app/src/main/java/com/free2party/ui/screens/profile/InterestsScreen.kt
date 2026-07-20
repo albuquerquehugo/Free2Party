@@ -100,7 +100,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -122,8 +121,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.R
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppTextButton
+import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
 data class InterestCategory(
@@ -497,7 +497,7 @@ fun InterestsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (hasChanges) {
-                            TextButton(
+                            AppTextButton(
                                 onClick = onDiscard,
                                 modifier = Modifier
                                     .fillMaxWidth()

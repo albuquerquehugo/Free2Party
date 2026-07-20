@@ -1,11 +1,19 @@
 package com.free2party.data.repository
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
+import android.util.Log
+import android.content.Context
+import androidx.exifinterface.media.ExifInterface
 import com.free2party.data.model.Event
 import com.free2party.data.model.EventComment
 import com.free2party.data.model.EventPhoto
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
+import com.free2party.data.model.isEnded
+import com.free2party.data.model.NotificationType
 import com.free2party.exception.DatabaseOperationException
 import com.free2party.exception.EventNotFoundException
 import com.free2party.exception.EventEditCurrentPastException
@@ -15,29 +23,29 @@ import com.free2party.exception.GuestsMandatoryPrivateException
 import com.free2party.exception.LocationMandatoryException
 import com.free2party.exception.NetworkUnavailableException
 import com.free2party.exception.UnauthorizedException
+import com.free2party.R
 import com.free2party.util.isDateTimeInPast
 import com.free2party.util.parseDateToMillis
 import com.free2party.util.parseTimeToMinutes
-import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.tasks.await
+import com.google.firebase.storage.StorageMetadata
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.ByteArrayOutputStream
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
-import android.content.Context
-import com.free2party.R
-import com.free2party.data.model.NotificationType
-import com.google.firebase.firestore.FieldValue
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.tasks.await
 
 class EventRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
@@ -367,6 +375,10 @@ class EventRepositoryImpl @Inject constructor(
         val docRef = db.collection("events").document(eventId)
         db.runTransaction { transaction ->
             val snapshot = transaction.get(docRef)
+            val eventObj = snapshot.toObject(Event::class.java)?.copy(id = snapshot.id)
+            if (eventObj != null && eventObj.isEnded()) {
+                throw EventEditCurrentPastException()
+            }
             val guestIds =
                 (snapshot.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
             val invitedGuestIds =
@@ -500,7 +512,14 @@ class EventRepositoryImpl @Inject constructor(
         val photoId = UUID.randomUUID().toString()
         val ref = storage.reference.child("event_photos/$eventId/$photoId.jpg")
 
-        ref.putFile(uri).await()
+        val jpegBytes = compressUriToJpegBytes(context, uri)
+            ?: throw InvalidEventDataException()
+
+        val metadata = StorageMetadata.Builder()
+            .setContentType("image/jpeg")
+            .build()
+
+        ref.putBytes(jpegBytes, metadata).await()
         val downloadUrl = ref.downloadUrl.await().toString()
 
         val photoRef = db.collection("events").document(eventId)
@@ -516,6 +535,79 @@ class EventRepositoryImpl @Inject constructor(
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToEventException(e))
+    }
+
+    private fun compressUriToJpegBytes(context: Context, uri: Uri): ByteArray? {
+        return try {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input, null, options)
+            }
+
+            val maxDimension = 2048
+            var sampleSize = 1
+            val (width, height) = options.outWidth to options.outHeight
+            if (width > maxDimension || height > maxDimension) {
+                val halfWidth = width / 2
+                val halfHeight = height / 2
+                while ((halfWidth / sampleSize) >= maxDimension && (halfHeight / sampleSize) >= maxDimension) {
+                    sampleSize *= 2
+                }
+            }
+
+            val decodeOptions = BitmapFactory.Options().apply {
+                inSampleSize = sampleSize
+            }
+            val bitmap = context.contentResolver.openInputStream(uri)?.use { input ->
+                BitmapFactory.decodeStream(input, null, decodeOptions)
+            } ?: return null
+
+            val orientedBitmap = rotateBitmapIfRequired(context, uri, bitmap)
+            val outputStream = ByteArrayOutputStream()
+            orientedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
+
+            if (orientedBitmap != bitmap) {
+                orientedBitmap.recycle()
+            }
+            bitmap.recycle()
+
+            outputStream.toByteArray()
+        } catch (e: Exception) {
+            Log.e("EventRepositoryImpl", "Error compressing image URI: $uri", e)
+            null
+        }
+    }
+
+    private fun rotateBitmapIfRequired(context: Context, uri: Uri, bitmap: Bitmap): Bitmap {
+        val input = try {
+            context.contentResolver.openInputStream(uri)
+        } catch (_: Exception) {
+            null
+        } ?: return bitmap
+
+        val orientation = try {
+            val ei = ExifInterface(input)
+            ei.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+        } catch (_: Exception) {
+            ExifInterface.ORIENTATION_NORMAL
+        } finally {
+            runCatching { input.close() }
+        }
+
+        val matrix = Matrix()
+        when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+            else -> return bitmap
+        }
+
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     override suspend fun deletePhoto(

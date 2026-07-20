@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,10 +50,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.billing.DurationType
 import com.free2party.data.billing.PremiumPackage
 import com.free2party.R
+import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.TopBar
 import com.free2party.ui.theme.Gold
 import com.free2party.ui.theme.PremiumBannerColor1
@@ -63,8 +65,6 @@ import com.free2party.util.findActivity
 import com.free2party.util.parsePrice
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.collectLatest
-import androidx.core.net.toUri
-import com.free2party.ui.components.basic.AppFilledButton
 
 @Composable
 fun PremiumRoute(
@@ -375,7 +375,7 @@ fun PremiumScreen(
                         // Checkout Actions
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        TextButton(
+                        AppTextButton(
                             onClick = onRestoreClick,
                             modifier = Modifier
                                 .fillMaxWidth()

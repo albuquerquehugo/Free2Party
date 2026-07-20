@@ -589,6 +589,18 @@ fun FriendsListSection(
         }
     }
 
+    val selectedCircle = circles.find { it.id == selectedCircleId }
+    if (selectedCircle != null) {
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.text_showing_friends_in_circle, selectedCircle.name),
+            modifier = Modifier.padding(bottom = 8.dp),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+
     if (friends.isEmpty()) {
         Column(
             modifier = Modifier
@@ -605,9 +617,9 @@ fun FriendsListSection(
 
             Text(
                 text = emptyMessage,
-                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.titleMedium
             )
 
             if (selectedCircleId == null) {

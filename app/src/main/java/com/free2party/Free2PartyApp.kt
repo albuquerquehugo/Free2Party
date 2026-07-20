@@ -30,10 +30,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import com.google.android.gms.tasks.Tasks
+import okhttp3.OkHttpClient
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltAndroidApp
-class Free2PartyApp : Application() {
+class Free2PartyApp : Application(), ImageLoaderFactory {
 
     @Inject
     lateinit var userRepository: UserRepository
@@ -83,6 +87,34 @@ class Free2PartyApp : Application() {
         setupUserStatusAutomation()
         setupForegroundTracking()
         setupFcmTokenSync()
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .okHttpClient {
+                OkHttpClient.Builder()
+                    .addInterceptor { chain ->
+                        val request = chain.request()
+                        val url = request.url.toString()
+                        if (url.contains("firebasestorage.googleapis.com")) {
+                            val user = Firebase.auth.currentUser
+                            if (user != null) {
+                                val tokenTask = user.getIdToken(false)
+                                val token = runCatching { Tasks.await(tokenTask).token }.getOrNull()
+                                if (!token.isNullOrBlank()) {
+                                    val newRequest = request.newBuilder()
+                                        .header("Authorization", "Bearer $token")
+                                        .build()
+                                    return@addInterceptor chain.proceed(newRequest)
+                                }
+                            }
+                        }
+                        chain.proceed(request)
+                    }
+                    .build()
+            }
+            .crossfade(true)
+            .build()
     }
 
     private fun setupForegroundTracking() {

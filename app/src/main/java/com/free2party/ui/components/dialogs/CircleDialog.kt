@@ -22,10 +22,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.free2party.R
 import com.free2party.data.model.Circle
 import com.free2party.data.model.FriendInfo
+import com.free2party.R
 import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.util.capitalizeFirstLetter
 
 @Composable
@@ -176,7 +177,7 @@ fun CircleDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss, enabled = !isLoading) {
+                AppTextButton(onClick = onDismiss, enabled = !isLoading) {
                     Text(stringResource(R.string.label_cancel))
                 }
                 Spacer(modifier = Modifier.width(8.dp))

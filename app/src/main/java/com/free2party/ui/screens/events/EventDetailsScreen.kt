@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -24,9 +27,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.NavigateBefore
+import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +41,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -48,10 +54,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.free2party.data.model.*
 import com.free2party.R
 import com.free2party.ui.components.basic.AppDropdownMenu
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.dialogs.AppBaseDialog
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.dialogs.PublicProfileDialog
@@ -63,10 +72,10 @@ import com.free2party.util.formatTimeAgo
 import com.free2party.util.formatTimeForDisplay
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,6 +88,7 @@ fun EventDetailsScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scrollState = rememberScrollState()
     val gradientBackground = viewModel.gradientBackground
     val currentUserId = viewModel.currentUserId
@@ -117,13 +127,17 @@ fun EventDetailsScreen(
     val commentDeletedMsg = stringResource(R.string.toast_comment_deleted)
     val eventDeletedMsg = stringResource(R.string.toast_event_deleted)
     val noMapAvailableMsg = stringResource(R.string.error_no_app_available)
-    val photoUploadedMsg = stringResource(R.string.toast_photo_uploaded)
     val photoDeletedMsg = stringResource(R.string.toast_photo_deleted)
     val editDisabledMsg = stringResource(R.string.error_event_edit_current_past)
 
     val event by viewModel.currentEvent.collectAsState()
     val comments by viewModel.comments.collectAsState()
     val photos by viewModel.photos.collectAsState()
+    val sortedPhotos = remember(photos) {
+        photos.sortedWith(compareByDescending { photo ->
+            photo.createdAt?.time ?: Long.MAX_VALUE
+        })
+    }
     val guestProfiles by viewModel.eventGuests.collectAsState()
 
     var commentText by remember { mutableStateOf("") }
@@ -136,22 +150,43 @@ fun EventDetailsScreen(
     }
 
     var showDeleteEventDialog by remember { mutableStateOf(false) }
+    var isDeletingEvent by remember { mutableStateOf(false) }
     var showDeleteCommentDialog by remember { mutableStateOf<EventComment?>(null) }
+    var isUploadingPhoto by remember { mutableStateOf(false) }
+    var photoCountBeforeUpload by remember { mutableIntStateOf(0) }
+    var targetPhotoCount by remember { mutableIntStateOf(0) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            viewModel.uploadPhoto(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            val selectedUris = uris.take(10)
+            photoCountBeforeUpload = sortedPhotos.size
+            targetPhotoCount = sortedPhotos.size + selectedUris.size
+            isUploadingPhoto = true
+            viewModel.uploadPhotos(
                 eventId = eventId,
-                uri = it,
-                onSuccess = {
-                    Toast.makeText(context, photoUploadedMsg, Toast.LENGTH_SHORT).show()
+                uris = selectedUris,
+                onSuccess = { count ->
+                    val msg =
+                        resources.getQuantityString(R.plurals.toast_photos_uploaded, count, count)
+                    Toast.makeText(context.applicationContext, msg, Toast.LENGTH_SHORT).show()
                 },
                 onError = { err ->
-                    Toast.makeText(context, err.asString(context), Toast.LENGTH_LONG).show()
+                    isUploadingPhoto = false
+                    Toast.makeText(
+                        context.applicationContext,
+                        err.asString(context),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             )
+        }
+    }
+
+    LaunchedEffect(sortedPhotos) {
+        if (isUploadingPhoto && sortedPhotos.size >= targetPhotoCount) {
+            isUploadingPhoto = false
         }
     }
 
@@ -172,6 +207,9 @@ fun EventDetailsScreen(
         ev.guests[currentUserId]?.let { GuestStatus.valueOf(it) } ?: GuestStatus.PENDING
     }
     val isAccepted = isHost || myStatus == GuestStatus.ACCEPTED
+    val isEventEnded = remember(ev.startDate, ev.startTime, ev.endDate, ev.endTime, ev.timezone) {
+        ev.isEnded()
+    }
 
     // Timezone translation details
     val tzMatch = TimeZone.getTimeZone(ev.timezone).hasSameRules(TimeZone.getDefault())
@@ -463,7 +501,7 @@ fun EventDetailsScreen(
                                 )
                             }
                             if (ev.latitude != null && ev.longitude != null) {
-                                Button(
+                                AppFilledButton(
                                     onClick = {
                                         val gmmIntentUri = "geo:${ev.latitude},${ev.longitude}?q=${
                                             Uri.encode(ev.locationName)
@@ -482,7 +520,6 @@ fun EventDetailsScreen(
                                             ).show()
                                         }
                                     },
-                                    shape = RoundedCornerShape(12.dp),
                                     contentPadding = PaddingValues(horizontal = 12.dp)
                                 ) {
                                     Text(stringResource(R.string.label_open_in_maps))
@@ -532,6 +569,7 @@ fun EventDetailsScreen(
                                         }
                                     )
                                 },
+                                enabled = !isEventEnded,
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (myStatus == GuestStatus.ACCEPTED) {
@@ -574,6 +612,7 @@ fun EventDetailsScreen(
                                         }
                                     )
                                 },
+                                enabled = !isEventEnded,
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (myStatus == GuestStatus.DECLINED) {
@@ -601,6 +640,15 @@ fun EventDetailsScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(stringResource(R.string.label_not_going_self))
                             }
+                        }
+                        if (isEventEnded) {
+                            Text(
+                                text = stringResource(R.string.text_event_ended_rsvp_disabled),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }
@@ -833,10 +881,11 @@ fun EventDetailsScreen(
                                             }
                                             Text(
                                                 text = statusText,
-                                                fontSize = 9.sp,
                                                 color = statusColor,
-                                                maxLines = 1,
-                                                textAlign = TextAlign.Center
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1
                                             )
                                         }
                                     }
@@ -929,8 +978,13 @@ fun EventDetailsScreen(
                         Box(
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            TextButton(
-                                onClick = { photoPickerLauncher.launch("image/*") },
+                            AppTextButton(
+                                onClick = {
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                enabled = !isUploadingPhoto,
                                 modifier = Modifier.align(Alignment.Center)
                             ) {
                                 Icon(Icons.Default.AddAPhoto, contentDescription = null)
@@ -939,33 +993,93 @@ fun EventDetailsScreen(
                             }
                         }
 
-                        if (photos.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.label_photos_empty),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
-                                textAlign = TextAlign.Center
-                            )
+                        if (sortedPhotos.isEmpty()) {
+                            if (isUploadingPhoto) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        strokeWidth = 3.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.label_photos_empty),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         } else {
                             // 3 column grid of photos (max height in details to prevent full page take)
-                            Box(modifier = Modifier.heightIn(max = 240.dp)) {
+                            Box(modifier = Modifier.heightIn(max = 300.dp)) {
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed(3),
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    items(photos) { photo ->
-                                        AsyncImage(
+                                    if (isUploadingPhoto) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .aspectRatio(1f)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(24.dp),
+                                                    strokeWidth = 2.5.dp,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    }
+                                    items(sortedPhotos) { photo ->
+                                        SubcomposeAsyncImage(
                                             model = photo.url,
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .aspectRatio(1f)
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .clickable { selectedPhotoForView = photo },
-                                            contentScale = ContentScale.Crop
+                                            contentScale = ContentScale.Crop,
+                                            loading = {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(20.dp),
+                                                        strokeWidth = 2.dp,
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            },
+                                            error = {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.BrokenImage,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
                                         )
                                     }
                                 }
@@ -1209,7 +1323,7 @@ fun EventDetailsScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold
                                 )
-                                TextButton(
+                                AppTextButton(
                                     onClick = {
                                         editingComment = null
                                         commentText = ""
@@ -1307,6 +1421,7 @@ fun EventDetailsScreen(
             confirmButtonText = stringResource(R.string.label_delete),
             onConfirm = {
                 showDeleteEventDialog = false
+                isDeletingEvent = true
                 viewModel.deleteEvent(
                     eventId = eventId,
                     onSuccess = {
@@ -1318,6 +1433,7 @@ fun EventDetailsScreen(
                         onBack()
                     },
                     onError = { err ->
+                        isDeletingEvent = false
                         Toast.makeText(
                             context,
                             err.asString(context),
@@ -1330,6 +1446,29 @@ fun EventDetailsScreen(
             onDismissRequest = { showDeleteEventDialog = false },
             isDestructive = true
         )
+    }
+
+    if (isDeletingEvent) {
+        AppBaseDialog(onDismissRequest = {}) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(R.string.label_deleting_event),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 
     // Delete Comment confirmation
@@ -1367,6 +1506,24 @@ fun EventDetailsScreen(
 
     // Full screen image viewer
     selectedPhotoForView?.let { photo ->
+        val initialIndex = remember(photo.id) {
+            sortedPhotos.indexOfFirst { it.id == photo.id }.coerceAtLeast(0)
+        }
+        val pagerState = rememberPagerState(
+            initialPage = initialIndex,
+            pageCount = { sortedPhotos.size }
+        )
+        val coroutineScope = rememberCoroutineScope()
+
+        LaunchedEffect(pagerState.currentPage) {
+            if (pagerState.currentPage in sortedPhotos.indices) {
+                selectedPhotoForView = sortedPhotos[pagerState.currentPage]
+            }
+        }
+
+        val hasPrevious = pagerState.currentPage > 0
+        val hasNext = pagerState.currentPage < sortedPhotos.size - 1
+
         AppBaseDialog(onDismissRequest = { selectedPhotoForView = null }) {
             Column(
                 modifier = Modifier
@@ -1375,24 +1532,137 @@ fun EventDetailsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                AsyncImage(
-                    model = photo.url,
-                    contentDescription = null,
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 400.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Fit
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(360.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        val currentPhoto = sortedPhotos.getOrNull(page)
+                        if (currentPhoto != null) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                SubcomposeAsyncImage(
+                                    model = currentPhoto.url,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Fit,
+                                    loading = {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(32.dp),
+                                                strokeWidth = 3.dp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    },
+                                    error = {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.BrokenImage,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(48.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    if (hasPrevious) {
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = 8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateBefore,
+                                contentDescription = stringResource(R.string.label_previous),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                    if (hasNext) {
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.NavigateNext,
+                                contentDescription = stringResource(R.string.label_next),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+                val uploaderUser = guestProfiles[photo.uploadedBy]
+                val uploaderName = when {
+                    photo.uploadedBy.isBlank() -> null
+                    photo.uploadedBy == currentUserId -> stringResource(R.string.label_you)
+                    uploaderUser != null -> uploaderUser.fullName.ifBlank { uploaderUser.firstName }
+                    ev.hostId == photo.uploadedBy -> ev.hostName.ifBlank { null }
+                    else -> null
+                }
+                uploaderName?.let { name ->
+                    Text(
+                        text = stringResource(R.string.label_photo_uploaded_by, name),
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
                 ) {
                     if (photo.uploadedBy == currentUserId || isHost) {
-                        Button(
+                        AppFilledButton(
                             onClick = {
-                                selectedPhotoForView = null
+                                val remainingPhotos = sortedPhotos.filter { it.id != photo.id }
+                                if (remainingPhotos.isEmpty()) {
+                                    selectedPhotoForView = null
+                                } else {
+                                    val nextIndex =
+                                        pagerState.currentPage.coerceAtMost(remainingPhotos.size - 1)
+                                    selectedPhotoForView = remainingPhotos[nextIndex]
+                                }
                                 viewModel.deletePhoto(
                                     eventId = eventId,
                                     photoId = photo.id,
@@ -1413,17 +1683,20 @@ fun EventDetailsScreen(
                                     }
                                 )
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                            shape = RoundedCornerShape(12.dp)
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
-                            Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.label_delete))
                         }
-                    } else {
-                        Spacer(modifier = Modifier.width(1.dp))
                     }
-                    TextButton(onClick = { selectedPhotoForView = null }) {
+                    AppTextButton(
+                        onClick = { selectedPhotoForView = null },
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
                         Text(stringResource(R.string.label_close))
                     }
                 }

@@ -29,13 +29,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,10 +57,12 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.free2party.R
-import com.free2party.ui.components.dialogs.EmailDialog
+import com.free2party.ui.components.basic.AppFilledButton
 import com.free2party.ui.components.basic.AppHorizontalDivider
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.basic.AppOutlinedButton
+import com.free2party.ui.components.basic.AppTextButton
+import com.free2party.ui.components.dialogs.EmailDialog
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -68,8 +70,6 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.GoogleAuthProvider
-import androidx.compose.runtime.rememberUpdatedState
-import com.free2party.ui.components.basic.AppFilledButton
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -406,7 +406,7 @@ fun LoginScreen(
                 }
             }
 
-            TextButton(
+            AppTextButton(
                 onClick = onForgotPasswordClick,
                 modifier = Modifier
                     .align(Alignment.End)
@@ -489,7 +489,7 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                TextButton(
+                AppTextButton(
                     onClick = onNavigateToRegister,
                     enabled = uiState !is LoginUiState.Loading
                 ) {

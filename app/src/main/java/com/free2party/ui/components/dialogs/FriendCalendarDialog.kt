@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,15 +25,16 @@ import androidx.compose.ui.res.stringResource
 import com.free2party.BuildConfig
 import com.free2party.data.model.FriendInfo
 import com.free2party.R
-import com.free2party.ui.components.MonthCalendar
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.CalendarResults
+import com.free2party.ui.components.MonthCalendar
 import com.free2party.ui.screens.calendar.CalendarViewModel
 import com.free2party.util.capitalizeFirstLetter
-import kotlinx.coroutines.delay
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 
 @Composable
 fun FriendCalendarDialog(
@@ -132,7 +132,7 @@ fun FriendCalendarDialog(
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = handleDismiss) {
+                AppTextButton(onClick = handleDismiss) {
                     Text(stringResource(R.string.label_close))
                 }
             }

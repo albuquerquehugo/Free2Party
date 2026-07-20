@@ -41,6 +41,7 @@
     <string name="label_mark_all_as_read">Marcar tudo como lido</string>
     <string name="label_mark_as_read">Marcar como lido</string>
     <string name="label_mark_as_unread">Marcar como não lido</string>
+    <string name="label_next">Avançar</string>
     <string name="label_nobody">Ninguém</string>
     <string name="label_ok">OK</string>
     <string name="label_only_selected_people_label">Apenas pessoas selecionadas…</string>
@@ -49,6 +50,7 @@
     <string name="label_password">Senha</string>
     <string name="label_pending_observation">(Pendente)</string>
     <string name="label_premium">Premium</string>
+    <string name="label_previous">Anterior</string>
     <string name="label_remove">Remover</string>
     <string name="label_required_field">" *"</string>
     <string name="label_save">Salvar</string>
@@ -206,6 +208,7 @@
     <string name="text_circles_description">Crie círculos para agrupar seus amigos e filtrar rapidamente quem pode ver seus planos ou de quem você vê a disponibilidade.</string>
     <string name="text_delete_circle_confirmation">Tem certeza que deseja excluir este círculo? Isso não removerá seus amigos, apenas o agrupamento.</string>
     <string name="text_no_friends_in_circle">Nenhum amigo encontrado neste círculo</string>
+    <string name="text_showing_friends_in_circle">Mostrando amigos no círculo: %1$s</string>
     <string name="toast_circle_created">Círculo criado com sucesso</string>
     <string name="toast_circle_deleted">Círculo excluído com sucesso</string>
     <string name="toast_circle_updated">Círculo atualizado com sucesso</string>
@@ -409,6 +412,7 @@
     <string name="label_delete_comment_confirm">Tem certeza de que deseja excluir este comentário?</string>
     <string name="label_delete_event">Excluir Evento</string>
     <string name="label_delete_event_confirm">Tem certeza de que deseja excluir este evento? Esta ação não pode ser desfeita.</string>
+    <string name="label_deleting_event">Excluindo evento…</string>
     <string name="label_discard">Descartar</string>
     <string name="label_distance_imperial_ft">%1$d ft</string>
     <string name="label_distance_imperial_mi">%1$.1f mi</string>
@@ -445,6 +449,7 @@
     <string name="label_open_in_maps">Abrir no Mapa</string>
     <string name="label_pending">Pendente</string>
     <string name="label_photo_album">Álbum de Fotos</string>
+    <string name="label_photo_uploaded_by">Enviada por %1$s</string>
     <string name="label_photos">Fotos</string>
     <string name="label_photos_empty">Nenhuma foto compartilhada ainda. Adicione a primeira!</string>
     <string name="label_post_comment">Enviar</string>
@@ -454,9 +459,10 @@
     <string name="label_timezone">Fuso Horário</string>
     <string name="label_timezone_search">Pesquisar Fuso Horário…</string>
     <string name="label_upload_photo">Adicionar Foto</string>
+    <string name="label_uploading">Enviando…</string>
     <string name="label_useful_links">Links Úteis</string>
     <string name="label_you">Você</string>
-    <string name="label_your_local_time">Seu horário local (Traduzido do original: %1$s @ %2$s %3$s)</string>
+    <string name="label_your_local_time">Seu horário local (Original: %1$s @ %2$s %3$s)</string>
     <string name="placeholder_comment">Escreva um comentário…</string>
     <string name="placeholder_event_description">Digite a descrição do evento</string>
     <string name="placeholder_event_title">Digite o título do evento</string>
@@ -464,6 +470,7 @@
     <string name="placeholder_link_url">URL do Link (ex: https://…)</string>
     <string name="placeholder_location">Digite o nome do local ou endereço</string>
     <string name="placeholder_search_events">Buscar eventos…</string>
+    <string name="text_event_ended_rsvp_disabled">Confirmação encerrada, pois o evento já finalizou</string>
     <string name="text_event_type_private">Apenas convidados</string>
     <string name="text_event_type_public">Qualquer um pode ver e participar</string>
     <string name="toast_comment_deleted">Comentário excluído</string>
@@ -472,7 +479,11 @@
     <string name="toast_event_deleted">Evento excluído!</string>
     <string name="toast_event_updated">Evento atualizado com sucesso!</string>
     <string name="toast_photo_deleted">Foto excluída</string>
-    <string name="toast_photo_uploaded">Foto adicionada com sucesso!</string>
+    <plurals name="toast_photos_uploaded">
+        <item quantity="one">%1$d foto adicionada</item>
+        <item quantity="many">%1$d fotos adicionadas</item>
+        <item quantity="other">%1$d fotos adicionadas</item>
+    </plurals>
 
     <!-- Interests Section -->
     <string name="interest_adrenaline_sports">Esportes de Adrenalina</string>
@@ -618,7 +629,6 @@
     <!-- Onboarding Tutorial -->
     <string name="label_onboarding">Tutorial</string>
     <string name="label_skip">Pular</string>
-    <string name="label_next">Avançar</string>
     <string name="label_get_started">Começar</string>
     <string name="onboarding_text_availability">Altere facilmente sua disponibilidade. Quando estiver livre, seus amigos podem convidá-lo imediatamente.</string>
     <string name="onboarding_text_availability_tutorial_note">*Ao longo deste tutorial, todas as dicas destacadas em azul são interativas! Tente alterar o status acima clicando no botão Free2Party.</string>
@@ -753,6 +763,7 @@
     <string name="error_end_date_time_required">A data e hora de término são obrigatórias</string>
     <string name="error_end_time_required">A hora de término é obrigatória</string>
     <string name="error_event_edit_current_past">Não é possível editar um evento em curso ou passado</string>
+    <string name="error_event_ended_rsvp">Você não pode alterar sua confirmação de presença para um evento que já finalizou</string>
     <string name="error_event_not_found">O evento não foi encontrado.</string>
     <string name="error_event_past_date_time">Não é possível agendar eventos para uma data ou hora passada</string>
     <string name="error_failed_delete_plan">Falha ao excluir o plano.</string>

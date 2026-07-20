@@ -8,7 +8,6 @@ import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -17,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppTextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +45,7 @@ fun AppDatePickerDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = handleDismiss) {
+            AppTextButton(onClick = handleDismiss) {
                 Text(stringResource(R.string.label_cancel))
             }
         }

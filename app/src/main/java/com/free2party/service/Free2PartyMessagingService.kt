@@ -124,7 +124,8 @@ class Free2PartyMessagingService : FirebaseMessagingService() {
         val userRepository = UserRepositoryImpl(
             auth = Firebase.auth,
             db = Firebase.firestore,
-            storage = Firebase.storage
+            storage = Firebase.storage,
+            context = applicationContext
         )
         serviceScope.launch { userRepository.updateFcmToken(token) }
     }
@@ -134,7 +135,8 @@ class Free2PartyMessagingService : FirebaseMessagingService() {
         val userRepository = UserRepositoryImpl(
             auth = Firebase.auth,
             db = Firebase.firestore,
-            storage = Firebase.storage
+            storage = Firebase.storage,
+            context = applicationContext
         )
         serviceScope.launch { userRepository.updateFcmToken(installationId) }
     }

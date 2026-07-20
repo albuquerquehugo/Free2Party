@@ -13,6 +13,7 @@ import com.free2party.data.repository.SocialRepository
 import com.free2party.data.repository.UserRepository
 import com.free2party.exception.EventException
 import com.free2party.R
+import com.free2party.exception.EventEditCurrentPastException
 import com.free2party.util.calculateHaversineDistance
 import com.free2party.util.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -434,12 +435,21 @@ class EventsViewModel @Inject constructor(
         onSuccess: () -> Unit,
         onError: (UiText) -> Unit
     ) {
+        val event = currentEvent.value
+        if (event?.id == eventId && event.isEnded()) {
+            onError(UiText.StringResource(R.string.text_event_ended_rsvp_disabled))
+            return
+        }
         viewModelScope.launch {
             eventRepository.respondToEvent(eventId, status)
                 .onSuccess { onSuccess() }
                 .onFailure { error ->
                     Log.e("EventsViewModel", "Error responding to event", error)
-                    onError(UiText.StringResource(R.string.error_database_operation))
+                    if (error is EventEditCurrentPastException) {
+                        onError(UiText.StringResource(R.string.text_event_ended_rsvp_disabled))
+                    } else {
+                        onError(UiText.StringResource(R.string.error_database_operation))
+                    }
                 }
         }
     }
@@ -493,19 +503,29 @@ class EventsViewModel @Inject constructor(
         }
     }
 
-    fun uploadPhoto(
+    fun uploadPhotos(
         eventId: String,
-        uri: android.net.Uri,
-        onSuccess: () -> Unit,
+        uris: List<android.net.Uri>,
+        onSuccess: (uploadedCount: Int) -> Unit,
         onError: (UiText) -> Unit
     ) {
+        if (uris.isEmpty()) return
         viewModelScope.launch {
-            eventRepository.uploadPhoto(eventId, uri)
-                .onSuccess { onSuccess() }
-                .onFailure { error ->
-                    Log.e("EventsViewModel", "Error uploading photo", error)
-                    onError(UiText.StringResource(R.string.error_uploading_image))
-                }
+            var successCount = 0
+            var firstError: Throwable? = null
+            for (uri in uris) {
+                eventRepository.uploadPhoto(eventId, uri)
+                    .onSuccess { successCount++ }
+                    .onFailure { error ->
+                        Log.e("EventsViewModel", "Error uploading photo", error)
+                        if (firstError == null) firstError = error
+                    }
+            }
+            if (successCount > 0) {
+                onSuccess(successCount)
+            } else if (firstError != null) {
+                onError(UiText.StringResource(R.string.error_uploading_image))
+            }
         }
     }
 

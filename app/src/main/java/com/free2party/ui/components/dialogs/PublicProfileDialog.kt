@@ -40,16 +40,17 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.free2party.R
+import com.free2party.data.model.BirthdayVisibility
 import com.free2party.data.model.Countries
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.User
-import com.free2party.ui.screens.profile.InterestCategories
-import com.free2party.data.model.BirthdayVisibility
-import com.free2party.ui.components.ProfileAvatar
-import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.data.repository.UserRepository
 import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppTextButton
+import com.free2party.ui.components.ProfileAvatar
+import com.free2party.ui.components.ProfileAvatarSize
 import com.free2party.ui.components.StatusPill
+import com.free2party.ui.screens.profile.InterestCategories
 import com.free2party.ui.theme.TelegramColor
 import com.free2party.ui.theme.WhatsAppColor
 import com.free2party.ui.theme.available
@@ -430,7 +431,7 @@ fun PublicProfileDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 val closeText = stringResource(R.string.label_close)
-                TextButton(
+                AppTextButton(
                     onClick = onDismiss,
                     modifier = Modifier
                         .height(40.dp)
@@ -613,7 +614,7 @@ fun FriendInterestsDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(
+                AppTextButton(
                     onClick = onDismiss,
                     modifier = Modifier.height(40.dp)
                 ) {

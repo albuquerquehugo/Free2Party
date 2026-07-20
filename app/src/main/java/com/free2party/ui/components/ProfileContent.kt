@@ -49,7 +49,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,15 +86,16 @@ import com.free2party.data.model.Gender
 import com.free2party.R
 import com.free2party.ui.components.basic.AppOutlinedTextField
 import com.free2party.ui.components.basic.appOutlinedTextFieldColors
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.dialogs.CountryPickerDialog
 import com.free2party.util.DateVisualTransformation
-import com.free2party.util.PhoneVisualTransformation
 import com.free2party.util.isValidDateDigits
-import kotlinx.coroutines.delay
+import com.free2party.util.PhoneVisualTransformation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1052,7 +1052,7 @@ fun ProfileContent(
             onDismissRequest = { setShowDatePicker(false) },
             colors = DatePickerDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
             confirmButton = {
-                TextButton(onClick = {
+                AppTextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
                         val sdf = SimpleDateFormat("yyyyMMdd", locale).apply {
                             timeZone = TimeZone.getTimeZone("UTC")
@@ -1065,7 +1065,7 @@ fun ProfileContent(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { setShowDatePicker(false) }) {
+                AppTextButton(onClick = { setShowDatePicker(false) }) {
                     Text(stringResource(R.string.label_cancel))
                 }
             }

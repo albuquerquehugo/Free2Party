@@ -1,5 +1,6 @@
 package com.free2party.ui.components.dialogs
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.free2party.R
 import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppTextButton
 
 @Composable
 fun AppConfirmationDialog(
@@ -34,7 +35,7 @@ fun AppConfirmationDialog(
     content: @Composable (ColumnScope.() -> Unit)? = null,
     confirmButtonText: String = stringResource(R.string.label_confirm),
     confirmButtonEnabled: Boolean = true,
-    confirmButtonModifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") confirmButtonModifier: Modifier = Modifier,
     onConfirm: () -> Unit,
     dismissButtonText: String = stringResource(R.string.label_cancel),
     onDismissRequest: () -> Unit,
@@ -95,7 +96,7 @@ fun AppConfirmationDialog(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        TextButton(
+                        AppTextButton(
                             onClick = onDismissRequest,
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -152,7 +153,7 @@ fun AppConfirmationDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDismissRequest) {
+                    AppTextButton(onClick = onDismissRequest) {
                         Text(
                             text = dismissButtonText, color =
                                 if (isDestructive) MaterialTheme.colorScheme.error

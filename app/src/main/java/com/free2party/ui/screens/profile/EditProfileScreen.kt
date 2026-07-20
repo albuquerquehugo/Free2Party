@@ -17,7 +17,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -30,12 +29,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.free2party.R
 import com.free2party.data.model.Gender
-import com.free2party.ui.components.ProfileContent
-import com.free2party.ui.components.dialogs.AppConfirmationDialog
-import com.free2party.ui.components.TopBar
+import com.free2party.R
 import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppTextButton
+import com.free2party.ui.components.dialogs.AppConfirmationDialog
+import com.free2party.ui.components.ProfileContent
+import com.free2party.ui.components.TopBar
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -356,7 +356,7 @@ fun EditProfileScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (hasChanges) {
-                TextButton(
+                AppTextButton(
                     onClick = onDiscardChanges,
                     modifier = Modifier
                         .fillMaxWidth()

@@ -29,7 +29,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Place
@@ -45,7 +44,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -75,17 +73,18 @@ import com.free2party.data.model.EventLink
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
 import com.free2party.R
+import com.free2party.ui.components.AppDateTimeSection
+import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.basic.AppHorizontalDivider
+import com.free2party.ui.components.basic.AppOutlinedButton
+import com.free2party.ui.components.basic.AppOutlinedTextField
+import com.free2party.ui.components.basic.AppTextButton
 import com.free2party.ui.components.dialogs.AppBaseDialog
 import com.free2party.ui.components.dialogs.AppConfirmationDialog
 import com.free2party.ui.components.dialogs.AppDatePickerDialog
 import com.free2party.ui.components.dialogs.AppTimePickerDialog
-import com.free2party.ui.components.basic.AppHorizontalDivider
-import com.free2party.ui.components.basic.AppOutlinedButton
-import com.free2party.ui.components.basic.AppOutlinedTextField
-import com.free2party.ui.components.TopBar
 import com.free2party.ui.components.FriendSelector
-import com.free2party.ui.components.AppDateTimeSection
-import com.free2party.ui.components.basic.AppFilledButton
+import com.free2party.ui.components.TopBar
 import com.free2party.util.formatTime
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.isDateTimeInPast
@@ -673,18 +672,6 @@ fun CreateEventScreen(
                             stringResource(R.string.label_required_field),
                     placeholderText = stringResource(R.string.placeholder_location),
                     leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                    trailingIcon = {
-                        if (locationName.isNotBlank()) {
-                            IconButton(onClick = {
-                                locationName = ""
-                                latitude = null
-                                longitude = null
-                                hasInteractedWithLocation = true
-                            }) {
-                                Icon(Icons.Default.Clear, contentDescription = null)
-                            }
-                        }
-                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .bringIntoViewRequester(locationBringIntoViewRequester)
@@ -694,14 +681,14 @@ fun CreateEventScreen(
                                 hasInteractedWithLocation = true
                             }
                         },
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
                 )
 
                 // Suggestions popup
                 AnimatedVisibility(visible = showLocationSuggestions && locationSuggestions.isNotEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Column {
@@ -823,7 +810,7 @@ fun CreateEventScreen(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    TextButton(onClick = {
+                    AppTextButton(onClick = {
                         linkTitle = ""
                         linkUrl = ""
                         showLinkDialog = true
@@ -879,7 +866,7 @@ fun CreateEventScreen(
             // Action Buttons
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (editingEventId != null && hasChanges) {
-                    TextButton(
+                    AppTextButton(
                         onClick = {
                             val event = currentEventState
                             if (event != null) {
@@ -1145,6 +1132,7 @@ fun CreateEventScreen(
                             }
                         },
                         keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
                             imeAction = ImeAction.Done
                         )
                     )

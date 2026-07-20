@@ -16,8 +16,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.free2party.R
 import androidx.core.graphics.toColorInt
+import com.free2party.R
+import com.free2party.ui.components.basic.AppTextButton
 
 @Composable
 fun AppColorPickerDialog(
@@ -257,7 +258,7 @@ fun AppColorPickerDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    AppTextButton(onClick = onDismiss) {
                         Text(stringResource(R.string.label_cancel))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
