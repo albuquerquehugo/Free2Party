@@ -379,21 +379,22 @@ fun LiveEventDetailsRsvpPreview() {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = stringResource(R.string.label_you),
-                                        style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Bold,
-                                        maxLines = 1,
+                                        textAlign = TextAlign.Center,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.bodySmall
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = youStatusLabel,
-                                        style = MaterialTheme.typography.labelSmall,
                                         color = youStatusColor,
-                                        maxLines = 1,
+                                        fontWeight = FontWeight.SemiBold,
+                                        textAlign = TextAlign.Center,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.labelSmall
                                     )
                                 }
                             }
@@ -411,21 +412,22 @@ fun LiveEventDetailsRsvpPreview() {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = stringResource(R.string.onboarding_mock_friend_bob),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
+                                        fontWeight = FontWeight.SemiBold,
+                                        textAlign = TextAlign.Center,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.bodySmall
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = stringResource(R.string.label_going),
-                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.available,
-                                        maxLines = 1,
+                                        fontWeight = FontWeight.SemiBold,
+                                        textAlign = TextAlign.Center,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.labelSmall
                                     )
                                 }
                             }
@@ -443,21 +445,22 @@ fun LiveEventDetailsRsvpPreview() {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = stringResource(R.string.onboarding_mock_friend_alice),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 1,
+                                        fontWeight = FontWeight.SemiBold,
+                                        textAlign = TextAlign.Center,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.bodySmall
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = stringResource(R.string.label_going),
-                                        style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.available,
-                                        maxLines = 1,
+                                        fontWeight = FontWeight.SemiBold,
+                                        textAlign = TextAlign.Center,
                                         overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.labelSmall
                                     )
                                 }
                             }

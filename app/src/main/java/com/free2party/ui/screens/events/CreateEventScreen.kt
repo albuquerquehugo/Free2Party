@@ -679,17 +679,27 @@ fun CreateEventScreen(
                             isLocationFocused = focusState.isFocused
                             if (focusState.isFocused) {
                                 hasInteractedWithLocation = true
+                                if (locationName.length > 2) {
+                                    showLocationSuggestions = true
+                                }
+                            } else {
+                                showLocationSuggestions = false
                             }
                         },
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words)
                 )
 
                 // Suggestions popup
-                AnimatedVisibility(visible = showLocationSuggestions && locationSuggestions.isNotEmpty()) {
+                AnimatedVisibility(
+                    visible = isLocationFocused && showLocationSuggestions &&
+                            locationSuggestions.isNotEmpty()
+                ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                     ) {
                         Column {
                             locationSuggestions.take(3).forEach { loc ->

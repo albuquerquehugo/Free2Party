@@ -582,31 +582,29 @@ fun EventCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val isMyEvent = event.hostId == currentUserId
-                if (!isMyEvent) {
-                    // Host Avatar
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        if (event.hostProfilePic.isNotBlank()) {
-                            AsyncImage(
-                                model = event.hostProfilePic,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.free2party_full_foreground_color),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                // Host Avatar
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    if (event.hostProfilePic.isNotBlank()) {
+                        AsyncImage(
+                            model = event.hostProfilePic,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.free2party_full_foreground_color),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
                 }
+                Spacer(modifier = Modifier.width(12.dp))
 
                 // Title & Host Name
                 Column(modifier = Modifier.weight(1f)) {
@@ -618,13 +616,19 @@ fun EventCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (!isMyEvent) {
-                        Text(
-                            text = stringResource(R.string.label_hosted_by, event.hostName),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = baseContentColor
+                    val hostLabel = if (isMyEvent) {
+                        stringResource(
+                            R.string.label_hosted_by,
+                            stringResource(R.string.label_you)
                         )
+                    } else {
+                        stringResource(R.string.label_hosted_by, event.hostName)
                     }
+                    Text(
+                        text = hostLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = baseContentColor
+                    )
                 }
 
                 // Status Badge (for pending events)

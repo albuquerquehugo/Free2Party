@@ -40,6 +40,7 @@ class UserRepositoryTest {
     private val auth: FirebaseAuth = mockk()
     private val db: FirebaseFirestore = mockk()
     private val storage: FirebaseStorage = mockk()
+    private val context: android.content.Context = mockk(relaxed = true)
     private val firebaseUser: FirebaseUser = mockk()
     private val usersCollection: CollectionReference = mockk()
     private val userDoc: DocumentReference = mockk()
@@ -49,7 +50,7 @@ class UserRepositoryTest {
         every { db.collection("users") } returns usersCollection
         every { usersCollection.document(any()) } returns userDoc
         
-        repository = UserRepositoryImpl(auth, db, storage)
+        repository = UserRepositoryImpl(auth, db, storage, context)
         
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
         mockkStatic(Uri::class)

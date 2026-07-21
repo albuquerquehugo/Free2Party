@@ -297,10 +297,12 @@ fun LiveEventsOverviewPreview() {
                         selected = selectedTab == 2,
                         onClick = { selectedTab = 2 },
                         text = {
-                            Text(
-                                text = stringResource(R.string.label_tab_public),
-                                fontWeight = FontWeight.Bold
-                            )
+                            BadgedIconContainer(number = 4) {
+                                Text(
+                                    text = stringResource(R.string.label_tab_public),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     )
                 }

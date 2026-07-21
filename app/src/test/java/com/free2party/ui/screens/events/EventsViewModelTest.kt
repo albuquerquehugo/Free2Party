@@ -364,6 +364,45 @@ class EventsViewModelTest {
         }
 
     @Test
+    fun `publicEvents includes public events hosted by current user`() = runTest {
+        userIdFlow.value = "testUser"
+        viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
+        val job = launch(testDispatcher) {
+            viewModel.uiState.collect {}
+        }
+
+        eventsFlow.value = listOf(
+            Event(
+                id = "1",
+                hostId = "testUser",
+                type = EventType.PUBLIC,
+                title = "My Public Event"
+            ),
+            Event(
+                id = "2",
+                hostId = "testUser",
+                type = EventType.PRIVATE,
+                title = "My Private Event"
+            ),
+            Event(
+                id = "3",
+                hostId = "otherUser",
+                type = EventType.PUBLIC,
+                title = "Other Public Event"
+            )
+        )
+
+        val successState = viewModel.uiState.value as? EventsUiState.Success
+        assertTrue(successState != null)
+        assertTrue(successState?.myEvents?.size == 2)
+        assertTrue(successState?.publicEvents?.size == 2)
+        assertTrue(successState?.publicEvents?.any { it.id == "1" } == true)
+        assertTrue(successState?.publicEvents?.any { it.id == "3" } == true)
+
+        job.cancel()
+    }
+
+    @Test
     fun `events are filtered by EventFilter states when applied`() = runTest {
         userIdFlow.value = "testUser"
         viewModel = EventsViewModel(eventRepository, userRepository, socialRepository)
@@ -416,24 +455,31 @@ class EventsViewModelTest {
                 invitedGuestIds = listOf("testUser"),
                 guests = mapOf("testUser" to "DECLINED"),
                 title = "Invited Event - Declined"
+            ),
+            Event(
+                id = "7",
+                hostId = "testUser",
+                type = EventType.PUBLIC,
+                title = "My Public Event"
             )
         )
 
         // 1. ALL filter (default):
         var successState = viewModel.uiState.value as? EventsUiState.Success
         assertTrue(successState != null)
-        assertTrue(successState?.myEvents?.size == 1)
+        assertTrue(successState?.myEvents?.size == 2)
         assertTrue(successState?.pendingEvents?.size == 3) // pending, accepted, declined
-        assertTrue(successState?.publicEvents?.size == 2)  // accepted, unattended
+        assertTrue(successState?.publicEvents?.size == 3)  // accepted, unattended, my public event
 
         // 2. GOING filter:
         viewModel.setEventFilter(EventFilter.GOING)
         successState = viewModel.uiState.value as? EventsUiState.Success
-        assertTrue(successState?.myEvents?.size == 1)
+        assertTrue(successState?.myEvents?.size == 2)
         assertTrue(successState?.pendingEvents?.size == 1)
         assertTrue(successState?.pendingEvents?.first()?.id == "3")
-        assertTrue(successState?.publicEvents?.size == 1)
-        assertTrue(successState?.publicEvents?.first()?.id == "4")
+        assertTrue(successState?.publicEvents?.size == 2)
+        assertTrue(successState?.publicEvents?.any { it.id == "4" } == true)
+        assertTrue(successState?.publicEvents?.any { it.id == "7" } == true)
 
         // 3. PENDING filter:
         viewModel.setEventFilter(EventFilter.PENDING)

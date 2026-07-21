@@ -103,7 +103,7 @@ class EventsViewModel @Inject constructor(
             val pendingEvents = events.filter {
                 it.hostId != uid && (it.invitedGuestIds ?: it.guestIds).contains(uid)
             }
-            val publicEvents = events.filter { it.type == EventType.PUBLIC && it.hostId != uid }
+            val publicEvents = events.filter { it.type == EventType.PUBLIC }
                 .let { list ->
                     if (query.isBlank()) {
                         list
@@ -163,10 +163,10 @@ class EventsViewModel @Inject constructor(
 
             val finalPublicEvents = when (filter) {
                 EventFilter.ALL -> publicEvents
-                EventFilter.GOING -> publicEvents.filter { it.guests[uid] == GuestStatus.ACCEPTED.name }
-                EventFilter.NOT_GOING -> publicEvents.filter { it.guests[uid] == GuestStatus.DECLINED.name }
+                EventFilter.GOING -> publicEvents.filter { it.hostId == uid || it.guests[uid] == GuestStatus.ACCEPTED.name }
+                EventFilter.NOT_GOING -> publicEvents.filter { it.hostId != uid && it.guests[uid] == GuestStatus.DECLINED.name }
                 EventFilter.PENDING -> publicEvents.filter {
-                    (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
+                    it.hostId != uid && (it.guests[uid] ?: GuestStatus.PENDING.name) == GuestStatus.PENDING.name
                 }
             }
 

@@ -66,7 +66,7 @@ fun LiveCalendarPreview() {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = stringResource(R.string.onboarding_mock_calendar_month),
@@ -77,7 +77,7 @@ fun LiveCalendarPreview() {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -522,9 +522,9 @@ fun LiveCalendarPreview() {
                         )
                         Text(
                             text = stringResource(R.string.onboarding_text_hint_calendar_date),
-                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Start
+                            textAlign = TextAlign.Start,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                     Row(
@@ -536,9 +536,9 @@ fun LiveCalendarPreview() {
                         )
                         Text(
                             text = stringResource(R.string.onboarding_text_hint_calendar_indicators),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Start
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Start,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
@@ -560,9 +560,9 @@ fun LiveCalendarPreview() {
                         )
                         Text(
                             text = stringResource(R.string.onboarding_text_hint_calendar_add),
-                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Start
+                            textAlign = TextAlign.Start,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
