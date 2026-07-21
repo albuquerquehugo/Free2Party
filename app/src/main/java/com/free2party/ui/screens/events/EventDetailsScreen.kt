@@ -319,7 +319,7 @@ fun EventDetailsScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Title & Description Card
+            // Title, Host & Description Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -339,38 +339,69 @@ fun EventDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Host Info Row
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer)
+                    // Host and Privacy Info Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            if (ev.hostProfilePic.isNotBlank()) {
-                                AsyncImage(
-                                    model = ev.hostProfilePic,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    Icons.Default.AccountCircle,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                            ) {
+                                if (ev.hostProfilePic.isNotBlank()) {
+                                    AsyncImage(
+                                        model = ev.hostProfilePic,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.AccountCircle,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(
+                                    R.string.label_hosted_by,
+                                    if (isHost) stringResource(R.string.label_you) else ev.hostName
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
+
                         Spacer(modifier = Modifier.width(8.dp))
+
                         Text(
-                            text = stringResource(
-                                R.string.label_hosted_by,
-                                if (isHost) stringResource(R.string.label_you) else ev.hostName
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = when (ev.type) {
+                                EventType.PUBLIC -> stringResource(R.string.label_public)
+                                EventType.PRIVATE -> stringResource(R.string.label_private)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color =
+                                if (ev.type == EventType.PUBLIC) MaterialTheme.colorScheme.onSecondary
+                                else MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .background(
+                                    color =
+                                        if (ev.type == EventType.PUBLIC) MaterialTheme.colorScheme.secondary
+                                        else MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
+                                )
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
 
@@ -673,7 +704,7 @@ fun EventDetailsScreen(
                                 if (isPublic) {
                                     val invitedIds = ev.invitedGuestIds ?: ev.guestIds
                                     val isInvited = invitedIds.contains(entry.key)
-                                    isInvited || entry.value == GuestStatus.ACCEPTED.name
+                                    isInvited || entry.value == GuestStatus.ACCEPTED.name || entry.value == GuestStatus.DECLINED.name
                                 } else {
                                     true
                                 }
@@ -681,7 +712,7 @@ fun EventDetailsScreen(
                         }
 
                     Text(
-                        text = stringResource(R.string.label_guests, ev.guests.size),
+                        text = stringResource(R.string.label_guests, visibleGuests.size),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -50,7 +50,21 @@ data class Event(
     val createdAt: Date? = null
 )
 
-fun Event.isEnded(): Boolean {
+fun Event.getStartMillis(): Long {
+    val tz = if (timezone.isNotBlank()) {
+        runCatching { TimeZone.getTimeZone(timezone) }.getOrDefault(TimeZone.getDefault())
+    } else {
+        TimeZone.getDefault()
+    }
+    if (startDate.isBlank()) return 0L
+    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
+        timeZone = tz
+    }
+    val timeStr = startTime.ifBlank { "00:00" }
+    return runCatching { sdf.parse("$startDate $timeStr")?.time }.getOrNull() ?: 0L
+}
+
+fun Event.getEndMillis(): Long {
     val tz = if (timezone.isNotBlank()) {
         runCatching { TimeZone.getTimeZone(timezone) }.getOrDefault(TimeZone.getDefault())
     } else {
@@ -58,32 +72,34 @@ fun Event.isEnded(): Boolean {
     }
 
     val targetDateStr = endDate.ifBlank { startDate }
-    if (targetDateStr.isBlank()) return false
+    if (targetDateStr.isBlank()) return 0L
 
-    val endMillis: Long? = if (endTime.isNotBlank()) {
+    return if (endTime.isNotBlank()) {
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
             timeZone = tz
         }
-        runCatching { sdf.parse("$targetDateStr $endTime")?.time }.getOrNull()
+        runCatching { sdf.parse("$targetDateStr $endTime")?.time }.getOrNull() ?: 0L
     } else {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
             timeZone = tz
         }
         runCatching {
             sdf.parse(targetDateStr)?.let { date ->
-                val calendar = Calendar.getInstance(tz).apply {
+                Calendar.getInstance(tz).apply {
                     time = date
                     set(Calendar.HOUR_OF_DAY, 23)
                     set(Calendar.MINUTE, 59)
                     set(Calendar.SECOND, 59)
                     set(Calendar.MILLISECOND, 999)
-                }
-                calendar.timeInMillis
+                }.timeInMillis
             }
-        }.getOrNull()
+        }.getOrNull() ?: 0L
     }
+}
 
-    return endMillis != null && System.currentTimeMillis() > endMillis
+fun Event.isEnded(now: Long = System.currentTimeMillis()): Boolean {
+    val endMillis = getEndMillis()
+    return endMillis != 0L && now > endMillis
 }
 
 @IgnoreExtraProperties

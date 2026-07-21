@@ -46,9 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.free2party.data.model.Event
 import com.free2party.data.model.FriendInfo
 import com.free2party.data.model.FuturePlan
-import com.free2party.data.model.Event
+import com.free2party.data.model.getEndMillis
+import com.free2party.data.model.getStartMillis
 import com.free2party.data.model.PlanVisibility
 import com.free2party.R
 import com.free2party.ui.components.basic.AppDropdownMenu
@@ -66,8 +68,6 @@ import com.free2party.util.parseTimeToMillis
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import java.util.Calendar
-import java.util.Locale
-import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 data class PlanStatus(
@@ -345,18 +345,11 @@ fun EventItem(
 
     val eventStatus by remember(event, currentTimeMillis) {
         derivedStateOf {
-            val timeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone(event.timezone)
-            }
-            val startDateTime =
-                runCatching { timeFormatter.parse("${event.startDate} ${event.startTime}") }.getOrNull()?.time
-                    ?: 0L
-            val endDateTime =
-                runCatching { timeFormatter.parse("${event.endDate} ${event.endTime}") }.getOrNull()?.time
-                    ?: 0L
+            val startDateTime = event.getStartMillis()
+            val endDateTime = event.getEndMillis()
 
-            val isCurrent = currentTimeMillis in startDateTime..<endDateTime
-            val isPast = currentTimeMillis >= endDateTime
+            val isCurrent = startDateTime != 0L && endDateTime != 0L && currentTimeMillis >= startDateTime && currentTimeMillis < endDateTime
+            val isPast = endDateTime != 0L && currentTimeMillis >= endDateTime
 
             PlanStatus(isCurrent = isCurrent, isPast = isPast, isEditDisabled = false)
         }

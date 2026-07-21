@@ -496,7 +496,7 @@ class EventRepositoryTest {
 
         // Mock for validateEventDetails (future date)
         every { com.free2party.util.isDateTimeInPast(any(), any(), any()) } returns false
-        
+
         val event = Event(
             id = "event123",
             title = "Awesome Party Updated",
@@ -702,6 +702,33 @@ class EventRepositoryTest {
             val result = repository.respondToEvent("123", GuestStatus.DECLINED)
             assertTrue(result.isSuccess)
         }
+
+    @Test
+    fun `respondToEvent fails if event is private and user is not in guestIds`() = runTest {
+        every { auth.currentUser } returns firebaseUser
+        every { firebaseUser.uid } returns "testUser"
+
+        every { eventsCollection.document("123") } returns eventDoc
+        val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.id } returns "123"
+        every { oldDoc.toObject(Event::class.java) } returns Event(id = "123")
+        every { oldDoc.get("guestIds") } returns emptyList<String>()
+        every { oldDoc.get("invitedGuestIds") } returns emptyList<String>()
+        every { oldDoc.getString("type") } returns "PRIVATE"
+
+        val transaction = mockk<Transaction>()
+        every { transaction.get(eventDoc) } returns oldDoc
+
+        every { db.runTransaction<Unit>(any()) } answers {
+            val function = firstArg<Transaction.Function<Unit>>()
+            function.apply(transaction)
+            Tasks.forResult(Unit)
+        }
+
+        val result = repository.respondToEvent("123", GuestStatus.ACCEPTED)
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is UnauthorizedException)
+    }
 
     @Test
     fun `addComment fails if text is blank`() = runTest {

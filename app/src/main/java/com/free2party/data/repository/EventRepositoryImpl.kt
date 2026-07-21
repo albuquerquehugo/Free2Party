@@ -385,6 +385,10 @@ class EventRepositoryImpl @Inject constructor(
                 (snapshot.get("invitedGuestIds") as? List<*>)?.filterIsInstance<String>()
             val isPublic = snapshot.getString("type") == EventType.PUBLIC.name
 
+            if (!isPublic && !guestIds.contains(uid)) {
+                throw UnauthorizedException("You are not invited to this private event")
+            }
+
             val updates = mutableMapOf<String, Any>()
             if (isPublic && invitedGuestIds == null) {
                 updates["invitedGuestIds"] = guestIds

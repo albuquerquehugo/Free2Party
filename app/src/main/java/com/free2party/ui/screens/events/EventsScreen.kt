@@ -38,11 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import coil.compose.AsyncImage
+import com.free2party.data.model.DistanceUnit
 import com.free2party.data.model.Event
 import com.free2party.data.model.EventType
+import com.free2party.data.model.getEndMillis
+import com.free2party.data.model.getStartMillis
 import com.free2party.data.model.GuestStatus
 import com.free2party.data.model.Membership
-import com.free2party.data.model.DistanceUnit
 import com.free2party.R
 import com.free2party.ui.components.AdBanner
 import com.free2party.ui.components.basic.AppDropdownMenu
@@ -64,9 +66,6 @@ import com.free2party.util.formatDistance
 import com.free2party.util.formatPlanDateInFull
 import com.free2party.util.formatTimeForDisplay
 import com.free2party.util.getLastKnownLocation
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 @Composable
 fun EventsRoute(
@@ -529,18 +528,11 @@ fun EventCard(
     }
 
     val eventStatus = remember(event) {
-        val timeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone(event.timezone)
-        }
-        val startDateTime =
-            runCatching { timeFormatter.parse("${event.startDate} ${event.startTime}") }
-                .getOrNull()?.time ?: 0L
-        val endDateTime =
-            runCatching { timeFormatter.parse("${event.endDate} ${event.endTime}") }
-                .getOrNull()?.time ?: 0L
+        val startDateTime = event.getStartMillis()
+        val endDateTime = event.getEndMillis()
         val now = System.currentTimeMillis()
-        val isCurrent = now in startDateTime..<endDateTime
-        val isPast = now >= endDateTime
+        val isCurrent = startDateTime != 0L && endDateTime != 0L && now >= startDateTime && now < endDateTime
+        val isPast = endDateTime != 0L && now >= endDateTime
         PlanStatus(isCurrent = isCurrent, isPast = isPast, isEditDisabled = false)
     }
 
