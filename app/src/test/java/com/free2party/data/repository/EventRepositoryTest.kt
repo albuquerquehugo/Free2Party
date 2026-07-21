@@ -588,6 +588,8 @@ class EventRepositoryTest {
 
             every { eventsCollection.document("123") } returns eventDoc
             val oldDoc = mockk<DocumentSnapshot>()
+            every { oldDoc.id } returns "123"
+            every { oldDoc.toObject(Event::class.java) } returns Event(id = "123")
             every { oldDoc.get("guestIds") } returns listOf("testUser")
             every { oldDoc.get("invitedGuestIds") } returns listOf("testUser")
             every { oldDoc.getString("type") } returns "PRIVATE"
@@ -620,6 +622,8 @@ class EventRepositoryTest {
 
             every { eventsCollection.document("123") } returns eventDoc
             val oldDoc = mockk<DocumentSnapshot>()
+            every { oldDoc.id } returns "123"
+            every { oldDoc.toObject(Event::class.java) } returns Event(id = "123")
             every { oldDoc.get("guestIds") } returns emptyList<String>()
             every { oldDoc.get("invitedGuestIds") } returns emptyList<String>()
             every { oldDoc.getString("type") } returns "PUBLIC"
@@ -645,6 +649,8 @@ class EventRepositoryTest {
 
         every { eventsCollection.document("123") } returns eventDoc
         val oldDoc = mockk<DocumentSnapshot>()
+        every { oldDoc.id } returns "123"
+        every { oldDoc.toObject(Event::class.java) } returns Event(id = "123")
         every { oldDoc.get("guestIds") } returns emptyList<String>()
         every { oldDoc.get("invitedGuestIds") } returns emptyList<String>()
         every { oldDoc.getString("type") } returns "PUBLIC"
@@ -671,6 +677,8 @@ class EventRepositoryTest {
 
             every { eventsCollection.document("123") } returns eventDoc
             val oldDoc = mockk<DocumentSnapshot>()
+            every { oldDoc.id } returns "123"
+            every { oldDoc.toObject(Event::class.java) } returns Event(id = "123")
             every { oldDoc.get("guestIds") } returns listOf("testUser")
             every { oldDoc.get("invitedGuestIds") } returns listOf("testUser")
             every { oldDoc.getString("type") } returns "PUBLIC"

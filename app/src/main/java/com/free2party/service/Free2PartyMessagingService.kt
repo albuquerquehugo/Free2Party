@@ -53,11 +53,21 @@ class Free2PartyMessagingService : FirebaseMessagingService() {
                 Log.d(TAG, "Notification $notificationId marked as shown in DataStore")
             }
 
+            val eventId = dataPayload["eventId"]
+            val targetRoute = if (!eventId.isNullOrBlank()) {
+                val type = dataPayload["type"]
+                val scrollToComments = type == "EVENT_COMMENT"
+                com.free2party.ui.navigation.Screen.EventDetails.createRoute(eventId, scrollToComments)
+            } else {
+                com.free2party.ui.navigation.Screen.Notifications.route
+            }
+
             NotificationHelper.showNotification(
                 context = applicationContext,
                 notificationId = notificationId,
                 title = title,
                 message = body,
+                targetRoute = targetRoute
             )
         }
     }

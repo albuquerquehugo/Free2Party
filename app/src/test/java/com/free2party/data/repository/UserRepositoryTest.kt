@@ -156,7 +156,7 @@ class UserRepositoryTest {
         
         every { storage.reference } returns storageRef
         every { storageRef.child("profile_pictures/me.jpg") } returns profilePicRef
-        every { profilePicRef.putFile(uri) } returns uploadTask
+        every { profilePicRef.putFile(any(), any()) } returns uploadTask
         
         // Properly mock the await() for StorageTask/UploadTask
         coEvery { uploadTask.await() } returns mockk()
@@ -224,7 +224,7 @@ class UserRepositoryTest {
         every { firebaseUser.uid } returns "new_user"
         val user = User(uid = "new_user", email = "new@test.com")
         every { usersCollection.document("new_user") } returns userDoc
-        every { userDoc.set(user, any()) } returns Tasks.forResult(null)
+        every { userDoc.set(any<User>(), any()) } returns Tasks.forResult(null)
 
         val result = repository.createUserProfile(user)
         assertTrue(result.isSuccess)

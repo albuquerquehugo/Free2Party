@@ -1,9 +1,9 @@
 package com.free2party.ui.screens.home
 
 import com.free2party.data.repository.SocialRepository
+import com.free2party.ui.screens.friends.AddFriendUiState
 import com.free2party.ui.screens.friends.FriendUiEvent
 import com.free2party.ui.screens.friends.FriendViewModel
-import com.free2party.ui.screens.friends.AddFriendUiState
 import com.free2party.util.UiText
 import io.mockk.coEvery
 import io.mockk.mockk

@@ -332,12 +332,12 @@ fun EventDetailsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = ev.title,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Host Info Row
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -395,11 +395,11 @@ fun EventDetailsScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.label_date_and_time),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -469,29 +469,29 @@ fun EventDetailsScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             text = stringResource(R.string.label_location),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Row(
                                 modifier = Modifier.weight(1f),
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
                                     Icons.Default.LocationOn,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = ev.locationName,
                                     style = MaterialTheme.typography.bodySmall,
@@ -547,7 +547,7 @@ fun EventDetailsScreen(
                         Text(
                             text = stringResource(R.string.label_rsvp),
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Row(
@@ -664,7 +664,7 @@ fun EventDetailsScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     val visibleGuests =
                         remember(ev.guests, ev.invitedGuestIds, ev.guestIds, ev.type) {
@@ -683,7 +683,7 @@ fun EventDetailsScreen(
                     Text(
                         text = stringResource(R.string.label_guests, ev.guests.size),
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (isHost && visibleGuests.isNotEmpty()) {
@@ -800,7 +800,8 @@ fun EventDetailsScreen(
                                 val status = GuestStatus.valueOf(entry.value)
                                 val guestUser = guestProfiles[uid]
                                 val guestName =
-                                    guestUser?.fullName ?: stringResource(R.string.label_pending)
+                                    guestUser?.fullName?.takeIf { it.isNotBlank() }
+                                        ?: stringResource(R.string.label_pending)
                                 val displayName =
                                     if (uid == currentUserId) stringResource(R.string.label_you) else guestName
                                 val guestPic = guestUser?.profilePicUrl ?: ""
@@ -907,12 +908,12 @@ fun EventDetailsScreen(
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             text = stringResource(R.string.label_useful_links),
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         ev.usefulLinks.forEach { link ->
@@ -971,7 +972,7 @@ fun EventDetailsScreen(
                         Text(
                             text = stringResource(R.string.label_photo_album),
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
@@ -1108,7 +1109,7 @@ fun EventDetailsScreen(
                     Text(
                         text = stringResource(R.string.label_comments),
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
@@ -1119,7 +1120,7 @@ fun EventDetailsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp),
+                                .padding(top = 8.dp, bottom = 16.dp),
                             textAlign = TextAlign.Center
                         )
                     } else {

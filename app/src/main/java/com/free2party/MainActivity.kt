@@ -23,10 +23,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.free2party.data.model.Notification
 import com.free2party.data.model.NotificationType
 import com.free2party.ui.navigation.AppNavigation
+import com.free2party.ui.navigation.Screen
 import com.free2party.util.NotificationHelper
 import com.free2party.util.matchNameAndEmail
 import com.free2party.util.matchEventInvitation
 import com.free2party.util.matchEventComment
+import com.google.firebase.auth.auth
+import com.google.firebase.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 
@@ -76,14 +79,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            val initialStartDestination: String? = null
+            val initialTargetRoute = intent.getStringExtra("TARGET_ROUTE")
+            val initialStartDestination = if (Firebase.auth.currentUser != null && !initialTargetRoute.isNullOrBlank()) {
+                initialTargetRoute
+            } else {
+                null
+            }
 
             // Handle notification clicks (from both startup and onNewIntent)
             LaunchedEffect(currentNotificationId) {
                 currentNotificationId?.let { id ->
-                    mainViewModel.onNotificationClicked(id)
+                    val targetRoute = intent.getStringExtra("TARGET_ROUTE")
+                    mainViewModel.onNotificationClicked(id, targetRoute)
                     intent.removeExtra("NOTIFICATION_ID")
                     intent.removeExtra("notificationId")
+                    intent.removeExtra("TARGET_ROUTE")
                     currentNotificationId = null
                 }
             }
@@ -91,11 +101,13 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(mainViewModel) {
                 mainViewModel.systemNotificationToDisplay.collectLatest { notification ->
                     val (title, body) = resolveNotificationStrings(notification)
+                    val targetRoute = resolveNotificationRoute(notification)
                     NotificationHelper.showNotification(
                         context = this@MainActivity,
                         notificationId = notification.id,
                         title = title,
-                        message = body
+                        message = body,
+                        targetRoute = targetRoute
                     )
                 }
             }
@@ -126,6 +138,15 @@ class MainActivity : ComponentActivity() {
                 mainViewModel = mainViewModel,
                 startDestination = initialStartDestination
             )
+        }
+    }
+
+    private fun resolveNotificationRoute(notification: Notification): String {
+        return if (notification.eventId.isNotBlank()) {
+            val scrollToComments = notification.type == NotificationType.EVENT_COMMENT
+            Screen.EventDetails.createRoute(notification.eventId, scrollToComments)
+        } else {
+            Screen.Notifications.route
         }
     }
 

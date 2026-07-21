@@ -43,9 +43,10 @@ object NotificationHelper {
         context: Context,
         notificationId: String,
         title: String,
-        message: String
+        message: String,
+        targetRoute: String? = null
     ) {
-        Log.d(TAG, "Attempting to show notification: ID=$notificationId, Title=$title")
+        Log.d(TAG, "Attempting to show notification: ID=$notificationId, Title=$title, TargetRoute=$targetRoute")
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
@@ -61,6 +62,9 @@ object NotificationHelper {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("NOTIFICATION_ID", notificationId)
+            if (!targetRoute.isNullOrBlank()) {
+                putExtra("TARGET_ROUTE", targetRoute)
+            }
         }
         
         val pendingIntent: PendingIntent = PendingIntent.getActivity(

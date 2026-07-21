@@ -408,13 +408,23 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onNotificationClicked(notificationId: String) {
+    fun onNotificationClicked(notificationId: String, targetRoute: String? = null) {
         activeSystemNotifications.update { it + notificationId }
 
         viewModelScope.launch {
             settingsRepository.markNotificationAsShown(notificationId)
 
             Log.d("MainViewModel", "Notification clicked: $notificationId. Suppression updated.")
+
+            if (!targetRoute.isNullOrBlank()) {
+                _navigateToRoute.emit(targetRoute)
+                val notifications = socialRepository.getNotifications().first()
+                val notification = notifications.find { it.id == notificationId }
+                if (notification != null && !notification.isRead) {
+                    socialRepository.markNotificationAsRead(notificationId)
+                }
+                return@launch
+            }
 
             val notifications = socialRepository.getNotifications().first()
             val notification = notifications.find { it.id == notificationId }

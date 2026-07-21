@@ -112,7 +112,10 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun createUserProfile(user: User): Result<Unit> = try {
         validateSession()
-        db.collection("users").document(user.uid).set(user, SetOptions.merge()).await()
+        val userToSave =
+            if (user.searchKeywords.isEmpty()) user.copy(searchKeywords = user.generateSearchKeywords())
+            else user
+        db.collection("users").document(userToSave.uid).set(userToSave, SetOptions.merge()).await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToUserException(e))
@@ -142,8 +145,11 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateUser(user: User): Result<Unit> = try {
         val uid = validateSession()
+        val userToSave =
+            if (user.searchKeywords.isEmpty()) user.copy(searchKeywords = user.generateSearchKeywords())
+            else user
         db.collection("users").document(uid)
-            .set(user, SetOptions.merge())
+            .set(userToSave, SetOptions.merge())
             .await()
         Result.success(Unit)
     } catch (e: Exception) {

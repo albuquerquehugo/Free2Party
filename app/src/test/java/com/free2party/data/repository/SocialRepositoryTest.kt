@@ -52,7 +52,17 @@ class SocialRepositoryTest {
         every { db.collection("users") } returns usersCollection
         every { usersCollection.document("me123") } returns userDoc
         every { userDoc.collection("friends") } returns friendsCollection
-        
+
+        val friendRequestsCollection = mockk<CollectionReference>()
+        val emptyRequestsQuery = mockk<com.google.firebase.firestore.Query>()
+        val emptyRequestsSnapshot = mockk<QuerySnapshot> {
+            every { documents } returns emptyList()
+        }
+        every { db.collection("friendRequests") } returns friendRequestsCollection
+        every { friendRequestsCollection.whereEqualTo(any<String>(), any()) } returns emptyRequestsQuery
+        every { emptyRequestsQuery.whereEqualTo(any<String>(), any()) } returns emptyRequestsQuery
+        every { emptyRequestsQuery.get() } returns Tasks.forResult(emptyRequestsSnapshot)
+
         repository = SocialRepositoryImpl(db, userRepository, planRepository, context)
         
         mockkStatic("kotlinx.coroutines.tasks.TasksKt")
@@ -481,9 +491,14 @@ class SocialRepositoryTest {
         assertTrue(result.isSuccess)
         val list = result.getOrThrow()
         
+        // Expected order under new priority (PENDING > FRIEND > NONE > BLOCKED):
+        // 1. alice4 (PENDING)
+        // 2. alice2 (FRIEND)
+        // 3. alice1 (NONE)
+        // 4. alice3 (BLOCKED)
         org.junit.Assert.assertEquals(4, list.size)
-        org.junit.Assert.assertEquals("alice2", list[0].uid)
-        org.junit.Assert.assertEquals("alice4", list[1].uid)
+        org.junit.Assert.assertEquals("alice4", list[0].uid)
+        org.junit.Assert.assertEquals("alice2", list[1].uid)
         org.junit.Assert.assertEquals("alice1", list[2].uid)
         org.junit.Assert.assertEquals("alice3", list[3].uid)
     }

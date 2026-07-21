@@ -5,6 +5,7 @@ import com.free2party.data.model.UserSocials
 import com.free2party.exception.EmailAlreadyInUseException
 import com.free2party.exception.WeakPasswordException
 import com.free2party.exception.UnknownAuthException
+import com.free2party.exception.UserNotFoundException
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -65,8 +66,10 @@ class AuthRepositoryTest {
         val phoneNumber = "123456789"
         val birthday = "1990-01-01"
         val socials = UserSocials(facebookUsername = "fb_user")
-        
-        every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forResult(authResult)
+
+        every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forResult(
+            authResult
+        )
         every { authResult.user } returns firebaseUser
         every { firebaseUser.uid } returns "user123"
         every { firebaseUser.sendEmailVerification() } returns Tasks.forResult(null)
@@ -86,22 +89,22 @@ class AuthRepositoryTest {
             gender = Gender.MAN,
             socials = socials
         )
-        
+
         assertTrue(result.isSuccess)
         assertEquals(firebaseUser, result.getOrNull())
         verify { auth.createUserWithEmailAndPassword(email, password) }
-        coVerify { 
-            userRepository.createUserProfile(match { 
-                it.uid == "user123" && 
-                it.firstName == "First" && 
-                it.lastName == "Last" && 
-                it.email == email &&
-                it.phoneNumber == phoneNumber &&
-                it.birthday == birthday &&
-                it.gender == Gender.MAN &&
-                it.socials == socials &&
-                it.registrationMethod == "email"
-            }) 
+        coVerify {
+            userRepository.createUserProfile(match {
+                it.uid == "user123" &&
+                        it.firstName == "First" &&
+                        it.lastName == "Last" &&
+                        it.email == email &&
+                        it.phoneNumber == phoneNumber &&
+                        it.birthday == birthday &&
+                        it.gender == Gender.MAN &&
+                        it.socials == socials &&
+                        it.registrationMethod == "email"
+            })
         }
     }
 
@@ -111,8 +114,10 @@ class AuthRepositoryTest {
         val email = "test@test.com"
         val password = "123"
         val exception = mockk<FirebaseAuthWeakPasswordException>()
-        
-        every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(exception)
+
+        every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(
+            exception
+        )
 
         val result = repository.register(
             profilePicUri = null,
@@ -127,7 +132,7 @@ class AuthRepositoryTest {
             gender = Gender.OTHER,
             socials = UserSocials()
         )
-        
+
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is WeakPasswordException)
     }
@@ -138,8 +143,10 @@ class AuthRepositoryTest {
         val email = "existing@test.com"
         val password = "password123"
         val exception = mockk<FirebaseAuthUserCollisionException>()
-        
-        every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(exception)
+
+        every { auth.createUserWithEmailAndPassword(email, password) } returns Tasks.forException(
+            exception
+        )
 
         val result = repository.register(
             profilePicUri = null,
@@ -154,7 +161,7 @@ class AuthRepositoryTest {
             gender = Gender.OTHER,
             socials = UserSocials()
         )
-        
+
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is EmailAlreadyInUseException)
     }
@@ -163,13 +170,15 @@ class AuthRepositoryTest {
     fun `login success`() = runTest {
         val email = "test@test.com"
         val password = "password123"
-        
-        every { auth.signInWithEmailAndPassword(email, password) } returns Tasks.forResult(authResult)
+
+        every { auth.signInWithEmailAndPassword(email, password) } returns Tasks.forResult(
+            authResult
+        )
         every { authResult.user } returns firebaseUser
         every { firebaseUser.isEmailVerified } returns true
 
         val result = repository.login(email, password)
-        
+
         assertTrue(result.isSuccess)
         assertEquals(firebaseUser, result.getOrNull())
     }
@@ -179,11 +188,13 @@ class AuthRepositoryTest {
         mockLogError()
         val email = "test@test.com"
         val password = "wrong"
-        
-        every { auth.signInWithEmailAndPassword(email, password) } returns Tasks.forException(Exception("Invalid credentials"))
+
+        every { auth.signInWithEmailAndPassword(email, password) } returns Tasks.forException(
+            Exception("Invalid credentials")
+        )
 
         val result = repository.login(email, password)
-        
+
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is UnknownAuthException)
     }
@@ -194,7 +205,7 @@ class AuthRepositoryTest {
         every { auth.sendPasswordResetEmail(email) } returns Tasks.forResult(null)
 
         val result = repository.sendPasswordResetEmail(email)
-        
+
         assertTrue(result.isSuccess)
         verify { auth.sendPasswordResetEmail(email) }
     }
@@ -204,5 +215,69 @@ class AuthRepositoryTest {
         every { auth.signOut() } returns Unit
         repository.logout()
         verify { auth.signOut() }
+    }
+
+    @Test
+    fun `signInWithGoogle creates new user with multi-word display name`() = runTest {
+        val credential = mockk<com.google.firebase.auth.AuthCredential>()
+        val idTokenResult = mockk<com.google.firebase.auth.GetTokenResult>()
+
+        every { auth.signInWithCredential(credential) } returns Tasks.forResult(authResult)
+        every { authResult.user } returns firebaseUser
+        every { firebaseUser.uid } returns "googleUser123"
+        every { firebaseUser.displayName } returns "Douglas de Coldibelli"
+        every { firebaseUser.email } returns "douglas@example.com"
+        every { firebaseUser.photoUrl } returns null
+        every { firebaseUser.getIdToken(true) } returns Tasks.forResult(idTokenResult)
+
+        coEvery { userRepository.getUserById("googleUser123") } returns Result.failure(
+            UserNotFoundException()
+        )
+        coEvery { userRepository.createUserProfile(any()) } returns Result.success(Unit)
+
+        val result = repository.signInWithGoogle(credential)
+
+        assertTrue(result.isSuccess)
+        coVerify {
+            userRepository.createUserProfile(match {
+                it.uid == "googleUser123" &&
+                        it.firstName == "Douglas" &&
+                        it.lastName == "de Coldibelli" &&
+                        it.email == "douglas@example.com" &&
+                        it.registrationMethod == "google"
+            })
+        }
+    }
+
+    @Test
+    fun `signInWithGoogle falls back to email when displayName is null`() = runTest {
+        val credential = mockk<com.google.firebase.auth.AuthCredential>()
+        val idTokenResult = mockk<com.google.firebase.auth.GetTokenResult>()
+
+        every { auth.signInWithCredential(credential) } returns Tasks.forResult(authResult)
+        every { authResult.user } returns firebaseUser
+        every { firebaseUser.uid } returns "googleUser456"
+        every { firebaseUser.displayName } returns null
+        every { firebaseUser.email } returns "douglas.coldibelli@gmail.com"
+        every { firebaseUser.photoUrl } returns null
+        every { firebaseUser.getIdToken(true) } returns Tasks.forResult(idTokenResult)
+
+        coEvery { userRepository.getUserById("googleUser456") } returns Result.failure(
+            UserNotFoundException()
+        )
+        coEvery { userRepository.createUserProfile(any()) } returns Result.success(Unit)
+
+        val result = repository.signInWithGoogle(credential)
+
+        assertTrue(result.isSuccess)
+        coVerify {
+            userRepository.createUserProfile(match {
+                it.uid == "googleUser456" &&
+                        it.firstName == "Douglas" &&
+                        it.lastName == "Coldibelli" &&
+                        it.email == "douglas.coldibelli@gmail.com" &&
+                        it.registrationMethod == "google"
+            })
+        }
     }
 }

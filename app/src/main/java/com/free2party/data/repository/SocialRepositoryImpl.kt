@@ -276,10 +276,43 @@ class SocialRepositoryImpl @Inject constructor(
             val currentUser = userRepository.getUserById(currentUserId).getOrNull()
             val currentUserCountry = currentUser?.countryCode.orEmpty()
 
-            val querySnapshot = db.collection("users")
-                .whereArrayContains("searchKeywords", normalizedQuery)
-                .limit(40)
-                .get().await()
+            val endQuery = normalizedQuery + "\uf8ff"
+
+            val keywordsSnap = try {
+                db.collection("users")
+                    .whereArrayContains("searchKeywords", normalizedQuery)
+                    .limit(40)
+                    .get().await()
+            } catch (_: Exception) { null }
+
+            val firstNameSnap = try {
+                db.collection("users")
+                    .whereGreaterThanOrEqualTo("firstNameLowercase", normalizedQuery)
+                    .whereLessThanOrEqualTo("firstNameLowercase", endQuery)
+                    .limit(40)
+                    .get().await()
+            } catch (_: Exception) { null }
+
+            val lastNameSnap = try {
+                db.collection("users")
+                    .whereGreaterThanOrEqualTo("lastNameLowercase", normalizedQuery)
+                    .whereLessThanOrEqualTo("lastNameLowercase", endQuery)
+                    .limit(40)
+                    .get().await()
+            } catch (_: Exception) { null }
+
+            val emailSnap = try {
+                db.collection("users")
+                    .whereGreaterThanOrEqualTo("emailLowercase", normalizedQuery)
+                    .whereLessThanOrEqualTo("emailLowercase", endQuery)
+                    .limit(40)
+                    .get().await()
+            } catch (_: Exception) { null }
+
+            val matchingDocs = (keywordsSnap?.documents.orEmpty() +
+                    firstNameSnap?.documents.orEmpty() +
+                    lastNameSnap?.documents.orEmpty() +
+                    emailSnap?.documents.orEmpty()).distinctBy { it.id }
 
             val friendsSnapshot = db.collection("users").document(currentUserId)
                 .collection("friends").get().await()
@@ -292,7 +325,17 @@ class SocialRepositoryImpl @Inject constructor(
                 .collection("blocked").get().await()
             val blockedIds = blockedSnapshot.documents.map { it.id }.toSet()
 
-            val results = querySnapshot.documents
+            val incomingRequestsSnapshot = db.collection("friendRequests")
+                .whereEqualTo("receiverId", currentUserId)
+                .whereEqualTo("friendRequestStatus", FriendRequestStatus.PENDING.name)
+                .get().await()
+            val incomingRequestsMap = incomingRequestsSnapshot.documents
+                .associateBy(
+                    { it.getString("senderId") ?: "" },
+                    { it.id }
+                )
+
+            val results = matchingDocs
                 .asSequence()
                 .mapNotNull { doc ->
                     val user = doc.toObject(User::class.java) ?: return@mapNotNull null
@@ -300,10 +343,14 @@ class SocialRepositoryImpl @Inject constructor(
                     val relationship = when {
                         uid in blockedIds -> UserRelationship.BLOCKED
                         friendsMap.containsKey(uid) -> {
-                            if (friendsMap[uid] == InviteStatus.PENDING.name) UserRelationship.PENDING
-                            else UserRelationship.FRIEND
+                            when (friendsMap[uid]) {
+                                InviteStatus.PENDING.name -> UserRelationship.PENDING
+                                InviteStatus.ACCEPTED.name -> UserRelationship.FRIEND
+                                else -> UserRelationship.NONE
+                            }
                         }
 
+                        incomingRequestsMap.containsKey(uid) -> UserRelationship.PENDING_INCOMING
                         else -> UserRelationship.NONE
                     }
 
@@ -355,7 +402,7 @@ class SocialRepositoryImpl @Inject constructor(
                             score += 200
                         }
 
-                        UserRelationship.PENDING -> {
+                        UserRelationship.PENDING, UserRelationship.PENDING_INCOMING -> {
                             score += 100
                         }
 
@@ -372,15 +419,26 @@ class SocialRepositoryImpl @Inject constructor(
                         firstName = user.firstName,
                         lastName = user.lastName,
                         email = user.email,
-                        relationship = relationship
+                        relationship = relationship,
+                        requestId = incomingRequestsMap[uid]
                     )
 
                     searchResult to score
                 }
                 .filter { it.first.uid != currentUserId }
-                .sortedByDescending { it.second }
+                .sortedWith(
+                    compareByDescending<Pair<UserSearchResult, Int>> { (user, _) ->
+                        when (user.relationship) {
+                            UserRelationship.PENDING_INCOMING -> 4
+                            UserRelationship.PENDING -> 3
+                            UserRelationship.FRIEND -> 2
+                            UserRelationship.NONE -> 1
+                            UserRelationship.BLOCKED -> 0
+                        }
+                    }.thenByDescending { it.second }
+                )
                 .map { it.first }
-                .take(10)
+                .take(20)
                 .toList()
 
             Log.d("SocialRepository", "Total results found: ${results.size}")

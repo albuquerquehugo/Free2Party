@@ -117,6 +117,8 @@ class AuthRepositoryImpl @Inject constructor(
                 userProfileResult = userRepository.getUserById(user.uid)
             }
 
+            val (extractedFirstName, extractedLastName) = extractNamesFromGoogleUser(user)
+
             if (userProfileResult.isFailure) {
                 val exception = userProfileResult.exceptionOrNull()
                 if (exception is UserNotFoundException) {
@@ -124,8 +126,8 @@ class AuthRepositoryImpl @Inject constructor(
                     val newUser = User(
                         uid = user.uid,
                         profilePicUrl = user.photoUrl?.toString() ?: "",
-                        firstName = user.displayName?.split(" ")?.getOrNull(0) ?: "",
-                        lastName = user.displayName?.split(" ")?.getOrNull(1) ?: "",
+                        firstName = extractedFirstName,
+                        lastName = extractedLastName,
                         email = user.email ?: "",
                         isFreeNow = false,
                         registrationMethod = "google"
@@ -136,6 +138,29 @@ class AuthRepositoryImpl @Inject constructor(
                     // it might be a real issue or persistent sync problem.
                     throw exception ?: Exception("Failed to verify user profile")
                 }
+            } else {
+                // If profile already exists, repair missing names or searchKeywords if needed
+                val existingUser = userProfileResult.getOrNull()
+                if (existingUser != null) {
+                    var needsUpdate = false
+                    var updatedUser = existingUser
+                    if (existingUser.firstName.isBlank() && existingUser.lastName.isBlank() && extractedFirstName.isNotBlank()) {
+                        updatedUser = updatedUser.copy(
+                            firstName = extractedFirstName,
+                            lastName = extractedLastName
+                        )
+                        needsUpdate = true
+                    }
+                    if (updatedUser.searchKeywords.isEmpty()) {
+                        updatedUser = updatedUser.copy(
+                            searchKeywords = updatedUser.generateSearchKeywords()
+                        )
+                        needsUpdate = true
+                    }
+                    if (needsUpdate) {
+                        userRepository.updateUser(updatedUser)
+                    }
+                }
             }
             user
         }
@@ -143,6 +168,32 @@ class AuthRepositoryImpl @Inject constructor(
     } catch (e: Exception) {
         Log.e("AuthRepository", "Google Sign-In failed or timed out", e)
         Result.failure(mapToAuthException(e))
+    }
+
+    private fun extractNamesFromGoogleUser(user: FirebaseUser): Pair<String, String> {
+        val displayName = user.displayName?.trim()
+        if (!displayName.isNullOrBlank()) {
+            val nameParts = displayName.split("\\s+".toRegex()).filter { it.isNotBlank() }
+            val firstName = nameParts.firstOrNull() ?: ""
+            val lastName = if (nameParts.size > 1) nameParts.drop(1).joinToString(" ") else ""
+            if (firstName.isNotBlank()) {
+                return Pair(firstName, lastName)
+            }
+        }
+
+        // Fallback to email username if displayName is null or blank
+        val email = user.email?.trim().orEmpty()
+        if (email.isNotBlank()) {
+            val emailUsername = email.substringBefore("@")
+            val parts = emailUsername.split(".", "_", "-").filter { it.isNotBlank() }
+            val firstName = parts.firstOrNull()?.replaceFirstChar { it.uppercase() } ?: ""
+            val lastName = if (parts.size > 1) parts.drop(1).joinToString(" ") { part ->
+                part.replaceFirstChar { it.uppercase() }
+            } else ""
+            return Pair(firstName, lastName)
+        }
+
+        return Pair("", "")
     }
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = try {

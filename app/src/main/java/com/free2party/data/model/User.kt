@@ -62,7 +62,8 @@ enum class BirthdayShowType {
 
 enum class Membership {
     FREE,
-    PREMIUM
+    PREMIUM,
+    REGULAR
 }
 
 enum class DistanceUnit {
@@ -121,6 +122,9 @@ data class User(
     val settings: UserSettings = UserSettings(),
     val interests: List<String> = emptyList(),
     val registrationMethod: String = "",
+    @get:PropertyName("searchKeywords")
+    @field:PropertyName("searchKeywords")
+    val searchKeywords: List<String> = emptyList(),
     @ServerTimestamp
     val createdAt: Date? = null
 ) {
@@ -136,46 +140,43 @@ data class User(
     @Suppress("unused")
     val emailLowercase: String get() = email.lowercase().removeAccents()
 
-    @get:PropertyName("searchKeywords")
-    @Suppress("unused")
-    val searchKeywords: List<String>
-        get() {
-            val keywords = mutableSetOf<String>()
-            val normalizedFirstName = firstName.lowercase().removeAccents()
-            val normalizedLastName = lastName.lowercase().removeAccents()
-            val normalizedEmail = email.lowercase().removeAccents()
+    fun generateSearchKeywords(): List<String> {
+        val keywords = mutableSetOf<String>()
+        val normalizedFirstName = firstName.lowercase().removeAccents()
+        val normalizedLastName = lastName.lowercase().removeAccents()
+        val normalizedEmail = email.lowercase().removeAccents()
 
-            val allWords =
-                ("$normalizedFirstName $normalizedLastName " + normalizedEmail.split("@")
-                    .firstOrNull().orEmpty())
-                    .split(Regex("[\\s.\\-_@]+"))
-                    .filter { it.isNotBlank() }
+        val allWords =
+            ("$normalizedFirstName $normalizedLastName " + normalizedEmail.split("@")
+                .firstOrNull().orEmpty())
+                .split(Regex("[\\s.\\-_@]+"))
+                .filter { it.isNotBlank() }
 
-            // Individual word prefixes
-            for (word in allWords) {
-                for (i in 1..word.length) {
-                    keywords.add(word.take(i))
-                }
+        // Individual word prefixes
+        for (word in allWords) {
+            for (i in 1..word.length) {
+                keywords.add(word.take(i))
             }
-
-            // Full name prefixes (FirstName LastName)
-            val fullName = ("$normalizedFirstName $normalizedLastName").trim()
-            if (fullName.isNotEmpty()) {
-                for (i in 1..fullName.length) {
-                    keywords.add(fullName.take(i))
-                }
-            }
-
-            // Full name prefixes (LastName FirstName)
-            val reversedFullName = ("$normalizedLastName $normalizedFirstName").trim()
-            if (reversedFullName.isNotEmpty()) {
-                for (i in 1..reversedFullName.length) {
-                    keywords.add(reversedFullName.take(i))
-                }
-            }
-
-            return keywords.toList()
         }
+
+        // Full name prefixes (FirstName LastName)
+        val fullNameStr = ("$normalizedFirstName $normalizedLastName").trim()
+        if (fullNameStr.isNotEmpty()) {
+            for (i in 1..fullNameStr.length) {
+                keywords.add(fullNameStr.take(i))
+            }
+        }
+
+        // Full name prefixes (LastName FirstName)
+        val reversedFullName = ("$normalizedLastName $normalizedFirstName").trim()
+        if (reversedFullName.isNotEmpty()) {
+            for (i in 1..reversedFullName.length) {
+                keywords.add(reversedFullName.take(i))
+            }
+        }
+
+        return keywords.toList()
+    }
 
     @get:Exclude
     val fullName: String get() = "$firstName $lastName".trim()

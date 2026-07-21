@@ -72,6 +72,7 @@ import com.free2party.data.model.Event
 import com.free2party.data.model.EventLink
 import com.free2party.data.model.EventType
 import com.free2party.data.model.GuestStatus
+import com.free2party.data.model.InviteStatus
 import com.free2party.R
 import com.free2party.ui.components.AppDateTimeSection
 import com.free2party.ui.components.basic.AppFilledButton
@@ -119,6 +120,9 @@ fun CreateEventScreen(
     val eventUpdatedMsg = stringResource(R.string.toast_event_updated)
 
     val friends by viewModel.friendsList.collectAsState()
+    val acceptedFriends = remember(friends) {
+        friends.filter { it.inviteStatus == InviteStatus.ACCEPTED }
+    }
     val circles by viewModel.circles.collectAsState()
 
     // Query event if editing
@@ -755,7 +759,7 @@ fun CreateEventScreen(
                 )
 
                 FriendSelector(
-                    friends = friends,
+                    friends = acceptedFriends,
                     circles = circles,
                     selectedFriendIds = selectedGuestsMap.keys.toList(),
                     onToggleFriend = { id ->
@@ -781,7 +785,7 @@ fun CreateEventScreen(
                     },
                     onSelectAll = {
                         hasInteractedWithGuests = true
-                        val all = friends.associate { friend ->
+                        val all = acceptedFriends.associate { friend ->
                             val status = selectedGuestsMap[friend.uid]
                                 ?: originalEvent?.guests?.get(friend.uid)
                                 ?: GuestStatus.PENDING.name
@@ -941,6 +945,9 @@ fun CreateEventScreen(
                             endTimeState.minute
                         ) else ""
 
+                        val acceptedFriendIds = acceptedFriends.map { it.uid }.toSet()
+                        val filteredGuestsMap = selectedGuestsMap.filterKeys { it in acceptedFriendIds }
+
                         if (editingEventId == null) {
                             viewModel.saveEvent(
                                 title = title,
@@ -954,7 +961,7 @@ fun CreateEventScreen(
                                 locationName = locationName,
                                 latitude = latitude,
                                 longitude = longitude,
-                                guests = selectedGuestsMap,
+                                guests = filteredGuestsMap,
                                 usefulLinks = usefulLinksList,
                                 onSuccess = {
                                     Toast.makeText(context, eventCreatedMsg, Toast.LENGTH_SHORT)
@@ -983,7 +990,7 @@ fun CreateEventScreen(
                                 locationName = locationName,
                                 latitude = latitude,
                                 longitude = longitude,
-                                guests = selectedGuestsMap,
+                                guests = filteredGuestsMap,
                                 usefulLinks = usefulLinksList,
                                 onSuccess = {
                                     Toast.makeText(context, eventUpdatedMsg, Toast.LENGTH_SHORT)

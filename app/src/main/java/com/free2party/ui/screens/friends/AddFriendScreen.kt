@@ -1,21 +1,26 @@
 package com.free2party.ui.screens.friends
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Search
@@ -68,7 +73,6 @@ fun AddFriendRoute(
             when (event) {
                 is FriendUiEvent.FriendRequestSentSuccessfully -> {
                     Toast.makeText(context, friendRequestSentTemplate, Toast.LENGTH_SHORT).show()
-                    onBack()
                 }
 
                 is FriendUiEvent.ShowToast -> {
@@ -86,6 +90,7 @@ fun AddFriendRoute(
         uiState = viewModel.uiState,
         searchResults = viewModel.searchResults,
         isSearching = viewModel.isSearchingUsers,
+        isSendingRequest = viewModel.isSendingRequest,
         onQueryChange = { viewModel.searchUsers(it) },
         onUserSelected = { user ->
             if (user.relationship == UserRelationship.BLOCKED) {
@@ -94,6 +99,8 @@ fun AddFriendRoute(
                 viewModel.addFriend(user.email)
             }
         },
+        onAcceptFriendRequest = { reqId, email -> viewModel.acceptFriendRequest(reqId, email) },
+        onDeclineFriendRequest = { reqId, email -> viewModel.declineFriendRequest(reqId, email) },
         onBack = onBack,
         onResetState = { viewModel.resetState() },
         gradientBackground = gradientBackground
@@ -106,8 +113,11 @@ fun AddFriendScreen(
     uiState: AddFriendUiState,
     searchResults: List<UserSearchResult>,
     isSearching: Boolean,
+    isSendingRequest: Boolean = false,
     onQueryChange: (String) -> Unit,
     onUserSelected: (UserSearchResult) -> Unit,
+    onAcceptFriendRequest: (String, String) -> Unit = { _, _ -> },
+    onDeclineFriendRequest: (String, String) -> Unit = { _, _ -> },
     onBack: () -> Unit,
     onResetState: () -> Unit,
     gradientBackground: Boolean
@@ -154,18 +164,28 @@ fun AddFriendScreen(
 
             if (isSearching) {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(32.dp))
                 }
             } else if (query.isNotBlank() && searchResults.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.text_no_results_found),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.text_no_results_found),
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -208,6 +228,57 @@ fun AddFriendScreen(
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary
                                     )
+
+                                    UserRelationship.PENDING_INCOMING -> {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.tertiary)
+                                                    .clickable {
+                                                        user.requestId?.let { reqId ->
+                                                            onDeclineFriendRequest(
+                                                                reqId,
+                                                                user.email
+                                                            )
+                                                        }
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = stringResource(R.string.description_decline),
+                                                    tint = MaterialTheme.colorScheme.onTertiary,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .background(MaterialTheme.colorScheme.primary)
+                                                    .clickable {
+                                                        user.requestId?.let { reqId ->
+                                                            onAcceptFriendRequest(reqId, user.email)
+                                                        }
+                                                    },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = stringResource(R.string.description_accept),
+                                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
+                                    }
 
                                     UserRelationship.BLOCKED -> Icon(
                                         imageVector = Icons.Default.Block,
@@ -257,6 +328,18 @@ fun AddFriendScreen(
                 },
                 onDismissRequest = { userToAdd = null }
             )
+        }
+
+        if (isSendingRequest) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         }
     }
 }

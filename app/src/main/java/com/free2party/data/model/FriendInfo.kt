@@ -29,7 +29,8 @@ data class UserSearchResult(
     val firstName: String = "",
     val lastName: String = "",
     val email: String = "",
-    val relationship: UserRelationship = UserRelationship.NONE
+    val relationship: UserRelationship = UserRelationship.NONE,
+    val requestId: String? = null
 ) {
     val fullName: String get() = "$firstName $lastName".trim()
 }
@@ -43,5 +44,6 @@ enum class UserRelationship {
     NONE,
     FRIEND,
     PENDING,
+    PENDING_INCOMING,
     BLOCKED
 }
