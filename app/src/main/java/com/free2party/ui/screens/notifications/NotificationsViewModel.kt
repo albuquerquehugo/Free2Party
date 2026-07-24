@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -129,30 +130,60 @@ class NotificationsViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    private val _processingRequestIds = MutableStateFlow<Set<String>>(emptySet())
+    val processingRequestIds: StateFlow<Set<String>> = _processingRequestIds.asStateFlow()
+
     fun acceptFriendRequest(requestId: String) {
+        if (_processingRequestIds.value.contains(requestId)) return
+        _processingRequestIds.value += requestId
         viewModelScope.launch {
-            socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.ACCEPTED)
-                .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_accepted)))
-                }
+            try {
+                socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.ACCEPTED)
+                    .onSuccess {
+                        _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_accepted)))
+                    }
+                    .onFailure {
+                        _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.error_database_operation)))
+                    }
+            } finally {
+                _processingRequestIds.value -= requestId
+            }
         }
     }
 
     fun declineFriendRequest(requestId: String) {
+        if (_processingRequestIds.value.contains(requestId)) return
+        _processingRequestIds.value += requestId
         viewModelScope.launch {
-            socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
-                .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_declined)))
-                }
+            try {
+                socialRepository.updateFriendRequestStatus(requestId, FriendRequestStatus.DECLINED)
+                    .onSuccess {
+                        _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_declined)))
+                    }
+                    .onFailure {
+                        _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.error_database_operation)))
+                    }
+            } finally {
+                _processingRequestIds.value -= requestId
+            }
         }
     }
 
     fun declineAndBlockFriendRequest(requestId: String) {
+        if (_processingRequestIds.value.contains(requestId)) return
+        _processingRequestIds.value += requestId
         viewModelScope.launch {
-            socialRepository.declineAndBlockFriendRequest(requestId)
-                .onSuccess {
-                    _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_declined_and_user_blocked)))
-                }
+            try {
+                socialRepository.declineAndBlockFriendRequest(requestId)
+                    .onSuccess {
+                        _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.toast_friend_request_declined_and_user_blocked)))
+                    }
+                    .onFailure {
+                        _uiEvent.emit(NotificationsUiEvent.ShowToast(UiText.StringResource(R.string.error_database_operation)))
+                    }
+            } finally {
+                _processingRequestIds.value -= requestId
+            }
         }
     }
 

@@ -127,7 +127,12 @@ class FriendViewModel @Inject constructor(
         }
     }
 
+    var processingRequestIds by mutableStateOf<Set<String>>(emptySet())
+        private set
+
     fun acceptFriendRequest(requestId: String, friendEmail: String? = null) {
+        if (processingRequestIds.contains(requestId)) return
+        processingRequestIds = processingRequestIds + requestId
         isSendingRequest = true
         viewModelScope.launch {
             try {
@@ -146,12 +151,15 @@ class FriendViewModel @Inject constructor(
                         _uiEvent.emit(FriendUiEvent.ShowToast(UiText.StringResource(R.string.error_database_operation)))
                     }
             } finally {
+                processingRequestIds = processingRequestIds - requestId
                 isSendingRequest = false
             }
         }
     }
 
     fun declineFriendRequest(requestId: String, friendEmail: String? = null) {
+        if (processingRequestIds.contains(requestId)) return
+        processingRequestIds = processingRequestIds + requestId
         isSendingRequest = true
         viewModelScope.launch {
             try {
@@ -170,6 +178,7 @@ class FriendViewModel @Inject constructor(
                         _uiEvent.emit(FriendUiEvent.ShowToast(UiText.StringResource(R.string.error_database_operation)))
                     }
             } finally {
+                processingRequestIds = processingRequestIds - requestId
                 isSendingRequest = false
             }
         }

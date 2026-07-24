@@ -365,7 +365,7 @@ fun LiveEventsOverviewPreview() {
                                     dateText = stringResource(R.string.onboarding_mock_event_pizza_date),
                                     locationText = "${stringResource(R.string.onboarding_mock_event_pizza_location)} (${
                                         stringResource(
-                                            R.string.onboarding_mock_event_distance2
+                                            R.string.onboarding_mock_event_pizza_distance
                                         )
                                     })",
                                     guestCount = 3,
@@ -385,7 +385,7 @@ fun LiveEventsOverviewPreview() {
                                         dateText = stringResource(R.string.onboarding_mock_event_volleyball_date),
                                         locationText = "${stringResource(R.string.onboarding_mock_event_volleyball_location)} (${
                                             stringResource(
-                                                R.string.onboarding_mock_event_distance3
+                                                R.string.onboarding_mock_event_volleyball_distance
                                             )
                                         })",
                                         guestCount = 5,
@@ -409,7 +409,7 @@ fun LiveEventsOverviewPreview() {
                                         dateText = stringResource(R.string.onboarding_mock_event_artwalk_date),
                                         locationText = "${stringResource(R.string.onboarding_mock_event_artwalk_location)} (${
                                             stringResource(
-                                                R.string.onboarding_mock_event_distance1
+                                                R.string.onboarding_mock_event_artwalk_distance
                                             )
                                         })",
                                         guestCount = 28,
@@ -544,7 +544,7 @@ fun MockEventCard(
                 if (hostName != null) {
                     // Mock Host Avatar
                     ProfileAvatar(size = ProfileAvatarSize.SMALL)
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
 
                 // Title & Host Name

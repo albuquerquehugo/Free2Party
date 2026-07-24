@@ -332,8 +332,10 @@ fun EventDetailsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = ev.title,
+                        modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
@@ -382,8 +384,6 @@ fun EventDetailsScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
                         Text(
                             text = when (ev.type) {
                                 EventType.PUBLIC -> stringResource(R.string.label_public)
@@ -430,9 +430,11 @@ fun EventDetailsScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.label_date_and_time),
-                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -504,9 +506,11 @@ fun EventDetailsScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.label_location),
-                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -577,9 +581,11 @@ fun EventDetailsScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.label_rsvp),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -713,9 +719,11 @@ fun EventDetailsScreen(
 
                     Text(
                         text = stringResource(R.string.label_guests, visibleGuests.size),
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleLarge
                     )
                     if (isHost && visibleGuests.isNotEmpty()) {
                         val acceptedCount = remember(visibleGuests) {
@@ -943,9 +951,11 @@ fun EventDetailsScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.label_useful_links),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         ev.usefulLinks.forEach { link ->
                             Row(
@@ -1002,28 +1012,12 @@ fun EventDetailsScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.label_photo_album),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
-
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            AppTextButton(
-                                onClick = {
-                                    photoPickerLauncher.launch(
-                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                    )
-                                },
-                                enabled = !isUploadingPhoto,
-                                modifier = Modifier.align(Alignment.Center)
-                            ) {
-                                Icon(Icons.Default.AddAPhoto, contentDescription = null)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(stringResource(R.string.label_upload_photo))
-                            }
-                        }
 
                         if (sortedPhotos.isEmpty()) {
                             if (isUploadingPhoto) {
@@ -1118,7 +1112,21 @@ fun EventDetailsScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            AppTextButton(
+                                onClick = {
+                                    photoPickerLauncher.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                enabled = !isUploadingPhoto,
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+                                Icon(Icons.Default.AddAPhoto, contentDescription = null)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(stringResource(R.string.label_upload_photo))
+                            }
+                        }
                     }
                 }
             }
@@ -1139,9 +1147,11 @@ fun EventDetailsScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.label_comments),
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleLarge
                     )
 
                     if (comments.isEmpty()) {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -531,7 +532,8 @@ fun EventCard(
         val startDateTime = event.getStartMillis()
         val endDateTime = event.getEndMillis()
         val now = System.currentTimeMillis()
-        val isCurrent = startDateTime != 0L && endDateTime != 0L && now >= startDateTime && now < endDateTime
+        val isCurrent =
+            startDateTime != 0L && endDateTime != 0L && now >= startDateTime && now < endDateTime
         val isPast = endDateTime != 0L && now >= endDateTime
         PlanStatus(isCurrent = isCurrent, isPast = isPast, isEditDisabled = false)
     }
@@ -570,9 +572,7 @@ fun EventCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 val isMyEvent = event.hostId == currentUserId
                 // Host Avatar
                 Box(
@@ -599,7 +599,10 @@ fun EventCard(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 // Title & Host Name
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(
                         text = event.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -709,7 +712,9 @@ fun EventCard(
                         imageVector = Icons.Default.Description,
                         contentDescription = null,
                         tint = baseContentColor,
-                        modifier = Modifier.size(16.dp).padding(top = 2.dp)
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(top = 2.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(

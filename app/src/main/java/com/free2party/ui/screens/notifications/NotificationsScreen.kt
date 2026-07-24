@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -100,12 +101,15 @@ fun NotificationsRoute(
         }
     }
 
+    val processingRequestIds by viewModel.processingRequestIds.collectAsState()
+
     NotificationsScreen(
         items = items,
         itemsUnreadCount = itemsUnreadCount,
         notificationsUnreadCount = notificationsUnreadCount,
         gradientBackground = gradientBackground,
         membership = membership,
+        processingRequestIds = processingRequestIds,
         onAcceptRequest = { viewModel.acceptFriendRequest(it.id) },
         onDeclineRequest = { viewModel.declineFriendRequest(it.id) },
         onDeclineAndBlockRequest = { viewModel.declineAndBlockFriendRequest(it.id) },
@@ -123,6 +127,7 @@ fun NotificationsScreen(
     notificationsUnreadCount: Int,
     gradientBackground: Boolean,
     membership: Membership = Membership.FREE,
+    processingRequestIds: Set<String> = emptySet(),
     onAcceptRequest: (FriendRequest) -> Unit,
     onDeclineRequest: (FriendRequest) -> Unit,
     onDeclineAndBlockRequest: (FriendRequest) -> Unit,
@@ -190,6 +195,7 @@ fun NotificationsScreen(
                         items(requests, key = { it.id }) { item ->
                             FriendRequestItem(
                                 request = item.friendRequest,
+                                isProcessing = processingRequestIds.contains(item.friendRequest.id),
                                 onAccept = { onAcceptRequest(item.friendRequest) },
                                 onDecline = { onDeclineRequest(item.friendRequest) },
                                 onDeclineAndBlock = { onDeclineAndBlockRequest(item.friendRequest) }
@@ -243,6 +249,7 @@ fun NotificationsScreen(
 @Composable
 fun FriendRequestItem(
     request: FriendRequest,
+    isProcessing: Boolean = false,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onDeclineAndBlock: () -> Unit
@@ -329,38 +336,46 @@ fun FriendRequestItem(
             modifier = Modifier.padding(start = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.tertiary)
-                    .clickable { setShowDeclineDialog(true) },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.description_decline),
-                    tint = MaterialTheme.colorScheme.onTertiary,
-                    modifier = Modifier.size(20.dp)
+            if (isProcessing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 2.dp
                 )
-            }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiary)
+                        .clickable { setShowDeclineDialog(true) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.description_decline),
+                        tint = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
 
-            Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { onAccept() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.description_accept),
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable { onAccept() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = stringResource(R.string.description_accept),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }

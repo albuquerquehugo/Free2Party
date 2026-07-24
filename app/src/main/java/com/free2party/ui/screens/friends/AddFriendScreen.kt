@@ -91,6 +91,7 @@ fun AddFriendRoute(
         searchResults = viewModel.searchResults,
         isSearching = viewModel.isSearchingUsers,
         isSendingRequest = viewModel.isSendingRequest,
+        processingRequestIds = viewModel.processingRequestIds,
         onQueryChange = { viewModel.searchUsers(it) },
         onUserSelected = { user ->
             if (user.relationship == UserRelationship.BLOCKED) {
@@ -114,6 +115,7 @@ fun AddFriendScreen(
     searchResults: List<UserSearchResult>,
     isSearching: Boolean,
     isSendingRequest: Boolean = false,
+    processingRequestIds: Set<String> = emptySet(),
     onQueryChange: (String) -> Unit,
     onUserSelected: (UserSearchResult) -> Unit,
     onAcceptFriendRequest: (String, String) -> Unit = { _, _ -> },
@@ -230,52 +232,61 @@ fun AddFriendScreen(
                                     )
 
                                     UserRelationship.PENDING_INCOMING -> {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.tertiary)
-                                                    .clickable {
-                                                        user.requestId?.let { reqId ->
-                                                            onDeclineFriendRequest(
-                                                                reqId,
-                                                                user.email
-                                                            )
-                                                        }
-                                                    },
-                                                contentAlignment = Alignment.Center
+                                        val isProcessing = user.requestId != null && processingRequestIds.contains(user.requestId)
+                                        if (isProcessing) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(24.dp),
+                                                color = MaterialTheme.colorScheme.primary,
+                                                strokeWidth = 2.dp
+                                            )
+                                        } else {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Close,
-                                                    contentDescription = stringResource(R.string.description_decline),
-                                                    tint = MaterialTheme.colorScheme.onTertiary,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(CircleShape)
+                                                        .background(MaterialTheme.colorScheme.tertiary)
+                                                        .clickable {
+                                                            user.requestId?.let { reqId ->
+                                                                onDeclineFriendRequest(
+                                                                    reqId,
+                                                                    user.email
+                                                                )
+                                                            }
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = stringResource(R.string.description_decline),
+                                                        tint = MaterialTheme.colorScheme.onTertiary,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
 
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                                Spacer(modifier = Modifier.width(8.dp))
 
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.primary)
-                                                    .clickable {
-                                                        user.requestId?.let { reqId ->
-                                                            onAcceptFriendRequest(reqId, user.email)
-                                                        }
-                                                    },
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Check,
-                                                    contentDescription = stringResource(R.string.description_accept),
-                                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(CircleShape)
+                                                        .background(MaterialTheme.colorScheme.primary)
+                                                        .clickable {
+                                                            user.requestId?.let { reqId ->
+                                                                onAcceptFriendRequest(reqId, user.email)
+                                                            }
+                                                        },
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = stringResource(R.string.description_accept),
+                                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
                                             }
                                         }
                                     }

@@ -3,12 +3,13 @@ package com.free2party.ui.screens.onboarding
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Check
@@ -16,7 +17,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -116,25 +117,48 @@ fun LiveEventDetailsRsvpPreview() {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = stringResource(R.string.onboarding_mock_event_pizza_title),
-                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            ProfileAvatar(size = ProfileAvatarSize.SMALL)
-                            Spacer(modifier = Modifier.width(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                ProfileAvatar(size = ProfileAvatarSize.SMALL)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(
+                                        R.string.label_hosted_by,
+                                        stringResource(R.string.onboarding_mock_event_host1)
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
                             Text(
-                                text = stringResource(
-                                    R.string.label_hosted_by,
-                                    stringResource(R.string.onboarding_mock_event_host1)
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = stringResource(R.string.label_private),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
+
                         Text(
                             text = stringResource(R.string.onboarding_mock_event_pizza_description),
                             style = MaterialTheme.typography.bodyMedium,
@@ -157,9 +181,11 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_date_and_time),
-                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -217,9 +243,11 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_location),
-                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -270,9 +298,11 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_rsvp),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         BadgedIconContainer(number = 1) {
                             Row(
@@ -344,9 +374,11 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_guests, rsvpCount),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
 
                         // Horizontal list of guests with status rings and status labels below user names
@@ -482,9 +514,11 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_useful_links),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Row(
                             modifier = Modifier
@@ -533,28 +567,12 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_photo_album),
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
                         )
-                        BadgedIconContainer(
-                            number = 2,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        ) {
-                            Row {
-                                Icon(
-                                    Icons.Default.AddAPhoto,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.label_upload_photo),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-
                         // Horizontal list / Row of photos (Generic photos representation using gradients and icons)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -563,7 +581,8 @@ fun LiveEventDetailsRsvpPreview() {
                             // Photo 1: Sunset
                             Box(
                                 modifier = Modifier
-                                    .size(60.dp)
+                                    .weight(1f)
+                                    .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(
                                         Brush.verticalGradient(
@@ -576,18 +595,19 @@ fun LiveEventDetailsRsvpPreview() {
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .padding(4.dp)
-                                        .size(12.dp)
+                                        .padding(top = 24.dp)
+                                        .size(32.dp)
                                         .clip(CircleShape)
                                         .background(Color.White.copy(alpha = 0.8f))
-                                        .align(Alignment.TopEnd)
+                                        .align(Alignment.TopCenter)
                                 )
                             }
 
                             // Photo 2: Starry Night
                             Box(
                                 modifier = Modifier
-                                    .size(60.dp)
+                                    .weight(1f)
+                                    .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(
                                         Brush.verticalGradient(
@@ -601,17 +621,37 @@ fun LiveEventDetailsRsvpPreview() {
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.9f),
                                     modifier = Modifier
-                                        .size(24.dp)
-                                        .align(Alignment.Center)
+                                        .padding(start = 24.dp, top = 32.dp)
+                                        .size(12.dp)
+                                        .align(Alignment.TopStart),
+                                    tint = Color.White.copy(alpha = 0.9f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .padding(top = 16.dp)
+                                        .size(12.dp)
+                                        .align(Alignment.TopCenter),
+                                    tint = Color.White.copy(alpha = 0.9f)
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .padding(top = 32.dp, end = 24.dp)
+                                        .size(12.dp)
+                                        .align(Alignment.TopEnd),
+                                    tint = Color.White.copy(alpha = 0.9f)
                                 )
                             }
 
                             // Photo 3: Person/Nature
                             Box(
                                 modifier = Modifier
-                                    .size(60.dp)
+                                    .weight(1f)
+                                    .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(
                                         Brush.verticalGradient(
@@ -627,8 +667,26 @@ fun LiveEventDetailsRsvpPreview() {
                                     contentDescription = null,
                                     tint = Color.White.copy(alpha = 0.9f),
                                     modifier = Modifier
-                                        .size(24.dp)
+                                        .size(48.dp)
                                         .align(Alignment.Center)
+                                )
+                            }
+                        }
+
+                        BadgedIconContainer(
+                            number = 2,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Row {
+                                Icon(
+                                    Icons.Default.AddAPhoto,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.label_upload_photo),
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -649,10 +707,12 @@ fun LiveEventDetailsRsvpPreview() {
                     ) {
                         Text(
                             text = stringResource(R.string.label_comments),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp)
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleLarge
+
                         )
 
                         Column(

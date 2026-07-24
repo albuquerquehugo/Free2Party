@@ -677,6 +677,15 @@ class SocialRepositoryImpl @Inject constructor(
                 )
             )
 
+            val blockedByRef = db.collection("users").document(request.senderId)
+                .collection("blockedBy").document(request.receiverId)
+            transaction.set(
+                blockedByRef, mapOf(
+                    "uid" to request.receiverId,
+                    "blockedAt" to FieldValue.serverTimestamp()
+                )
+            )
+
             // Create notification for sender
             val receiverFirstName = receiverDoc.getString("firstName") ?: ""
             val receiverLastName = receiverDoc.getString("lastName") ?: ""
@@ -708,9 +717,14 @@ class SocialRepositoryImpl @Inject constructor(
 
     override suspend fun unblockUser(userId: String): Result<Unit> = try {
         validateSession()
-        db.collection("users").document(currentUserId)
+        val batch = db.batch()
+        val blockedRef = db.collection("users").document(currentUserId)
             .collection("blocked").document(userId)
-            .delete().await()
+        val blockedByRef = db.collection("users").document(userId)
+            .collection("blockedBy").document(currentUserId)
+        batch.delete(blockedRef)
+        batch.delete(blockedByRef)
+        batch.commit().await()
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(mapToSocialException(e))
@@ -831,6 +845,15 @@ class SocialRepositoryImpl @Inject constructor(
                 blockedRef, mapOf(
                     "uid" to friendId,
                     "name" to friendName,
+                    "blockedAt" to FieldValue.serverTimestamp()
+                )
+            )
+
+            val blockedByRef = db.collection("users").document(friendId)
+                .collection("blockedBy").document(currentUserId)
+            transaction.set(
+                blockedByRef, mapOf(
+                    "uid" to currentUserId,
                     "blockedAt" to FieldValue.serverTimestamp()
                 )
             )

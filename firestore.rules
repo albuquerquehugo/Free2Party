@@ -39,6 +39,11 @@ service cloud.firestore {
         allow read: if request.auth != null && (request.auth.uid == userId || request.auth.uid == blockedId);
       }
 
+      // BlockedBy subcollection
+      match /blockedBy/{blockedByUserId} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || request.auth.uid == blockedByUserId);
+      }
+
       // Circles subcollection: owner can do everything
       match /circles/{circleId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;

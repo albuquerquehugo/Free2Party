@@ -445,11 +445,19 @@ class EventsViewModel @Inject constructor(
                 .onSuccess { onSuccess() }
                 .onFailure { error ->
                     Log.e("EventsViewModel", "Error responding to event", error)
-                    if (error is EventEditCurrentPastException) {
-                        onError(UiText.StringResource(R.string.text_event_ended_rsvp_disabled))
-                    } else {
-                        onError(UiText.StringResource(R.string.error_database_operation))
+                    val errorMsg = when (error) {
+                        is EventEditCurrentPastException -> UiText.StringResource(R.string.text_event_ended_rsvp_disabled)
+                        is EventException -> {
+                            if (error.messageRes != null) {
+                                UiText.StringResource(error.messageRes)
+                            } else {
+                                UiText.DynamicString(error.message ?: "")
+                            }
+                        }
+
+                        else -> UiText.StringResource(R.string.error_database_operation)
                     }
+                    onError(errorMsg)
                 }
         }
     }

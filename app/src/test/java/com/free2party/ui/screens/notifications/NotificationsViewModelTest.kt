@@ -24,6 +24,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -140,32 +141,35 @@ class NotificationsViewModelTest {
     }
 
     @Test
-    fun `acceptFriendRequest calls repository`() = runTest {
+    fun `acceptFriendRequest calls repository and updates processingRequestIds`() = runTest {
         viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         viewModel.acceptFriendRequest("req123")
         runCurrent()
 
         coVerify { socialRepository.updateFriendRequestStatus("req123", FriendRequestStatus.ACCEPTED) }
+        assertTrue(viewModel.processingRequestIds.value.isEmpty())
     }
 
     @Test
-    fun `declineFriendRequest calls repository`() = runTest {
+    fun `declineFriendRequest calls repository and updates processingRequestIds`() = runTest {
         viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         viewModel.declineFriendRequest("req456")
         runCurrent()
 
         coVerify { socialRepository.updateFriendRequestStatus("req456", FriendRequestStatus.DECLINED) }
+        assertTrue(viewModel.processingRequestIds.value.isEmpty())
     }
 
     @Test
-    fun `declineAndBlockFriendRequest calls repository`() = runTest {
+    fun `declineAndBlockFriendRequest calls repository and updates processingRequestIds`() = runTest {
         viewModel = NotificationsViewModel(socialRepository, userRepository, settingsRepository)
         
         viewModel.declineAndBlockFriendRequest("req789")
         runCurrent()
 
         coVerify { socialRepository.declineAndBlockFriendRequest("req789") }
+        assertTrue(viewModel.processingRequestIds.value.isEmpty())
     }
 }

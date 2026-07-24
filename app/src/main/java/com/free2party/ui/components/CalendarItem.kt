@@ -348,7 +348,8 @@ fun EventItem(
             val startDateTime = event.getStartMillis()
             val endDateTime = event.getEndMillis()
 
-            val isCurrent = startDateTime != 0L && endDateTime != 0L && currentTimeMillis >= startDateTime && currentTimeMillis < endDateTime
+            val isCurrent = startDateTime != 0L && endDateTime != 0L &&
+                    currentTimeMillis >= startDateTime && currentTimeMillis < endDateTime
             val isPast = endDateTime != 0L && currentTimeMillis >= endDateTime
 
             PlanStatus(isCurrent = isCurrent, isPast = isPast, isEditDisabled = false)
@@ -438,36 +439,44 @@ fun EventItem(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        if (event.startDate == event.endDate) {
+                        if (event.endDate.isNotBlank() && event.endTime.isNotBlank()) {
+                            if (event.startDate == event.endDate) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.time_range,
+                                        formatTimeForDisplay(event.startTime, use24HourFormat),
+                                        formatTimeForDisplay(event.endTime, use24HourFormat)
+                                    ),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            } else {
+                                DateTimeLabel(
+                                    time = formatTimeForDisplay(event.startTime, use24HourFormat),
+                                    date = event.startDate
+                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowRightAlt,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = baseContentColor.copy(alpha = 0.6f)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    DateTimeLabel(
+                                        time = formatTimeForDisplay(event.endTime, use24HourFormat),
+                                        date = event.endDate
+                                    )
+                                }
+                            }
+
+                            DurationBadge(text = duration, status = eventStatus, isEvent = true)
+                        } else {
                             Text(
-                                text = stringResource(
-                                    R.string.time_range,
-                                    formatTimeForDisplay(event.startTime, use24HourFormat),
-                                    formatTimeForDisplay(event.endTime, use24HourFormat)
-                                ),
+                                text = stringResource(R.string.label_from_colon) + " " +
+                                        formatTimeForDisplay(event.startTime, use24HourFormat),
                                 style = MaterialTheme.typography.titleSmall
                             )
-                        } else {
-                            DateTimeLabel(
-                                time = formatTimeForDisplay(event.startTime, use24HourFormat),
-                                date = event.startDate
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowRightAlt,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = baseContentColor.copy(alpha = 0.6f)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                DateTimeLabel(
-                                    time = formatTimeForDisplay(event.endTime, use24HourFormat),
-                                    date = event.endDate
-                                )
-                            }
                         }
-
-                        DurationBadge(text = duration, status = eventStatus, isEvent = true)
                     }
                 }
 

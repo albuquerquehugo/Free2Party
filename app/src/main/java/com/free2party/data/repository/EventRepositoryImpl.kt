@@ -43,6 +43,7 @@ import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
@@ -122,14 +123,107 @@ class EventRepositoryImpl @Inject constructor(
                     val events = snapshot?.documents?.mapNotNull { doc ->
                         doc.toObject(Event::class.java)?.copy(id = doc.id)
                     } ?: emptyList()
-                    trySend(events)
+
+                    val uniqueHostIds = events.map { it.hostId }
+                        .distinct()
+                        .filter { it.isNotBlank() && it != uid }
+
+                    if (uniqueHostIds.isEmpty()) {
+                        trySend(events)
+                    } else {
+                        val blockedHostIds =
+                            java.util.Collections.synchronizedSet(mutableSetOf<String>())
+                        var remaining = uniqueHostIds.size
+
+                        val checkFinished = {
+                            if (--remaining == 0) {
+                                trySend(events.filter { it.hostId !in blockedHostIds })
+                            }
+                        }
+
+                        uniqueHostIds.forEach { hostId ->
+                            // Check 1: Did host block current user?
+                            db.collection("users").document(hostId)
+                                .collection("blocked").document(uid).get()
+                                .addOnSuccessListener { hostBlockedDoc ->
+                                    if (hostBlockedDoc.exists()) {
+                                        blockedHostIds.add(hostId)
+                                        checkFinished()
+                                    } else {
+                                        // Check 2: Did current user block host?
+                                        db.collection("users").document(uid)
+                                            .collection("blocked").document(hostId).get()
+                                            .addOnSuccessListener { myBlockedDoc ->
+                                                if (myBlockedDoc.exists()) {
+                                                    blockedHostIds.add(hostId)
+                                                    checkFinished()
+                                                } else {
+                                                    // Check 3: Safe check for current user blocked by host
+                                                    db.collection("users").document(uid)
+                                                        .collection("blockedBy").document(hostId)
+                                                        .get()
+                                                        .addOnSuccessListener { blockedByDoc ->
+                                                            if (blockedByDoc.exists()) {
+                                                                blockedHostIds.add(hostId)
+                                                            }
+                                                            checkFinished()
+                                                        }
+                                                        .addOnFailureListener { checkFinished() }
+                                                }
+                                            }
+                                            .addOnFailureListener { checkFinished() }
+                                    }
+                                }
+                                .addOnFailureListener { checkFinished() }
+                        }
+                    }
                 }
             awaitClose { listener.remove() }
         }
 
+        val blockedUsersFlow = callbackFlow {
+            val listener = db.collection("users")
+                .document(uid)
+                .collection("blocked")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        trySend(emptySet())
+                        return@addSnapshotListener
+                    }
+                    val ids = snapshot?.documents?.map { it.id }?.toSet() ?: emptySet()
+                    trySend(ids)
+                }
+            awaitClose { listener.remove() }
+        }.catch { emit(emptySet()) }
+
+        val blockedByUsersFlow = callbackFlow {
+            val listener = db.collection("users")
+                .document(uid)
+                .collection("blockedBy")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        trySend(emptySet())
+                        return@addSnapshotListener
+                    }
+                    val ids = snapshot?.documents?.map { it.id }?.toSet() ?: emptySet()
+                    trySend(ids)
+                }
+            awaitClose { listener.remove() }
+        }.catch { emit(emptySet()) }
+
+        val allBlockedIdsFlow = combine(blockedUsersFlow, blockedByUsersFlow) { b1, b2 ->
+            b1 + b2
+        }.catch { emit(emptySet()) }
+
         // Combine all flows and remove duplicates, sorting by startDate/startTime
-        return combine(hostedFlow, guestFlow, publicFlow) { hosted, guest, public ->
-            val allEvents = (hosted + guest + public).distinctBy { it.id }
+        return combine(
+            hostedFlow,
+            guestFlow,
+            publicFlow,
+            allBlockedIdsFlow
+        ) { hosted, guest, public, blockedIds ->
+            val filteredPublic = public.filter { it.hostId !in blockedIds }
+            val allEvents = (hosted + guest + filteredPublic).distinctBy { it.id }
             allEvents.sortedWith(compareBy({ it.startDate }, { it.startTime }))
         }
     }
@@ -152,7 +246,40 @@ class EventRepositoryImpl @Inject constructor(
                 }
                 val event = snapshot?.toObject(Event::class.java)?.copy(id = snapshot.id)
                 if (event != null) {
-                    trySend(event)
+                    val uid = currentUserId
+                    if (event.type == EventType.PUBLIC && event.hostId.isNotBlank() && event.hostId != uid) {
+                        db.collection("users").document(event.hostId)
+                            .collection("blocked").document(uid).get()
+                            .addOnSuccessListener { hostBlockedDoc ->
+                                if (hostBlockedDoc.exists()) {
+                                    close(EventNotFoundException())
+                                } else {
+                                    db.collection("users").document(uid)
+                                        .collection("blocked").document(event.hostId).get()
+                                        .addOnSuccessListener { myBlockedDoc ->
+                                            if (myBlockedDoc.exists()) {
+                                                close(EventNotFoundException())
+                                            } else {
+                                                db.collection("users").document(uid)
+                                                    .collection("blockedBy").document(event.hostId)
+                                                    .get()
+                                                    .addOnSuccessListener { blockedByDoc ->
+                                                        if (blockedByDoc.exists()) {
+                                                            close(EventNotFoundException())
+                                                        } else {
+                                                            trySend(event)
+                                                        }
+                                                    }
+                                                    .addOnFailureListener { trySend(event) }
+                                            }
+                                        }
+                                        .addOnFailureListener { trySend(event) }
+                                }
+                            }
+                            .addOnFailureListener { trySend(event) }
+                    } else {
+                        trySend(event)
+                    }
                 } else {
                     close(EventNotFoundException())
                 }
@@ -383,10 +510,26 @@ class EventRepositoryImpl @Inject constructor(
                 (snapshot.get("guestIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
             val invitedGuestIds =
                 (snapshot.get("invitedGuestIds") as? List<*>)?.filterIsInstance<String>()
-            val isPublic = snapshot.getString("type") == EventType.PUBLIC.name
+            val isPublic =
+                (snapshot.getString("type") ?: eventObj?.type?.name) == EventType.PUBLIC.name
+            val hostId = eventObj?.hostId ?: snapshot.getString("hostId") ?: ""
 
             if (!isPublic && !guestIds.contains(uid)) {
                 throw UnauthorizedException("You are not invited to this private event")
+            }
+
+            if (isPublic && hostId.isNotBlank() && hostId != uid) {
+                val blockedDoc = transaction.get(
+                    db.collection("users").document(uid)
+                        .collection("blocked").document(hostId)
+                )
+                val blockedByDoc = transaction.get(
+                    db.collection("users").document(uid)
+                        .collection("blockedBy").document(hostId)
+                )
+                if (blockedDoc.exists() || blockedByDoc.exists()) {
+                    throw UnauthorizedException("Event not accessible")
+                }
             }
 
             val updates = mutableMapOf<String, Any>()
